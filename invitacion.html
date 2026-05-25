@@ -2,226 +2,510 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nuestra Boda</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Invitación de Boda</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
   <style>
-    :root {
-      --bg: #f7f1e8;
-      --text: #1f1f1f;
-      --gold: #b9965b;
-      --white: #fffaf2;
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    :root{
+      --bg:#f7f1e8;
+      --gold:#b9965b;
+      --text:#1d1d1d;
+      --white:#fffaf2;
     }
 
-    body {
-      font-family: "Inter", Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      scroll-behavior: smooth;
+    html{
+      scroll-behavior:smooth;
     }
 
-    section {
-      min-height: 100vh;
-      padding: 80px 24px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
+    body{
+      font-family:Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
     }
 
-    .hero {
+    body.locked{
+      overflow:hidden;
+    }
+
+    section{
+      min-height:100vh;
+      padding:80px 24px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      text-align:center;
+    }
+
+    /* SOBRE */
+
+    #envelope-screen{
+      position:fixed;
+      inset:0;
+      background:var(--bg);
+      z-index:9999;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      transition:1s;
+    }
+
+    #envelope-screen.hide{
+      opacity:0;
+      visibility:hidden;
+    }
+
+    .envelope{
+      position:relative;
+      width:320px;
+      height:210px;
+      background:#d8b979;
+      border-radius:10px;
+      cursor:pointer;
+      box-shadow:0 25px 70px rgba(0,0,0,.2);
+      animation:float 3s ease-in-out infinite;
+    }
+
+    .envelope::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:#c9a760;
+      clip-path:polygon(0 100%,50% 50%,100% 100%);
+      z-index:2;
+    }
+
+    .flap{
+      position:absolute;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:#bf9852;
+      clip-path:polygon(0 0,50% 58%,100% 0);
+      transform-origin:top;
+      transition:1.2s ease;
+      z-index:4;
+    }
+
+    .letter{
+      position:absolute;
+      left:50%;
+      bottom:12px;
+      transform:translateX(-50%);
+      width:260px;
+      height:170px;
+      background:var(--white);
+      border-radius:10px;
+      z-index:1;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+      transition:1.2s ease;
+      box-shadow:0 10px 30px rgba(0,0,0,.08);
+    }
+
+    .letter h2{
+      font-family:Georgia, serif;
+      font-size:34px;
+      color:#8f6b2d;
+      margin-bottom:10px;
+      font-weight:400;
+    }
+
+    .letter p{
+      letter-spacing:3px;
+      font-size:12px;
+      text-transform:uppercase;
+      color:#777;
+    }
+
+    .envelope.open .flap{
+      transform:rotateX(180deg);
+    }
+
+    .envelope.open .letter{
+      transform:translate(-50%,-120px);
+    }
+
+    @keyframes float{
+      0%,100%{
+        transform:translateY(0);
+      }
+      50%{
+        transform:translateY(-10px);
+      }
+    }
+
+    /* HERO */
+
+    .hero{
       background:
-        linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)),
-        url("foto-portada.jpg") center/cover;
-      color: white;
+      linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)),
+      url('https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=1600&auto=format&fit=crop') center/cover;
+      color:white;
     }
 
-    .subtitle {
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      font-size: 14px;
-      color: var(--gold);
-      margin-bottom: 20px;
+    .subtitle{
+      letter-spacing:4px;
+      text-transform:uppercase;
+      font-size:13px;
+      margin-bottom:20px;
+      color:var(--gold);
     }
 
-    h1 {
-      font-family: Georgia, serif;
-      font-size: clamp(48px, 12vw, 110px);
-      font-weight: 400;
-      margin-bottom: 20px;
+    h1{
+      font-family:Georgia, serif;
+      font-size:clamp(58px,10vw,120px);
+      font-weight:400;
+      margin-bottom:20px;
     }
 
-    h2 {
-      font-family: Georgia, serif;
-      font-size: clamp(36px, 8vw, 70px);
-      font-weight: 400;
-      margin-bottom: 24px;
+    h2{
+      font-family:Georgia, serif;
+      font-size:clamp(38px,7vw,70px);
+      font-weight:400;
+      margin-bottom:20px;
     }
 
-    p {
-      max-width: 620px;
-      font-size: 18px;
-      line-height: 1.7;
-      margin-bottom: 24px;
+    p{
+      max-width:700px;
+      line-height:1.8;
+      font-size:18px;
+      margin-bottom:24px;
     }
 
-    .btn {
-      display: inline-block;
-      padding: 14px 28px;
-      border: 1px solid var(--gold);
-      border-radius: 999px;
-      color: inherit;
-      text-decoration: none;
-      transition: .3s;
+    .btn{
+      display:inline-block;
+      padding:15px 30px;
+      border-radius:999px;
+      border:1px solid var(--gold);
+      color:white;
+      text-decoration:none;
+      transition:.3s;
     }
 
-    .btn:hover {
-      background: var(--gold);
-      color: white;
+    .btn:hover{
+      background:var(--gold);
+      border-color:var(--gold);
     }
 
-    .card {
-      background: var(--white);
-      padding: 32px;
-      border-radius: 24px;
-      max-width: 520px;
-      box-shadow: 0 20px 50px rgba(0,0,0,.08);
-      margin: 16px 0;
+    /* COUNTDOWN */
+
+    .countdown{
+      display:flex;
+      gap:20px;
+      flex-wrap:wrap;
+      justify-content:center;
+      margin-top:30px;
     }
 
-    .countdown {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-top: 32px;
+    .time-box{
+      background:white;
+      padding:25px;
+      border-radius:20px;
+      min-width:110px;
+      box-shadow:0 10px 30px rgba(0,0,0,.08);
     }
 
-    .time-box {
-      background: white;
-      padding: 20px;
-      border-radius: 18px;
-      min-width: 90px;
+    .time-box strong{
+      display:block;
+      font-size:38px;
+      color:var(--gold);
+      margin-bottom:10px;
     }
 
-    .time-box strong {
-      display: block;
-      font-size: 32px;
-      color: var(--gold);
+    /* CARDS */
+
+    .card{
+      background:var(--white);
+      padding:40px;
+      border-radius:30px;
+      margin:20px 0;
+      width:min(100%,550px);
+      box-shadow:0 20px 50px rgba(0,0,0,.08);
     }
 
-    footer {
-      padding: 48px 24px;
-      text-align: center;
-      background: #171717;
-      color: white;
+    .card h3{
+      font-family:Georgia, serif;
+      font-size:32px;
+      margin-bottom:15px;
+      color:#7d5c24;
+      font-weight:400;
     }
+
+    /* GALERIA */
+
+    .gallery{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+      gap:20px;
+      width:min(1100px,100%);
+      margin-top:40px;
+    }
+
+    .gallery img{
+      width:100%;
+      height:320px;
+      object-fit:cover;
+      border-radius:24px;
+    }
+
+    footer{
+      background:#171717;
+      color:white;
+      padding:60px 24px;
+      text-align:center;
+    }
+
+    footer h2{
+      margin-top:20px;
+    }
+
   </style>
 </head>
 
-<body>
+<body class="locked">
+
+  <!-- SOBRE -->
+
+  <div id="envelope-screen">
+    <div class="envelope" onclick="openEnvelope()">
+
+      <div class="flap"></div>
+
+      <div class="letter">
+        <h2>A & L</h2>
+        <p>Abrir invitación</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HERO -->
 
   <section class="hero">
+
     <div class="subtitle">Nos casamos</div>
+
     <h1>Ana & Luis</h1>
-    <p>15 de noviembre de 2026</p>
-    <a href="#invitacion" class="btn">Ver invitación</a>
+
+    <p>15 de Noviembre · 2026</p>
+
+    <a href="#mensaje" class="btn">Ver invitación</a>
+
   </section>
 
-  <section id="invitacion">
+  <!-- MENSAJE -->
+
+  <section id="mensaje">
+
     <div class="subtitle">Con mucha alegría</div>
+
     <h2>Queremos compartir este día contigo</h2>
+
     <p>
-      Después de tantos momentos juntos, llegó el día de celebrar nuestro amor
-      rodeados de las personas que más queremos.
+      Después de tantos momentos juntos,
+      llegó el día de celebrar nuestro amor
+      rodeados de las personas más importantes de nuestras vidas.
     </p>
+
   </section>
+
+  <!-- COUNTDOWN -->
 
   <section>
-    <div class="subtitle">Falta poco</div>
-    <h2>Cuenta regresiva</h2>
+
+    <div class="subtitle">Cuenta regresiva</div>
+
+    <h2>Falta muy poco</h2>
 
     <div class="countdown">
+
       <div class="time-box">
         <strong id="days">00</strong>
         Días
       </div>
+
       <div class="time-box">
         <strong id="hours">00</strong>
         Horas
       </div>
+
       <div class="time-box">
         <strong id="minutes">00</strong>
         Min
       </div>
+
       <div class="time-box">
         <strong id="seconds">00</strong>
         Seg
       </div>
+
     </div>
+
   </section>
 
+  <!-- EVENTOS -->
+
   <section>
+
     <div class="subtitle">Detalles</div>
+
     <h2>Ceremonia & Recepción</h2>
 
     <div class="card">
+
       <h3>Ceremonia</h3>
-      <p>Iglesia San Pedro<br>5:00 p.m.</p>
-      <a class="btn" href="https://maps.google.com" target="_blank">Cómo llegar</a>
+
+      <p>
+        Iglesia San Pedro<br>
+        5:00 p.m.
+      </p>
+
+      <a class="btn" href="https://maps.google.com" target="_blank">
+        Cómo llegar
+      </a>
+
     </div>
 
     <div class="card">
+
       <h3>Recepción</h3>
-      <p>Casa Hacienda Los Jardines<br>7:00 p.m.</p>
-      <a class="btn" href="https://maps.google.com" target="_blank">Ver mapa</a>
+
+      <p>
+        Casa Hacienda Los Jardines<br>
+        7:00 p.m.
+      </p>
+
+      <a class="btn" href="https://maps.google.com" target="_blank">
+        Ver mapa
+      </a>
+
     </div>
+
   </section>
 
+  <!-- DRESS CODE -->
+
   <section>
-    <div class="subtitle">Dress code</div>
-    <h2>Elegante formal</h2>
+
+    <div class="subtitle">Dress Code</div>
+
+    <h2>Elegante Formal</h2>
+
     <p>
-      Te sugerimos tonos neutros, negro, beige, dorado suave o colores tierra.
+      Te sugerimos tonos neutros,
+      beige, negro, champagne y tierra.
     </p>
+
   </section>
 
+  <!-- GALERIA -->
+
   <section>
-    <div class="subtitle">Confirmación</div>
-    <h2>RSVP</h2>
-    <p>Confírmanos tu asistencia por WhatsApp.</p>
+
+    <div class="subtitle">Nuestra historia</div>
+
+    <h2>Momentos especiales</h2>
+
+    <div class="gallery">
+
+      <img src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?q=80&w=1200&auto=format&fit=crop">
+
+      <img src="https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop">
+
+      <img src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=1200&auto=format&fit=crop">
+
+    </div>
+
+  </section>
+
+  <!-- RSVP -->
+
+  <section>
+
+    <div class="subtitle">RSVP</div>
+
+    <h2>Confirma tu asistencia</h2>
+
+    <p>
+      Será un honor contar contigo en este día tan especial.
+    </p>
+
     <a
       class="btn"
       href="https://wa.me/51999999999?text=Hola,%20confirmo%20mi%20asistencia%20a%20la%20boda"
       target="_blank"
     >
-      Confirmar asistencia
+      Confirmar por WhatsApp
     </a>
+
   </section>
 
+  <!-- FOOTER -->
+
   <footer>
+
     <p>Gracias por acompañarnos</p>
+
     <h2>Ana & Luis</h2>
+
   </footer>
 
   <script>
+
+    function openEnvelope(){
+
+      const envelope = document.querySelector(".envelope");
+      const screen = document.getElementById("envelope-screen");
+
+      envelope.classList.add("open");
+
+      setTimeout(() => {
+
+        screen.classList.add("hide");
+        document.body.classList.remove("locked");
+
+      }, 1600);
+    }
+
+    // COUNTDOWN
+
     const weddingDate = new Date("2026-11-15T17:00:00").getTime();
 
-    function updateCountdown() {
+    function updateCountdown(){
+
       const now = new Date().getTime();
+
       const distance = weddingDate - now;
 
       const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((distance / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((distance / (1000 * 60)) % 60);
-      const seconds = Math.floor((distance / 1000) % 60);
+
+      const hours = Math.floor(
+        (distance % (1000 * 60 * 60 * 24)) /
+        (1000 * 60 * 60)
+      );
+
+      const minutes = Math.floor(
+        (distance % (1000 * 60 * 60)) /
+        (1000 * 60)
+      );
+
+      const seconds = Math.floor(
+        (distance % (1000 * 60)) /
+        1000
+      );
 
       document.getElementById("days").textContent = days;
       document.getElementById("hours").textContent = hours;
@@ -230,7 +514,9 @@
     }
 
     updateCountdown();
+
     setInterval(updateCountdown, 1000);
+
   </script>
 
 </body>
