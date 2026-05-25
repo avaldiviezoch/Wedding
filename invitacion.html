@@ -39,7 +39,7 @@ body.locked{
   position:fixed;
   inset:0;
   z-index:9999;
-  background:var(--cream);
+  background:#fffdf8;
   display:flex;
   flex-direction:column;
   justify-content:center;
@@ -55,100 +55,101 @@ body.locked{
 
 .intro-text{
   text-align:center;
-  margin-bottom:35px;
+  margin-bottom:34px;
+  z-index:5;
 }
 
 .intro-text span{
   display:block;
   font-size:13px;
-  letter-spacing:7px;
-  color:var(--green);
+  letter-spacing:8px;
+  color:#6f7d76;
   margin-bottom:12px;
 }
 
 .intro-text h2{
   font-family:"Great Vibes", cursive;
-  font-size:56px;
+  font-size:58px;
   font-weight:400;
-  color:var(--green);
+  color:#6f7d76;
 }
 
 .heart{
-  margin-top:16px;
-  color:var(--gold);
+  margin-top:18px;
+  color:#c59a4a;
   font-size:22px;
 }
 
-/* FLORES DECORATIVAS */
+/* FLORES */
 
 .floral{
   position:absolute;
-  width:210px;
-  height:260px;
+  width:170px;
+  height:270px;
+  z-index:1;
   opacity:.9;
-  pointer-events:none;
 }
 
-.floral.left{
-  left:-25px;
+.floral-left{
+  left:-35px;
   top:42%;
-  transform:translateY(-50%) rotate(-8deg);
 }
 
-.floral.right{
+.floral-right{
   right:-35px;
-  top:57%;
-  transform:translateY(-50%) rotate(12deg) scaleX(-1);
+  top:45%;
+  transform:scaleX(-1);
 }
 
-.leaf{
+.stem{
   position:absolute;
-  width:24px;
-  height:54px;
-  background:linear-gradient(180deg,#9caf9f,#edf2ec);
-  border-radius:50%;
-  transform-origin:bottom center;
-  opacity:.85;
+  left:80px;
+  top:0;
+  width:2px;
+  height:245px;
+  background:#b8c6bb;
+  transform:rotate(-18deg);
 }
 
-.leaf:nth-child(1){left:80px;top:0;transform:rotate(-20deg);}
-.leaf:nth-child(2){left:110px;top:35px;transform:rotate(25deg);}
-.leaf:nth-child(3){left:65px;top:70px;transform:rotate(-42deg);}
-.leaf:nth-child(4){left:125px;top:95px;transform:rotate(38deg);}
-.leaf:nth-child(5){left:45px;top:130px;transform:rotate(-55deg);}
-.leaf:nth-child(6){left:120px;top:160px;transform:rotate(52deg);}
+.floral span{
+  position:absolute;
+  width:34px;
+  height:62px;
+  border-radius:50%;
+  background:linear-gradient(160deg,#dfe8e1,#8fa39a);
+  opacity:.65;
+}
+
+.floral span:nth-child(2){left:44px;top:20px;transform:rotate(-35deg);}
+.floral span:nth-child(3){left:88px;top:60px;transform:rotate(35deg);}
+.floral span:nth-child(4){left:30px;top:110px;transform:rotate(-55deg);}
+.floral span:nth-child(5){left:98px;top:135px;transform:rotate(45deg);}
+.floral span:nth-child(6){left:50px;top:190px;transform:rotate(-30deg);}
 
 .flower{
   position:absolute;
-  width:80px;
-  height:80px;
-  left:55px;
-  top:120px;
-}
-
-.flower span{
-  position:absolute;
-  width:44px;
-  height:44px;
+  left:42px;
+  top:150px;
+  width:82px;
+  height:82px;
   background:#f3f5ee;
-  border-radius:50% 50% 45% 45%;
-  box-shadow:inset 0 0 10px rgba(90,110,90,.15);
+  border-radius:50%;
+  box-shadow:
+    22px 0 0 #eef2ea,
+    -22px 0 0 #eef2ea,
+    0 22px 0 #eef2ea,
+    0 -22px 0 #eef2ea;
 }
-
-.flower span:nth-child(1){left:18px;top:0;}
-.flower span:nth-child(2){left:0;top:22px;transform:rotate(-60deg);}
-.flower span:nth-child(3){right:0;top:22px;transform:rotate(60deg);}
-.flower span:nth-child(4){left:18px;bottom:0;transform:rotate(180deg);}
 
 .flower::after{
   content:"";
   position:absolute;
   width:18px;
   height:18px;
-  background:#89988f;
+  background:#7c8b83;
   border-radius:50%;
-  left:31px;
-  top:31px;
+  left:32px;
+  top:32px;
 }
 
 /* SOBRE */
@@ -156,17 +157,18 @@ body.locked{
 .envelope{
   position:relative;
   width:min(84vw,390px);
-  height:285px;
+  height:290px;
   cursor:pointer;
-  filter:drop-shadow(0 24px 30px rgba(90,65,25,.18));
+  z-index:4;
+  filter:drop-shadow(0 25px 35px rgba(91,67,28,.18));
   animation:floatEnvelope 3s ease-in-out infinite;
 }
 
 .back-flap{
   position:absolute;
   inset:0;
-  background:linear-gradient(145deg,#d9b464,#b88430);
-  clip-path:polygon(50% 0,100% 43%,100% 100%,0 100%,0 43%);
+  background:linear-gradient(145deg,#d7ad54,#b87f27);
+  clip-path:polygon(50% 0,100% 45%,100% 100%,0 100%,0 45%);
   border-radius:14px;
   z-index:1;
 }
@@ -174,74 +176,48 @@ body.locked{
 .letter{
   position:absolute;
   left:50%;
-  bottom:70px;
-  width:86%;
-  height:200px;
+  bottom:76px;
+  width:88%;
+  height:210px;
   transform:translateX(-50%);
-  background:#fffaf1;
+  background:#fffaf2;
   border-radius:18px;
   z-index:2;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  transition:1.25s cubic-bezier(.2,.8,.2,1);
-  box-shadow:0 10px 28px rgba(80,60,30,.1);
-}
-
-.names-card{
-  font-family:"Great Vibes", cursive;
-  font-size:52px;
-  line-height:.9;
-  color:var(--green);
   text-align:center;
-  margin-bottom:26px;
+  padding-top:34px;
+  box-shadow:0 10px 26px rgba(70,50,20,.1);
+  transition:1.25s cubic-bezier(.2,.8,.2,1);
 }
 
-.names-card .and{
-  display:block;
-  font-size:34px;
+.letter h1{
+  font-family:"Great Vibes", cursive;
+  font-size:58px;
+  line-height:.78;
+  font-weight:400;
+  color:#6f7d76;
+}
+
+.letter h3{
+  font-family:"Great Vibes", cursive;
+  font-size:36px;
+  font-weight:400;
+  color:#6f7d76;
   margin:8px 0;
 }
 
-.card-flower{
-  width:110px;
-  height:24px;
-  margin-bottom:20px;
-  position:relative;
-}
-
-.card-flower::before,
-.card-flower::after{
-  content:"";
-  position:absolute;
-  top:10px;
-  width:45px;
-  height:1px;
-  background:#cfc6b7;
-}
-
-.card-flower::before{left:0;}
-.card-flower::after{right:0;}
-
-.card-flower span{
-  position:absolute;
-  left:50%;
-  top:2px;
-  transform:translateX(-50%);
-  color:var(--gold);
-  font-size:16px;
+.mini-flower{
+  color:#9cac9f;
+  font-size:24px;
+  margin:18px 0 8px;
 }
 
 .letter p{
   font-size:12px;
   letter-spacing:5px;
-  color:var(--green);
+  color:#6f7d76;
 }
 
-.left-flap,
-.right-flap,
-.bottom-flap{
+.side{
   position:absolute;
   bottom:0;
   width:100%;
@@ -249,59 +225,67 @@ body.locked{
   z-index:3;
 }
 
-.left-flap{
-  background:linear-gradient(135deg,#e0bf72,#c7953f);
+.side.left{
+  background:linear-gradient(135deg,#e2bd68,#c18b33);
   clip-path:polygon(0 0,50% 52%,0 100%);
 }
 
-.right-flap{
-  background:linear-gradient(225deg,#e0bf72,#c7953f);
+.side.right{
+  background:linear-gradient(225deg,#e2bd68,#c18b33);
   clip-path:polygon(100% 0,50% 52%,100% 100%);
 }
 
-.bottom-flap{
-  background:linear-gradient(180deg,#d3ad5d,#b88430);
-  clip-path:polygon(0 100%,50% 33%,100% 100%);
+.front{
+  position:absolute;
+  bottom:0;
+  width:100%;
+  height:72%;
+  background:linear-gradient(180deg,#d1a54c,#b98228);
+  clip-path:polygon(0 100%,50% 34%,100% 100%);
   border-radius:0 0 14px 14px;
+  z-index:4;
 }
 
-.wax-seal{
+.seal{
   position:absolute;
   left:50%;
-  bottom:46px;
+  bottom:53px;
   transform:translateX(-50%);
-  width:62px;
-  height:62px;
+  width:64px;
+  height:64px;
   border-radius:50%;
-  background:radial-gradient(circle at 35% 30%,#dba251,#8f551d 72%);
-  color:#f6d58b;
-  z-index:5;
+  background:radial-gradient(circle at 35% 30%,#dba04a,#9a5a1e 72%);
+  z-index:6;
   display:flex;
   justify-content:center;
   align-items:center;
+  color:#fff1c5;
   font-size:24px;
-  box-shadow:inset 0 3px 8px rgba(255,255,255,.25),0 8px 20px rgba(70,45,20,.35);
+  box-shadow:
+    inset 0 4px 10px rgba(255,255,255,.25),
+    0 8px 20px rgba(80,48,15,.35);
 }
 
 .tap-text{
   margin-top:38px;
   font-size:12px;
-  letter-spacing:6px;
-  color:var(--green);
+  letter-spacing:7px;
+  color:#6f7d76;
+  z-index:5;
 }
 
 .envelope.open .letter{
-  transform:translate(-50%,-190px);
+  transform:translate(-50%,-195px);
 }
 
-.envelope.open .wax-seal{
+.envelope.open .seal{
   opacity:0;
-  transition:.5s;
+  transition:.4s;
 }
 
 @keyframes floatEnvelope{
   0%,100%{transform:translateY(0);}
-  50%{transform:translateY(-10px);}
+  50%{transform:translateY(-9px);}
 }
 
 /* CONTENIDO */
@@ -439,45 +423,43 @@ footer h2{
 
 <div id="envelope-screen">
 
-  <div class="floral left">
-    <div class="leaf"></div><div class="leaf"></div><div class="leaf"></div>
-    <div class="leaf"></div><div class="leaf"></div><div class="leaf"></div>
-    <div class="flower"><span></span><span></span><span></span><span></span></div>
-  </div>
-
-  <div class="floral right">
-    <div class="leaf"></div><div class="leaf"></div><div class="leaf"></div>
-    <div class="leaf"></div><div class="leaf"></div><div class="leaf"></div>
-    <div class="flower"><span></span><span></span><span></span><span></span></div>
-  </div>
-
   <div class="intro-text">
     <span>TIENES UNA INVITACIÓN</span>
     <h2>muy especial</h2>
     <div class="heart">♥</div>
   </div>
 
+  <div class="floral floral-left">
+    <div class="stem"></div>
+    <span></span><span></span><span></span><span></span><span></span>
+    <div class="flower"></div>
+  </div>
+
+  <div class="floral floral-right">
+    <div class="stem"></div>
+    <span></span><span></span><span></span><span></span><span></span>
+    <div class="flower"></div>
+  </div>
+
   <div class="envelope" onclick="openEnvelope()">
+
     <div class="back-flap"></div>
 
     <div class="letter">
-      <div class="names-card">
-        Antonio
-        <span class="and">y</span>
-        Lucero
-      </div>
+      <h1>Antonio</h1>
+      <h3>y</h3>
+      <h1>Lucero</h1>
 
-      <div class="card-flower">
-        <span>♥</span>
-      </div>
-
+      <div class="mini-flower">✿</div>
       <p>ABRIR INVITACIÓN</p>
     </div>
 
-    <div class="left-flap"></div>
-    <div class="right-flap"></div>
-    <div class="bottom-flap"></div>
-    <div class="wax-seal">✦</div>
+    <div class="side left"></div>
+    <div class="side right"></div>
+    <div class="front"></div>
+
+    <div class="seal">✦</div>
+
   </div>
 
   <div class="tap-text">☝︎ TOCA EL SOBRE PARA ABRIR</div>
