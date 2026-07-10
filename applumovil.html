@@ -563,7 +563,7 @@
     left:8px;
     right:8px;
     bottom:calc(var(--mobile-nav-h) + env(safe-area-inset-bottom) + 8px);
-    z-index:130;
+    z-index:150;
     width:auto;
     max-height:min(76dvh,760px);
     overflow:auto;
@@ -2074,6 +2074,13 @@
   const navButtons = [...document.querySelectorAll('.mobile-nav-button')];
 
   if (!toolPanel || !detailPanel || !actionsPanel || !backdrop) return;
+
+  /*
+    El panel de acciones estaba dentro del header, que crea su propio nivel
+    de apilamiento. Por eso quedaba oculto detrás del fondo oscuro móvil.
+    Se mueve al body para que funcione como hoja flotante real.
+  */
+  document.body.appendChild(actionsPanel);
 
   function addSheetHeader(panel, title) {
     if (panel.querySelector('.mobile-sheet-head')) return;
