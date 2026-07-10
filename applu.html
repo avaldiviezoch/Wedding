@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f3eb">
+  <title>Planificador de eventos</title>
+
+  <style>
+    :root{
+      color-scheme:light;
+      --fondo:#f7f3eb;
+      --panel:rgba(255,255,255,.78);
+      --texto:#2d2b27;
+      --suave:#746f66;
+      --acento:#7f9b64;
+      --borde:rgba(255,255,255,.92);
+    }
+
+    *{box-sizing:border-box}
+
+    html,body{
+      width:100%;
+      min-height:100%;
+      margin:0;
+    }
+
+    body{
+      min-height:100dvh;
+      display:grid;
+      place-items:center;
+      padding:22px;
+      overflow:hidden;
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      color:var(--texto);
+      background:
+        radial-gradient(circle at 50% 28%, rgba(127,155,100,.18), transparent 34%),
+        linear-gradient(145deg,#f4f0e8,#ece8df);
+    }
+
+    .card{
+      width:min(92vw,430px);
+      padding:32px 25px 25px;
+      text-align:center;
+      border:1px solid var(--borde);
+      border-radius:26px;
+      background:var(--panel);
+      box-shadow:0 22px 65px rgba(53,46,37,.16);
+      backdrop-filter:blur(12px);
+      -webkit-backdrop-filter:blur(12px);
+    }
+
+    .spinner{
+      width:54px;
+      height:54px;
+      margin:0 auto 20px;
+      border:5px solid rgba(127,155,100,.20);
+      border-top-color:var(--acento);
+      border-radius:50%;
+      animation:girar .85s linear infinite;
+    }
+
+    @keyframes girar{to{transform:rotate(360deg)}}
+
+    h1{
+      margin:0;
+      font-size:23px;
+      line-height:1.2;
+    }
+
+    #status{
+      min-height:42px;
+      margin:10px 0 0;
+      color:var(--suave);
+      font-size:14px;
+      line-height:1.5;
+    }
+
+    .actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:9px;
+      margin-top:18px;
+    }
+
+    a{
+      min-height:44px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 12px;
+      border:1px solid #dcd6ca;
+      border-radius:11px;
+      color:var(--texto);
+      background:#fff;
+      font-size:13px;
+      font-weight:750;
+      text-decoration:none;
+    }
+
+    a.primary{
+      color:#fff;
+      border-color:var(--acento);
+      background:var(--acento);
+    }
+
+    small{
+      display:block;
+      margin-top:16px;
+      color:#8a857c;
+      font-size:10px;
+      line-height:1.4;
+    }
+
+    @media(max-width:390px){
+      .card{padding-inline:18px}
+      .actions{grid-template-columns:1fr}
+    }
+
+    @media(prefers-reduced-motion:reduce){
+      .spinner{animation-duration:1.8s}
+    }
+  </style>
+</head>
+
+<body>
+  <main class="card">
+    <div class="spinner" aria-hidden="true"></div>
+    <h1>Abriendo el planificador</h1>
+    <p id="status">Detectando el tipo de pantalla…</p>
+
+    <div class="actions">
+      <a class="primary" href="applumovil.html">Versión móvil</a>
+      <a href="appludesktop.html">Versión escritorio</a>
+    </div>
+
+    <small>Antonio Valdiviezo Corporation © Derechos reservados</small>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const MOBILE_FILE = 'applumovil.html';
+      const DESKTOP_FILE = 'appludesktop.html';
+      const status = document.getElementById('status');
+      const params = new URLSearchParams(window.location.search);
+      const forcedView = (params.get('view') || '').toLowerCase();
+
+      function appendLocation(target) {
+        const cleanParams = new URLSearchParams(window.location.search);
+        cleanParams.delete('view');
+
+        const query = cleanParams.toString();
+        const hash = window.location.hash || '';
+
+        return target + (query ? '?' + query : '') + hash;
+      }
+
+      function detectMobile() {
+        const ua = navigator.userAgent || '';
+        const mobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+        const iPadDesktopMode =
+          navigator.platform === 'MacIntel' &&
+          navigator.maxTouchPoints > 1;
+
+        const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+        const narrowViewport = window.matchMedia('(max-width: 900px)').matches;
+        const touchTablet =
+          coarsePointer &&
+          window.matchMedia('(max-width: 1100px)').matches;
+
+        return mobileUA || iPadDesktopMode || narrowViewport || touchTablet;
+      }
+
+      let target;
+      let label;
+
+      if (forcedView === 'mobile' || forcedView === 'movil') {
+        target = MOBILE_FILE;
+        label = 'Abriendo la versión móvil…';
+      } else if (forcedView === 'desktop' || forcedView === 'escritorio') {
+        target = DESKTOP_FILE;
+        label = 'Abriendo la versión de escritorio…';
+      } else if (detectMobile()) {
+        target = MOBILE_FILE;
+        label = 'Pantalla móvil detectada. Abriendo la versión móvil…';
+      } else {
+        target = DESKTOP_FILE;
+        label = 'Pantalla de escritorio detectada. Abriendo la versión de escritorio…';
+      }
+
+      status.textContent = label;
+
+      window.setTimeout(() => {
+        window.location.replace(appendLocation(target));
+      }, 450);
+    })();
+  </script>
+</body>
+</html>
