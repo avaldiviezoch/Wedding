@@ -499,8 +499,9 @@
     overflow:auto;
     border-radius:14px;
     -webkit-overflow-scrolling:touch;
-    scroll-behavior:smooth;
-    touch-action:pan-x pan-y;
+    scroll-behavior:auto;
+    overscroll-behavior:contain;
+    touch-action:none;
     background:#d9d6ce;
   }
 
@@ -903,7 +904,7 @@
       <button id="btnClear" class="danger full">Limpiar mobiliario</button>
     </aside>
 
-    <div class="mobile-plan-hint">Desliza para recorrer · toca un elemento para editarlo</div>
+    <div class="mobile-plan-hint">Arrastra el fondo para recorrer · pellizca para acercar o alejar</div>
 <section class="canvas-wrap">
       <div class="canvas-toolbar">
         <button id="zoomOut">− Alejar</button>
@@ -1081,6 +1082,7 @@
 <script>
 (() => {
   const svg = document.getElementById('planner');
+  const canvasWrap = document.querySelector('.canvas-wrap');
   const layer = document.getElementById('itemsLayer');
   const bgImage = document.getElementById('bgImage');
   const gridLayer = document.getElementById('gridLayer');
@@ -1894,6 +1896,142 @@
     document.getElementById('zoomReset').textContent=Math.round(zoom*100)+'%';
   }
 
+  /*
+    Gestos móviles:
+    - Un dedo sobre el fondo: desplaza todo el plano.
+    - Un dedo sobre un objeto: mueve el objeto.
+    - Dos dedos: acercan o alejan el plano conservando el punto central.
+  */
+  let mobilePanGesture = null;
+  let mobilePinchGesture = null;
+
+  function touchDistance(touchA,touchB){
+    return Math.hypot(
+      touchB.clientX-touchA.clientX,
+      touchB.clientY-touchA.clientY
+    );
+  }
+
+  function touchMidpoint(touchA,touchB){
+    return {
+      x:(touchA.clientX+touchB.clientX)/2,
+      y:(touchA.clientY+touchB.clientY)/2
+    };
+  }
+
+  function startMobilePinch(event){
+    if(event.touches.length<2 || !canvasWrap) return;
+
+    const first=event.touches[0];
+    const second=event.touches[1];
+    const midpoint=touchMidpoint(first,second);
+    const rect=canvasWrap.getBoundingClientRect();
+
+    // Si se estaba moviendo un elemento, el gesto de dos dedos toma prioridad.
+    drag=null;
+    mobilePanGesture=null;
+
+    mobilePinchGesture={
+      startDistance:Math.max(1,touchDistance(first,second)),
+      startZoom:zoom,
+      contentX:(canvasWrap.scrollLeft+midpoint.x-rect.left)/zoom,
+      contentY:(canvasWrap.scrollTop+midpoint.y-rect.top)/zoom
+    };
+  }
+
+  canvasWrap.addEventListener('touchstart',event=>{
+    if(event.touches.length>=2){
+      event.preventDefault();
+      startMobilePinch(event);
+      return;
+    }
+
+    if(event.touches.length!==1) return;
+
+    // Los objetos continúan moviéndose con el sistema existente.
+    if(event.target.closest('.draggable,.rotate-handle,.canvas-toolbar')){
+      mobilePanGesture=null;
+      return;
+    }
+
+    const touch=event.touches[0];
+    mobilePinchGesture=null;
+    mobilePanGesture={
+      startX:touch.clientX,
+      startY:touch.clientY,
+      startScrollLeft:canvasWrap.scrollLeft,
+      startScrollTop:canvasWrap.scrollTop
+    };
+
+    event.preventDefault();
+  },{passive:false});
+
+  canvasWrap.addEventListener('touchmove',event=>{
+    if(event.touches.length>=2){
+      event.preventDefault();
+
+      if(!mobilePinchGesture){
+        startMobilePinch(event);
+      }
+
+      const first=event.touches[0];
+      const second=event.touches[1];
+      const midpoint=touchMidpoint(first,second);
+      const rect=canvasWrap.getBoundingClientRect();
+      const currentDistance=Math.max(1,touchDistance(first,second));
+
+      const nextZoom=Math.max(
+        .55,
+        Math.min(
+          1.8,
+          mobilePinchGesture.startZoom*
+          (currentDistance/mobilePinchGesture.startDistance)
+        )
+      );
+
+      zoom=nextZoom;
+      applyMobileZoom();
+
+      // Mantener el punto situado entre los dedos en la misma posición visual.
+      canvasWrap.scrollLeft=
+        mobilePinchGesture.contentX*zoom-
+        (midpoint.x-rect.left);
+
+      canvasWrap.scrollTop=
+        mobilePinchGesture.contentY*zoom-
+        (midpoint.y-rect.top);
+
+      return;
+    }
+
+    if(event.touches.length===1 && mobilePanGesture){
+      event.preventDefault();
+
+      const touch=event.touches[0];
+      const deltaX=touch.clientX-mobilePanGesture.startX;
+      const deltaY=touch.clientY-mobilePanGesture.startY;
+
+      canvasWrap.scrollLeft=
+        mobilePanGesture.startScrollLeft-deltaX;
+
+      canvasWrap.scrollTop=
+        mobilePanGesture.startScrollTop-deltaY;
+    }
+  },{passive:false});
+
+  function finishMobileTouch(event){
+    if(event.touches.length<2){
+      mobilePinchGesture=null;
+    }
+
+    if(event.touches.length===0){
+      mobilePanGesture=null;
+    }
+  }
+
+  canvasWrap.addEventListener('touchend',finishMobileTouch,{passive:true});
+  canvasWrap.addEventListener('touchcancel',finishMobileTouch,{passive:true});
+
   document.getElementById('zoomIn').onclick=()=>{
     zoom=Math.min(1.8,zoom+.1);
     applyMobileZoom();
@@ -1918,7 +2056,6 @@
 
   // Centra inicialmente el área útil del predio dentro de la ventana móvil.
   requestAnimationFrame(()=>{
-    const canvasWrap=document.querySelector('.canvas-wrap');
     if(canvasWrap){
       canvasWrap.scrollLeft=Math.max(0,(svg.scrollWidth-canvasWrap.clientWidth)*.42);
       canvasWrap.scrollTop=90;
