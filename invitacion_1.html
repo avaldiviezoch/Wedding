@@ -2302,6 +2302,9 @@ footer h2{
   letter-spacing:2px;
   font-family:"Montserrat", sans-serif;
   font-size:12px;
+  line-height:1.45;
+  max-width:100%;
+  white-space:normal;
   transition:.3s ease;
 }
 
@@ -2441,6 +2444,12 @@ footer h2{
 
   .gift-box h3{
     font-size:38px;
+  }
+
+  .gift-toggle{
+    padding:14px 20px;
+    font-size:11px;
+    letter-spacing:1.4px;
   }
 }
 
@@ -3880,7 +3889,9 @@ footer h2{ color:var(--forest) !important; }
   font-size:13px;
   letter-spacing:5px;
   color:#D9D6B9;
-  margin-bottom:10px;
+  position:relative;
+  top:8px;
+  margin-bottom:18px;
 }
 
 .church-title{
@@ -6260,18 +6271,17 @@ footer h2,
 
       <div class="church-divider"></div>
 
-      <div class="church-place-name">Hacienda Santa María</div>
+      <div class="church-place-name">Casa Acapulco</div>
 
       <p class="church-address">
-        Jr. Los Olivos 245<br>
-        Pachacámac, Lima
+        Calle Acapulco 480
       </p>
 
       <p class="church-note">
         Te esperamos para compartir juntos cada momento de este día tan especial.
       </p>
 
-      <a class="church-map-btn" href="https://maps.google.com" target="_blank">VER UBICACIÓN</a>
+      <a class="church-map-btn" href="https://www.google.com/maps/search/?api=1&amp;query=-12.08127394,-76.90575011" target="_blank" rel="noopener noreferrer">VER UBICACIÓN</a>
     </div>
   </div>
 
@@ -6446,7 +6456,7 @@ footer h2,
       </p>
 
       <button class="gift-toggle" type="button" onclick="toggleGiftBox()">
-        VER YAPE
+        SI TU PRESENTE ES MONETARIO
         <span id="gift-arrow">⌄</span>
       </button>
 
