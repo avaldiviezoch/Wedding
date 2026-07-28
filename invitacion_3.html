@@ -243,13 +243,13 @@
       50% { transform: translateY(-3px); opacity: 1; }
     }
 
-    .intro.is-opening .intro-texts {
+    .intro.is-playing .intro-texts {
       opacity: 0;
       filter: blur(3px);
       transform: translateY(-12px);
     }
 
-    .intro.is-opening .intro-actions {
+    .intro.is-playing .intro-actions {
       opacity: 0;
       filter: blur(3px);
       transform: translateY(12px);
@@ -3162,7 +3162,8 @@
       disablepictureinpicture
       controlslist="nodownload noplaybackrate noremoteplayback"
       aria-hidden="true">
-      <source src="video_de_saludo_3.mp4" type="video/mp4" />
+      <source src="https://avaldiviezoch.github.io/video_de_saludo_3.mp4?v=20260728" type="video/mp4" />
+      <source src="./video_de_saludo_3.mp4?v=20260728" type="video/mp4" />
     </video>
 
     <div class="intro-shade" aria-hidden="true"></div>
@@ -3898,7 +3899,7 @@
         introVideoError.hidden = false;
         introStarted = false;
         introScreen.classList.remove("is-opening");
-        introVideoError.innerHTML = 'No se pudo reproducir <strong>video_de_saludo_3.mp4</strong>.<br>Verifica que esté junto al HTML y toca nuevamente.';
+        introVideoError.innerHTML = 'No se pudo cargar <strong>video_de_saludo_3.mp4</strong> desde GitHub.<br>Debes subir ese MP4 a la raíz del repositorio, junto al archivo index.html.';
       }
     }
 
@@ -3930,7 +3931,7 @@
     introVideo.addEventListener("ended", finishIntro);
     introVideo.addEventListener("error", () => {
       introVideoError.hidden = false;
-      introVideoError.innerHTML = 'No se encontró <strong>video_de_saludo_3.mp4</strong>.<br>Revisa que esté en la misma carpeta del HTML.';
+      introVideoError.innerHTML = 'GitHub no encontró <strong>video_de_saludo_3.mp4</strong>.<br>Súbelo a la raíz del repositorio con exactamente ese nombre.';
     });
 
     // La pantalla completa funciona como botón para iniciar el video.
