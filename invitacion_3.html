@@ -176,14 +176,14 @@
 
     .intro-texts {
       align-self: start;
-      padding-top: clamp(24px, 7vh, 74px);
+      padding-top: clamp(18px, 5vh, 52px);
       transition: opacity .38s ease, transform .48s ease, filter .38s ease;
     }
 
     .intro-copy {
       margin: 0;
       font-family: "Playfair Display", Georgia, serif;
-      font-size: clamp(27px, 6.8vw, 42px);
+      font-size: clamp(21px, 5.1vw, 32px);
       line-height: 1.16;
       color: #355a35;
       text-wrap: balance;
@@ -194,7 +194,7 @@
       margin: 13px 0 0;
       font-family: "Caveat", cursive;
       color: var(--ink);
-      font-size: clamp(28px, 7vw, 40px);
+      font-size: clamp(24px, 5.8vw, 34px);
       line-height: 1;
       letter-spacing: .02em;
       text-shadow: 0 2px 0 rgba(255,255,255,.45);
@@ -3161,9 +3161,8 @@
       preload="auto"
       disablepictureinpicture
       controlslist="nodownload noplaybackrate noremoteplayback"
-      aria-hidden="true">
-      <source src="https://avaldiviezoch.github.io/video_de_saludo_3.mp4?v=20260728" type="video/mp4" />
-      <source src="./video_de_saludo_3.mp4?v=20260728" type="video/mp4" />
+      aria-hidden="true"
+      src="https://avaldiviezoch.github.io/Wedding/video_de_saludo_3.mp4">
     </video>
 
     <div class="intro-shade" aria-hidden="true"></div>
@@ -3180,7 +3179,7 @@
     </div>
 
     <p class="intro-video-error" id="introVideoError" hidden>
-      No se encontró <strong>video_de_saludo_3.mp4</strong>. Colócalo junto al archivo HTML.
+      El video está cargando. Espera un momento y toca nuevamente.
     </p>
   </section>
 
@@ -3748,8 +3747,14 @@
     let introFinished = false;
     let introFallbackTimer = null;
 
+    // Ruta relativa al mismo directorio de index.html.
+    // El parámetro evita que Safari/GitHub reutilicen el error almacenado en caché.
+    const INTRO_VIDEO_URL = "https://avaldiviezoch.github.io/Wedding/video_de_saludo_3.mp4";
+    introVideo.src = INTRO_VIDEO_URL;
+    introVideo.preload = "auto";
     introVideo.muted = false;
     introVideo.volume = 1;
+    introVideo.load();
 
     function resetIntroForMobile() {
       introStarted = false;
@@ -3878,28 +3883,41 @@
       }, 750);
     }
 
-    async function startInvitation() {
+    function startInvitation() {
       if (introStarted) return;
       introStarted = true;
-
-      primeBackgroundMusic();
+      introVideoError.hidden = true;
       introScreen.classList.add("is-opening");
 
       try {
         introVideo.currentTime = 0;
         introVideo.muted = false;
         introVideo.volume = 1;
-        await introVideo.play();
-        introScreen.classList.add("is-playing");
 
-        // La invitación se abre exclusivamente cuando el MP4 termina.
-        // No se usa temporizador para evitar que se abra antes de tiempo.
+        // IMPORTANTE PARA IPHONE: play() debe ejecutarse inmediatamente
+        // dentro del toque. No reproducir otro audio antes.
+        const playPromise = introVideo.play();
+
+        if (playPromise && typeof playPromise.then === "function") {
+          playPromise.then(() => {
+            introScreen.classList.add("is-playing");
+
+          }).catch((error) => {
+            console.warn("No se pudo iniciar la reproducción:", error);
+            introVideoError.hidden = false;
+            introStarted = false;
+            introScreen.classList.remove("is-opening", "is-playing");
+            introVideoError.innerHTML = 'El video aún no terminó de cargar. <strong>Espera un momento y toca nuevamente.</strong>'; 
+          });
+        } else {
+          introScreen.classList.add("is-playing");
+        }
       } catch (error) {
-        console.warn("No se pudo reproducir el video de entrada:", error);
+        console.warn("No se pudo iniciar el video:", error);
         introVideoError.hidden = false;
         introStarted = false;
-        introScreen.classList.remove("is-opening");
-        introVideoError.innerHTML = 'No se pudo cargar <strong>video_de_saludo_3.mp4</strong> desde GitHub.<br>Debes subir ese MP4 a la raíz del repositorio, junto al archivo index.html.';
+        introScreen.classList.remove("is-opening", "is-playing");
+        introVideoError.innerHTML = 'El video aún no está listo. <strong>Espera un momento y toca nuevamente.</strong>'; 
       }
     }
 
@@ -3928,10 +3946,15 @@
       introVideo.addEventListener("loadeddata", showFirstVideoFrame, { once: true });
     }
 
+    introVideo.addEventListener("canplay", () => {
+      introVideoError.hidden = true;
+      showFirstVideoFrame();
+    });
+
     introVideo.addEventListener("ended", finishIntro);
     introVideo.addEventListener("error", () => {
       introVideoError.hidden = false;
-      introVideoError.innerHTML = 'GitHub no encontró <strong>video_de_saludo_3.mp4</strong>.<br>Súbelo a la raíz del repositorio con exactamente ese nombre.';
+      introVideoError.innerHTML = 'No se pudo cargar el video desde GitHub. Recarga la página e inténtalo nuevamente.';
     });
 
     // La pantalla completa funciona como botón para iniciar el video.
