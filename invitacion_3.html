@@ -1888,10 +1888,38 @@
     .faq details[open] summary::after { content: "−"; }
 
     .faq-answer {
-      padding: 0 36px 16px 3px;
+      padding: 0 36px 10px 3px;
       color: var(--ink-soft);
       font-size: 13px;
       line-height: 1.65;
+    }
+
+    .faq-illustration {
+      padding: 2px 0 18px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
+
+    .faq-illustration img {
+      display: block;
+      width: min(100%, 240px);
+      height: auto;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .faq details:nth-child(2) .faq-illustration img {
+      width: min(100%, 430px);
+    }
+
+    .faq details:nth-child(3) .faq-illustration img {
+      width: min(100%, 270px);
     }
 
 
@@ -3064,8 +3092,8 @@
        AUDIO DE FONDO
        REEMPLAZA EL src POR TU ARCHIVO MP3.
        ========================================================= -->
-  <audio id="bgMusic" loop preload="none">
-    <!-- <source src="assets/musica-boda.mp3" type="audio/mpeg" /> -->
+  <audio id="bgMusic" loop preload="auto">
+    <source src="musica_one_piece_ambiente_3.mp3" type="audio/mpeg" />
   </audio>
 
   <!-- =========================================================
@@ -3514,14 +3542,23 @@
         <details>
           <summary>¿La ceremonia y la recepción son en el mismo lugar?</summary>
           <div class="faq-answer">Sí. Ambas se realizarán en Casa Acapulco.</div>
+          <div class="faq-illustration">
+            <img src="pic_preguntas_3_1.png" alt="Ilustración para la primera pregunta" loading="lazy" />
+          </div>
         </details>
         <details>
           <summary>¿Hasta cuándo puedo confirmar mi asistencia?</summary>
           <div class="faq-answer">Por favor, confirma tu asistencia hasta el 15 de noviembre de 2026.</div>
+          <div class="faq-illustration">
+            <img src="pic_preguntas_3_2.png" alt="Ilustración para la segunda pregunta" loading="lazy" />
+          </div>
         </details>
         <details>
           <summary>¿Hay estacionamiento?</summary>
           <div class="faq-answer">Cerca de la zona hay algunos estacionamientos. Sin embargo, tendremos all you can drink, así que te recomendamos no llevar auto y llegar en taxi o aplicativo.</div>
+          <div class="faq-illustration">
+            <img src="pic_preguntas_3_3.png" alt="Ilustración para la tercera pregunta" loading="lazy" />
+          </div>
         </details>
       </div>
 
@@ -3543,7 +3580,10 @@
     </section>
 
     <footer class="credits">
-      Créditos: Antonio Valdiviezo © Derechos reservados
+      <div>Créditos: Antonio Valdiviezo © Derechos reservados</div>
+      <div style="margin-top:6px; font-size:10px; letter-spacing:.08em; text-transform:none; opacity:.82;">
+        Música: “Navigate on the Sea” © Eiichiro Oda · Shueisha
+      </div>
     </footer>
   </main>
 
@@ -3634,7 +3674,7 @@
       weddingDate: "2027-01-16T16:00:00-05:00",
 
       // Cuando tengas música, coloca el archivo aquí:
-      backgroundMusic: "", // Ejemplo: "assets/musica-boda.mp3"
+      backgroundMusic: "musica_one_piece_ambiente_3.mp3",
 
       // Para enviar a Google Sheets / Apps Script, pega aquí el endpoint.
       // Mientras esté vacío, el formulario funcionará en modo demostración.
@@ -3652,6 +3692,7 @@
     const bgMusic = document.getElementById("bgMusic");
 
     let musicPlaying = false;
+    let backgroundMusicPrimed = false;
     let introStarted = false;
     let introFinished = false;
     let introFallbackTimer = null;
@@ -3664,17 +3705,36 @@
       bgMusic.load();
     }
 
-    function startBackgroundMusic() {
-      if (!CONFIG.backgroundMusic) return;
+    function primeBackgroundMusic() {
+      if (!CONFIG.backgroundMusic || !bgMusic || backgroundMusicPrimed) return;
 
+      // Se inicia silenciosamente durante el toque inicial para que los móviles
+      // permitan continuar la reproducción cuando termine el primer MP4.
+      bgMusic.volume = 0;
+      bgMusic.currentTime = 0;
+      const primePromise = bgMusic.play();
+      if (primePromise && typeof primePromise.then === "function") {
+        primePromise.then(() => {
+          backgroundMusicPrimed = true;
+        }).catch(() => {});
+      }
+    }
+
+    function startBackgroundMusic() {
+      if (!CONFIG.backgroundMusic || !bgMusic) return;
+
+      try { bgMusic.currentTime = 0; } catch (error) {}
       bgMusic.volume = 0.42;
-      bgMusic.play().then(() => {
-        musicPlaying = true;
-        if (musicButton) {
-          musicButton.classList.add("is-playing");
-          musicButton.textContent = "❚❚";
-        }
-      }).catch(() => {});
+      const playPromise = bgMusic.play();
+      if (playPromise && typeof playPromise.then === "function") {
+        playPromise.then(() => {
+          musicPlaying = true;
+          if (musicButton) {
+            musicButton.classList.add("is-playing");
+            musicButton.textContent = "❚❚";
+          }
+        }).catch(() => {});
+      }
     }
 
     function configureAnimatedCover() {
@@ -3746,6 +3806,7 @@
       if (introStarted) return;
       introStarted = true;
 
+      primeBackgroundMusic();
       introScreen.classList.add("is-opening");
 
       try {
