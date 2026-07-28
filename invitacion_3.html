@@ -3084,6 +3084,56 @@
       .program-table-event span { line-height: 1.22; }
     }
 
+    /* Correcciones de estabilidad para celulares */
+    .animated-cover-section {
+      background:
+        radial-gradient(circle at 50% 38%, rgba(255,255,255,.34), transparent 32%),
+        #fbeed8;
+    }
+
+    .animated-cover-video.media-error {
+      display: none !important;
+    }
+
+    .animated-cover-fallback.mobile-cover-fallback {
+      position: absolute;
+      inset: 0;
+      display: flex !important;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 30px;
+      text-align: center;
+      color: #123f6a;
+      background: #fbeed8;
+      font-family: "Playfair Display", Georgia, serif;
+      font-size: clamp(26px, 7vw, 46px);
+      line-height: 1.25;
+    }
+
+    .faq-illustration img.media-error,
+    .carousel-slide img.media-error {
+      display: none !important;
+    }
+
+    .faq-illustration:has(img.media-error) {
+      display: none !important;
+    }
+
+    .carousel-slide:has(img.media-error)::after {
+      content: "Imagen no encontrada";
+      display: grid;
+      place-items: center;
+      width: 100%;
+      height: 100%;
+      padding: 20px;
+      color: rgba(18,63,106,.58);
+      font-size: 13px;
+      text-align: center;
+      background: rgba(255,255,255,.18);
+    }
+
   </style>
 </head>
 <body class="locked">
@@ -3159,16 +3209,16 @@
         muted
         loop
         preload="auto"
-        poster="ant_y_lu_3_poster.png"
         disablepictureinpicture
         controlslist="nodownload noplaybackrate noremoteplayback"
         aria-hidden="true">
         <source src="ant_y_lu_3.mp4" type="video/mp4" />
       </video>
 
-      <p class="animated-cover-fallback" id="animatedCoverFallback" hidden>
-        Falta colocar <strong>ant_y_lu_3.mp4</strong> junto al archivo HTML.
-      </p>
+      <div class="animated-cover-fallback mobile-cover-fallback" id="animatedCoverFallback" hidden>
+        <span>Antonio &amp; Lucero</span>
+        <small style="font-family:DM Sans,sans-serif;font-size:14px;font-weight:400;">16 de enero de 2027</small>
+      </div>
 
       <a class="animated-cover-scroll" href="#cuenta-regresiva" aria-label="Ver la cuenta regresiva">⌄</a>
     </section>
@@ -3295,13 +3345,13 @@
 
           <div class="carousel-stage">
             <figure class="carousel-slide is-active">
-              <img src="carrusel_3_1.png" alt="Foto especial de Antonio y Lucero 1" loading="lazy" />
+              <img src="carrusel_3_1.png" onerror="this.classList.add('media-error')" alt="Foto especial de Antonio y Lucero 1" loading="lazy" />
             </figure>
             <figure class="carousel-slide is-next">
-              <img src="carrusel_3_2.png" alt="Foto especial de Antonio y Lucero 2" loading="lazy" />
+              <img src="carrusel_3_2.png" onerror="this.classList.add('media-error')" alt="Foto especial de Antonio y Lucero 2" loading="lazy" />
             </figure>
             <figure class="carousel-slide is-prev">
-              <img src="carrusel_3_3.png" alt="Foto especial de Antonio y Lucero 3" loading="lazy" />
+              <img src="carrusel_3_3.png" onerror="this.classList.add('media-error')" alt="Foto especial de Antonio y Lucero 3" loading="lazy" />
             </figure>
           </div>
 
@@ -3543,21 +3593,21 @@
           <summary>¿La ceremonia y la recepción son en el mismo lugar?</summary>
           <div class="faq-answer">Sí. Ambas se realizarán en Casa Acapulco.</div>
           <div class="faq-illustration">
-            <img src="pic_preguntas_3_1.png" alt="Ilustración para la primera pregunta" loading="lazy" />
+            <img src="pic_preguntas_3_1.png" onerror="this.classList.add('media-error')" alt="Ilustración para la primera pregunta" loading="lazy" />
           </div>
         </details>
         <details>
           <summary>¿Hasta cuándo puedo confirmar mi asistencia?</summary>
           <div class="faq-answer">Por favor, confirma tu asistencia hasta el 15 de noviembre de 2026.</div>
           <div class="faq-illustration">
-            <img src="pic_preguntas_3_2.png" alt="Ilustración para la segunda pregunta" loading="lazy" />
+            <img src="pic_preguntas_3_2.png" onerror="this.classList.add('media-error')" alt="Ilustración para la segunda pregunta" loading="lazy" />
           </div>
         </details>
         <details>
           <summary>¿Hay estacionamiento?</summary>
           <div class="faq-answer">Cerca de la zona hay algunos estacionamientos. Sin embargo, tendremos all you can drink, así que te recomendamos no llevar auto y llegar en taxi o aplicativo.</div>
           <div class="faq-illustration">
-            <img src="pic_preguntas_3_3.png" alt="Ilustración para la tercera pregunta" loading="lazy" />
+            <img src="pic_preguntas_3_3.png" onerror="this.classList.add('media-error')" alt="Ilustración para la tercera pregunta" loading="lazy" />
           </div>
         </details>
       </div>
@@ -3700,6 +3750,30 @@
     introVideo.muted = false;
     introVideo.volume = 1;
 
+    function resetIntroForMobile() {
+      introStarted = false;
+      introFinished = false;
+      if (introFallbackTimer) {
+        clearTimeout(introFallbackTimer);
+        introFallbackTimer = null;
+      }
+      introScreen.classList.remove("is-hidden", "is-opening", "is-playing");
+      document.body.classList.add("locked");
+      try {
+        introVideo.pause();
+        introVideo.muted = false;
+        introVideo.volume = 1;
+        introVideo.currentTime = 0.01;
+      } catch (error) {}
+      if (animatedCoverVideo) {
+        animatedCoverVideo.pause();
+      }
+    }
+
+    // Safari/iPhone puede restaurar el DOM desde memoria con la intro ya oculta.
+    // Se fuerza la pantalla inicial cada vez que la página entra o vuelve del historial.
+    window.addEventListener("pageshow", resetIntroForMobile);
+
     if (CONFIG.backgroundMusic) {
       bgMusic.src = CONFIG.backgroundMusic;
       bgMusic.load();
@@ -3767,6 +3841,7 @@
         }
       });
       animatedCoverVideo.addEventListener("error", () => {
+        animatedCoverVideo.classList.add("media-error");
         if (animatedCoverFallback) animatedCoverFallback.hidden = false;
       });
       animatedCoverVideo.addEventListener("ended", () => {
@@ -3824,7 +3899,10 @@
       } catch (error) {
         console.warn("No se pudo reproducir el video de entrada:", error);
         introVideoError.hidden = false;
-        introFallbackTimer = setTimeout(finishIntro, 1900);
+        introStarted = false;
+        introScreen.classList.remove("is-opening");
+        introVideoError.innerHTML = 'No se pudo cargar <strong>video_de_saludo_3.mp4</strong>.<br>Toca nuevamente para continuar.';
+        introScreen.addEventListener("click", finishIntro, { once: true });
       }
     }
 
@@ -3848,6 +3926,7 @@
     introVideo.addEventListener("ended", finishIntro, { once: true });
     introVideo.addEventListener("error", () => {
       introVideoError.hidden = false;
+      introVideoError.innerHTML = 'No se encontró <strong>video_de_saludo_3.mp4</strong>.<br>Revisa que esté en la misma carpeta del HTML.';
     });
 
     // La pantalla completa funciona como botón para iniciar el video.
