@@ -1,3 +1,4 @@
+# trigger
 name: Ajustar texto aventura invitacion 2
 
 on:
@@ -37,7 +38,6 @@ jobs:
               if p not in text:
                   raise RuntimeError(f'No se encontró el texto esperado: {p}')
 
-          # Encuentra el contenedor más pequeño (p/div) que incluye el inicio del texto.
           pattern = re.compile(
               r'(<(?P<tag>p|div)(?P<attrs>[^>]*)>\s*'
               r'Toda gran aventura necesita una buena tripulación\.\.\..*?'
@@ -55,9 +55,8 @@ jobs:
 
           if 'transform:translateY(-36px)' not in block.replace(' ', ''):
               if 'style=' in attrs:
-                  # Añade la transformación dentro del style existente.
                   new_block = re.sub(
-                      r'style=(['\"'])(.*?)\1',
+                      r'style=(["\'])(.*?)\1',
                       lambda sm: f'style={sm.group(1)}{sm.group(2).rstrip("; ")}; transform:translateY(-36px);{sm.group(1)}',
                       block,
                       count=1,
