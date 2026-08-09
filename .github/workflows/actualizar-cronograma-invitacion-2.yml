@@ -1,5 +1,6 @@
 name: Actualizar cronograma invitacion 2
 
+# ejecutar actualización del cronograma
 on:
   push:
     paths:
