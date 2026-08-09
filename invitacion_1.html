@@ -3423,7 +3423,7 @@ footer h2{ color:var(--forest) !important; }
 
 .invite-main-title span{
   display:block;
-  font-size:clamp(60px,17vw,118px);
+  font-size:clamp(56px,16.2vw,112px);
 }
 
 .invite-month-text{
@@ -6059,7 +6059,7 @@ footer h2,
       <div class="intro-fallback-tap">TOCA PARA ABRIR</div>
     </div>
 
-    <video id="sobreVideo" muted playsinline webkit-playsinline preload="auto" disablepictureinpicture controlslist="nodownload noplaybackrate nofullscreen">
+    <video id="sobreVideo" muted loop playsinline webkit-playsinline preload="auto" disablepictureinpicture controlslist="nodownload noplaybackrate nofullscreen">
       <source src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/SOBRE_PROBAR.MP4" type="video/mp4">
       <source src="../assets/SOBRE_PROBAR.MP4" type="video/mp4">
     </video>
@@ -6140,7 +6140,7 @@ footer h2,
       <i></i>
       <strong>16</strong>
       <i></i>
-      <span>2026</span>
+      <span>2027</span>
     </div>
 
     <div class="invite-html-text invite-ornament">
@@ -6149,6 +6149,8 @@ footer h2,
 
   </div>
 
+
+</section>
 
 <section class="reveal-section countdown-elegant-section">
 
@@ -6271,10 +6273,10 @@ footer h2,
 
       <div class="church-divider"></div>
 
-      <div class="church-place-name">Casa Acapulco</div>
+      <div class="church-place-name">Residencia Privada</div>
 
       <p class="church-address">
-        Calle Acapulco 480
+        Calle Acapulco 480, La Molina
       </p>
 
       <p class="church-note">
@@ -6302,29 +6304,40 @@ footer h2,
     <div class="schedule-timeline">
 
       <div class="schedule-item">
-        <div class="schedule-time">11:30 a.m.</div>
+        <div class="schedule-time">03:00 p.m. – 04:00 p.m.</div>
         <div class="schedule-dot">♥</div>
         <div class="schedule-content">
           <div class="schedule-icon">
-            <img src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/PAREJA.gif" alt="Ceremonia Civil">
+            <img src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/ENTRADA.gif" alt="Recepción de invitados">
           </div>
-          <h3>Ceremonia Civil</h3>
+          <h3>Recepción de invitados</h3>
         </div>
       </div>
 
       <div class="schedule-item">
-        <div class="schedule-time">5:00 p.m.</div>
+        <div class="schedule-time">04:00 p.m. – 05:00 p.m.</div>
         <div class="schedule-dot">♥</div>
         <div class="schedule-content">
           <div class="schedule-icon">
-            <img src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/ENTRADA.gif" alt="Recepción">
+            <img src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/PAREJA.gif" alt="Ceremonia">
           </div>
-          <h3>Recepción</h3>
+          <h3>Ceremonia</h3>
         </div>
       </div>
 
       <div class="schedule-item">
-        <div class="schedule-time">6:00 p.m.</div>
+        <div class="schedule-time">05:00 p.m. – 06:00 p.m.</div>
+        <div class="schedule-dot">♥</div>
+        <div class="schedule-content">
+          <div class="schedule-icon">
+            <img src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/PAREJA.gif" alt="Fotos">
+          </div>
+          <h3>Fotos</h3>
+        </div>
+      </div>
+
+      <div class="schedule-item">
+        <div class="schedule-time">06:00 p.m. – 06:30 p.m.</div>
         <div class="schedule-dot">♥</div>
         <div class="schedule-content">
           <div class="schedule-icon">
@@ -6335,29 +6348,29 @@ footer h2,
       </div>
 
       <div class="schedule-item">
-        <div class="schedule-time">6:30 p.m.</div>
+        <div class="schedule-time">06:30 p.m. – 07:30 p.m.</div>
         <div class="schedule-dot">♥</div>
         <div class="schedule-content">
           <div class="schedule-icon">
-            <img src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/BAILANDO.gif" alt="Baile de novios">
+            <img src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/PLATOS.gif" alt="Maridaje y banquete">
           </div>
-          <h3>Baile de novios</h3>
+          <h3>Maridaje &amp; Banquete</h3>
         </div>
       </div>
 
       <div class="schedule-item">
-        <div class="schedule-time">7:00 p.m.</div>
+        <div class="schedule-time">07:30 p.m. – 08:00 p.m.</div>
         <div class="schedule-dot">♥</div>
         <div class="schedule-content">
           <div class="schedule-icon">
-            <img src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/PLATOS.gif" alt="Cena">
+            <img src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/BAILANDO.gif" alt="Primer baile de novios">
           </div>
-          <h3>Cena</h3>
+          <h3>Primer baile de novios</h3>
         </div>
       </div>
 
       <div class="schedule-item">
-        <div class="schedule-time">8:30 p.m.</div>
+        <div class="schedule-time">08:00 p.m. en adelante</div>
         <div class="schedule-dot">♥</div>
         <div class="schedule-content">
           <div class="schedule-icon">
@@ -6621,6 +6634,7 @@ function iniciarSobre(e){
   video.removeAttribute("controls");
   video.muted = true;
   video.playsInline = true;
+  video.loop = true;
 
   if(videoIntroDisponible && video.readyState >= 2){
     video.currentTime = 0.001;
@@ -6689,6 +6703,15 @@ video.addEventListener("timeupdate", () => {
   }
 });
 
+video.addEventListener("ended", () => {
+  if(!transicion){
+    try{
+      video.currentTime = 0.001;
+    }catch(e){}
+    video.play().catch(() => {});
+  }
+});
+
 window.addEventListener("load", prepararPrimerFrame);
 
 pantalla.addEventListener("click", iniciarSobre);
@@ -6709,7 +6732,7 @@ function asegurarHeroVideoLoop(){
     empezando después del primer frame negro y regresando antes del final.
   */
   const LOOP_START = 0.85;
-  const LOOP_END_MARGIN = 0.95;
+  const LOOP_END_MARGIN = 1.80;
 
   heroVideo.muted = true;
   heroVideo.autoplay = true;
@@ -6790,6 +6813,19 @@ function asegurarHeroVideoLoop(){
       heroVideo.play().catch(() => {});
     }
   });
+
+  const heroLoopGuard = setInterval(() => {
+    if(document.hidden) return;
+    const end = loopEnd();
+    if(end && heroVideo.currentTime >= end){
+      try{
+        heroVideo.currentTime = LOOP_START;
+      }catch(e){}
+      heroVideo.play().catch(() => {});
+    }
+  }, 80);
+
+  heroVideo.addEventListener("emptied", () => clearInterval(heroLoopGuard), { once:true });
 
   heroVideo.addEventListener("pause", () => {
     if(hero && hero.classList.contains("show") && !document.hidden){
