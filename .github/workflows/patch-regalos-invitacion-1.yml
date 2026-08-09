@@ -1,0 +1,70 @@
+name: Patch regalos invitacion 1
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-regalos-invitacion-1.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Actualizar bloque de regalos
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('invitacion_1.html')
+          text = path.read_text(encoding='utf-8')
+
+          old = '''      <h2>Un detalle con amor</h2>\n\n      <p>\n        Tu presencia es nuestro regalo más importante.\n        Si deseas darnos un presente, puedes dejarlo en la recepción del local el día de la celebración.\n      </p>\n\n      <button class="gift-toggle" type="button" onclick="toggleGiftBox()">\n        SI TU PRESENTE ES MONETARIO\n        <span id="gift-arrow">⌄</span>\n      </button>\n\n      <div id="gift-panel" class="gift-panel">\n\n        <div class="gift-box">\n\n          <h3>Yape</h3>\n\n          <p>\n            También puedes compartirnos un detalle por Yape, si nace de tu corazón.\n          </p>\n\n          <div class="gift-data">\n\n            <div class="gift-data-item gift-yape-only">\n              <strong>YAPE</strong>\n              <span id="gift-yape">993 219 142</span>\n              <button class="copy-gift" type="button" onclick="copyGiftText('993219142')">\n                Copiar número\n              </button>\n            </div>\n\n          </div>'''
+
+          new = '''      <h2>Un detalle de corazón</h2>\n\n      <p>\n        Lo más importante para nosotros es poder compartir este día contigo.<br>\n        Si deseas tener un detalle con nosotros, lo recibiremos con muchísimo cariño.\n      </p>\n\n      <p>\n        Para mayor comodidad, puedes hacerlo mediante Yape o transferencia bancaria.<br>\n        Y si prefieres un regalo físico, también podremos recibirlo en la recepción el día de la boda.\n      </p>\n\n      <button class="gift-toggle" type="button" onclick="toggleGiftBox()">\n        VER DATOS PARA REGALO MONETARIO\n        <span id="gift-arrow">⌄</span>\n      </button>\n\n      <div id="gift-panel" class="gift-panel">\n\n        <div class="gift-box">\n\n          <h3>Datos de regalo</h3>\n\n          <p>\n            Si deseas hacerlo de manera digital, puedes usar cualquiera de estas opciones.\n          </p>\n\n          <div class="gift-data">\n\n            <div class="gift-data-item">\n              <strong>BCP</strong>\n              <span>Cuenta: 19335282760050</span>\n              <button class="copy-gift" type="button" onclick="copyGiftText('19335282760050')">\n                Copiar cuenta\n              </button>\n            </div>\n\n            <div class="gift-data-item">\n              <strong>CCI</strong>\n              <span>00219313528276005017</span>\n              <button class="copy-gift" type="button" onclick="copyGiftText('00219313528276005017')">\n                Copiar CCI\n              </button>\n            </div>\n\n            <div class="gift-data-item gift-yape-only">\n              <strong>YAPE</strong>\n              <span id="gift-yape">993 219 142</span>\n              <button class="copy-gift" type="button" onclick="copyGiftText('993219142')">\n                Copiar número\n              </button>\n            </div>\n\n          </div>'''
+
+          if old not in text:
+              raise RuntimeError('No se encontró el bloque de regalos esperado')
+
+          text = text.replace(old, new, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Validar cambios
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          t = Path('invitacion_1.html').read_text(encoding='utf-8')
+          checks = [
+              'Un detalle de corazón',
+              'Lo más importante para nosotros es poder compartir este día contigo.',
+              'Si deseas tener un detalle con nosotros, lo recibiremos con muchísimo cariño.',
+              'Para mayor comodidad, puedes hacerlo mediante Yape o transferencia bancaria.',
+              'Y si prefieres un regalo físico, también podremos recibirlo en la recepción el día de la boda.',
+              '19335282760050',
+              '00219313528276005017',
+              '993 219 142'
+          ]
+          for c in checks:
+              assert c in t, c
+          print('Validación OK')
+          PY
+
+      - name: Commit y limpiar workflow temporal
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/patch-regalos-invitacion-1.yml
+          git add invitacion_1.html
+          git commit -m "Actualizar sección de regalos de invitación 1"
+          git push origin main
