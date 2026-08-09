@@ -1,5 +1,6 @@
 name: Aplicar cronograma final invitacion 2
 
+# disparar aplicacion definitiva
 on:
   push:
     paths:
