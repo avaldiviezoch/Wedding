@@ -3063,6 +3063,10 @@ window.WeddingPlannerAuthGuard = { ready:false, authenticated:false, uid:'' };
   }
 
   menuButton.addEventListener('click', () => {
+    if (window.WeddingPlannerAuthGuard?.authenticated !== true) {
+      window.WeddingPlannerRequestAuth?.();
+      return;
+    }
     setMenu(!body.classList.contains('menu-open'));
   });
 
@@ -3361,11 +3365,24 @@ window.WeddingPlannerAuthGuard = { ready:false, authenticated:false, uid:'' };
   const LOCAL_OWNER_KEY = 'migrandia_local_owner_uid_v1';
 
   function openAuth() {
+    pendingOpenMenu = true;
     authOverlay.classList.add('show');
     authOverlay.setAttribute('aria-hidden', 'false');
     authStatus.textContent = '';
-    setTimeout(() => authEmail.focus(), 40);
+    googleLoginButton.disabled = false;
+    emailLoginButton.disabled = false;
+    emailRegisterButton.disabled = false;
+    setTimeout(() => googleLoginButton.focus(), 40);
   }
+
+  window.WeddingPlannerRequestAuth = () => {
+    if (auth.currentUser) {
+      pendingOpenMenu = false;
+      menuButton.click();
+      return;
+    }
+    openAuth();
+  };
 
   function closeAuth(force = false) {
     if (!force && auth.currentUser && pendingOpenMenu) return;
@@ -3513,27 +3530,36 @@ window.WeddingPlannerAuthGuard = { ready:false, authenticated:false, uid:'' };
     }
   }
 
-  menuButton.addEventListener('click', (event) => {
-    if (!auth.currentUser) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      pendingOpenMenu = true;
-      openAuth();
-    }
-  }, true);
+  let googlePopupBusy = false;
 
   googleLoginButton.addEventListener('click', async () => {
-    if (googleLoginButton.disabled) return;
+    if (googlePopupBusy) return;
+
+    googlePopupBusy = true;
     googleLoginButton.disabled = true;
-    authStatus.textContent = 'Elige tu cuenta de Google en la ventana que se abrirá…';
+    authStatus.textContent = 'Elige la cuenta de Google que deseas usar…';
+
+    // Proveedor nuevo en cada intento para que cancelar un popup no deje
+    // estado residual que bloquee el siguiente intento.
+    const freshGoogleProvider = new GoogleAuthProvider();
+    freshGoogleProvider.setCustomParameters({ prompt: 'select_account' });
+
     try {
-      const result = await signInWithPopup(auth, provider);
-      authStatus.textContent = result.user ? 'Acceso correcto. Abriendo tu planificador…' : '';
+      const result = await signInWithPopup(auth, freshGoogleProvider);
+      authStatus.textContent = result.user
+        ? 'Acceso correcto. Abriendo tu planificador…'
+        : '';
     } catch (error) {
       console.error('Google sign-in error:', error);
       authStatus.textContent = friendlyAuthError(error);
     } finally {
+      googlePopupBusy = false;
       googleLoginButton.disabled = false;
+
+      // Si el usuario canceló/cerró Google, deja el modal totalmente reutilizable.
+      if (!auth.currentUser && authOverlay.classList.contains('show')) {
+        setTimeout(() => googleLoginButton.focus(), 40);
+      }
     }
   });
 
@@ -3554,11 +3580,17 @@ window.WeddingPlannerAuthGuard = { ready:false, authenticated:false, uid:'' };
   });
   authCloseButton.addEventListener('click', () => {
     pendingOpenMenu = false;
+    authStatus.textContent = '';
+    googlePopupBusy = false;
+    googleLoginButton.disabled = false;
     closeAuth(true);
   });
   authOverlay.addEventListener('click', (event) => {
     if (event.target === authOverlay) {
       pendingOpenMenu = false;
+      authStatus.textContent = '';
+      googlePopupBusy = false;
+      googleLoginButton.disabled = false;
       closeAuth(true);
     }
   });
