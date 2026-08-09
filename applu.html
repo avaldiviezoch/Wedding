@@ -1473,10 +1473,23 @@
     .date-cancel{color:rgba(255,255,255,.68);background:rgba(255,255,255,.06)}
     .auth-help{margin-top:8px!important;font-size:9px!important;color:rgba(255,255,255,.48)!important}
 
+    /* Puerta única: ningún módulo ni dato personal se muestra sin sesión */
+    body.auth-locked .app,
+    body.auth-locked .unified-workspace,
+    body.auth-locked .module-quick-nav,
+    body.auth-locked .unified-home-button,
+    body.auth-locked > .toast{
+      visibility:hidden!important;
+      pointer-events:none!important;
+    }
+    body.auth-locked .auth-overlay{display:grid!important}
+    body.auth-locked .auth-close{display:none!important}
+    body.auth-locked{background:#0b0b0b;overflow:hidden}
+
 </style>
 </head>
 
-<body>
+<body class="auth-locked">
   <main class="app">
 
     <video
@@ -1824,6 +1837,7 @@
 
 
   <script>
+window.WeddingPlannerAuthGuard = { ready:false, authenticated:false, uid:'' };
 (() => {
   'use strict';
 
@@ -2971,6 +2985,11 @@
   }
 
   function showModule(moduleKey, updateHash = true) {
+    if (window.WeddingPlannerAuthGuard?.authenticated !== true) {
+      setMenu(false);
+      return;
+    }
+
     if (!MODULES[moduleKey]) {
       showHome(updateHash);
       return;
@@ -3033,6 +3052,11 @@
   }
 
   function routeFromHash() {
+    if (window.WeddingPlannerAuthGuard?.authenticated !== true) {
+      showHome(false);
+      return;
+    }
+
     const moduleKey = location.hash.replace(/^#/, '').trim();
 
     if (MODULES[moduleKey]) {
@@ -3260,9 +3284,19 @@
     showHome(false);
   }
 
+  async function clearLocalUserData() {
+    destroyAllModuleFrames();
+    setMenu(false);
+    showHome(false);
+    clearWeddingLocalStorage();
+    await deleteIndexedDatabase('AntonioEventPlannerMemory').catch(() => {});
+    applyWeddingDate(DEFAULT_WEDDING_DATE, false);
+  }
+
   window.WeddingPlannerBridge = {
     buildCloudBackup,
     restoreCloudBackup,
+    clearLocalUserData,
     showToast
   };
 
@@ -3326,7 +3360,9 @@
   let cloudBusy = false;
   let cloudTimer = 0;
   let hydrated = false;
+  let authResolved = false;
   const CHUNK_SIZE = 180000;
+  const LOCAL_OWNER_KEY = 'migrandia_local_owner_uid_v1';
 
   function openAuth() {
     authOverlay.classList.add('show');
@@ -3336,8 +3372,27 @@
   }
 
   function closeAuth() {
+    if (!auth.currentUser) return;
     authOverlay.classList.remove('show');
     authOverlay.setAttribute('aria-hidden', 'true');
+  }
+
+  function lockPlanner() {
+    document.body.classList.add('auth-locked');
+    document.body.classList.remove('menu-open', 'module-view');
+    window.WeddingPlannerAuthGuard.ready = authResolved;
+    window.WeddingPlannerAuthGuard.authenticated = false;
+    window.WeddingPlannerAuthGuard.uid = '';
+    openAuth();
+  }
+
+  function unlockPlanner(user) {
+    window.WeddingPlannerAuthGuard.ready = true;
+    window.WeddingPlannerAuthGuard.authenticated = true;
+    window.WeddingPlannerAuthGuard.uid = user.uid;
+    document.body.classList.remove('auth-locked');
+    closeAuth();
+    window.dispatchEvent(new Event('hashchange'));
   }
 
   function friendlyAuthError(error) {
@@ -3437,10 +3492,17 @@
     cloudState.textContent = 'Cargando tus datos…';
     try {
       const cloudBackup = await readCloudBackup(user.uid);
+      const localOwner = localStorage.getItem(LOCAL_OWNER_KEY) || '';
+
       if (cloudBackup) {
         await bridge.restoreCloudBackup(cloudBackup);
         bridge.showToast('Tus datos se cargaron desde Firebase.');
+      } else if (localOwner && localOwner !== user.uid) {
+        // Este navegador pertenecía a otra cuenta: jamás reutilizar esos datos.
+        await bridge.clearLocalUserData();
       }
+
+      localStorage.setItem(LOCAL_OWNER_KEY, user.uid);
       hydrated = true;
       cloudState.textContent = cloudBackup ? 'Sincronizado' : 'Preparando primera copia…';
       if (!cloudBackup) await writeCloudBackup(user);
@@ -3491,14 +3553,33 @@
   authPassword.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') emailLoginButton.click();
   });
-  authCloseButton.addEventListener('click', () => { pendingOpenMenu = false; closeAuth(); });
+  authCloseButton.addEventListener('click', () => {
+    if (auth.currentUser) { pendingOpenMenu = false; closeAuth(); }
+  });
   authOverlay.addEventListener('click', (event) => {
-    if (event.target === authOverlay) { pendingOpenMenu = false; closeAuth(); }
+    if (event.target === authOverlay && auth.currentUser) {
+      pendingOpenMenu = false;
+      closeAuth();
+    }
   });
   logoutButton.addEventListener('click', async () => {
-    await writeCloudBackup(auth.currentUser);
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+    logoutButton.disabled = true;
+    cloudState.textContent = 'Cerrando sesión…';
+    try {
+      await writeCloudBackup(currentUser);
+    } catch (error) {
+      console.error('Final cloud save before logout failed:', error);
+    }
     hydrated = false;
-    await signOut(auth);
+    try {
+      await window.WeddingPlannerBridge?.clearLocalUserData?.();
+      localStorage.removeItem(LOCAL_OWNER_KEY);
+    } finally {
+      await signOut(auth);
+      logoutButton.disabled = false;
+    }
   });
 
   window.addEventListener('storage', (event) => {
@@ -3514,6 +3595,7 @@
   setInterval(() => { if (auth.currentUser && hydrated) writeCloudBackup(auth.currentUser, true); }, 15000);
 
   onAuthStateChanged(auth, async (user) => {
+    authResolved = true;
     if (user) {
       accountCard.classList.add('show');
       accountName.textContent = user.displayName || 'Mi Gran Día';
@@ -3525,19 +3607,33 @@
         accountAvatar.removeAttribute('src');
         accountAvatar.classList.remove('show');
       }
-      closeAuth();
-      if (activeUid !== user.uid) { activeUid = user.uid; await hydrateUser(user); }
+
+      if (activeUid && activeUid !== user.uid) {
+        await window.WeddingPlannerBridge?.clearLocalUserData?.();
+      }
+      activeUid = user.uid;
+      await hydrateUser(user);
+      unlockPlanner(user);
+
       if (pendingOpenMenu) {
         pendingOpenMenu = false;
         setTimeout(() => menuButton.click(), 80);
       }
     } else {
+      const hadAuthenticatedUser = Boolean(activeUid);
       activeUid = ''; hydrated = false;
+      if (hadAuthenticatedUser) {
+        await window.WeddingPlannerBridge?.clearLocalUserData?.();
+        localStorage.removeItem(LOCAL_OWNER_KEY);
+      }
       accountCard.classList.remove('show');
+      accountName.textContent = '';
       accountEmail.textContent = '';
       accountAvatar.removeAttribute('src');
       accountAvatar.classList.remove('show');
-      cloudState.textContent = 'Sincronización lista';
+      cloudState.textContent = 'Inicia sesión para sincronizar';
+      pendingOpenMenu = false;
+      lockPlanner();
     }
   });
 </script>
