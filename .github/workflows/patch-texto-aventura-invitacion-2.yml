@@ -1,0 +1,97 @@
+name: Ajustar texto aventura invitacion 2
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-texto-aventura-invitacion-2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Mover texto de aventura hacia arriba
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('invitacion_2.html')
+          text = path.read_text(encoding='utf-8')
+          original = text
+
+          phrases = [
+              'Toda gran aventura necesita una buena tripulación...',
+              'Y nos encantaría que formaras parte de la nuestra.',
+              'Ahora que ya conoces el rumbo, queremos contarte algunos detalles para que disfrutes este día tan especial junto a nosotros.'
+          ]
+          for p in phrases:
+              if p not in text:
+                  raise RuntimeError(f'No se encontró el texto esperado: {p}')
+
+          # Encuentra el contenedor más pequeño (p/div) que incluye el inicio del texto.
+          pattern = re.compile(
+              r'(<(?P<tag>p|div)(?P<attrs>[^>]*)>\s*'
+              r'Toda gran aventura necesita una buena tripulación\.\.\..*?'
+              r'Ahora que ya conoces el rumbo, queremos contarte algunos detalles para que disfrutes este día tan especial junto a nosotros\.\s*'
+              r'</(?P=tag)>)',
+              re.S
+          )
+          m = pattern.search(text)
+          if not m:
+              raise RuntimeError('No se pudo localizar el contenedor completo del texto de aventura.')
+
+          block = m.group(1)
+          attrs = m.group('attrs')
+          tag = m.group('tag')
+
+          if 'transform:translateY(-36px)' not in block.replace(' ', ''):
+              if 'style=' in attrs:
+                  # Añade la transformación dentro del style existente.
+                  new_block = re.sub(
+                      r'style=(['\"'])(.*?)\1',
+                      lambda sm: f'style={sm.group(1)}{sm.group(2).rstrip("; ")}; transform:translateY(-36px);{sm.group(1)}',
+                      block,
+                      count=1,
+                      flags=re.S
+                  )
+              else:
+                  new_block = block.replace(f'<{tag}{attrs}>', f'<{tag}{attrs} style="transform:translateY(-36px);">', 1)
+              text = text[:m.start()] + new_block + text[m.end():]
+
+          if text == original:
+              raise RuntimeError('No se generaron cambios.')
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Validar cambio
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          t = Path('invitacion_2.html').read_text(encoding='utf-8')
+          assert 'Toda gran aventura necesita una buena tripulación...' in t
+          assert 'Y nos encantaría que formaras parte de la nuestra.' in t
+          assert 'Ahora que ya conoces el rumbo, queremos contarte algunos detalles para que disfrutes este día tan especial junto a nosotros.' in t
+          assert 'translateY(-36px)' in t
+          print('Validación OK')
+          PY
+
+      - name: Commit y limpieza
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/patch-texto-aventura-invitacion-2.yml
+          git add invitacion_2.html
+          git commit -m "Subir texto de aventura en invitacion_2"
+          git push origin main
