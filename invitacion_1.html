@@ -6461,15 +6461,20 @@ footer h2,
           class="gift-icon-gif">
       </div>
 
-      <h2>Un detalle con amor</h2>
+      <h2>Un detalle de corazón</h2>
 
       <p>
-        Tu presencia es nuestro regalo más importante.
-        Si deseas darnos un presente, puedes dejarlo en la recepción del local el día de la celebración.
+        Lo más importante para nosotros es poder compartir este día contigo.<br>
+        Si deseas tener un detalle con nosotros, lo recibiremos con muchísimo cariño.
+      </p>
+
+      <p>
+        Para mayor comodidad, puedes hacerlo mediante Yape o transferencia bancaria.<br>
+        Y si prefieres un regalo físico, también podremos recibirlo en la recepción el día de la boda.
       </p>
 
       <button class="gift-toggle" type="button" onclick="toggleGiftBox()">
-        SI TU PRESENTE ES MONETARIO
+        VER DATOS PARA REGALO MONETARIO
         <span id="gift-arrow">⌄</span>
       </button>
 
@@ -6477,13 +6482,29 @@ footer h2,
 
         <div class="gift-box">
 
-          <h3>Yape</h3>
+          <h3>Datos de regalo</h3>
 
           <p>
-            También puedes compartirnos un detalle por Yape, si nace de tu corazón.
+            Si deseas hacerlo de manera digital, puedes usar cualquiera de estas opciones.
           </p>
 
           <div class="gift-data">
+
+            <div class="gift-data-item">
+              <strong>BCP</strong>
+              <span>Cuenta: 19335282760050</span>
+              <button class="copy-gift" type="button" onclick="copyGiftText('19335282760050')">
+                Copiar cuenta
+              </button>
+            </div>
+
+            <div class="gift-data-item">
+              <strong>CCI</strong>
+              <span>00219313528276005017</span>
+              <button class="copy-gift" type="button" onclick="copyGiftText('00219313528276005017')">
+                Copiar CCI
+              </button>
+            </div>
 
             <div class="gift-data-item gift-yape-only">
               <strong>YAPE</strong>
