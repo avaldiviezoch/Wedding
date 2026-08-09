@@ -3531,39 +3531,77 @@ window.WeddingPlannerAuthGuard = { ready:false, authenticated:false, uid:'' };
   }
 
   let googlePopupBusy = false;
+  let googlePopupAttempt = 0;
+
+  function resetGoogleLoginButton(message = '') {
+    googlePopupBusy = false;
+    googleLoginButton.disabled = false;
+    if (message) authStatus.textContent = message;
+    requestAnimationFrame(() => {
+      if (authOverlay.classList.contains('show') && !auth.currentUser) {
+        googleLoginButton.focus();
+      }
+    });
+  }
 
   googleLoginButton.addEventListener('click', async () => {
-    if (googlePopupBusy) return;
+    // Si un intento anterior quedó marcado como ocupado por un cierre extraño
+    // del popup, lo recuperamos antes de iniciar uno nuevo.
+    if (googlePopupBusy) {
+      resetGoogleLoginButton();
+    }
 
+    const attemptId = ++googlePopupAttempt;
     googlePopupBusy = true;
     googleLoginButton.disabled = true;
     authStatus.textContent = 'Elige la cuenta de Google que deseas usar…';
 
-    // Proveedor nuevo en cada intento para que cancelar un popup no deje
-    // estado residual que bloquee el siguiente intento.
     const freshGoogleProvider = new GoogleAuthProvider();
-    freshGoogleProvider.setCustomParameters({ prompt: 'select_account' });
+    freshGoogleProvider.setCustomParameters({
+      prompt: 'select_account'
+    });
 
     try {
       const result = await signInWithPopup(auth, freshGoogleProvider);
-      authStatus.textContent = result.user
-        ? 'Acceso correcto. Abriendo tu planificador…'
-        : '';
-    } catch (error) {
-      console.error('Google sign-in error:', error);
-      authStatus.textContent = friendlyAuthError(error);
-    } finally {
-      googlePopupBusy = false;
-      googleLoginButton.disabled = false;
 
-      // Si el usuario canceló/cerró Google, deja el modal totalmente reutilizable.
-      if (!auth.currentUser && authOverlay.classList.contains('show')) {
-        setTimeout(() => googleLoginButton.focus(), 40);
+      // Ignora resultados tardíos de un intento anterior.
+      if (attemptId !== googlePopupAttempt) return;
+
+      if (result?.user) {
+        authStatus.textContent = 'Acceso correcto. Abriendo tu planificador…';
+      } else {
+        resetGoogleLoginButton();
+      }
+
+    } catch (error) {
+      if (attemptId !== googlePopupAttempt) return;
+
+      console.error('Google sign-in error:', error);
+
+      const code = String(error?.code || '');
+
+      // Casos normales cuando el usuario cierra/cancela el popup.
+      if (
+        code === 'auth/popup-closed-by-user' ||
+        code === 'auth/cancelled-popup-request' ||
+        code === 'auth/user-cancelled'
+      ) {
+        resetGoogleLoginButton('Inicio con Google cancelado. Puedes intentarlo de nuevo.');
+        return;
+      }
+
+      resetGoogleLoginButton(friendlyAuthError(error));
+
+    } finally {
+      // Pase lo que pase, si no hubo sesión, el botón vuelve a estar disponible.
+      if (!auth.currentUser && attemptId === googlePopupAttempt) {
+        setTimeout(() => {
+          if (!auth.currentUser) resetGoogleLoginButton();
+        }, 0);
       }
     }
   });
-
-  emailLoginButton.addEventListener('click', async () => {
+emailLoginButton.addEventListener('click', async () => {
     authStatus.textContent = 'Ingresando…';
     try { await signInWithEmailAndPassword(auth, authEmail.value.trim(), authPassword.value); }
     catch (error) { authStatus.textContent = friendlyAuthError(error); }
@@ -3580,17 +3618,17 @@ window.WeddingPlannerAuthGuard = { ready:false, authenticated:false, uid:'' };
   });
   authCloseButton.addEventListener('click', () => {
     pendingOpenMenu = false;
+    googlePopupAttempt++;
+    resetGoogleLoginButton('');
     authStatus.textContent = '';
-    googlePopupBusy = false;
-    googleLoginButton.disabled = false;
     closeAuth(true);
   });
   authOverlay.addEventListener('click', (event) => {
     if (event.target === authOverlay) {
       pendingOpenMenu = false;
+      googlePopupAttempt++;
+      resetGoogleLoginButton('');
       authStatus.textContent = '';
-      googlePopupBusy = false;
-      googleLoginButton.disabled = false;
       closeAuth(true);
     }
   });
