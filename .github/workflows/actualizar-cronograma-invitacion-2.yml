@@ -1,0 +1,212 @@
+name: Actualizar cronograma invitacion 2
+
+on:
+  push:
+    paths:
+      - '.github/workflows/actualizar-cronograma-invitacion-2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Actualizar cronograma Nuestro Dia
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('invitacion_2.html')
+          t = p.read_text(encoding='utf-8')
+
+          old_html = '''            <h2 class="itinerary-title">Itinerario</h2>
+
+            <div class="itinerary-timeline">
+              <div class="itinerary-row">
+                <time class="itinerary-time left" datetime="2027-01-16T11:30:00-05:00">11:30 a.m.</time>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <div class="itinerary-event right">
+                  <span class="itinerary-name">Ceremonia</span>
+                </div>
+              </div>
+
+              <div class="itinerary-row">
+                <div class="itinerary-event left">
+                  <span class="itinerary-name">Recepción</span>
+                </div>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <time class="itinerary-time right" datetime="2027-01-16T17:00:00-05:00">5:00 p.m.</time>
+              </div>
+
+              <div class="itinerary-row">
+                <time class="itinerary-time left" datetime="2027-01-16T18:00:00-05:00">6:00 p.m.</time>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <div class="itinerary-event right">
+                  <span class="itinerary-name">Brindis</span>
+                </div>
+              </div>
+
+              <div class="itinerary-row">
+                <div class="itinerary-event left">
+                  <span class="itinerary-name">Baile de novios</span>
+                </div>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <time class="itinerary-time right" datetime="2027-01-16T18:30:00-05:00">6:30 p.m.</time>
+              </div>
+
+              <div class="itinerary-row">
+                <time class="itinerary-time left" datetime="2027-01-16T19:00:00-05:00">7:00 p.m.</time>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <div class="itinerary-event right">
+                  <span class="itinerary-name">Cena</span>
+                </div>
+              </div>
+
+              <div class="itinerary-row">
+                <div class="itinerary-event left">
+                  <span class="itinerary-name">Fiesta</span>
+                </div>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <time class="itinerary-time right" datetime="2027-01-16T20:30:00-05:00">8:30 p.m.</time>
+              </div>
+            </div>'''
+
+          new_html = '''            <h2 class="itinerary-title">Nuestro Día</h2>
+
+            <div class="itinerary-timeline">
+              <div class="itinerary-row">
+                <div class="itinerary-time left">03:00 PM –<br>04:00 PM</div>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <div class="itinerary-event right">
+                  <span class="itinerary-name">Recepción de invitados</span>
+                </div>
+              </div>
+
+              <div class="itinerary-row">
+                <div class="itinerary-event left">
+                  <span class="itinerary-name">Ceremonia</span>
+                </div>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <div class="itinerary-time right">04:00 PM –<br>05:00 PM</div>
+              </div>
+
+              <div class="itinerary-row">
+                <div class="itinerary-time left">05:00 PM –<br>06:00 PM</div>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <div class="itinerary-event right">
+                  <span class="itinerary-name">Fotos</span>
+                </div>
+              </div>
+
+              <div class="itinerary-row">
+                <div class="itinerary-event left">
+                  <span class="itinerary-name">Brindis</span>
+                </div>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <div class="itinerary-time right">06:00 PM –<br>06:30 PM</div>
+              </div>
+
+              <div class="itinerary-row">
+                <div class="itinerary-time left">06:30 PM –<br>07:30 PM</div>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <div class="itinerary-event right">
+                  <span class="itinerary-name">Maridaje &amp; Banquete</span>
+                </div>
+              </div>
+
+              <div class="itinerary-row">
+                <div class="itinerary-event left">
+                  <span class="itinerary-name">Primer baile de novios</span>
+                </div>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <div class="itinerary-time right">07:30 PM –<br>08:00 PM</div>
+              </div>
+
+              <div class="itinerary-row">
+                <div class="itinerary-time left">08:00 PM<br>en adelante</div>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <div class="itinerary-event right">
+                  <span class="itinerary-name">Fiesta</span>
+                </div>
+              </div>
+            </div>'''
+
+          if t.count(old_html) != 1:
+              raise SystemExit('No se encontró exactamente el cronograma actual; no se cambia nada.')
+          t = t.replace(old_html, new_html, 1)
+
+          old_mobile = '''      .itinerary-section{ margin-top:-14px; }
+      .itinerary-content{ top:34.1%; bottom:4.2%; width:57%; }
+      .itinerary-title{ margin-bottom:12px; font-size:clamp(21px, 5.8vw, 30px); letter-spacing:.03em; }
+      .itinerary-title::after{ width:56px; margin-top:2px; }
+      .itinerary-row{ grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr); min-height:61px; }
+      .itinerary-dot{ width:23px; height:23px; }
+      .itinerary-time{ font-size:clamp(12px, 3.2vw, 17px); }
+      .itinerary-time.left{ padding-right:2px; }
+      .itinerary-time.right{ padding-left:2px; }
+      .itinerary-event.left{ padding-right:4px; }
+      .itinerary-event.right{ padding-left:4px; }
+      .itinerary-name{ font-size:clamp(11px, 2.8vw, 14px); }'''
+
+          new_mobile = '''      .itinerary-section{ margin-top:-14px; }
+      .itinerary-content{ top:33.6%; bottom:5.4%; width:59%; }
+      .itinerary-title{ margin-bottom:7px; font-size:clamp(19px, 5.2vw, 27px); letter-spacing:.025em; }
+      .itinerary-title::after{ width:48px; height:8px; margin-top:1px; }
+      .itinerary-timeline{ padding:8px 0; }
+      .itinerary-timeline::before{ top:24px; bottom:24px; }
+      .itinerary-row{ grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr); min-height:47px; }
+      .itinerary-dot{ width:19px; height:19px; border-width:1.5px; }
+      .itinerary-dot::after{ border-left-width:3px; border-right-width:3px; border-top-width:5px; }
+      .itinerary-time{ font-size:clamp(10px, 2.65vw, 13px); line-height:1.12; white-space:normal; }
+      .itinerary-time.left{ padding-right:3px; }
+      .itinerary-time.right{ padding-left:3px; }
+      .itinerary-event.left{ padding-right:5px; }
+      .itinerary-event.right{ padding-left:5px; }
+      .itinerary-name{ font-size:clamp(9.5px, 2.45vw, 12.5px); line-height:1.08; }'''
+
+          if t.count(old_mobile) != 1:
+              raise SystemExit('No se encontró exactamente el bloque móvil del itinerario; no se cambia nada.')
+          t = t.replace(old_mobile, new_mobile, 1)
+
+          p.write_text(t, encoding='utf-8')
+          PY
+
+      - name: Validar cambios
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          t = Path('invitacion_2.html').read_text(encoding='utf-8')
+          checks = [
+            'Nuestro Día',
+            'Recepción de invitados',
+            'Ceremonia',
+            'Fotos',
+            'Brindis',
+            'Maridaje &amp; Banquete',
+            'Primer baile de novios',
+            '08:00 PM<br>en adelante',
+            '.itinerary-timeline::before{ top:24px; bottom:24px; }',
+            'min-height:47px;',
+            'font-size:clamp(9.5px, 2.45vw, 12.5px);'
+          ]
+          for x in checks:
+            assert x in t, x
+          print('Validación OK')
+          PY
+
+      - name: Guardar cambio y limpiar workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/actualizar-cronograma-invitacion-2.yml
+          git add invitacion_2.html
+          git commit -m "Actualizar cronograma Nuestro Dia en invitacion_2"
+          git push origin main
