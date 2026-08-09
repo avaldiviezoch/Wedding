@@ -1,6 +1,6 @@
 name: Actualizar cronograma invitacion 2
 
-# ejecutar actualización del cronograma
+# reintento con límites exactos de la sección real
 on:
   push:
     paths:
@@ -23,76 +23,22 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
+
           p = Path('invitacion_2.html')
           t = p.read_text(encoding='utf-8')
 
-          old_html = '''            <h2 class="itinerary-title">Itinerario</h2>
-
-            <div class="itinerary-timeline">
-              <div class="itinerary-row">
-                <time class="itinerary-time left" datetime="2027-01-16T11:30:00-05:00">11:30 a.m.</time>
-                <span class="itinerary-dot" aria-hidden="true"></span>
-                <div class="itinerary-event right">
-                  <span class="itinerary-name">Ceremonia</span>
-                </div>
-              </div>
-
-              <div class="itinerary-row">
-                <div class="itinerary-event left">
-                  <span class="itinerary-name">Recepción</span>
-                </div>
-                <span class="itinerary-dot" aria-hidden="true"></span>
-                <time class="itinerary-time right" datetime="2027-01-16T17:00:00-05:00">5:00 p.m.</time>
-              </div>
-
-              <div class="itinerary-row">
-                <time class="itinerary-time left" datetime="2027-01-16T18:00:00-05:00">6:00 p.m.</time>
-                <span class="itinerary-dot" aria-hidden="true"></span>
-                <div class="itinerary-event right">
-                  <span class="itinerary-name">Brindis</span>
-                </div>
-              </div>
-
-              <div class="itinerary-row">
-                <div class="itinerary-event left">
-                  <span class="itinerary-name">Baile de novios</span>
-                </div>
-                <span class="itinerary-dot" aria-hidden="true"></span>
-                <time class="itinerary-time right" datetime="2027-01-16T18:30:00-05:00">6:30 p.m.</time>
-              </div>
-
-              <div class="itinerary-row">
-                <time class="itinerary-time left" datetime="2027-01-16T19:00:00-05:00">7:00 p.m.</time>
-                <span class="itinerary-dot" aria-hidden="true"></span>
-                <div class="itinerary-event right">
-                  <span class="itinerary-name">Cena</span>
-                </div>
-              </div>
-
-              <div class="itinerary-row">
-                <div class="itinerary-event left">
-                  <span class="itinerary-name">Fiesta</span>
-                </div>
-                <span class="itinerary-dot" aria-hidden="true"></span>
-                <time class="itinerary-time right" datetime="2027-01-16T20:30:00-05:00">8:30 p.m.</time>
-              </div>
-            </div>'''
-
-          new_html = '''            <h2 class="itinerary-title">Nuestro Día</h2>
+          new_inner = '''            <h2 class="itinerary-title">Nuestro Día</h2>
 
             <div class="itinerary-timeline">
               <div class="itinerary-row">
                 <div class="itinerary-time left">03:00 PM –<br>04:00 PM</div>
                 <span class="itinerary-dot" aria-hidden="true"></span>
-                <div class="itinerary-event right">
-                  <span class="itinerary-name">Recepción de invitados</span>
-                </div>
+                <div class="itinerary-event right"><span class="itinerary-name">Recepción de invitados</span></div>
               </div>
 
               <div class="itinerary-row">
-                <div class="itinerary-event left">
-                  <span class="itinerary-name">Ceremonia</span>
-                </div>
+                <div class="itinerary-event left"><span class="itinerary-name">Ceremonia</span></div>
                 <span class="itinerary-dot" aria-hidden="true"></span>
                 <div class="itinerary-time right">04:00 PM –<br>05:00 PM</div>
               </div>
@@ -100,15 +46,11 @@ jobs:
               <div class="itinerary-row">
                 <div class="itinerary-time left">05:00 PM –<br>06:00 PM</div>
                 <span class="itinerary-dot" aria-hidden="true"></span>
-                <div class="itinerary-event right">
-                  <span class="itinerary-name">Fotos</span>
-                </div>
+                <div class="itinerary-event right"><span class="itinerary-name">Fotos</span></div>
               </div>
 
               <div class="itinerary-row">
-                <div class="itinerary-event left">
-                  <span class="itinerary-name">Brindis</span>
-                </div>
+                <div class="itinerary-event left"><span class="itinerary-name">Brindis</span></div>
                 <span class="itinerary-dot" aria-hidden="true"></span>
                 <div class="itinerary-time right">06:00 PM –<br>06:30 PM</div>
               </div>
@@ -116,15 +58,11 @@ jobs:
               <div class="itinerary-row">
                 <div class="itinerary-time left">06:30 PM –<br>07:30 PM</div>
                 <span class="itinerary-dot" aria-hidden="true"></span>
-                <div class="itinerary-event right">
-                  <span class="itinerary-name">Maridaje &amp; Banquete</span>
-                </div>
+                <div class="itinerary-event right"><span class="itinerary-name">Maridaje &amp; Banquete</span></div>
               </div>
 
               <div class="itinerary-row">
-                <div class="itinerary-event left">
-                  <span class="itinerary-name">Primer baile de novios</span>
-                </div>
+                <div class="itinerary-event left"><span class="itinerary-name">Primer baile de novios</span></div>
                 <span class="itinerary-dot" aria-hidden="true"></span>
                 <div class="itinerary-time right">07:30 PM –<br>08:00 PM</div>
               </div>
@@ -132,15 +70,16 @@ jobs:
               <div class="itinerary-row">
                 <div class="itinerary-time left">08:00 PM<br>en adelante</div>
                 <span class="itinerary-dot" aria-hidden="true"></span>
-                <div class="itinerary-event right">
-                  <span class="itinerary-name">Fiesta</span>
-                </div>
+                <div class="itinerary-event right"><span class="itinerary-name">Fiesta</span></div>
               </div>
             </div>'''
 
-          if t.count(old_html) != 1:
-              raise SystemExit('No se encontró exactamente el cronograma actual; no se cambia nada.')
-          t = t.replace(old_html, new_html, 1)
+          pattern = r'(          <div class="itinerary-content">\n).*?(\n          </div>\n        </div>\n      </section>\n\n      <section class="dresscode-section")'
+          m = re.search(pattern, t, flags=re.S)
+          if not m:
+              raise SystemExit('No se encontró la sección real del itinerario.')
+          replacement = m.group(1) + new_inner + m.group(2)
+          t = t[:m.start()] + replacement + t[m.end():]
 
           old_mobile = '''      .itinerary-section{ margin-top:-14px; }
       .itinerary-content{ top:34.1%; bottom:4.2%; width:57%; }
@@ -172,39 +111,22 @@ jobs:
       .itinerary-name{ font-size:clamp(9.5px, 2.45vw, 12.5px); line-height:1.08; }'''
 
           if t.count(old_mobile) != 1:
-              raise SystemExit('No se encontró exactamente el bloque móvil del itinerario; no se cambia nada.')
+              raise SystemExit('No se encontró exactamente el CSS móvil actual del itinerario.')
           t = t.replace(old_mobile, new_mobile, 1)
 
           p.write_text(t, encoding='utf-8')
           PY
 
-      - name: Validar cambios
+      - name: Validar y guardar
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          t = Path('invitacion_2.html').read_text(encoding='utf-8')
-          checks = [
-            'Nuestro Día',
-            'Recepción de invitados',
-            'Ceremonia',
-            'Fotos',
-            'Brindis',
-            'Maridaje &amp; Banquete',
-            'Primer baile de novios',
-            '08:00 PM<br>en adelante',
-            '.itinerary-timeline::before{ top:24px; bottom:24px; }',
-            'min-height:47px;',
-            'font-size:clamp(9.5px, 2.45vw, 12.5px);'
-          ]
-          for x in checks:
-            assert x in t, x
-          print('Validación OK')
+          t=Path('invitacion_2.html').read_text(encoding='utf-8')
+          for x in ['Nuestro Día','Recepción de invitados','Fotos','Maridaje &amp; Banquete','Primer baile de novios','08:00 PM<br>en adelante','top:24px; bottom:24px;','min-height:47px;']:
+              assert x in t, x
+          assert 'top:42%;' in t
           PY
-
-      - name: Guardar cambio y limpiar workflow
-        shell: bash
-        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm .github/workflows/actualizar-cronograma-invitacion-2.yml
