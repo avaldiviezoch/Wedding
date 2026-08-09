@@ -1473,18 +1473,14 @@
     .date-cancel{color:rgba(255,255,255,.68);background:rgba(255,255,255,.06)}
     .auth-help{margin-top:8px!important;font-size:9px!important;color:rgba(255,255,255,.48)!important}
 
-    /* Puerta única: ningún módulo ni dato personal se muestra sin sesión */
-    body.auth-locked .app,
+    /* Portada pública; los módulos siguen protegidos por autenticación. */
     body.auth-locked .unified-workspace,
     body.auth-locked .module-quick-nav,
-    body.auth-locked .unified-home-button,
-    body.auth-locked > .toast{
+    body.auth-locked .unified-home-button{
       visibility:hidden!important;
       pointer-events:none!important;
     }
-    body.auth-locked .auth-overlay{display:grid!important}
-    body.auth-locked .auth-close{display:none!important}
-    body.auth-locked{background:#0b0b0b;overflow:hidden}
+    body.auth-locked{background:#0b0b0b}
 
 </style>
 </head>
@@ -3371,8 +3367,8 @@ window.WeddingPlannerAuthGuard = { ready:false, authenticated:false, uid:'' };
     setTimeout(() => authEmail.focus(), 40);
   }
 
-  function closeAuth() {
-    if (!auth.currentUser) return;
+  function closeAuth(force = false) {
+    if (!force && auth.currentUser && pendingOpenMenu) return;
     authOverlay.classList.remove('show');
     authOverlay.setAttribute('aria-hidden', 'true');
   }
@@ -3383,7 +3379,10 @@ window.WeddingPlannerAuthGuard = { ready:false, authenticated:false, uid:'' };
     window.WeddingPlannerAuthGuard.ready = authResolved;
     window.WeddingPlannerAuthGuard.authenticated = false;
     window.WeddingPlannerAuthGuard.uid = '';
-    openAuth();
+    closeAuth(true);
+    if (location.hash) {
+      history.replaceState({ module: 'home' }, '', location.pathname + location.search);
+    }
   }
 
   function unlockPlanner(user) {
@@ -3391,7 +3390,7 @@ window.WeddingPlannerAuthGuard = { ready:false, authenticated:false, uid:'' };
     window.WeddingPlannerAuthGuard.authenticated = true;
     window.WeddingPlannerAuthGuard.uid = user.uid;
     document.body.classList.remove('auth-locked');
-    closeAuth();
+    closeAuth(true);
     window.dispatchEvent(new Event('hashchange'));
   }
 
@@ -3554,12 +3553,13 @@ window.WeddingPlannerAuthGuard = { ready:false, authenticated:false, uid:'' };
     if (event.key === 'Enter') emailLoginButton.click();
   });
   authCloseButton.addEventListener('click', () => {
-    if (auth.currentUser) { pendingOpenMenu = false; closeAuth(); }
+    pendingOpenMenu = false;
+    closeAuth(true);
   });
   authOverlay.addEventListener('click', (event) => {
-    if (event.target === authOverlay && auth.currentUser) {
+    if (event.target === authOverlay) {
       pendingOpenMenu = false;
-      closeAuth();
+      closeAuth(true);
     }
   });
   logoutButton.addEventListener('click', async () => {
