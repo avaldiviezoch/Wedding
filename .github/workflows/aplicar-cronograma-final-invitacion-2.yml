@@ -1,0 +1,131 @@
+name: Aplicar cronograma final invitacion 2
+
+on:
+  push:
+    paths:
+      - '.github/workflows/aplicar-cronograma-final-invitacion-2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  aplicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Actualizar cronograma y compactar movil
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('invitacion_2.html')
+          t=p.read_text(encoding='utf-8')
+
+          marker='          <div class="itinerary-content">'
+          start=t.index(marker)
+          dress=t.index('      <section class="dresscode-section"', start)
+          section_end=t.rfind('      </section>', start, dress)
+          if section_end < start:
+              raise SystemExit('No se encontró el cierre del itinerario')
+
+          block='''          <div class="itinerary-content">
+            <h2 class="itinerary-title">Nuestro Día</h2>
+
+            <div class="itinerary-timeline">
+              <div class="itinerary-row">
+                <div class="itinerary-time left">03:00 PM –<br>04:00 PM</div>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <div class="itinerary-event right"><span class="itinerary-name">Recepción de invitados</span></div>
+              </div>
+              <div class="itinerary-row">
+                <div class="itinerary-event left"><span class="itinerary-name">Ceremonia</span></div>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <div class="itinerary-time right">04:00 PM –<br>05:00 PM</div>
+              </div>
+              <div class="itinerary-row">
+                <div class="itinerary-time left">05:00 PM –<br>06:00 PM</div>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <div class="itinerary-event right"><span class="itinerary-name">Fotos</span></div>
+              </div>
+              <div class="itinerary-row">
+                <div class="itinerary-event left"><span class="itinerary-name">Brindis</span></div>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <div class="itinerary-time right">06:00 PM –<br>06:30 PM</div>
+              </div>
+              <div class="itinerary-row">
+                <div class="itinerary-time left">06:30 PM –<br>07:30 PM</div>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <div class="itinerary-event right"><span class="itinerary-name">Maridaje &amp; Banquete</span></div>
+              </div>
+              <div class="itinerary-row">
+                <div class="itinerary-event left"><span class="itinerary-name">Primer baile de novios</span></div>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <div class="itinerary-time right">07:30 PM –<br>08:00 PM</div>
+              </div>
+              <div class="itinerary-row">
+                <div class="itinerary-time left">08:00 PM<br>en adelante</div>
+                <span class="itinerary-dot" aria-hidden="true"></span>
+                <div class="itinerary-event right"><span class="itinerary-name">Fiesta</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+'''
+          t=t[:start]+block+t[section_end:]
+
+          old='''      .itinerary-section{ margin-top:-14px; }
+      .itinerary-content{ top:34.1%; bottom:4.2%; width:57%; }
+      .itinerary-title{ margin-bottom:12px; font-size:clamp(21px, 5.8vw, 30px); letter-spacing:.03em; }
+      .itinerary-title::after{ width:56px; margin-top:2px; }
+      .itinerary-row{ grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr); min-height:61px; }
+      .itinerary-dot{ width:23px; height:23px; }
+      .itinerary-time{ font-size:clamp(12px, 3.2vw, 17px); }
+      .itinerary-time.left{ padding-right:2px; }
+      .itinerary-time.right{ padding-left:2px; }
+      .itinerary-event.left{ padding-right:4px; }
+      .itinerary-event.right{ padding-left:4px; }
+      .itinerary-name{ font-size:clamp(11px, 2.8vw, 14px); }'''
+          new='''      .itinerary-section{ margin-top:-14px; }
+      .itinerary-content{ top:33.6%; bottom:5.4%; width:59%; }
+      .itinerary-title{ margin-bottom:7px; font-size:clamp(19px, 5.2vw, 27px); letter-spacing:.025em; }
+      .itinerary-title::after{ width:48px; height:8px; margin-top:1px; }
+      .itinerary-timeline{ padding:8px 0; }
+      .itinerary-timeline::before{ top:24px; bottom:24px; }
+      .itinerary-row{ grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr); min-height:47px; }
+      .itinerary-dot{ width:19px; height:19px; border-width:1.5px; }
+      .itinerary-dot::after{ border-left-width:3px; border-right-width:3px; border-top-width:5px; }
+      .itinerary-time{ font-size:clamp(10px, 2.65vw, 13px); line-height:1.12; white-space:normal; }
+      .itinerary-time.left{ padding-right:3px; }
+      .itinerary-time.right{ padding-left:3px; }
+      .itinerary-event.left{ padding-right:5px; }
+      .itinerary-event.right{ padding-left:5px; }
+      .itinerary-name{ font-size:clamp(9.5px, 2.45vw, 12.5px); line-height:1.08; }'''
+          if t.count(old)!=1:
+              raise SystemExit('No se encontró exactamente el CSS móvil actual')
+          t=t.replace(old,new,1)
+          p.write_text(t,encoding='utf-8')
+          PY
+
+      - name: Validar cambios
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          t=Path('invitacion_2.html').read_text(encoding='utf-8')
+          for x in ['Nuestro Día','Recepción de invitados','Fotos','Maridaje &amp; Banquete','Primer baile de novios','08:00 PM<br>en adelante','top:24px; bottom:24px;','min-height:47px;','top:42%;']:
+              assert x in t, x
+          PY
+
+      - name: Guardar y limpiar workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/aplicar-cronograma-final-invitacion-2.yml
+          git add invitacion_2.html
+          git commit -m "Actualizar cronograma Nuestro Dia en invitacion_2"
+          git push origin main
