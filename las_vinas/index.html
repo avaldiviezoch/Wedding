@@ -26,7 +26,7 @@
     .loading{position:absolute;top:15px;left:50%;transform:translateX(-50%);z-index:15;background:white;border:1px solid var(--line);border-radius:999px;padding:7px 11px;font-size:11px}
     .mvp{font-size:10px;font-weight:900;letter-spacing:.06em;background:#e8f3ec;color:#285a3b;border:1px solid #cde2d4;border-radius:999px;padding:5px 8px}
     .basemap-control{position:absolute;top:15px;right:15px;z-index:18}.basemap-btn{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid #cfd8d1;box-shadow:0 3px 12px #10201722;color:#223229}.basemap-btn:hover{background:#f7faf8}.basemap-menu{position:absolute;top:44px;right:0;width:160px;background:#fff;border:1px solid #d6ded8;border-radius:11px;padding:6px;box-shadow:0 12px 32px #1020172e}.basemap-menu[hidden]{display:none}.basemap-option{width:100%;text-align:left;background:transparent;color:#26352b;padding:9px 10px}.basemap-option:hover{background:#f2f6f3}.basemap-option.active{background:#e8f3ec;color:#205c34}.basemap-option small{display:block;color:#718078;font-weight:500;margin-top:2px}
-    dialog{border:0;border-radius:15px;padding:0;width:min(420px,calc(100vw - 24px));box-shadow:0 28px 80px #1020174a}dialog::backdrop{background:#10201766}.modal{padding:20px}.mh{display:flex;align-items:center;justify-content:space-between}.mh h2{margin:0}.x{width:31px;height:31px;border-radius:50%;padding:0}.hint{font-size:11px;color:var(--muted);line-height:1.5}.tabs{display:flex;background:#f1f4f1;padding:3px;border-radius:9px;margin:12px 0}.tabs button{flex:1;background:transparent}.tabs .on{background:white;box-shadow:0 2px 8px #00000012}.msg{font-size:11px;min-height:16px;margin-top:7px;color:#7a2d27}
+    dialog{border:0;border-radius:15px;padding:0;width:min(410px,calc(100vw - 24px));box-shadow:0 28px 80px #1020174a}dialog::backdrop{background:#10201766}.modal{padding:22px}.mh{display:flex;align-items:center;justify-content:space-between}.mh h2{margin:0}.x{width:31px;height:31px;border-radius:50%;padding:0}.hint{font-size:12px;color:var(--muted);line-height:1.55}.google-btn{width:100%;height:48px;background:#fff;border:1px solid #d7ded8;display:flex;align-items:center;justify-content:center;gap:10px;font-weight:800;margin-top:16px}.google-btn:hover{background:#f7f9f7}.gmark{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:16px;font-weight:900;color:#4285f4;border:1px solid #e2e6e3}.msg{font-size:12px;min-height:18px;margin-top:10px;color:#9c241c}.account-note{margin-top:13px;padding:10px;border-radius:9px;background:#f4f8f5;font-size:11px;color:#53645a;line-height:1.5}
     @media(max-width:820px){.app{grid-template:60px 1fr 240px/1fr}header{grid-column:1}.brand small,.who,.mvp{display:none}aside{grid-row:3;border-right:0;border-top:1px solid var(--line);padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.mapwrap{grid-row:2}.sec{border:0;margin:0;padding:0}.statssec,.legendsec{display:none}.lotname{font-size:17px}.adminbox{grid-column:1/3}.basemap-control{top:10px;right:10px}.basemap-btn{padding:8px 10px}.basemap-btn span{display:none}}
   </style>
 </head>
@@ -73,28 +73,41 @@
 
 <dialog id="dlg"><div class="modal">
   <div class="mh"><h2>Administración</h2><button id="close" class="secondary x">×</button></div>
-  <p class="hint">Inicia sesión para cambiar el estado y precio de los lotes. La cuenta propietaria es tu correo personal.</p>
-  <div class="tabs"><button id="tLogin" class="on">Ingresar</button><button id="tSign">Crear cuenta</button></div>
-  <div id="namebox" hidden><label>Nombre</label><input id="aName" class="field" placeholder="Antonio"></div>
-  <label>Correo</label><input id="aEmail" type="email" class="field" autocomplete="email">
-  <label>Contraseña</label><input id="aPass" type="password" class="field" autocomplete="current-password">
-  <button id="aSubmit" class="primary" style="width:100%;margin-top:12px">Ingresar</button>
+  <p class="hint">Ingresa con tu cuenta de Google. No necesitas crear ni recordar otra contraseña para Las Viñas.</p>
+  <button id="googleBtn" class="google-btn" type="button"><span class="gmark">G</span> Continuar con Google</button>
+  <div class="account-note">El acceso administrativo está restringido a las cuentas autorizadas. Tu cuenta propietaria <b>avaldiviezoch@gmail.com</b> está registrada como ADMIN.</div>
   <div id="msg" class="msg"></div>
 </div></dialog>
 
-<script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
+
+const firebaseConfig={
+  apiKey:'AIzaSyAUttxLoHj0HIOBSSviKtiVy0Q2mhoL30Q',
+  authDomain:'las-vinas-64405.firebaseapp.com',
+  projectId:'las-vinas-64405',
+  storageBucket:'las-vinas-64405.firebasestorage.app',
+  messagingSenderId:'1054178916043',
+  appId:'1:1054178916043:web:8a4b6965a17ceb7e400d4e',
+  measurementId:'G-SV3T041RS4'
+};
+const firebaseApp=initializeApp(firebaseConfig);
+const auth=getAuth(firebaseApp);
+const provider=new GoogleAuthProvider();
+provider.setCustomParameters({prompt:'select_account'});
+
 const API='https://kpkcjmpbueqptdkzbzat.supabase.co/functions/v1/las-vinas-api';
 const COLORS={POR_DEFINIR:'#2e7d32',DISPONIBLE:'#22c55e',SEPARADO:'#facc15',RESERVADO:'#f97316',VENDIDO:'#ef4444',BLOQUEADO:'#64748b',NO_APLICA:'#475569'};
-let rows=[],selected=null,staff=null,signup=false,first=true,currentBasemap='satellite';
+let rows=[],selected=null,staff=null,first=true,currentBasemap='satellite';
 const $=id=>document.getElementById(id);
 
 async function api(path,opt={}){
-  const token=localStorage.getItem('lv_token');
   const headers=Object.assign({'content-type':'application/json'},opt.headers||{});
-  if(token) headers.authorization='Bearer '+token;
+  if(auth.currentUser){headers.authorization='Bearer '+await auth.currentUser.getIdToken()}
   const r=await fetch(API+path,Object.assign({},opt,{headers}));
   const j=await r.json().catch(()=>({}));
-  if(!r.ok) throw new Error(j.error||'Error de conexión');
+  if(!r.ok)throw new Error(j.error||'Error de conexión');
   return j;
 }
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -107,124 +120,33 @@ function fc(a){return{type:'FeatureCollection',features:a.filter(x=>x.geojson).m
 
 const map=new maplibregl.Map({
   container:'map',
-  style:{
-    version:8,
-    sources:{
-      satellite:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,attribution:'Tiles © Esri'},
-      osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap contributors'}
-    },
-    layers:[
-      {id:'satellite',type:'raster',source:'satellite',layout:{visibility:'visible'}},
-      {id:'osm',type:'raster',source:'osm',layout:{visibility:'none'}}
-    ]
-  },
-  center:[-76.8715,-12.225],zoom:15.3,maxZoom:20
+  style:{version:8,sources:{
+    satellite:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,attribution:'Tiles © Esri'},
+    osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap contributors'}
+  },layers:[
+    {id:'satellite',type:'raster',source:'satellite',layout:{visibility:'visible'}},
+    {id:'osm',type:'raster',source:'osm',layout:{visibility:'none'}}
+  ]},center:[-76.8715,-12.225],zoom:15.3,maxZoom:20
 });
 map.addControl(new maplibregl.NavigationControl({showCompass:false}),'bottom-right');
+function setBasemap(name){currentBasemap=name;if(map.getLayer('satellite'))map.setLayoutProperty('satellite','visibility',name==='satellite'?'visible':'none');if(map.getLayer('osm'))map.setLayoutProperty('osm','visibility',name==='streets'?'visible':'none');document.querySelectorAll('.basemap-option').forEach(b=>b.classList.toggle('active',b.dataset.basemap===name));$('basemapMenu').hidden=true}
+function filtered(){const m=$('fMzn').value,e=$('fEstado').value,q=$('fQ').value.trim().toLowerCase();return rows.filter(r=>(!m||r.n_mzn===m)&&(!e||status(r)===e)&&(!q||(String(r.id_lote)+' '+(r.codigo_lote||'')+' '+(r.n_mzn||'')+' '+(r.n_lote??'')+' '+(r.destino||'')).toLowerCase().includes(q)))}
+function apply(){const a=filtered(),s=map.getSource('lotes');if(s)s.setData(fc(a));$('kTotal').textContent=a.length;$('kDisp').textContent=a.filter(x=>status(x)==='DISPONIBLE').length;$('kVend').textContent=a.filter(x=>status(x)==='VENDIDO').length;$('kNo').textContent=a.filter(x=>!x.es_comercializable).length}
+function fillMzn(){const cur=$('fMzn').value,a=[...new Set(rows.map(x=>x.n_mzn).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es',{numeric:true}));$('fMzn').innerHTML='<option value="">Todas</option>'+a.map(x=>'<option>'+esc(x)+'</option>').join('');$('fMzn').value=a.includes(cur)?cur:''}
+function fitAll(){const b=new maplibregl.LngLatBounds();const walk=c=>{if(typeof c[0]==='number')return b.extend(c);c.forEach(walk)};rows.filter(x=>x.geojson).forEach(x=>walk(x.geojson.coordinates));if(!b.isEmpty())map.fitBounds(b,{padding:40,maxZoom:17})}
+async function load(show=true){try{if(show)$('loading').hidden=false;rows=await api('/lotes');$('loading').hidden=true;fillMzn();apply();if(first){first=false;fitAll()}if(selected){selected=rows.find(x=>String(x.id_lote)===String(selected.id_lote))||selected;render()}}catch(e){$('loading').hidden=true;toast(e.message,true)}}
 
-function setBasemap(name){
-  currentBasemap=name;
-  if(map.getLayer('satellite'))map.setLayoutProperty('satellite','visibility',name==='satellite'?'visible':'none');
-  if(map.getLayer('osm'))map.setLayoutProperty('osm','visibility',name==='streets'?'visible':'none');
-  document.querySelectorAll('.basemap-option').forEach(b=>b.classList.toggle('active',b.dataset.basemap===name));
-  $('basemapMenu').hidden=true;
-}
+function adminBox(){if(!staff||!['ADMIN','ASESOR'].includes(staff.rol))return'';if(!selected.es_comercializable)return'<div class="adminbox"><b>Edición comercial</b><p class="hint">Este polígono no es comercializable.</p></div>';return '<div class="adminbox"><b>Edición comercial</b><label>Estado</label><select id="eEstado" class="field">'+['POR_DEFINIR','DISPONIBLE','SEPARADO','RESERVADO','VENDIDO','BLOQUEADO'].map(x=>'<option'+(x===selected.estado_comercial?' selected':'')+'>'+x+'</option>').join('')+'</select><label>Tipo de precio</label><select id="eTipo" class="field">'+['CONSULTAR','POR_M2','PRECIO_FIJO'].map(x=>'<option'+(x===selected.tipo_precio?' selected':'')+'>'+x+'</option>').join('')+'</select><div class="row"><div><label>Precio m²</label><input id="eM2" class="field" type="number" min="0" step=".01" value="'+(selected.precio_m2??'')+'"></div><div><label>Precio total</label><input id="eTot" class="field" type="number" min="0" step=".01" value="'+(selected.precio_total??'')+'"></div></div><label>Moneda</label><select id="eMon" class="field"><option value="">Sin definir</option><option value="PEN"'+(selected.moneda==='PEN'?' selected':'')+'>Soles</option><option value="USD"'+(selected.moneda==='USD'?' selected':'')+'>Dólares</option></select><label class="check"><input id="eWeb" type="checkbox" '+(selected.mostrar_web?'checked':'')+'> Mostrar en web comercial</label><button id="save" class="primary save">Guardar cambios</button></div>'}
+function render(){if(!selected)return;$('empty').hidden=true;$('detail').hidden=false;const s=status(selected);const p=selected.precio_promocional?money(selected.precio_promocional,selected.moneda):selected.precio_total?money(selected.precio_total,selected.moneda):selected.precio_m2?money(selected.precio_m2,selected.moneda)+' / m²':'Consultar';$('detail').innerHTML='<span class="badge" style="background:'+COLORS[s]+'22;color:'+COLORS[s]+'">'+esc(s)+'</span><div class="lotname">'+esc(lotName(selected))+'</div><div class="sub">ID '+selected.id_lote+(selected.codigo_lote?' · '+esc(selected.codigo_lote):'')+'</div><div class="grid"><div class="cell"><span>Área</span><b>'+(selected.area_plano_m2?Number(selected.area_plano_m2).toLocaleString('es-PE')+' m²':'—')+'</b></div><div class="cell"><span>Frontis</span><b>'+(selected.frontis_m?Number(selected.frontis_m).toLocaleString('es-PE')+' m':'—')+'</b></div><div class="cell"><span>Vía</span><b>'+esc(selected.calle_frontis||'—')+'</b></div><div class="cell"><span>Precio</span><b>'+esc(p)+'</b></div><div class="cell"><span>Destino</span><b>'+esc(selected.destino||'—')+'</b></div><div class="cell"><span>Esquina</span><b>'+(selected.es_esquina?'Sí':'No')+'</b></div></div>'+adminBox();const b=$('save');if(b)b.onclick=save}
+async function save(){try{const body={estado_comercial:$('eEstado').value,tipo_precio:$('eTipo').value,precio_m2:$('eM2').value?Number($('eM2').value):null,precio_total:$('eTot').value?Number($('eTot').value):null,moneda:$('eMon').value||null,mostrar_web:$('eWeb').checked};await api('/lotes/'+selected.id_lote,{method:'POST',body:JSON.stringify(body)});toast('Lote actualizado');await load(false)}catch(e){toast(e.message,true)}}
 
-function filtered(){
-  const m=$('fMzn').value,e=$('fEstado').value,q=$('fQ').value.trim().toLowerCase();
-  return rows.filter(r=>(!m||r.n_mzn===m)&&(!e||status(r)===e)&&(!q||(String(r.id_lote)+' '+(r.codigo_lote||'')+' '+(r.n_mzn||'')+' '+(r.n_lote??'')+' '+(r.destino||'')).toLowerCase().includes(q)));
-}
-function apply(){
-  const a=filtered();const s=map.getSource('lotes');if(s)s.setData(fc(a));
-  $('kTotal').textContent=a.length;$('kDisp').textContent=a.filter(x=>status(x)==='DISPONIBLE').length;$('kVend').textContent=a.filter(x=>status(x)==='VENDIDO').length;$('kNo').textContent=a.filter(x=>!x.es_comercializable).length;
-}
-function fillMzn(){
-  const cur=$('fMzn').value;
-  const a=[...new Set(rows.map(x=>x.n_mzn).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es',{numeric:true}));
-  $('fMzn').innerHTML='<option value="">Todas</option>'+a.map(x=>'<option>'+esc(x)+'</option>').join('');
-  $('fMzn').value=a.includes(cur)?cur:'';
-}
-function fitAll(){
-  const b=new maplibregl.LngLatBounds();
-  const walk=c=>{if(typeof c[0]==='number')return b.extend(c);c.forEach(walk)};
-  rows.filter(x=>x.geojson).forEach(x=>walk(x.geojson.coordinates));
-  if(!b.isEmpty())map.fitBounds(b,{padding:40,maxZoom:17});
-}
-async function load(show=true){
-  try{
-    if(show)$('loading').hidden=false;
-    rows=await api('/lotes');
-    $('loading').hidden=true;fillMzn();apply();
-    if(first){first=false;fitAll()}
-    if(selected){selected=rows.find(x=>String(x.id_lote)===String(selected.id_lote))||selected;render()}
-  }catch(e){$('loading').hidden=true;toast(e.message,true)}
-}
+async function refreshStaff(){if(!auth.currentUser){staff=null;$('who').textContent='Vista de consulta';$('adminBtn').textContent='Administrar';if(selected)render();return}try{staff=await api('/me');$('who').textContent=(staff.nombre||staff.email)+' · '+staff.rol;$('adminBtn').textContent='Salir';$('dlg').close();toast('Sesión iniciada con Google')}catch(e){staff=null;$('who').textContent='Vista de consulta';$('adminBtn').textContent='Administrar';$('msg').textContent=e.message;await signOut(auth);if(!$('dlg').open)$('dlg').showModal()}if(selected)render()}
 
-function adminBox(){
-  if(!staff||!['ADMIN','ASESOR'].includes(staff.rol))return'';
-  if(!selected.es_comercializable)return'<div class="adminbox"><b>Edición comercial</b><p class="hint">Este polígono no es comercializable.</p></div>';
-  return '<div class="adminbox"><b>Edición comercial</b>'+ 
-    '<label>Estado</label><select id="eEstado" class="field">'+['POR_DEFINIR','DISPONIBLE','SEPARADO','RESERVADO','VENDIDO','BLOQUEADO'].map(x=>'<option'+(x===selected.estado_comercial?' selected':'')+'>'+x+'</option>').join('')+'</select>'+ 
-    '<label>Tipo de precio</label><select id="eTipo" class="field">'+['CONSULTAR','POR_M2','PRECIO_FIJO'].map(x=>'<option'+(x===selected.tipo_precio?' selected':'')+'>'+x+'</option>').join('')+'</select>'+ 
-    '<div class="row"><div><label>Precio m²</label><input id="eM2" class="field" type="number" min="0" step=".01" value="'+(selected.precio_m2??'')+'"></div><div><label>Precio total</label><input id="eTot" class="field" type="number" min="0" step=".01" value="'+(selected.precio_total??'')+'"></div></div>'+ 
-    '<label>Moneda</label><select id="eMon" class="field"><option value="">Sin definir</option><option value="PEN"'+(selected.moneda==='PEN'?' selected':'')+'>Soles</option><option value="USD"'+(selected.moneda==='USD'?' selected':'')+'>Dólares</option></select>'+ 
-    '<label class="check"><input id="eWeb" type="checkbox" '+(selected.mostrar_web?'checked':'')+'> Mostrar en web comercial</label><button id="save" class="primary save">Guardar cambios</button></div>';
-}
-function render(){
-  if(!selected)return;
-  $('empty').hidden=true;$('detail').hidden=false;
-  const s=status(selected);
-  const p=selected.precio_promocional?money(selected.precio_promocional,selected.moneda):selected.precio_total?money(selected.precio_total,selected.moneda):selected.precio_m2?money(selected.precio_m2,selected.moneda)+' / m²':'Consultar';
-  $('detail').innerHTML='<span class="badge" style="background:'+COLORS[s]+'22;color:'+COLORS[s]+'">'+esc(s)+'</span>'+ 
-    '<div class="lotname">'+esc(lotName(selected))+'</div><div class="sub">ID '+selected.id_lote+(selected.codigo_lote?' · '+esc(selected.codigo_lote):'')+'</div>'+ 
-    '<div class="grid"><div class="cell"><span>Área</span><b>'+(selected.area_plano_m2?Number(selected.area_plano_m2).toLocaleString('es-PE')+' m²':'—')+'</b></div>'+ 
-    '<div class="cell"><span>Frontis</span><b>'+(selected.frontis_m?Number(selected.frontis_m).toLocaleString('es-PE')+' m':'—')+'</b></div>'+ 
-    '<div class="cell"><span>Vía</span><b>'+esc(selected.calle_frontis||'—')+'</b></div><div class="cell"><span>Precio</span><b>'+esc(p)+'</b></div>'+ 
-    '<div class="cell"><span>Destino</span><b>'+esc(selected.destino||'—')+'</b></div><div class="cell"><span>Esquina</span><b>'+(selected.es_esquina?'Sí':'No')+'</b></div></div>'+adminBox();
-  const b=$('save');if(b)b.onclick=save;
-}
-async function save(){
-  try{
-    const tipo=$('eTipo').value;
-    const body={estado_comercial:$('eEstado').value,tipo_precio:tipo,precio_m2:$('eM2').value?Number($('eM2').value):null,precio_total:$('eTot').value?Number($('eTot').value):null,moneda:$('eMon').value||null,mostrar_web:$('eWeb').checked};
-    await api('/lotes/'+selected.id_lote,{method:'POST',body:JSON.stringify(body)});
-    toast('Lote actualizado');await load(false);
-  }catch(e){toast(e.message,true)}
-}
-
-async function me(){
-  try{staff=localStorage.getItem('lv_token')?await api('/me'):null}catch{localStorage.removeItem('lv_token');staff=null}
-  if(staff){$('who').textContent=(staff.nombre||staff.email)+' · '+staff.rol;$('adminBtn').textContent='Salir'}else{$('who').textContent='Vista de consulta';$('adminBtn').textContent='Administrar'}
-  if(selected)render();
-}
-function mode(v){signup=v;$('tLogin').classList.toggle('on',!v);$('tSign').classList.toggle('on',v);$('namebox').hidden=!v;$('aSubmit').textContent=v?'Crear cuenta':'Ingresar';$('msg').textContent=''}
-async function auth(){
-  const email=$('aEmail').value.trim(),password=$('aPass').value,name=$('aName').value.trim();
-  if(!email||!password){$('msg').textContent='Completa correo y contraseña.';return}
-  try{
-    const r=await api(signup?'/signup':'/login',{method:'POST',body:JSON.stringify({email,password,name})});
-    if(r.access_token){localStorage.setItem('lv_token',r.access_token);$('dlg').close();await me();toast(signup?'Cuenta creada':'Sesión iniciada')}
-    else $('msg').textContent=r.message||'Cuenta creada. Revisa tu correo para confirmar y luego inicia sesión.';
-  }catch(e){$('msg').textContent=e.message}
-}
-
-map.on('load',()=>{
-  map.addSource('lotes',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
-  const colorExpr=['match',['get','estado_comercial'],'DISPONIBLE','#22c55e','SEPARADO','#facc15','RESERVADO','#f97316','VENDIDO','#ef4444','BLOQUEADO','#64748b','NO_APLICA','#475569','#2e7d32'];
-  map.addLayer({id:'fill',type:'fill',source:'lotes',paint:{'fill-color':colorExpr,'fill-opacity':.30}});
-  map.addLayer({id:'line',type:'line',source:'lotes',paint:{'line-color':colorExpr,'line-width':['interpolate',['linear'],['zoom'],14,1.1,18,2.3]}});
-  map.addLayer({id:'labels',type:'symbol',source:'lotes',minzoom:16.5,filter:['==',['get','es_comercializable'],true],layout:{'text-field':['concat',['get','n_mzn'],'-',['to-string',['get','n_lote']]],'text-size':11},paint:{'text-color':'#ffffff','text-halo-color':'#173b24','text-halo-width':1.4}});
-  map.on('mouseenter','fill',()=>map.getCanvas().style.cursor='pointer');map.on('mouseleave','fill',()=>map.getCanvas().style.cursor='');
-  map.on('click','fill',e=>{const id=e.features?.[0]?.properties?.id_lote;selected=rows.find(x=>String(x.id_lote)===String(id));if(selected)render()});
-  load();
-});
-$('basemapBtn').onclick=e=>{e.stopPropagation();$('basemapMenu').hidden=!$('basemapMenu').hidden};
-document.querySelectorAll('.basemap-option').forEach(b=>b.onclick=e=>{e.stopPropagation();setBasemap(b.dataset.basemap)});
-document.addEventListener('click',e=>{if(!e.target.closest('.basemap-control'))$('basemapMenu').hidden=true});
-$('fMzn').onchange=apply;$('fEstado').onchange=apply;$('fQ').oninput=apply;
-$('adminBtn').onclick=()=>{if(staff){localStorage.removeItem('lv_token');staff=null;me();toast('Sesión cerrada')}else $('dlg').showModal()};
-$('close').onclick=()=>$('dlg').close();$('tLogin').onclick=()=>mode(false);$('tSign').onclick=()=>mode(true);$('aSubmit').onclick=auth;$('aPass').onkeydown=e=>{if(e.key==='Enter')auth()};
-me();setInterval(()=>load(false),10000);
+map.on('load',()=>{map.addSource('lotes',{type:'geojson',data:{type:'FeatureCollection',features:[]}});const colorExpr=['match',['get','estado_comercial'],'DISPONIBLE','#22c55e','SEPARADO','#facc15','RESERVADO','#f97316','VENDIDO','#ef4444','BLOQUEADO','#64748b','NO_APLICA','#475569','#2e7d32'];map.addLayer({id:'fill',type:'fill',source:'lotes',paint:{'fill-color':colorExpr,'fill-opacity':.30}});map.addLayer({id:'line',type:'line',source:'lotes',paint:{'line-color':colorExpr,'line-width':['interpolate',['linear'],['zoom'],14,1.1,18,2.3]}});map.addLayer({id:'labels',type:'symbol',source:'lotes',minzoom:16.5,filter:['==',['get','es_comercializable'],true],layout:{'text-field':['concat',['get','n_mzn'],'-',['to-string',['get','n_lote']]],'text-size':11},paint:{'text-color':'#ffffff','text-halo-color':'#173b24','text-halo-width':1.4}});map.on('mouseenter','fill',()=>map.getCanvas().style.cursor='pointer');map.on('mouseleave','fill',()=>map.getCanvas().style.cursor='');map.on('click','fill',e=>{const id=e.features?.[0]?.properties?.id_lote;selected=rows.find(x=>String(x.id_lote)===String(id));if(selected)render()});load()});
+$('basemapBtn').onclick=e=>{e.stopPropagation();$('basemapMenu').hidden=!$('basemapMenu').hidden};document.querySelectorAll('.basemap-option').forEach(b=>b.onclick=e=>{e.stopPropagation();setBasemap(b.dataset.basemap)});document.addEventListener('click',e=>{if(!e.target.closest('.basemap-control'))$('basemapMenu').hidden=true});$('fMzn').onchange=apply;$('fEstado').onchange=apply;$('fQ').oninput=apply;
+$('adminBtn').onclick=async()=>{if(auth.currentUser){await signOut(auth);toast('Sesión cerrada')}else{$('msg').textContent='';$('dlg').showModal()}};$('close').onclick=()=>$('dlg').close();
+$('googleBtn').onclick=async()=>{try{$('msg').textContent='';$('googleBtn').disabled=true;await signInWithPopup(auth,provider)}catch(e){const code=e?.code||'';if(code==='auth/unauthorized-domain')$('msg').textContent='Falta autorizar avaldiviezoch.github.io en Firebase Authentication.';else if(code!=='auth/popup-closed-by-user')$('msg').textContent=e?.message||'No se pudo ingresar con Google.'}finally{$('googleBtn').disabled=false}};
+onAuthStateChanged(auth,()=>refreshStaff());setInterval(()=>load(false),10000);
 </script>
 </body>
 </html>
