@@ -1,0 +1,74 @@
+name: Ocultar temporalmente enlaces de invitaciones
+
+on:
+  push:
+
+permissions:
+  contents: write
+
+jobs:
+  ocultar:
+    if: github.event.head_commit.message == 'Ocultar temporalmente enlaces de invitaciones'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Ocultar los cuatro accesos de invitaciones
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('applu.html')
+          with path.open('r', encoding='utf-8', newline='') as f:
+              text = f.read()
+
+          original = text
+          resultados = {}
+
+          for i in range(1, 5):
+              patron = re.compile(
+                  rf'<a\b(?P<before>[^>]*?)\bhref\s*=\s*(?P<q>["\'])(?P<url>[^"\']*invitacion_{i}(?:\.html)?[^"\']*)(?P=q)(?P<after>[^>]*)>',
+                  re.IGNORECASE | re.DOTALL
+              )
+
+              def ocultar(match):
+                  before = match.group('before')
+                  after = match.group('after')
+                  return f'<a{before}{after} data-invitacion-oculta="{i}" hidden>'
+
+              text, cantidad = patron.subn(ocultar, text)
+              resultados[i] = cantidad
+
+          print('Coincidencias encontradas:', resultados)
+
+          if any(resultados[i] != 1 for i in range(1, 5)):
+              raise RuntimeError(f'Se esperaba exactamente 1 enlace por invitación; resultado: {resultados}')
+
+          if text == original:
+              raise RuntimeError('No se produjo ningún cambio')
+
+          for i in range(1, 5):
+              if re.search(rf'href\s*=\s*["\'][^"\']*invitacion_{i}(?:\.html)?[^"\']*["\']', text, re.IGNORECASE):
+                  raise RuntimeError(f'El href de invitacion_{i} todavía está visible')
+              if f'data-invitacion-oculta="{i}" hidden' not in text:
+                  raise RuntimeError(f'No quedó marcada como oculta la invitación {i}')
+
+          with path.open('w', encoding='utf-8', newline='') as f:
+              f.write(text)
+          PY
+
+      - name: Guardar cambio y limpiar workflow temporal
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/ocultar-links-invitaciones.yml
+          git add applu.html
+          git diff --cached --check
+          git commit -m "Ocultar temporalmente las 4 invitaciones"
+          git push origin main
