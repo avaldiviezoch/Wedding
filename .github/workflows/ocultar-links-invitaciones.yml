@@ -1,14 +1,14 @@
-name: Ocultar temporalmente enlaces de invitaciones
+name: Inspeccionar accesos de invitaciones
 
 on:
   push:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  ocultar:
-    if: github.event.head_commit.message == 'Ocultar temporalmente enlaces de invitaciones'
+  inspeccionar:
+    if: github.event.head_commit.message == 'Inspeccionar accesos de invitaciones'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,7 +16,7 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Ocultar los cuatro accesos de invitaciones
+      - name: Localizar referencias de invitaciones
         shell: bash
         run: |
           python3 - <<'PY'
@@ -27,48 +27,24 @@ jobs:
           with path.open('r', encoding='utf-8', newline='') as f:
               text = f.read()
 
-          original = text
-          resultados = {}
+          patrones = [
+              r'invitacion_1', r'invitacion_2', r'invitacion_3', r'invitacion_4',
+              r'Invitación 1', r'Invitación 2', r'Invitación 3', r'Invitación 4',
+              r'invitaciones', r'invitación'
+          ]
 
-          for i in range(1, 5):
-              patron = re.compile(
-                  rf'<a\b(?P<before>[^>]*?)\bhref\s*=\s*(?P<q>["\'])(?P<url>[^"\']*invitacion_{i}(?:\.html)?[^"\']*)(?P=q)(?P<after>[^>]*)>',
-                  re.IGNORECASE | re.DOTALL
-              )
-
-              def ocultar(match):
-                  before = match.group('before')
-                  after = match.group('after')
-                  return f'<a{before}{after} data-invitacion-oculta="{i}" hidden>'
-
-              text, cantidad = patron.subn(ocultar, text)
-              resultados[i] = cantidad
-
-          print('Coincidencias encontradas:', resultados)
-
-          if any(resultados[i] != 1 for i in range(1, 5)):
-              raise RuntimeError(f'Se esperaba exactamente 1 enlace por invitación; resultado: {resultados}')
-
-          if text == original:
-              raise RuntimeError('No se produjo ningún cambio')
-
-          for i in range(1, 5):
-              if re.search(rf'href\s*=\s*["\'][^"\']*invitacion_{i}(?:\.html)?[^"\']*["\']', text, re.IGNORECASE):
-                  raise RuntimeError(f'El href de invitacion_{i} todavía está visible')
-              if f'data-invitacion-oculta="{i}" hidden' not in text:
-                  raise RuntimeError(f'No quedó marcada como oculta la invitación {i}')
-
-          with path.open('w', encoding='utf-8', newline='') as f:
-              f.write(text)
+          vistos = set()
+          for patron in patrones:
+              matches = list(re.finditer(patron, text, re.IGNORECASE))
+              print(f'PATRON {patron!r}: {len(matches)} coincidencias')
+              for n, m in enumerate(matches[:12], 1):
+                  a = max(0, m.start() - 260)
+                  b = min(len(text), m.end() + 360)
+                  key = (a, b)
+                  if key in vistos:
+                      continue
+                  vistos.add(key)
+                  snippet = text[a:b].replace('\r', '\\r').replace('\n', '\\n')
+                  print(f'--- {patron} #{n} ---')
+                  print(snippet)
           PY
-
-      - name: Guardar cambio y limpiar workflow temporal
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm .github/workflows/ocultar-links-invitaciones.yml
-          git add applu.html
-          git diff --cached --check
-          git commit -m "Ocultar temporalmente las 4 invitaciones"
-          git push origin main
