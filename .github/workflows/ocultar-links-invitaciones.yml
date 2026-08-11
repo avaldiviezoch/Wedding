@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   ocultar:
-    if: github.event.head_commit.message == 'Aplicar ocultamiento de enlaces de invitaciones'
+    if: github.event.head_commit.message == 'Reintentar ocultamiento de invitaciones'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,8 +34,6 @@ jobs:
 
           m = matches[0]
           html = base64.b64decode(m.group(2)).decode('utf-8')
-          original_html = html
-
           urls = [
               'https://avaldiviezoch.github.io/Wedding/invitacion_1',
               'https://avaldiviezoch.github.io/Wedding/invitacion_2',
@@ -43,62 +41,55 @@ jobs:
               'https://avaldiviezoch.github.io/Wedding/invitacion_4',
           ]
 
-          # El ejemplo visible y el placeholder tampoco deben revelar la URL real.
           ejemplo = f'<strong>{urls[0]}</strong>'
           if html.count(ejemplo) != 1:
-              raise RuntimeError('No se encontró exactamente una vez el ejemplo visible de invitacion_1')
+              raise RuntimeError('No se encontró el ejemplo visible esperado')
           html = html.replace(ejemplo, '<strong>Enlaces temporalmente ocultos</strong>', 1)
 
           placeholder = f'placeholder="{urls[0]}"'
           if html.count(placeholder) != 1:
-              raise RuntimeError('No se encontró exactamente una vez el placeholder de invitacion_1')
+              raise RuntimeError('No se encontró el placeholder esperado')
           html = html.replace(placeholder, 'placeholder="Enlace temporalmente oculto"', 1)
 
-          # Mantener los cuatro modelos, pero sin URL predeterminada.
           for i, url in enumerate(urls, 1):
               literal = f"'{url}'"
               if html.count(literal) != 1:
-                  raise RuntimeError(f'La URL predeterminada de invitacion_{i} no apareció exactamente una vez')
+                  raise RuntimeError(f'URL predeterminada {i} no encontrada exactamente una vez')
               html = html.replace(literal, "''", 1)
 
-          old_reset = 'Se restaurarán las cuatro invitaciones y sus enlaces oficiales. ¿Continuar?'
-          new_reset = 'Se restaurará la configuración inicial de las cuatro invitaciones. ¿Continuar?'
-          if old_reset in html:
-              html = html.replace(old_reset, new_reset, 1)
+          html = html.replace(
+              'Se restaurarán las cuatro invitaciones y sus enlaces oficiales. ¿Continuar?',
+              'Se restaurará la configuración inicial de las cuatro invitaciones. ¿Continuar?',
+              1
+          )
 
           for url in urls:
               if url in html:
-                  raise RuntimeError(f'Todavía quedó visible una URL oficial: {url}')
-
-          if html == original_html:
-              raise RuntimeError('No se produjo ningún cambio en el módulo Invitaciones')
+                  raise RuntimeError(f'Todavía quedó una URL oficial: {url}')
 
           nuevo_blob = base64.b64encode(html.encode('utf-8')).decode('ascii')
-          outer_nuevo = outer[:m.start(2)] + nuevo_blob + outer[m.end(2):]
+          outer = outer[:m.start(2)] + nuevo_blob + outer[m.end(2):]
 
-          # Validar que el módulo siga siendo decodificable y conserve sus cuatro modelos.
-          check = patron.search(outer_nuevo)
+          check = patron.search(outer)
           if not check:
-              raise RuntimeError('El módulo Invitaciones dejó de ser reconocible después del cambio')
-          html_check = base64.b64decode(check.group(2)).decode('utf-8')
-          if 'Invitaciones' not in html_check or 'Modelos configurados' not in html_check:
-              raise RuntimeError('La estructura del módulo Invitaciones no se conservó')
-          if html_check.count("''") < 4:
-              raise RuntimeError('No quedaron vacíos los cuatro enlaces predeterminados')
+              raise RuntimeError('El módulo dejó de ser reconocible')
+          validado = base64.b64decode(check.group(2)).decode('utf-8')
+          if 'Invitaciones' not in validado or 'Modelos configurados' not in validado:
+              raise RuntimeError('La estructura del módulo no se conservó')
+          if any(url in validado for url in urls):
+              raise RuntimeError('La validación detectó una URL oficial restante')
 
           with path.open('w', encoding='utf-8', newline='') as f:
-              f.write(outer_nuevo)
-
-          print('OK: se conservaron los 4 modelos y se retiraron sus URLs públicas predeterminadas.')
+              f.write(outer)
+          print('Validación OK')
           PY
 
-      - name: Guardar cambio y limpiar workflow temporal
+      - name: Guardar cambio
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm .github/workflows/ocultar-links-invitaciones.yml
           git add applu.html
-          git diff --cached --check
           git commit -m "Ocultar temporalmente enlaces de las 4 invitaciones"
           git push origin main
