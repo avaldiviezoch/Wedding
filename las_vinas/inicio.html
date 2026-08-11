@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f4efe6">
+<title>Proyecto Las Viñas · Tu próxima historia empieza aquí</title>
+<link rel="preload" as="image" href="../logo_satelite.png">
+<style>
+:root{--ink:#26312a;--muted:#667168;--ivory:#f4efe6;--paper:#fbf8f1;--green:#365b43;--green2:#54735e;--line:#ddd4c6;--soft:#e8e0d3;--shadow:0 24px 70px #1e2c241d}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--paper)}a{text-decoration:none;color:inherit}button{font:inherit}
+.hero{min-height:100svh;position:relative;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at 18% 18%,#ffffffaa 0 16%,transparent 42%),linear-gradient(135deg,#f7f3eb 0%,#e8ede6 48%,#dfe8df 100%)}
+.hero:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 0 45%,#fff7 46% 47%,transparent 48% 100%);opacity:.45;transform:scale(1.2)}
+.topbar{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:18px clamp(18px,5vw,64px)}
+.brand{display:flex;align-items:center;gap:11px;font-weight:850}.brand-logo{width:48px;height:48px;border-radius:50%;overflow:hidden;background:#fff;box-shadow:0 8px 28px #25382b20}.brand-logo img{width:100%;height:100%;object-fit:cover;transform:scale(2.75)}.brand small{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:2px}.navcta{border:1px solid #809084;background:#ffffffbf;backdrop-filter:blur(10px);padding:11px 16px;border-radius:999px;font-weight:800;font-size:13px}
+.hero-inner{position:relative;z-index:2;width:min(1100px,calc(100% - 36px));display:grid;grid-template-columns:1.08fr .92fr;gap:clamp(30px,6vw,80px);align-items:center;padding:100px 0 70px}.eyebrow{font-size:12px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--green2);margin-bottom:18px}.hero h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(48px,7.8vw,104px);line-height:.92;letter-spacing:-.045em;margin:0;max-width:760px;font-weight:500}.hero h1 em{font-style:italic;color:var(--green)}.lead{font-size:clamp(17px,2vw,22px);line-height:1.55;color:#536057;max-width:620px;margin:26px 0 32px}.buttons{display:flex;gap:12px;flex-wrap:wrap}.btn-primary{background:var(--green);color:white;padding:15px 21px;border-radius:999px;font-weight:850;box-shadow:0 14px 36px #365b4330}.btn-secondary{background:#ffffffc9;border:1px solid #cfc7bb;padding:15px 21px;border-radius:999px;font-weight:800}
+.hero-card{position:relative;min-height:540px;border-radius:34px;overflow:hidden;background:linear-gradient(160deg,#516859 0%,#2c4434 52%,#1f3026 100%);box-shadow:var(--shadow);padding:26px;display:flex;flex-direction:column;justify-content:space-between;color:#fff}.hero-card:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 65% 25%,#ffffff22 0 8%,transparent 27%),linear-gradient(30deg,transparent 0 48%,#ffffff10 49% 51%,transparent 52% 100%)}.hero-card>*{position:relative}.card-kicker{font-size:11px;font-weight:900;letter-spacing:.15em;text-transform:uppercase;opacity:.72}.mini-map{position:relative;height:310px;border-radius:28px;background:#24382c;overflow:hidden;border:1px solid #ffffff1f}.mini-map:before{content:"";position:absolute;inset:-18%;background:repeating-linear-gradient(18deg,transparent 0 22px,#ffffff14 23px 24px),repeating-linear-gradient(105deg,transparent 0 34px,#ffffff0d 35px 36px);transform:rotate(-4deg)}.lot-grid{position:absolute;inset:30px;display:grid;grid-template-columns:repeat(7,1fr);gap:5px;transform:rotate(-8deg)}.lot-grid i{display:block;border:1px solid #f4efe6aa;background:#f4efe625;border-radius:3px}.lot-grid i:nth-child(8n+1),.lot-grid i:nth-child(9n+3){background:#8eb77b40}.lot-grid i:nth-child(13n+5){background:#d7b96555}.hero-card h3{font-family:Georgia,"Times New Roman",serif;font-size:32px;font-weight:500;margin:18px 0 7px}.hero-card p{margin:0;color:#dce7df;line-height:1.55;font-size:14px}
+.section{padding:clamp(76px,9vw,130px) clamp(20px,6vw,90px)}.section-inner{width:min(1160px,100%);margin:auto}.section-label{font-size:11px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--green2);margin-bottom:15px}.section h2{font-family:Georgia,"Times New Roman",serif;font-size:clamp(38px,5vw,68px);line-height:1.02;letter-spacing:-.035em;font-weight:500;margin:0;max-width:850px}.section-intro{font-size:18px;line-height:1.65;color:var(--muted);max-width:720px;margin:22px 0 0}.life{background:#fff}.life-grid{margin-top:48px;display:grid;grid-template-columns:1.15fr .85fr;gap:18px}.life-card{min-height:340px;border-radius:28px;padding:30px;background:var(--ivory);border:1px solid #e3dacd;display:flex;flex-direction:column;justify-content:flex-end}.life-card.big{min-height:560px;background:linear-gradient(150deg,#e7eee5,#cbd8cb)}.life-card:nth-child(2){background:#efe8db}.life-card:nth-child(3){background:#e4e8e0}.life-card strong{font-family:Georgia,"Times New Roman",serif;font-size:30px;font-weight:500}.life-card span{display:block;color:var(--muted);margin-top:9px;line-height:1.55;max-width:440px}.side-stack{display:grid;gap:18px}
+.story{background:#24362c;color:#f9f6ef}.story .section-label{color:#b7c9b8}.story .section-intro{color:#cbd7ce}.story-steps{margin-top:50px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.step{padding:25px;border-top:1px solid #ffffff35}.step b{font-size:12px;letter-spacing:.14em;color:#a9c1ad}.step h3{font-family:Georgia,"Times New Roman",serif;font-size:29px;font-weight:500;margin:18px 0 10px}.step p{color:#cbd7ce;line-height:1.6;font-size:14px}
+.experience{background:var(--paper)}.experience-box{margin-top:44px;border-radius:32px;min-height:520px;background:linear-gradient(145deg,#d6dfd2,#aebfac);position:relative;overflow:hidden;padding:34px;display:flex;align-items:flex-end;box-shadow:var(--shadow)}.experience-box:before{content:"360°";position:absolute;right:28px;top:20px;font-family:Georgia,"Times New Roman",serif;font-size:clamp(80px,16vw,190px);color:#ffffff32}.experience-copy{position:relative;background:#ffffffe0;backdrop-filter:blur(12px);border:1px solid #fff;border-radius:24px;padding:24px;max-width:500px}.experience-copy h3{font-family:Georgia,"Times New Roman",serif;font-size:34px;font-weight:500;margin:0 0 10px}.experience-copy p{margin:0;color:var(--muted);line-height:1.55}.soon{display:inline-block;margin-top:14px;padding:7px 10px;border-radius:999px;background:#e7eee5;color:var(--green);font-size:10px;font-weight:900;letter-spacing:.09em;text-transform:uppercase}
+.final{background:#fff}.final-card{border-radius:34px;background:linear-gradient(135deg,#f3ede3 0%,#e5ece4 100%);padding:clamp(34px,7vw,76px);display:grid;grid-template-columns:1fr auto;gap:30px;align-items:center}.final-card h2{font-size:clamp(38px,5vw,70px);max-width:760px}.final-card p{color:var(--muted);font-size:17px;line-height:1.6;max-width:630px}.final-btn{white-space:nowrap;background:var(--green);color:#fff;padding:18px 24px;border-radius:999px;font-weight:900;box-shadow:0 18px 42px #365b4330}
+footer{padding:30px 20px 45px;text-align:center;color:#7a817b;font-size:12px;background:#fff}
+.reveal{opacity:0;transform:translateY(18px);transition:.7s ease}.reveal.on{opacity:1;transform:none}
+@media(max-width:850px){.topbar{padding:14px 14px}.brand-logo{width:42px;height:42px}.brand span{font-size:14px}.navcta{padding:10px 13px}.hero-inner{grid-template-columns:1fr;padding-top:110px}.hero-card{min-height:420px}.mini-map{height:225px}.life-grid{grid-template-columns:1fr}.life-card.big{min-height:400px}.story-steps{grid-template-columns:1fr}.final-card{grid-template-columns:1fr}.final-btn{justify-self:start}.section{padding-left:20px;padding-right:20px}}
+</style>
+</head>
+<body>
+<section class="hero">
+  <div class="topbar">
+    <div class="brand"><div class="brand-logo"><img src="../logo_satelite.png" alt="Las Viñas"></div><div><span>Proyecto Las Viñas</span><small>Pachacámac · Lima</small></div></div>
+    <a class="navcta" href="./">Ver lotes</a>
+  </div>
+  <div class="hero-inner">
+    <div>
+      <div class="eyebrow">Un lugar para hacerlo tuyo</div>
+      <h1>Tu próxima historia <em>empieza aquí.</em></h1>
+      <p class="lead">No se trata solo de elegir un lote. Se trata de imaginar tu casa, tus mañanas, tu espacio y el lugar donde quieres construir lo que viene.</p>
+      <div class="buttons"><a class="btn-primary" href="#vivir">Conocer Las Viñas</a><a class="btn-secondary" href="./">Ir directo al mapa</a></div>
+    </div>
+    <div class="hero-card">
+      <div class="card-kicker">Proyecto de vivienda</div>
+      <div class="mini-map"><div class="lot-grid">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div></div>
+      <div><h3>Elige dónde quieres empezar.</h3><p>Explora el proyecto completo y encuentra el espacio que mejor encaja contigo.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="vivir" class="section life">
+  <div class="section-inner">
+    <div class="section-label reveal">Antes de hablar de metros cuadrados</div>
+    <h2 class="reveal">Primero imagina cómo quieres vivir.</h2>
+    <p class="section-intro reveal">Las Viñas se presenta como un proyecto donde puedes entender no solo los lotes, sino también los espacios de recreación, equipamiento, vías y la distribución completa del entorno.</p>
+    <div class="life-grid">
+      <div class="life-card big reveal"><strong>Tu espacio, a tu ritmo</strong><span>Una casa pensada por ti, en un lote que puedes escoger según ubicación, área y relación con el proyecto.</span></div>
+      <div class="side-stack">
+        <div class="life-card reveal"><strong>Más que lotes</strong><span>Parques, aportes y áreas de servicio forman parte de la lectura completa del proyecto.</span></div>
+        <div class="life-card reveal"><strong>Todo se entiende mejor en el mapa</strong><span>Cuando estés listo, podrás explorar cada zona y luego entrar al detalle de cada lote disponible.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section story">
+  <div class="section-inner">
+    <div class="section-label reveal">La experiencia</div>
+    <h2 class="reveal">Primero conoce el lugar. Después elige tu lote.</h2>
+    <p class="section-intro reveal">La idea es que el mapa sea la última parte del recorrido, cuando ya tengas claro qué zonas del proyecto te atraen más.</p>
+    <div class="story-steps">
+      <div class="step reveal"><b>01</b><h3>Descubre</h3><p>Conoce la propuesta del proyecto y visualiza sus diferentes áreas.</p></div>
+      <div class="step reveal"><b>02</b><h3>Imagina</h3><p>Ubica parques, vías y espacios de uso público para entender dónde te gustaría estar.</p></div>
+      <div class="step reveal"><b>03</b><h3>Elige</h3><p>Entra al mapa interactivo, compara alternativas y revisa la información del lote.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section experience">
+  <div class="section-inner">
+    <div class="section-label reveal">Próxima experiencia</div>
+    <h2 class="reveal">Sentir el proyecto antes de visitarlo.</h2>
+    <p class="section-intro reveal">Este espacio está preparado para incorporar posteriormente fotos reales, video o un recorrido panorámico 360° cuando tengamos ese material.</p>
+    <div class="experience-box reveal">
+      <div class="experience-copy"><h3>Mira cómo se siente estar aquí.</h3><p>La siguiente evolución de esta página puede permitir recorrer visualmente el proyecto y luego saltar directamente al mapa de lotes.</p><span class="soon">Espacio preparado para 360°</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section final">
+  <div class="section-inner">
+    <div class="final-card reveal">
+      <div><div class="section-label">Ahora sí</div><h2>Encuentra el lugar donde quieres empezar.</h2><p>Explora Las Viñas, revisa las zonas del proyecto y entra al detalle de cada lote.</p></div>
+      <a class="final-btn" href="./">Elegir mi lote →</a>
+    </div>
+  </div>
+</section>
+<footer>Proyecto Las Viñas · Primera propuesta de experiencia comercial</footer>
+<script>
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('on')}),{threshold:.12});document.querySelectorAll('.reveal').forEach(x=>io.observe(x));
+</script>
+</body>
+</html>
