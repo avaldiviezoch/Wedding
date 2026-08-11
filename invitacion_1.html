@@ -6077,6 +6077,7 @@ footer h2,
   id="hero-video" 
   muted
   autoplay
+  loop
   playsinline
   webkit-playsinline
   preload="auto"
@@ -6573,6 +6574,10 @@ footer h2,
   <p>Gracias por acompañarnos</p>
   <h2>Antonio y Lucero</h2>
 
+  <div class="footer-brook-loop" aria-label="Brook acompañando el cierre de la invitación" style="width:70px;height:auto;margin:24px auto 18px;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+    <img src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/brook.gif" alt="Brook tocando Sake de Binks" style="width:100%;height:auto;display:block;object-fit:contain;background:transparent;filter:drop-shadow(0 0 2px rgba(0,0,0,.08));animation:brookFloat 2.5s ease-in-out infinite;">
+  </div>
+
   <div class="footer-credits">
     <p>Créditos: Antonio Valdiviezo © Derechos reservados</p>
     <p>Música: “Binks' Sake” · One Piece</p>
@@ -6757,11 +6762,11 @@ function asegurarHeroVideoLoop(){
 
   heroVideo.muted = true;
   heroVideo.autoplay = true;
-  heroVideo.loop = false;
+  heroVideo.loop = true;
   heroVideo.playsInline = true;
   heroVideo.controls = false;
   heroVideo.removeAttribute("controls");
-  heroVideo.removeAttribute("loop");
+  heroVideo.setAttribute("loop", "");
 
   function loopEnd(){
     if(!heroVideo.duration || Number.isNaN(heroVideo.duration)){
