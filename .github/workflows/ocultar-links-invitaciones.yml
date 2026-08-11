@@ -1,4 +1,4 @@
-name: Inspeccionar accesos de invitaciones
+name: Inspeccionar HTML de invitaciones
 
 on:
   push:
@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   inspeccionar:
-    if: github.event.head_commit.message == 'Inspeccionar accesos de invitaciones'
+    if: github.event.head_commit.message == 'Inspeccionar HTML de invitaciones'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,35 +16,27 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Localizar referencias de invitaciones
+      - name: Decodificar módulo de invitaciones
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import re
+          import re, base64
 
-          path = Path('applu.html')
-          with path.open('r', encoding='utf-8', newline='') as f:
+          with Path('applu.html').open('r', encoding='utf-8', newline='') as f:
               text = f.read()
 
-          patrones = [
-              r'invitacion_1', r'invitacion_2', r'invitacion_3', r'invitacion_4',
-              r'Invitación 1', r'Invitación 2', r'Invitación 3', r'Invitación 4',
-              r'invitaciones', r'invitación'
-          ]
+          patron = re.compile(r'"invitaciones":\{"title":"Invitaciones","html":"([A-Za-z0-9+/=]+)"\}')
+          blobs = patron.findall(text)
+          print('Módulos embebidos encontrados:', len(blobs))
+          if not blobs:
+              raise RuntimeError('No se encontró el HTML embebido de Invitaciones')
 
-          vistos = set()
-          for patron in patrones:
-              matches = list(re.finditer(patron, text, re.IGNORECASE))
-              print(f'PATRON {patron!r}: {len(matches)} coincidencias')
-              for n, m in enumerate(matches[:12], 1):
-                  a = max(0, m.start() - 260)
-                  b = min(len(text), m.end() + 360)
-                  key = (a, b)
-                  if key in vistos:
-                      continue
-                  vistos.add(key)
-                  snippet = text[a:b].replace('\r', '\\r').replace('\n', '\\n')
-                  print(f'--- {patron} #{n} ---')
-                  print(snippet)
+          for idx, blob in enumerate(blobs, 1):
+              html = base64.b64decode(blob).decode('utf-8')
+              print(f'=== MODULO {idx} | {len(html)} caracteres ===')
+              for n, line in enumerate(html.splitlines(), 1):
+                  low = line.lower()
+                  if ('href' in low or 'invitacion' in low or 'modelo' in low or 'plantilla' in low):
+                      print(f'{n}: {line}')
           PY
