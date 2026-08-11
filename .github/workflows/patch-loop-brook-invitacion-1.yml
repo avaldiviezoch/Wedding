@@ -26,89 +26,36 @@ jobs:
           path = Path('invitacion_1.html')
           text = path.read_text(encoding='utf-8')
 
-          # 1) Loop nativo en el video principal como respaldo del loop manual.
-          old_video = '''<video 
-  id="hero-video" 
-  muted
-  autoplay
-  playsinline'''
-          new_video = '''<video 
-  id="hero-video" 
-  muted
-  autoplay
-  loop
-  playsinline'''
+          old_video = '  autoplay\n  playsinline'
+          new_video = '  autoplay\n  loop\n  playsinline'
           if old_video not in text:
-              raise RuntimeError('No se encontro el bloque del hero-video esperado')
+              raise RuntimeError('No se encontro el bloque autoplay/playsinline del hero-video')
           text = text.replace(old_video, new_video, 1)
 
-          # 2) Mantener el loop nativo activo dentro de la funcion de proteccion.
           old_loop_false = '  heroVideo.loop = false;'
-          new_loop_true = '  heroVideo.loop = true;'
           if old_loop_false not in text:
               raise RuntimeError('No se encontro heroVideo.loop = false')
-          text = text.replace(old_loop_false, new_loop_true, 1)
+          text = text.replace(old_loop_false, '  heroVideo.loop = true;', 1)
 
           old_remove_loop = '  heroVideo.removeAttribute("loop");'
-          new_set_loop = '  heroVideo.setAttribute("loop", "");'
           if old_remove_loop not in text:
               raise RuntimeError('No se encontro removeAttribute loop')
-          text = text.replace(old_remove_loop, new_set_loop, 1)
+          text = text.replace(old_remove_loop, '  heroVideo.setAttribute("loop", "");', 1)
 
-          old_comment = '''    El video tiene frames muy oscuros al inicio/final.
-    Por eso no usamos el loop nativo: hacemos un loop manual,
-    empezando después del primer frame negro y regresando antes del final.'''
-          new_comment = '''    El video tiene frames muy oscuros al inicio/final.
-    Conservamos el reinicio manual para evitar esos frames y, además,
-    dejamos activo el loop nativo como respaldo para que nunca se congele al terminar.'''
-          if old_comment in text:
-              text = text.replace(old_comment, new_comment, 1)
-
-          # 3) Brook del mismo tamaño (70px) justo antes de los creditos.
-          footer_marker = '''  <h2>Antonio y Lucero</h2>
-
-  <div class="footer-credits">'''
-          footer_new = '''  <h2>Antonio y Lucero</h2>
-
-  <div class="footer-brook-loop" aria-label="Brook acompañando el cierre de la invitación">
-    <img
-      src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/brook.gif"
-      alt="Brook tocando Sake de Binks">
-  </div>
-
-  <div class="footer-credits">'''
+          footer_marker = '  <h2>Antonio y Lucero</h2>\n\n  <div class="footer-credits">'
+          footer_new = (
+              '  <h2>Antonio y Lucero</h2>\n\n'
+              '  <div class="footer-brook-loop" aria-label="Brook acompañando el cierre de la invitación" '
+              'style="width:70px;height:auto;margin:24px auto 18px;display:flex;align-items:center;justify-content:center;pointer-events:none;">\n'
+              '    <img src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/brook.gif" '
+              'alt="Brook tocando Sake de Binks" '
+              'style="width:100%;height:auto;display:block;object-fit:contain;background:transparent;filter:drop-shadow(0 0 2px rgba(0,0,0,.08));animation:brookFloat 2.5s ease-in-out infinite;">\n'
+              '  </div>\n\n'
+              '  <div class="footer-credits">'
+          )
           if footer_marker not in text:
               raise RuntimeError('No se encontro el marcador del footer')
           text = text.replace(footer_marker, footer_new, 1)
-
-          # 4) Estilo: exactamente el mismo ancho que el Brook flotante.
-          style_marker = '\n</style>\n<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>'
-          footer_css = '''
-
-/* ===== BROOK FINAL ANIMADO ===== */
-.footer-brook-loop{
-  width:70px;
-  height:auto;
-  margin:24px auto 18px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  pointer-events:none;
-}
-
-.footer-brook-loop img{
-  width:100%;
-  height:auto;
-  display:block;
-  object-fit:contain;
-  background:transparent;
-  filter:drop-shadow(0 0 2px rgba(0,0,0,.08));
-  animation:brookFloat 2.5s ease-in-out infinite;
-}
-'''
-          if style_marker not in text:
-              raise RuntimeError('No se encontro el cierre del bloque style')
-          text = text.replace(style_marker, footer_css + style_marker, 1)
 
           path.write_text(text, encoding='utf-8')
           PY
@@ -120,19 +67,18 @@ jobs:
           from pathlib import Path
           t = Path('invitacion_1.html').read_text(encoding='utf-8')
           checks = [
-              'id="hero-video"',
               'autoplay\n  loop\n  playsinline',
               'heroVideo.loop = true;',
               'heroVideo.setAttribute("loop", "");',
               'class="footer-brook-loop"',
-              'width:70px;',
+              'width:70px',
               'brook.gif'
           ]
           for c in checks:
               assert c in t, c
           assert 'heroVideo.loop = false;' not in t
           assert 'heroVideo.removeAttribute("loop");' not in t
-          print('Validacion OK: video con doble loop y Brook final agregado')
+          print('Validacion OK')
           PY
 
       - name: Commit y limpiar workflow temporal
