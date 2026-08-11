@@ -1,0 +1,70 @@
+name: Corregir Brook invitacion 1
+
+on:
+  push:
+    paths:
+      - '.github/workflows/corregir-brook-invitacion-1.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Quitar Brook flotante y restaurar Brook sobre creditos
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('invitacion_1.html')
+          t = p.read_text(encoding='utf-8')
+
+          # 1) Eliminar el Brook flotante que acompaña toda la invitación.
+          pattern = re.compile(
+              r'\n<!-- BROOK PLAYER -->\s*\n\s*<div class="brook-player">.*?</div>\s*\n\s*\n<script>',
+              re.S
+          )
+          t, n = pattern.subn('\n<script>', t, count=1)
+          if n != 1:
+              raise RuntimeError('No se encontro el Brook flotante')
+
+          # 2) Agregar Brook pequeño justo arriba de los créditos.
+          marker = '''<footer>\n  <p>Gracias por acompañarnos</p>\n  <h2>Antonio y Lucero</h2>\n  <div class="footer-credits">'''
+          replacement = '''<footer>\n  <p>Gracias por acompañarnos</p>\n  <h2>Antonio y Lucero</h2>\n\n  <div class="footer-brook-loop" aria-label="Brook acompañando el cierre de la invitación" style="width:70px;height:auto;margin:24px auto 18px;display:flex;align-items:center;justify-content:center;pointer-events:none;">\n    <img src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/brook.gif" alt="Brook tocando Sake de Binks" style="width:100%;height:auto;display:block;object-fit:contain;background:transparent;filter:drop-shadow(0 0 2px rgba(0,0,0,.08));animation:brookFloat 2.5s ease-in-out infinite;">\n  </div>\n\n  <div class="footer-credits">'''
+          if marker not in t:
+              raise RuntimeError('No se encontro el footer esperado')
+          t = t.replace(marker, replacement, 1)
+
+          p.write_text(t, encoding='utf-8')
+          PY
+
+      - name: Validar
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          t = Path('invitacion_1.html').read_text(encoding='utf-8')
+          assert 'class="brook-player"' not in t
+          assert '<!-- BROOK PLAYER -->' not in t
+          assert 'class="footer-brook-loop"' in t
+          assert 'const LOOP_END = 9.8;' in t
+          print('OK: Brook flotante eliminado y Brook final restaurado')
+          PY
+
+      - name: Commit y limpiar workflow temporal
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/corregir-brook-invitacion-1.yml
+          git add invitacion_1.html
+          git commit -m "Corregir ubicación de Brook en invitacion 1"
+          git push origin main
