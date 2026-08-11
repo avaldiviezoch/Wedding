@@ -17,69 +17,15 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Ajustar loop a diez segundos y quitar Brook del footer
+      - name: Aplicar ajuste
         shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
+        run: >-
+          python3 -c "from pathlib import Path; import re; p=Path('invitacion_1.html'); t=p.read_text(encoding='utf-8'); t,n1=re.subn(r'const LOOP_START = 0\\.85;\\s*const LOOP_END_MARGIN = 1\\.80;', 'const LOOP_START = 0.85;\\n  const LOOP_END = 9.8;', t, count=1); assert n1==1, 'loop config'; t,n2=re.subn(r'return Math\\.max\\(LOOP_START \\+ 1\\.2, heroVideo\\.duration - LOOP_END_MARGIN\\);', 'return Math.min(LOOP_END, Math.max(LOOP_START + 1.2, heroVideo.duration - 0.15));', t, count=1); assert n2==1, 'loop end'; t,n3=re.subn(r'\\n\\s*<div class=\\\"footer-brook-loop\\\"[^>]*>\\s*<img[^>]*>\\s*</div>\\s*\\n', '\\n', t, count=1, flags=re.S); assert n3==1, 'brook footer'; p.write_text(t, encoding='utf-8')"
 
-          path = Path('invitacion_1.html')
-          text = path.read_text(encoding='utf-8')
-
-          # El video vuelve al inicio aproximadamente a los 10 s,
-          # antes de alcanzar el tramo oscuro/final del archivo.
-          text, n1 = re.subn(
-              r'const LOOP_START = 0\.85;\s*const LOOP_END_MARGIN = 1\.80;',
-              'const LOOP_START = 0.85;\n  const LOOP_END = 9.8;',
-              text,
-              count=1
-          )
-          if n1 != 1:
-              raise RuntimeError('No se encontro la configuracion de loop actual')
-
-          old_loop_end = '''  function loopEnd(){
-    if(!heroVideo.duration || Number.isNaN(heroVideo.duration)){
-      return null;
-    }
-
-    return Math.max(LOOP_START + 1.2, heroVideo.duration - LOOP_END_MARGIN);
-  }'''
-          new_loop_end = '''  function loopEnd(){
-    if(!heroVideo.duration || Number.isNaN(heroVideo.duration)){
-      return null;
-    }
-
-    return Math.min(LOOP_END, Math.max(LOOP_START + 1.2, heroVideo.duration - 0.15));
-  }'''
-          if old_loop_end not in text:
-              raise RuntimeError('No se encontro la funcion loopEnd actual')
-          text = text.replace(old_loop_end, new_loop_end, 1)
-
-          # Quitar solamente el Brook agregado junto a los creditos.
-          brook_pattern = re.compile(
-              r'\n\s*<div class="footer-brook-loop"[^>]*>\s*<img[^>]*>\s*</div>\s*\n',
-              re.S
-          )
-          text, n2 = brook_pattern.subn('\n', text, count=1)
-          if n2 != 1:
-              raise RuntimeError('No se encontro el Brook del footer')
-
-          path.write_text(text, encoding='utf-8')
-          PY
-
-      - name: Validar cambios
+      - name: Validar
         shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          t = Path('invitacion_1.html').read_text(encoding='utf-8')
-          assert 'const LOOP_END = 9.8;' in t
-          assert 'duration - LOOP_END_MARGIN' not in t
-          assert 'class="footer-brook-loop"' not in t
-          assert 'class="brook-player"' in t
-          print('OK: hero reinicia antes de 10s y Brook del footer eliminado')
-          PY
+        run: >-
+          python3 -c "from pathlib import Path; t=Path('invitacion_1.html').read_text(encoding='utf-8'); assert 'const LOOP_END = 9.8;' in t; assert 'duration - LOOP_END_MARGIN' not in t; assert 'class=\"footer-brook-loop\"' not in t; assert 'class=\"brook-player\"' in t; print('VALIDACION OK')"
 
       - name: Commit y limpiar workflow temporal
         shell: bash
