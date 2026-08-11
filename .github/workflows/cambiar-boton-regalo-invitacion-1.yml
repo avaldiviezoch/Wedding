@@ -17,8 +17,8 @@ jobs:
           from pathlib import Path
           p = Path('invitacion_1.html')
           s = p.read_text(encoding='utf-8')
-          old = 'Ver datos del regalo monetario'
-          new = 'Otro tipo de regalo'
+          old = 'VER DATOS PARA REGALO MONETARIO'
+          new = 'OTRO TIPO DE REGALO'
           if old not in s:
               raise SystemExit('No se encontró el texto esperado')
           s = s.replace(old, new, 1)
@@ -26,8 +26,8 @@ jobs:
           PY
       - name: Validar
         run: |
-          grep -q "Otro tipo de regalo" invitacion_1.html
-          ! grep -q "Ver datos del regalo monetario" invitacion_1.html
+          grep -q "OTRO TIPO DE REGALO" invitacion_1.html
+          ! grep -q "VER DATOS PARA REGALO MONETARIO" invitacion_1.html
       - name: Commit y limpiar workflow temporal
         run: |
           rm .github/workflows/cambiar-boton-regalo-invitacion-1.yml
