@@ -1,0 +1,92 @@
+name: Ajuste video 10s y Brook footer invitacion 1
+
+on:
+  push:
+    paths:
+      - '.github/workflows/ajuste-video-10s-y-quitar-brook-footer-invitacion-1.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Ajustar loop a diez segundos y quitar Brook del footer
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('invitacion_1.html')
+          text = path.read_text(encoding='utf-8')
+
+          # El video vuelve al inicio aproximadamente a los 10 s,
+          # antes de alcanzar el tramo oscuro/final del archivo.
+          text, n1 = re.subn(
+              r'const LOOP_START = 0\.85;\s*const LOOP_END_MARGIN = 1\.80;',
+              'const LOOP_START = 0.85;\n  const LOOP_END = 9.8;',
+              text,
+              count=1
+          )
+          if n1 != 1:
+              raise RuntimeError('No se encontro la configuracion de loop actual')
+
+          old_loop_end = '''  function loopEnd(){
+    if(!heroVideo.duration || Number.isNaN(heroVideo.duration)){
+      return null;
+    }
+
+    return Math.max(LOOP_START + 1.2, heroVideo.duration - LOOP_END_MARGIN);
+  }'''
+          new_loop_end = '''  function loopEnd(){
+    if(!heroVideo.duration || Number.isNaN(heroVideo.duration)){
+      return null;
+    }
+
+    return Math.min(LOOP_END, Math.max(LOOP_START + 1.2, heroVideo.duration - 0.15));
+  }'''
+          if old_loop_end not in text:
+              raise RuntimeError('No se encontro la funcion loopEnd actual')
+          text = text.replace(old_loop_end, new_loop_end, 1)
+
+          # Quitar solamente el Brook agregado junto a los creditos.
+          brook_pattern = re.compile(
+              r'\n\s*<div class="footer-brook-loop"[^>]*>\s*<img[^>]*>\s*</div>\s*\n',
+              re.S
+          )
+          text, n2 = brook_pattern.subn('\n', text, count=1)
+          if n2 != 1:
+              raise RuntimeError('No se encontro el Brook del footer')
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Validar cambios
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          t = Path('invitacion_1.html').read_text(encoding='utf-8')
+          assert 'const LOOP_END = 9.8;' in t
+          assert 'duration - LOOP_END_MARGIN' not in t
+          assert 'class="footer-brook-loop"' not in t
+          assert 'class="brook-player"' in t
+          print('OK: hero reinicia antes de 10s y Brook del footer eliminado')
+          PY
+
+      - name: Commit y limpiar workflow temporal
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/ajuste-video-10s-y-quitar-brook-footer-invitacion-1.yml
+          git add invitacion_1.html
+          git commit -m "Ajustar video a loop de 10s y quitar Brook final"
+          git push origin main
