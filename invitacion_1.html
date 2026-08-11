@@ -6573,11 +6573,6 @@ footer h2,
 <footer>
   <p>Gracias por acompañarnos</p>
   <h2>Antonio y Lucero</h2>
-
-  <div class="footer-brook-loop" aria-label="Brook acompañando el cierre de la invitación" style="width:70px;height:auto;margin:24px auto 18px;display:flex;align-items:center;justify-content:center;pointer-events:none;">
-    <img src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/brook.gif" alt="Brook tocando Sake de Binks" style="width:100%;height:auto;display:block;object-fit:contain;background:transparent;filter:drop-shadow(0 0 2px rgba(0,0,0,.08));animation:brookFloat 2.5s ease-in-out infinite;">
-  </div>
-
   <div class="footer-credits">
     <p>Créditos: Antonio Valdiviezo © Derechos reservados</p>
     <p>Música: “Binks' Sake” · One Piece</p>
@@ -6758,7 +6753,7 @@ function asegurarHeroVideoLoop(){
     empezando después del primer frame negro y regresando antes del final.
   */
   const LOOP_START = 0.85;
-  const LOOP_END_MARGIN = 1.80;
+  const LOOP_END = 9.8;
 
   heroVideo.muted = true;
   heroVideo.autoplay = true;
@@ -6773,7 +6768,7 @@ function asegurarHeroVideoLoop(){
       return null;
     }
 
-    return Math.max(LOOP_START + 1.2, heroVideo.duration - LOOP_END_MARGIN);
+    return Math.min(LOOP_END, Math.max(LOOP_START + 1.2, heroVideo.duration - 0.15));
   }
 
   function safeSeekStart(){
