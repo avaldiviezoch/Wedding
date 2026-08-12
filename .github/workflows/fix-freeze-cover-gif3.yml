@@ -1,0 +1,37 @@
+name: Corregir congelado portada GIF 3
+
+on:
+  push:
+    paths:
+      - '.github/scripts/fix_freeze_cover_gif3.py'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Corregir script HTML
+        run: python .github/scripts/fix_freeze_cover_gif3.py
+      - name: Validar
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('invitacion_3.html').read_text(encoding='utf-8')
+          assert '<script>\n    /* Portada GIF: reproducir una sola vez y congelar el último frame. */' in s
+          assert 'const GIF_DURATION_MS = 9150;' in s
+          assert 'video_de_entrada_3_final.png' in s
+          PY
+      - name: Limpiar temporales
+        run: |
+          rm -f .github/scripts/fix_freeze_cover_gif3.py
+          rm -f .github/workflows/fix-freeze-cover-gif3.yml
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add invitacion_3.html .github/scripts/fix_freeze_cover_gif3.py .github/workflows/fix-freeze-cover-gif3.yml
+          git commit -m 'Corregir ejecucion del congelado final del GIF 3'
+          git push
