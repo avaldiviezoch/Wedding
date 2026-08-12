@@ -1,9 +1,9 @@
-name: Ajustar invitacion 4
+name: Fix invitation 4
 
-on:
+"on":
   push:
     paths:
-      - '.github/triggers/ajustar-invitacion-4.txt'
+      - .github/triggers/ajustar-invitacion-4.txt
 
 permissions:
   contents: write
@@ -13,31 +13,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Ajustar contenido y consistencia
+      - name: Patch HTML
+        shell: python
         run: |
-          python3 <<'PY'
           from pathlib import Path
           p = Path('invitacion_4.html')
           s = p.read_text(encoding='utf-8')
-
-          replacements = [
-              ('      background: #000;', '      background: var(--crema);'),
-              ('            <span>Ver mapa</span>', '            <span>Ver ubicación</span>'),
-              ('            Ver datos de regalo', '            Otro tipo de regalo'),
-              ('''          <p class="texto-adicional">
-            Aceptamos abrazos, buenos deseos y regalos en la recepción. Para quienes
-            prefieran no llevar paquetes, también dejamos una opción por Yape.
-          </p>''', '''          <p class="texto-adicional">
-            Lo más importante para nosotros es compartir este día contigo. Si deseas tener un detalle,
-            lo recibiremos con muchísimo cariño. Puedes hacerlo mediante Yape o transferencia bancaria;
-            y si prefieres un regalo físico, también podremos recibirlo en la recepción el día de la boda.
-          </p>'''),
-              ('''          <div class="panel-interactivo datos-regalo" id="giftDetails" hidden>
+          pairs = [
+            ('      background: #000;', '      background: var(--crema);'),
+            ('            <span>Ver mapa</span>', '            <span>Ver ubicación</span>'),
+            ('            Ver datos de regalo', '            Otro tipo de regalo')
+          ]
+          for old,new in pairs:
+            if old not in s:
+              raise SystemExit('missing: ' + old)
+            s = s.replace(old,new,1)
+          old = '''          <div class="panel-interactivo datos-regalo" id="giftDetails" hidden>
             <p>Podremos recibir sus regalos durante la recepción.</p>
             <p class="numero-yape"><strong>Yape:</strong> 993219142</p>
             <button class="boton-cerrar-panel" id="giftClose" type="button">Cerrar información</button>
-          </div>''', '''          <div class="panel-interactivo datos-regalo" id="giftDetails" hidden>
+          </div>'''
+          new = '''          <div class="panel-interactivo datos-regalo" id="giftDetails" hidden>
             <p>Si deseas acompañarnos con un detalle adicional, puedes hacerlo a través de cualquiera de estas opciones.</p>
             <p><strong>Banco:</strong> BCP</p>
             <p><strong>Número de cuenta:</strong> 19335282760050</p>
@@ -45,85 +41,21 @@ jobs:
             <p class="numero-yape"><strong>Yape:</strong> 993 219 142</p>
             <p>Los regalos físicos también serán recibidos con mucho cariño durante la recepción.</p>
             <button class="boton-cerrar-panel" id="giftClose" type="button">Cerrar información</button>
-          </div>''')
-          ]
-
-          for old, new in replacements:
-              if old not in s:
-                  raise SystemExit('No se encontró bloque esperado: ' + old[:80])
-              s = s.replace(old, new, 1)
-
-          if '.creditos-finales{' not in s:
-              marker = '    .nombres-cierre{'
-              css = '''    .creditos-finales{
-      padding: 12px 20px 44px;
-      text-align: center;
-      color: var(--verde-suave);
-      background: var(--crema);
-    }
-
-    .creditos-brook{
-      width: 70px;
-      height: auto;
-      margin: 0 auto 14px;
-      display: block;
-      object-fit: contain;
-      filter: drop-shadow(0 3px 8px rgba(70,83,60,.10));
-    }
-
-    .creditos-texto{
-      font-size: .7rem;
-      line-height: 1.7;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      opacity: .82;
-    }
-
-'''
-              if marker not in s:
-                  raise SystemExit('No se encontró marcador CSS de cierre')
-              s = s.replace(marker, css + marker, 1)
-
-          if 'aria-label="Créditos"' not in s:
-              closing = '''        </article>
-      </div>
-    </section>
-'''
-              idx = s.rfind(closing)
-              if idx == -1:
-                  raise SystemExit('No se encontró cierre final')
-              footer = '''        </article>
-      </div>
-    </section>
-
-    <footer class="creditos-finales" aria-label="Créditos">
-      <img class="creditos-brook" src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/brook.gif" alt="Detalle inspirado en One Piece" loading="lazy" />
-      <p class="creditos-texto">Créditos: Antonio Valdiviezo © Derechos reservados</p>
-    </footer>
-'''
-              s = s[:idx] + s[idx:].replace(closing, footer, 1)
-
-          p.write_text(s, encoding='utf-8')
-          PY
-
-      - name: Validar cambios
+          </div>'''
+          if old not in s:
+            raise SystemExit('gift block missing')
+          s = s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
+      - name: Validate
         run: |
           grep -q '19335282760050' invitacion_4.html
           grep -q '00219313528276005017' invitacion_4.html
-          grep -q '993 219 142' invitacion_4.html
           grep -q 'Otro tipo de regalo' invitacion_4.html
           grep -q 'Ver ubicación' invitacion_4.html
-          grep -q 'Créditos: Antonio Valdiviezo' invitacion_4.html
-
-      - name: Limpiar archivos temporales
-        run: |
-          rm -f .github/workflows/ajustar-invitacion-4.yml
-          rm -f .github/triggers/ajustar-invitacion-4.txt
-
       - name: Commit
         run: |
-          git config user.name 'avaldiviezoch'
-          git config user.email '155109177+avaldiviezoch@users.noreply.github.com'
-          git add -A
-          git commit -m 'Completar y estandarizar invitacion 4'
+          git config user.name avaldiviezoch
+          git config user.email 155109177+avaldiviezoch@users.noreply.github.com
+          git add invitacion_4.html
+          git commit -m 'Estandarizar datos y textos de invitacion 4'
           git push
