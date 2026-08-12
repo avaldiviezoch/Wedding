@@ -2327,6 +2327,31 @@
       user-select: none;
     }
 
+    .animated-cover-freeze-wrap {
+      position: relative;
+      width: 100%;
+      line-height: 0;
+    }
+
+    .animated-cover-final {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .animated-cover-freeze-wrap.is-frozen .animated-cover-gif {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .animated-cover-freeze-wrap.is-frozen .animated-cover-final {
+      opacity: 1;
+      visibility: visible;
+    }
+
     .animated-cover-fallback {
       position: absolute;
       left: 50%;
@@ -3670,14 +3695,22 @@
          ======================================================= -->
     <section class="animated-cover-section" id="inicio" aria-label="Portada animada de Antonio y Lucero">
       <h1 class="sr-only">Antonio y Lucero se casan el 16 de enero de 2027</h1>
-      <img
-        class="animated-cover-video animated-cover-gif"
-        id="animatedCoverGif"
-        src="https://avaldiviezoch.github.io/Wedding/video_de_entrada_3.gif?v=20260812-1"
-        alt="Portada animada de Antonio y Lucero"
-        loading="eager"
-        decoding="async"
-        aria-hidden="true">
+      <div class="animated-cover-freeze-wrap" id="animatedCoverFreezeWrap" aria-hidden="true">
+        <img
+          class="animated-cover-video animated-cover-gif"
+          id="animatedCoverGif"
+          src="https://avaldiviezoch.github.io/Wedding/video_de_entrada_3.gif?v=20260812-2"
+          alt="Portada animada de Antonio y Lucero"
+          loading="eager"
+          decoding="async">
+        <img
+          class="animated-cover-video animated-cover-final"
+          id="animatedCoverFinal"
+          src="https://avaldiviezoch.github.io/Wedding/video_de_entrada_3_final.png?v=20260812-2"
+          alt=""
+          loading="eager"
+          decoding="async">
+      </div>
 
 
       <div class="animated-cover-fallback mobile-cover-fallback" id="animatedCoverFallback" hidden>
@@ -4888,5 +4921,44 @@
       });
     }
   </script>
+
+
+    /* Portada GIF: reproducir una sola vez y congelar el último frame. */
+    (() => {
+      const wrap = document.getElementById('animatedCoverFreezeWrap');
+      const gif = document.getElementById('animatedCoverGif');
+      const finalFrame = document.getElementById('animatedCoverFinal');
+      if (!wrap || !gif || !finalFrame) return;
+
+      const GIF_DURATION_MS = 9150;
+      let freezeTimer = null;
+      let started = false;
+
+      function freezeCoverGif() {
+        if (freezeTimer) clearTimeout(freezeTimer);
+        wrap.classList.add('is-frozen');
+      }
+
+      function startCoverGifOnce() {
+        if (started) return;
+        started = true;
+        wrap.classList.remove('is-frozen');
+        const cleanSrc = 'https://avaldiviezoch.github.io/Wedding/video_de_entrada_3.gif';
+        gif.src = cleanSrc + '?once=' + Date.now();
+        freezeTimer = setTimeout(freezeCoverGif, Math.max(0, GIF_DURATION_MS - 40));
+      }
+
+      const intro = document.getElementById('introScreen');
+      if (intro) {
+        const observer = new MutationObserver(() => {
+          if (intro.classList.contains('is-hidden')) startCoverGifOnce();
+        });
+        observer.observe(intro, { attributes: true, attributeFilter: ['class'] });
+        if (intro.classList.contains('is-hidden')) startCoverGifOnce();
+      } else {
+        startCoverGifOnce();
+      }
+    })();
+
 </body>
 </html>
