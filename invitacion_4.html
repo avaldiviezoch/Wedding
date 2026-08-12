@@ -2037,6 +2037,32 @@
       }
     }
 
+
+    .creditos-finales{
+      padding: 12px 20px 42px;
+      text-align: center;
+      color: var(--verde-suave);
+      background: var(--crema);
+    }
+
+    .creditos-brook{
+      width: 70px;
+      height: auto;
+      display: block;
+      margin: 0 auto 14px;
+      object-fit: contain;
+      filter: drop-shadow(0 3px 8px rgba(70,83,60,.10));
+    }
+
+    .creditos-texto{
+      margin: 0;
+      font-size: .68rem;
+      line-height: 1.7;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      opacity: .82;
+    }
+
   </style>
 </head>
 
@@ -2445,8 +2471,9 @@
           <div class="ornamento-adicional" aria-hidden="true"><span>❦</span></div>
           <p class="subtitulo-adicional">Tu presencia es nuestro mejor regalo</p>
           <p class="texto-adicional">
-            Aceptamos abrazos, buenos deseos y regalos en la recepción. Para quienes
-            prefieran no llevar paquetes, también dejamos una opción por Yape.
+            Lo más importante para nosotros es compartir este día contigo. Si deseas tener un detalle,
+            lo recibiremos con muchísimo cariño. Puedes hacerlo mediante Yape o transferencia bancaria;
+            y si prefieres un regalo físico, también podremos recibirlo en la recepción el día de la boda.
           </p>
           <button class="boton-adicional" id="giftToggle" type="button" aria-expanded="false" aria-controls="giftDetails">
             Otro tipo de regalo
@@ -2620,6 +2647,16 @@
     </section>
 
   </main>
+
+  <footer class="creditos-finales" aria-label="Créditos">
+    <img
+      class="creditos-brook"
+      src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/brook.gif"
+      alt="Detalle inspirado en One Piece"
+      loading="lazy"
+    />
+    <p class="creditos-texto">Créditos: Antonio Valdiviezo © Derechos reservados</p>
+  </footer>
 
   <script>
     const intro = document.getElementById("intro");
