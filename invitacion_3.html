@@ -3629,6 +3629,10 @@
     }
 
   </style>
+<style id="gift-copy-style-3">
+.gift-copy-inline{margin-left:7px;padding:4px 9px;border:1px solid currentColor;border-radius:999px;background:transparent;color:inherit;font:inherit;font-size:.78em;cursor:pointer;vertical-align:middle;opacity:.8}
+.gift-copy-inline:active{transform:scale(.97)}
+</style>
 </head>
 <body class="locked">
 
@@ -3983,9 +3987,9 @@
           </p>
           <div class="gift-envelope-bank-data" style="margin:18px auto 20px;display:grid;gap:10px;width:min(100%,390px);text-align:center;">
   <p style="margin:0;"><strong>Banco:</strong> BCP</p>
-  <p style="margin:0;"><strong>Número de cuenta:</strong> 19335282760050</p>
-  <p style="margin:0;"><strong>CCI:</strong> 00219313528276005017</p>
-  <p class="gift-envelope-yape" style="margin:0;"><strong>Yape:</strong> 993 219 142</p>
+  <p style="margin:0;"><strong>Número de cuenta:</strong> 19335282760050 <button class="gift-copy-inline" type="button" onclick="copyWeddingValue(this, '19335282760050')">Copiar</button></p>
+  <p style="margin:0;"><strong>CCI:</strong> 00219313528276005017 <button class="gift-copy-inline" type="button" onclick="copyWeddingValue(this, '00219313528276005017')">Copiar</button></p>
+  <p class="gift-envelope-yape" style="margin:0;"><strong>Yape:</strong> 993 219 142 <button class="gift-copy-inline" type="button" onclick="copyWeddingValue(this, '993219142')">Copiar</button></p>
 </div>
           <button class="gift-envelope-back" id="giftEnvelopeBack" type="button">← Volver a la animación</button>
         </div>
@@ -4128,7 +4132,7 @@
         </details>
       </div>
 
-      <a class="pill-btn green" style="margin-top:22px;" href="https://wa.me/51999999999?text=Hola%20Antonio%20y%20Lucero%2C%20tengo%20una%20consulta%20sobre%20su%20boda." target="_blank" rel="noopener">Escribir por WhatsApp</a>
+      <a class="pill-btn green" style="margin-top:22px;" href="https://wa.me/51993219142?text=Hola%20Antonio%20y%20Lucero%2C%20tengo%20una%20consulta%20sobre%20su%20boda." target="_blank" rel="noopener">Escribir por WhatsApp</a>
     </section>
 
     <!-- =======================================================
@@ -4961,5 +4965,12 @@
     })();
   </script>
 
+<script id="gift-copy-script-3">
+async function copyWeddingValue(btn,value){
+  try{await navigator.clipboard.writeText(value)}
+  catch(e){const ta=document.createElement("textarea");ta.value=value;ta.style.position="fixed";a.style.opacity="0";document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove()}
+  const old=btn.textContent;btn.textContent="Copiado ✓";setTimeout(()=>btn.textContent=old,1200)
+}
+</script>
 </body>
 </html>

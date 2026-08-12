@@ -2159,6 +2159,10 @@
     }
 
   </style>
+<style id="gift-copy-style-4">
+.gift-copy-inline-4{margin-left:7px;padding:4px 9px;border:1px solid var(--verde-suave);border-radius:999px;background:transparent;color:var(--verde);font:inherit;font-size:.78em;cursor:pointer;vertical-align:middle;opacity:.85}
+.gift-copy-inline-4:active{transform:scale(.97)}
+</style>
 </head>
 
 <body>
@@ -2433,7 +2437,7 @@
               <img class="icono-itinerario" src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/refs/heads/main/programa_recepcio_invitados_4_1.png" alt="" loading="lazy" />
             </span>
             <div class="detalle-itinerario">
-              <time class="hora-itinerario" datetime="2027-01-16T15:30:00-05:00">3:30 p. m.</time>
+              <time class="hora-itinerario" datetime="2027-01-16T15:00:00-05:00">3:00 p. m.</time>
               <span class="nombre-itinerario">Recepción de invitados</span>
             </div>
           </li>
@@ -2454,7 +2458,7 @@
             </span>
             <div class="detalle-itinerario">
               <time class="hora-itinerario" datetime="2027-01-16T17:00:00-05:00">5:00 p. m.</time>
-              <span class="nombre-itinerario">Recepción</span>
+              <span class="nombre-itinerario">Fotos</span>
             </div>
           </li>
 
@@ -2473,8 +2477,8 @@
               <img class="icono-itinerario" src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/refs/heads/main/programa_cena_4_1.png" alt="" loading="lazy" />
             </span>
             <div class="detalle-itinerario">
-              <time class="hora-itinerario" datetime="2027-01-16T19:00:00-05:00">7:00 p. m.</time>
-              <span class="nombre-itinerario">Cena</span>
+              <time class="hora-itinerario" datetime="2027-01-16T18:30:00-05:00">6:30 p. m.</time>
+              <span class="nombre-itinerario">Maridaje &amp; Banquete</span>
             </div>
           </li>
 
@@ -2483,8 +2487,8 @@
               <img class="icono-itinerario icono-itinerario--baile" src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/refs/heads/main/programa_baile_4_1.png" alt="" loading="lazy" />
             </span>
             <div class="detalle-itinerario">
-              <time class="hora-itinerario" datetime="2027-01-16T20:30:00-05:00">8:30 p. m.</time>
-              <span class="nombre-itinerario">Primer baile</span>
+              <time class="hora-itinerario" datetime="2027-01-16T19:30:00-05:00">7:30 p. m.</time>
+              <span class="nombre-itinerario">Primer baile de novios</span
             </div>
           </li>
 
@@ -2493,7 +2497,7 @@
               <img class="icono-itinerario" src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/refs/heads/main/programa_fiesta_4_1.png" alt="" loading="lazy" />
             </span>
             <div class="detalle-itinerario">
-              <time class="hora-itinerario" datetime="2027-01-16T21:00:00-05:00">9:00 p. m.</time>
+              <time class="hora-itinerario" datetime="2027-01-16T20:00:00-05:00">8:00 p. m.</time>
               <span class="nombre-itinerario">Fiesta</span>
             </div>
           </li>
@@ -2568,9 +2572,9 @@
           <div class="panel-interactivo datos-regalo" id="giftDetails" hidden>
   <p>Si deseas acompañarnos con un detalle adicional, puedes hacerlo a través de cualquiera de estas opciones.</p>
   <p><strong>Banco:</strong> BCP</p>
-  <p><strong>Número de cuenta:</strong> 19335282760050</p>
-  <p><strong>CCI:</strong> 00219313528276005017</p>
-  <p class="numero-yape"><strong>Yape:</strong> 993 219 142</p>
+  <p><strong>Número de cuenta:</strong> 19335282760050 <button class="gift-copy-inline-4" type="button" onclick="copyWeddingValue4(this, '19335282760050')">Copiar</button></p>
+  <p><strong>CCI:</strong> 00219313528276005017 <button class="gift-copy-inline-4" type="button" onclick="copyWeddingValue4(this, '00219313528276005017')">Copiar</button></p>
+  <p class="numero-yape"><strong>Yape:</strong> 993 219 142 <button class="gift-copy-inline-4" type="button" onclick="copyWeddingValue4(this, '993219142')">Copiar</button></p>
   <p>Los regalos físicos también serán recibidos con mucho cariño durante la recepción.</p>
   <button class="boton-cerrar-panel" id="giftClose" type="button">Cerrar información</button>
 </div>
@@ -3167,5 +3171,12 @@
     })();
   </script>
 
+<script id="gift-copy-script-4">
+async function copyWeddingValue4(btn,value){
+  try{await navigator.clipboard.writeText(value)}
+  catch(e){const ta=document.createElement("textarea");ta.value=value;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove()}
+  const old=btn.textContent;btn.textContent="Copiado ✓";setTimeout(()=>btn.textContent=old,1200)
+}
+</script>
 </body>
 </html>
