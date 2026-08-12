@@ -16,112 +16,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Aplicar animaciones y limpiar prueba
+      - name: Aplicar cambios
         shell: bash
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          path = Path('invitacion_3.html')
-          text = path.read_text(encoding='utf-8')
-          marker = '/* ANIMACIONES APROBADAS: ILUSTRACIONES DE PREGUNTAS */'
-
-          css = r'''
-
-    /* ANIMACIONES APROBADAS: ILUSTRACIONES DE PREGUNTAS */
-    #preguntas .faq details .faq-illustration {
-      will-change: transform, opacity;
-      transform-origin: center center;
-    }
-
-    #preguntas .faq details:not([open]) .faq-illustration {
-      opacity: 0;
-      transform: translateY(14px) scale(.97);
-    }
-
-    #preguntas .faq details:nth-child(1)[open] .faq-illustration {
-      animation: faqPicInOne .66s cubic-bezier(.22,.88,.3,1.16) both;
-    }
-
-    #preguntas .faq details:nth-child(2)[open] .faq-illustration {
-      animation: faqPicInTwo .7s cubic-bezier(.18,.9,.28,1.18) both;
-    }
-
-    #preguntas .faq details:nth-child(3)[open] .faq-illustration {
-      animation: faqPicInThree .68s cubic-bezier(.22,.86,.28,1.12) both;
-    }
-
-    #preguntas .faq details:nth-child(1)[open] .faq-illustration img {
-      transform-origin: 50% 82%;
-      animation: faqPicIdleOne 4.8s ease-in-out .7s infinite;
-    }
-
-    #preguntas .faq details:nth-child(2)[open] .faq-illustration img {
-      transform-origin: 50% 55%;
-      animation: faqPicIdleTwo 4s ease-in-out .75s infinite;
-    }
-
-    #preguntas .faq details:nth-child(3)[open] .faq-illustration img {
-      transform-origin: 50% 80%;
-      animation: faqPicIdleThree 4.4s ease-in-out .72s infinite;
-    }
-
-    @keyframes faqPicInOne {
-      0%   { opacity: 0; transform: translateY(20px) scale(.96) rotate(-2deg); }
-      68%  { opacity: 1; transform: translateY(-3px) scale(1.015) rotate(.7deg); }
-      100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
-    }
-
-    @keyframes faqPicInTwo {
-      0%   { opacity: 0; transform: translateY(10px) scale(.86); }
-      62%  { opacity: 1; transform: translateY(-2px) scale(1.045); }
-      82%  { transform: translateY(1px) scale(.988); }
-      100% { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    @keyframes faqPicInThree {
-      0%   { opacity: 0; transform: translateY(17px) scale(.97) rotate(1.8deg); }
-      70%  { opacity: 1; transform: translateY(-2px) scale(1.01) rotate(-.7deg); }
-      100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
-    }
-
-    @keyframes faqPicIdleOne {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      50%      { transform: translateY(-4px) rotate(.7deg); }
-    }
-
-    @keyframes faqPicIdleTwo {
-      0%, 100% { transform: scale(1); }
-      50%      { transform: scale(1.018); }
-    }
-
-    @keyframes faqPicIdleThree {
-      0%, 100% { transform: translateY(0) rotate(-1deg); }
-      50%      { transform: translateY(-3px) rotate(1deg); }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      #preguntas .faq details .faq-illustration,
-      #preguntas .faq details .faq-illustration img {
-        animation: none !important;
-        opacity: 1 !important;
-        transform: none !important;
-      }
-    }
-'''
-
-          if marker not in text:
-              pos = text.rfind('</style>')
-              if pos == -1:
-                  raise SystemExit('No se encontro </style> en invitacion_3.html')
-              text = text[:pos] + css + '\n  ' + text[pos:]
-              path.write_text(text, encoding='utf-8')
-
-          preview = Path('invitacion_3_animacion_preguntas.html')
-          if preview.exists():
-              preview.unlink()
-          PY
-
+          echo 'CmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aAoKcGF0aCA9IFBhdGgoImludml0YWNpb25fMy5odG1sIikKdGV4dCA9IHBhdGgucmVhZF90ZXh0KGVuY29kaW5nPSJ1dGYtOCIpCm1hcmtlciA9ICIvKiBBTklNQUNJT05FUyBBUFJPQkFEQVM6IElMVVNUUkFDSU9ORVMgREUgUFJFR1VOVEFTICovIgoKY3NzID0gIiIiCiAgICAvKiBBTklNQUNJT05FUyBBUFJPQkFEQVM6IElMVVNUUkFDSU9ORVMgREUgUFJFR1VOVEFTICovCiAgICAjcHJlZ3VudGFzIC5mYXEgZGV0YWlscyAuZmFxLWlsbHVzdHJhdGlvbiB7CiAgICAgIHdpbGwtY2hhbmdlOiB0cmFuc2Zvcm0sIG9wYWNpdHk7CiAgICAgIHRyYW5zZm9ybS1vcmlnaW46IGNlbnRlciBjZW50ZXI7CiAgICB9CgogICAgI3ByZWd1bnRhcyAuZmFxIGRldGFpbHM6bm90KFtvcGVuXSkgLmZhcS1pbGx1c3RyYXRpb24gewogICAgICBvcGFjaXR5OiAwOwogICAgICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVkoMTRweCkgc2NhbGUoLjk3KTsKICAgIH0KCiAgICAjcHJlZ3VudGFzIC5mYXEgZGV0YWlsczpudGgtY2hpbGQoMSlbb3Blbl0gLmZhcS1pbGx1c3RyYXRpb24gewogICAgICBhbmltYXRpb246IGZhcVBpY0luT25lIC42NnMgY3ViaWMtYmV6aWVyKC4yMiwuODgsLjMsMS4xNikgYm90aDsKICAgIH0KCiAgICAjcHJlZ3VudGFzIC5mYXEgZGV0YWlsczpudGgtY2hpbGQoMilbb3Blbl0gLmZhcS1pbGx1c3RyYXRpb24gewogICAgICBhbmltYXRpb246IGZhcVBpY0luVHdvIC43cyBjdWJpYy1iZXppZXIoLjE4LC45LC4yOCwxLjE4KSBib3RoOwogICAgfQoKICAgICNwcmVndW50YXMgLmZhcSBkZXRhaWxzOm50aC1jaGlsZCgzKVtvcGVuXSAuZmFxLWlsbHVzdHJhdGlvbiB7CiAgICAgIGFuaW1hdGlvbjogZmFxUGljSW5UaHJlZSAuNjhzIGN1YmljLWJlemllciguMjIsLjg2LC4yOCwxLjEyKSBib3RoOwogICAgfQoKICAgICNwcmVndW50YXMgLmZhcSBkZXRhaWxzOm50aC1jaGlsZCgxKVtvcGVuXSAuZmFxLWlsbHVzdHJhdGlvbiBpbWcgewogICAgICB0cmFuc2Zvcm0tb3JpZ2luOiA1MCUgODIlOwogICAgICBhbmltYXRpb246IGZhcVBpY0lkbGVPbmUgNC44cyBlYXNlLWluLW91dCAuN3MgaW5maW5pdGU7CiAgICB9CgogICAgI3ByZWd1bnRhcyAuZmFxIGRldGFpbHM6bnRoLWNoaWxkKDIpW29wZW5dIC5mYXEtaWxsdXN0cmF0aW9uIGltZyB7CiAgICAgIHRyYW5zZm9ybS1vcmlnaW46IDUwJSA1NSU7CiAgICAgIGFuaW1hdGlvbjogZmFxUGljSWRsZVR3byA0cyBlYXNlLWluLW91dCAuNzVzIGluZmluaXRlOwogICAgfQoKICAgICNwcmVndW50YXMgLmZhcSBkZXRhaWxzOm50aC1jaGlsZCgzKVtvcGVuXSAuZmFxLWlsbHVzdHJhdGlvbiBpbWcgewogICAgICB0cmFuc2Zvcm0tb3JpZ2luOiA1MCUgODAlOwogICAgICBhbmltYXRpb246IGZhcVBpY0lkbGVUaHJlZSA0LjRzIGVhc2UtaW4tb3V0IC43MnMgaW5maW5pdGU7CiAgICB9CgogICAgQGtleWZyYW1lcyBmYXFQaWNJbk9uZSB7CiAgICAgIDAlICAgeyBvcGFjaXR5OiAwOyB0cmFuc2Zvcm06IHRyYW5zbGF0ZVkoMjBweCkgc2NhbGUoLjk2KSByb3RhdGUoLTJkZWcpOyB9CiAgICAgIDY4JSAgeyBvcGFjaXR5OiAxOyB0cmFuc2Zvcm06IHRyYW5zbGF0ZVkoLTNweCkgc2NhbGUoMS4wMTUpIHJvdGF0ZSguN2RlZyk7IH0KICAgICAgMTAwJSB7IG9wYWNpdHk6IDE7IHRyYW5zZm9ybTogdHJhbnNsYXRlWSgwKSBzY2FsZSgxKSByb3RhdGUoMCk7IH0KICAgIH0KCiAgICBAa2V5ZnJhbWVzIGZhcVBpY0luVHdvIHsKICAgICAgMCUgICB7IG9wYWNpdHk6IDA7IHRyYW5zZm9ybTogdHJhbnNsYXRlWSgxMHB4KSBzY2FsZSguODYpOyB9CiAgICAgIDYyJSAgeyBvcGFjaXR5OiAxOyB0cmFuc2Zvcm06IHRyYW5zbGF0ZVkoLTJweCkgc2NhbGUoMS4wNDUpOyB9CiAgICAgIDgyJSAgeyB0cmFuc2Zvcm06IHRyYW5zbGF0ZVkoMXB4KSBzY2FsZSguOTg4KTsgfQogICAgICAxMDAlIHsgb3BhY2l0eTogMTsgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKDApIHNjYWxlKDEpOyB9CiAgICB9CgogICAgQGtleWZyYW1lcyBmYXFQaWNJblRocmVlIHsKICAgICAgMCUgICB7IG9wYWNpdHk6IDA7IHRyYW5zZm9ybTogdHJhbnNsYXRlWSgxN3B4KSBzY2FsZSguOTcpIHJvdGF0ZSgxLjhkZWcpOyB9CiAgICAgIDcwJSAgeyBvcGFjaXR5OiAxOyB0cmFuc2Zvcm06IHRyYW5zbGF0ZVkoLTJweCkgc2NhbGUoMS4wMSkgcm90YXRlKC0uN2RlZyk7IH0KICAgICAgMTAwJSB7IG9wYWNpdHk6IDE7IHRyYW5zZm9ybTogdHJhbnNsYXRlWSgwKSBzY2FsZSgxKSByb3RhdGUoMCk7IH0KICAgIH0KCiAgICBAa2V5ZnJhbWVzIGZhcVBpY0lkbGVPbmUgewogICAgICAwJSwgMTAwJSB7IHRyYW5zZm9ybTogdHJhbnNsYXRlWSgwKSByb3RhdGUoMGRlZyk7IH0KICAgICAgNTAlICAgICAgeyB0cmFuc2Zvcm06IHRyYW5zbGF0ZVkoLTRweCkgcm90YXRlKC43ZGVnKTsgfQogICAgfQoKICAgIEBrZXlmcmFtZXMgZmFxUGljSWRsZVR3byB7CiAgICAgIDAlLCAxMDAlIHsgdHJhbnNmb3JtOiBzY2FsZSgxKTsgfQogICAgICA1MCUgICAgICB7IHRyYW5zZm9ybTogc2NhbGUoMS4wMTgpOyB9CiAgICB9CgogICAgQGtleWZyYW1lcyBmYXFQaWNJZGxlVGhyZWUgewogICAgICAwJSwgMTAwJSB7IHRyYW5zZm9ybTogdHJhbnNsYXRlWSgwKSByb3RhdGUoLTFkZWcpOyB9CiAgICAgIDUwJSAgICAgIHsgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKC0zcHgpIHJvdGF0ZSgxZGVnKTsgfQogICAgfQoKICAgIEBtZWRpYSAocHJlZmVycy1yZWR1Y2VkLW1vdGlvbjogcmVkdWNlKSB7CiAgICAgICNwcmVndW50YXMgLmZhcSBkZXRhaWxzIC5mYXEtaWxsdXN0cmF0aW9uLAogICAgICAjcHJlZ3VudGFzIC5mYXEgZGV0YWlscyAuZmFxLWlsbHVzdHJhdGlvbiBpbWcgewogICAgICAgIGFuaW1hdGlvbjogbm9uZSAhaW1wb3J0YW50OwogICAgICAgIG9wYWNpdHk6IDEgIWltcG9ydGFudDsKICAgICAgICB0cmFuc2Zvcm06IG5vbmUgIWltcG9ydGFudDsKICAgICAgfQogICAgfQoiIiIKCmlmIG1hcmtlciBub3QgaW4gdGV4dDoKICAgIHBvcyA9IHRleHQucmZpbmQoIjwvc3R5bGU+IikKICAgIGlmIHBvcyA9PSAtMToKICAgICAgICByYWlzZSBTeXN0ZW1FeGl0KCJObyBzZSBlbmNvbnRybyA8L3N0eWxlPiBlbiBpbnZpdGFjaW9uXzMuaHRtbCIpCiAgICB0ZXh0ID0gdGV4dFs6cG9zXSArICJcbiIgKyBjc3MgKyAiXG4gICIgKyB0ZXh0W3BvczpdCiAgICBwYXRoLndyaXRlX3RleHQodGV4dCwgZW5jb2Rpbmc9InV0Zi04IikKCnByZXZpZXcgPSBQYXRoKCJpbnZpdGFjaW9uXzNfYW5pbWFjaW9uX3ByZWd1bnRhcy5odG1sIikKaWYgcHJldmlldy5leGlzdHMoKToKICAgIHByZXZpZXcudW5saW5rKCkK' | base64 -d > /tmp/apply.py
+          python3 /tmp/apply.py
           rm -f .github/workflows/aplicar_animacion_preguntas.yml
 
       - name: Guardar cambios
@@ -129,7 +28,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add invitacion_3.html invitacion_3_animacion_preguntas.html .github/workflows/aplicar_animacion_preguntas.yml || true
+          git add -A
           if git diff --cached --quiet; then
             echo "No hay cambios por guardar"
           else
