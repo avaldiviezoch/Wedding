@@ -1,0 +1,48 @@
+name: Fix presentes invitacion 3 bank
+
+on:
+  push:
+    paths:
+      - '.github/triggers/fix-presentes-3-bank.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Completar datos bancarios
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('invitacion_3.html')
+          s = p.read_text(encoding='utf-8')
+          old = '''          <p class="gift-envelope-yape"><strong>Yape:</strong> 993219142</p>
+          <button class="gift-envelope-back" id="giftEnvelopeBack" type="button">← Volver a la animación</button>'''
+          new = '''          <div class="gift-envelope-bank-data" style="margin:18px auto 20px;display:grid;gap:10px;width:min(100%,390px);text-align:center;">
+            <p style="margin:0;"><strong>Banco:</strong> BCP</p>
+            <p style="margin:0;"><strong>Número de cuenta:</strong> 19335282760050</p>
+            <p style="margin:0;"><strong>CCI:</strong> 00219313528276005017</p>
+            <p class="gift-envelope-yape" style="margin:0;"><strong>Yape:</strong> 993 219 142</p>
+          </div>
+          <button class="gift-envelope-back" id="giftEnvelopeBack" type="button">← Volver a la animación</button>'''
+          if old not in s:
+              raise SystemExit('No se encontró el bloque esperado de Yape en invitacion_3.html')
+          s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8')
+      - name: Validar datos
+        shell: bash
+        run: |
+          grep -q '19335282760050' invitacion_3.html
+          grep -q '00219313528276005017' invitacion_3.html
+          grep -q '993 219 142' invitacion_3.html
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name 'avaldiviezoch'
+          git config user.email '155109177+avaldiviezoch@users.noreply.github.com'
+          git add invitacion_3.html
+          git commit -m 'Completar cuenta CCI y Yape en invitacion 3'
+          git push
