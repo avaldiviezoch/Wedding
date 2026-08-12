@@ -2101,7 +2101,17 @@
       .fecha-etiqueta{ letter-spacing: .16em; }
     }
 
-  </style>
+  /* ===== AJUSTE FINAL PORTADA Y CREDITOS — INVITACION 4 ===== */
+.textos-fecha{bottom:1.8% !important;width:min(82%,520px) !important;}
+.icono-calendario{width:27px !important;height:27px !important;margin:0 auto 7px !important;}
+.fecha-etiqueta{font-size:clamp(.58rem,2.25vw,.78rem) !important;letter-spacing:.14em !important;line-height:1.2 !important;}
+.fecha{margin-top:5px !important;font-size:clamp(1.55rem,6.4vw,2.75rem) !important;font-weight:500 !important;line-height:1 !important;letter-spacing:-.015em !important;white-space:nowrap !important;}
+.creditos-finales{padding:10px 16px 14px !important;min-height:0 !important;background:var(--crema) !important;}
+.creditos-texto{margin:0 !important;font-size:6.5px !important;line-height:1.25 !important;letter-spacing:.04em !important;opacity:.48 !important;text-transform:uppercase !important;}
+.creditos-brook{display:none !important;}
+@media(max-width:520px){.textos-fecha{bottom:1.5% !important;width:84% !important;}.fecha{font-size:clamp(1.48rem,6.15vw,2rem) !important;}.fecha-etiqueta{font-size:.57rem !important;}.creditos-finales{padding:8px 12px 12px !important;}.creditos-texto{font-size:6px !important;}}
+
+</style>
 </head>
 
 <body>
@@ -2687,13 +2697,7 @@
   </main>
 
   <footer class="creditos-finales" aria-label="Créditos">
-    <img
-      class="creditos-brook"
-      src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/brook.gif"
-      alt="Detalle inspirado en One Piece"
-      loading="lazy"
-    />
-    <p class="creditos-texto">Créditos: Antonio Valdiviezo © Derechos reservados</p>
+<p class="creditos-texto">Créditos: Antonio Valdiviezo © Derechos reservados</p>
   </footer>
 
   <script>
