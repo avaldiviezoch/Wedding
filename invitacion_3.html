@@ -3470,6 +3470,8 @@
   margin:13px auto 0;
 }
 .rsvp-experience.show-form .rsvp-back-to-gif{display:block;}
+.rsvp-experience.show-form .rsvp-vintage-panel:not(.show){display:none;}
+
 .rsvp-experience.show-form .rsvp-success-msg{
   position:relative;
   left:auto;
@@ -4566,7 +4568,6 @@
       if(guestCounter) guestCounter.textContent = '1';
       if(guestName) guestName.value = '';
       document.querySelectorAll('.rsvp-option-btn').forEach(btn => btn.classList.remove('active'));
-      prepareRsvpPoster();
     }
 
     const rsvpBackToGif = document.getElementById('rsvpBackToGif');
