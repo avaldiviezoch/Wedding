@@ -2111,7 +2111,54 @@
 .creditos-brook{display:none !important;}
 @media(max-width:520px){.textos-fecha{bottom:1.5% !important;width:84% !important;}.fecha{font-size:clamp(1.48rem,6.15vw,2rem) !important;}.fecha-etiqueta{font-size:.57rem !important;}.creditos-finales{padding:8px 12px 12px !important;}.creditos-texto{font-size:6px !important;}}
 
-</style>
+
+    /* ===== CREDITOS INTEGRADOS Y FECHA SIN ICONO — INVITACION 4 ===== */
+    .textos-fecha{
+      bottom:1.15% !important;
+      width:min(82%,520px) !important;
+    }
+    .icono-calendario{display:none !important;}
+    .fecha-etiqueta{
+      margin:0 0 4px !important;
+      font-size:clamp(.58rem,2.25vw,.78rem) !important;
+      letter-spacing:.14em !important;
+      line-height:1.2 !important;
+    }
+    .fecha{
+      margin-top:3px !important;
+      font-size:clamp(1.52rem,6.1vw,2.65rem) !important;
+      line-height:1 !important;
+      white-space:nowrap !important;
+    }
+    .cierre-invitacion{
+      padding-bottom:24px !important;
+    }
+    .creditos-integrados{
+      margin:30px auto 0 !important;
+      padding:12px 12px 2px !important;
+      background:transparent !important;
+      min-height:0 !important;
+      width:100% !important;
+    }
+    .creditos-integrados .creditos-texto{
+      margin:0 !important;
+      font-size:6px !important;
+      line-height:1.25 !important;
+      letter-spacing:.045em !important;
+      opacity:.48 !important;
+      color:var(--verde-suave) !important;
+      text-transform:uppercase !important;
+    }
+    @media(max-width:520px){
+      .textos-fecha{bottom:.9% !important;width:84% !important;}
+      .fecha-etiqueta{font-size:.56rem !important;}
+      .fecha{font-size:clamp(1.42rem,5.9vw,1.9rem) !important;}
+      .cierre-invitacion{padding-bottom:18px !important;}
+      .creditos-integrados{margin-top:22px !important;padding:8px 10px 0 !important;}
+      .creditos-integrados .creditos-texto{font-size:5.5px !important;}
+    }
+
+  </style>
 </head>
 
 <body>
@@ -2154,16 +2201,7 @@
       </div>
 
       <div class="textos-fecha">
-        <div class="icono-calendario" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/>
-            <path d="M7 3v4M17 3v4M3 9h18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-            <path d="M7.5 13h1M11.5 13h1M15.5 13h1M7.5 17h1M11.5 17h1M15.5 17h1"
-                  stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
-          </svg>
-        </div>
-
-        <p class="fecha-etiqueta">Fecha de la boda</p>
+<p class="fecha-etiqueta">Fecha de la boda</p>
         <p class="fecha">16 de enero de 2027</p>
       </div>
     </section>
@@ -2690,15 +2728,17 @@
           </p>
           <p class="nombres-cierre">Antonio &amp; Lucero</p>
           <p class="fecha-cierre">16 de enero de 2027</p>
+          <div class="creditos-finales creditos-integrados" aria-label="Créditos">
+<p class="creditos-texto">Créditos: Antonio Valdiviezo © Derechos reservados</p>
+          </div>
+
         </article>
       </div>
     </section>
 
   </main>
 
-  <footer class="creditos-finales" aria-label="Créditos">
-<p class="creditos-texto">Créditos: Antonio Valdiviezo © Derechos reservados</p>
-  </footer>
+  
 
   <script>
     const intro = document.getElementById("intro");
