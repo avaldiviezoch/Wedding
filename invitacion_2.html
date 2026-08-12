@@ -2768,6 +2768,26 @@
       .rsvp-tap-hint{ font-size:9.5px !important; max-width:260px !important; }
     }
 
+  
+    /* ===== GIF TE ESPERAMOS — INVITACION 2 ===== */
+    .te-esperamos-gif{
+      display:block;
+      width:min(38vw,230px);
+      max-width:230px;
+      height:auto;
+      margin:12px auto 14px;
+      background:transparent;
+      filter:drop-shadow(0 7px 10px rgba(88,72,54,.08));
+      animation:teEsperamosFloat 4.8s ease-in-out infinite;
+    }
+    @keyframes teEsperamosFloat{
+      0%,100%{transform:translateY(0);}
+      50%{transform:translateY(-5px);}
+    }
+    @media(max-width:520px){
+      .te-esperamos-gif{width:min(48vw,200px);max-width:200px;margin:10px auto 12px;}
+    }
+
   </style>
 </head>
 <body>
@@ -3225,6 +3245,7 @@
           <div class="wait-heart" aria-hidden="true"></div>
           <p class="final-kicker">Nuestra aventura comienza</p>
           <h2 class="final-title">Te esperamos</h2>
+          <img class="te-esperamos-gif" src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/te_esperamos_2.gif?v=20260812-1" alt="Animación de despedida" loading="lazy">
           <p class="wait-message">Será una alegría inmensa compartir este día con las personas que forman parte de nuestra historia. Gracias por acompañarnos en el comienzo de esta nueva aventura.</p>
           <div class="wait-signature">Antonio &amp; Lucero</div>
           <div class="wait-date">16 · 01 · 2027</div>
