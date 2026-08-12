@@ -12,235 +12,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Reemplazar carrusel por marco fijo
+        env:
+          CSS_B64: LyogPT09PT0gTUFSQ08gRklKTyBERSBGT1RPUyDigJQgSU5WSVRBQ0lPTiAyID09PT09ICovCi5mcmFtZWQtc3Rvcnktc2VjdGlvbntwYWRkaW5nOjM0cHggMCA0NnB4ICFpbXBvcnRhbnQ7b3ZlcmZsb3c6aGlkZGVuO30KLmZpeGVkLWZyYW1lLWNhcm91c2Vse3Bvc2l0aW9uOnJlbGF0aXZlO3dpZHRoOm1pbig5MnZ3LDUyMHB4KTthc3BlY3QtcmF0aW86OTE1LzE2MDA7bWFyZ2luOjE0cHggYXV0byAwO30KLmZpeGVkLXBob3RvLXdpbmRvd3twb3NpdGlvbjphYnNvbHV0ZTtsZWZ0OjkuMyU7dG9wOjE1LjclO3dpZHRoOjgxLjQlO2hlaWdodDo3Ny4xJTtvdmVyZmxvdzpoaWRkZW47YmFja2dyb3VuZDojZTlkZWQwO3otaW5kZXg6MTt9Ci5maXhlZC1waG90by1zbGlkZXtwb3NpdGlvbjphYnNvbHV0ZTtpbnNldDowO29wYWNpdHk6MDt0cmFuc2Zvcm06dHJhbnNsYXRlWCg4JSkgc2NhbGUoMS4wMjUpO3RyYW5zaXRpb246b3BhY2l0eSAxcyBlYXNlLHRyYW5zZm9ybSAxLjE1cyBjdWJpYy1iZXppZXIoLjIyLC43NSwuMjUsMSk7d2lsbC1jaGFuZ2U6b3BhY2l0eSx0cmFuc2Zvcm07fQouZml4ZWQtcGhvdG8tc2xpZGUuaXMtYWN0aXZle29wYWNpdHk6MTt0cmFuc2Zvcm06dHJhbnNsYXRlWCgwKSBzY2FsZSgxLjA0NSk7ei1pbmRleDoyO30KLmZpeGVkLXBob3RvLXNsaWRlLmlzLWxlYXZpbmd7b3BhY2l0eTowO3RyYW5zZm9ybTp0cmFuc2xhdGVYKC04JSkgc2NhbGUoMS4wNik7ei1pbmRleDoxO30KLmZpeGVkLXBob3RvLXNsaWRlIGltZ3t3aWR0aDoxMDAlO2hlaWdodDoxMDAlO2Rpc3BsYXk6YmxvY2s7b2JqZWN0LWZpdDpjb3ZlcjtvYmplY3QtcG9zaXRpb246Y2VudGVyO30KLmZpeGVkLXBob3RvLW92ZXJsYXl7cG9zaXRpb246YWJzb2x1dGU7aW5zZXQ6MDt3aWR0aDoxMDAlO2hlaWdodDoxMDAlO2Rpc3BsYXk6YmxvY2s7b2JqZWN0LWZpdDpjb250YWluO3otaW5kZXg6NTtwb2ludGVyLWV2ZW50czpub25lO3VzZXItc2VsZWN0Om5vbmU7fQouZml4ZWQtcGhvdG8tZG90c3tkaXNwbGF5OmZsZXg7anVzdGlmeS1jb250ZW50OmNlbnRlcjthbGlnbi1pdGVtczpjZW50ZXI7Z2FwOjhweDttYXJnaW46MTJweCBhdXRvIDA7fQouZml4ZWQtcGhvdG8tZG90e3dpZHRoOjdweDtoZWlnaHQ6N3B4O3BhZGRpbmc6MDtib3JkZXI6MDtib3JkZXItcmFkaXVzOjk5OXB4O2JhY2tncm91bmQ6cmdiYSgxMDQsMTE0LDgzLC4yOCk7Y3Vyc29yOnBvaW50ZXI7dHJhbnNpdGlvbjp3aWR0aCAuMjhzIGVhc2UsYmFja2dyb3VuZCAuMjhzIGVhc2U7fQouZml4ZWQtcGhvdG8tZG90LmlzLWFjdGl2ZXt3aWR0aDoyNXB4O2JhY2tncm91bmQ6Izc5ODM2Njt9CkBtZWRpYShtYXgtd2lkdGg6NTQwcHgpey5mcmFtZWQtc3Rvcnktc2VjdGlvbntwYWRkaW5nLXRvcDoyNnB4ICFpbXBvcnRhbnQ7cGFkZGluZy1ib3R0b206MzRweCAhaW1wb3J0YW50O30uZml4ZWQtZnJhbWUtY2Fyb3VzZWx7d2lkdGg6bWluKDk2dncsNTAwcHgpO21hcmdpbi10b3A6OHB4O30uZml4ZWQtcGhvdG8tZG90c3ttYXJnaW4tdG9wOjdweDt9fQo=
+          SECTION_B64: PCEtLSA9PT09PT09PT09PT09PT09PT09PT09PT09CiAgICAgTUFSQ08gRklKTyBERSBGT1RPUwogICAgIEVsIG1hcmNvIHBlcm1hbmVjZSBmaWpvIHkgbGFzIGZvdG9zIGNhbWJpYW4gcG9yIGRlYmFqby4KICAgICA9PT09PT09PT09PT09PT09PT09PT09PT09IC0tPgo8c2VjdGlvbiBjbGFzcz0icGhvdG8tc3Rvcnktc2VjdGlvbiByZXZlYWwtZmluYWwgZnJhbWVkLXN0b3J5LXNlY3Rpb24iIGlkPSJwaG90b1N0b3J5U2VjdGlvbiIgYXJpYS1sYWJlbD0iTnVlc3Ryb3MgcmVjdWVyZG9zIj4KICA8ZGl2IGNsYXNzPSJwaG90by1zdG9yeS1oZWFkIj4KICAgIDxwIGNsYXNzPSJwaG90by1zdG9yeS1raWNrZXIiPlVuIHBlZGFjaXRvIGRlIG5vc290cm9zPC9wPgogICAgPGgyIGNsYXNzPSJwaG90by1zdG9yeS10aXRsZSI+TnVlc3RyYSBoaXN0b3JpYTwvaDI+CiAgICA8cCBjbGFzcz0icGhvdG8tc3Rvcnktc3VidGl0bGUiPkFsZ3Vub3MgcmVjdWVyZG9zIHF1ZSBub3MgdHJhamVyb24gaGFzdGEgYXF1w60uPC9wPgogIDwvZGl2PgogIDxkaXYgY2xhc3M9ImZpeGVkLWZyYW1lLWNhcm91c2VsIiBpZD0iZml4ZWRGcmFtZUNhcm91c2VsIj4KICAgIDxkaXYgY2xhc3M9ImZpeGVkLXBob3RvLXdpbmRvdyIgYXJpYS1saXZlPSJwb2xpdGUiPgogICAgICA8ZmlndXJlIGNsYXNzPSJmaXhlZC1waG90by1zbGlkZSBpcy1hY3RpdmUiPjxpbWcgc3JjPSJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vZC8xZXY2b2lnYTR1b2M2Sm1sdUpyVEVBVHJJSEM4MkxWdjc9dzE2MDAiIG9uZXJyb3I9InRoaXMub25lcnJvcj1udWxsO3RoaXMuc3JjPSdodHRwczovL2RyaXZlLmdvb2dsZS5jb20vdGh1bWJuYWlsP2lkPTFldjZvaWdhNHVvYzZKbWx1SnJURUFUcklIQzgyTFZ2NyZzej13MTYwMCc7IiBhbHQ9IkZvdG8gZXNwZWNpYWwgZGUgQW50b25pbyB5IEx1Y2VybyAxIiBsb2FkaW5nPSJsYXp5Ij48L2ZpZ3VyZT4KICAgICAgPGZpZ3VyZSBjbGFzcz0iZml4ZWQtcGhvdG8tc2xpZGUiPjxpbWcgc3JjPSJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vZC8xcjJpNUxOeDJBNXlkMnhGbC1fZGZFdUJocFlnUVNQaFg9dzE2MDAiIG9uZXJyb3I9InRoaXMub25lcnJvcj1udWxsO3RoaXMuc3JjPSdodHRwczovL2RyaXZlLmdvb2dsZS5jb20vdGh1bWJuYWlsP2lkPTFyMmk1TE54MkE1eWQyeEZsLV9kZkV1QmhwWWdRU1BoWCZzej13MTYwMCc7IiBhbHQ9IkZvdG8gZXNwZWNpYWwgZGUgQW50b25pbyB5IEx1Y2VybyAyIiBsb2FkaW5nPSJsYXp5Ij48L2ZpZ3VyZT4KICAgICAgPGZpZ3VyZSBjbGFzcz0iZml4ZWQtcGhvdG8tc2xpZGUiPjxpbWcgc3JjPSJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vZC8xZW9NZXVkQUxNMW9leERoLXBWUkFkdUZDZGNtVlpOSFg9dzE2MDAiIG9uZXJyb3I9InRoaXMub25lcnJvcj1udWxsO3RoaXMuc3JjPSdodHRwczovL2RyaXZlLmdvb2dsZS5jb20vdGh1bWJuYWlsP2lkPTFlb01ldWRBTE0xb2V4RGgtcFZSQWR1RkNkY21WWk5IWCZzej13MTYwMCc7IiBhbHQ9IkZvdG8gZXNwZWNpYWwgZGUgQW50b25pbyB5IEx1Y2VybyAzIiBsb2FkaW5nPSJsYXp5Ij48L2ZpZ3VyZT4KICAgIDwvZGl2PgogICAgPGltZyBjbGFzcz0iZml4ZWQtcGhvdG8tb3ZlcmxheSIgc3JjPSJodHRwczovL3Jhdy5naXRodWJ1c2VyY29udGVudC5jb20vYXZhbGRpdmllem9jaC9XZWRkaW5nL21haW4vbWFyY29fZGVfZm90b3NfMi5wbmciIGFsdD0iTWFyY28gZGVjb3JhdGl2byBkZSByZWN1ZXJkb3MiPgogIDwvZGl2PgogIDxkaXYgY2xhc3M9ImZpeGVkLXBob3RvLWRvdHMiIGlkPSJmaXhlZFBob3RvRG90cyIgYXJpYS1sYWJlbD0iU2VsZWN0b3IgZGUgZm90b3MiPgogICAgPGJ1dHRvbiBjbGFzcz0iZml4ZWQtcGhvdG8tZG90IGlzLWFjdGl2ZSIgdHlwZT0iYnV0dG9uIiBkYXRhLWluZGV4PSIwIiBhcmlhLWxhYmVsPSJWZXIgZm90byAxIj48L2J1dHRvbj4KICAgIDxidXR0b24gY2xhc3M9ImZpeGVkLXBob3RvLWRvdCIgdHlwZT0iYnV0dG9uIiBkYXRhLWluZGV4PSIxIiBhcmlhLWxhYmVsPSJWZXIgZm90byAyIj48L2J1dHRvbj4KICAgIDxidXR0b24gY2xhc3M9ImZpeGVkLXBob3RvLWRvdCIgdHlwZT0iYnV0dG9uIiBkYXRhLWluZGV4PSIyIiBhcmlhLWxhYmVsPSJWZXIgZm90byAzIj48L2J1dHRvbj4KICA8L2Rpdj4KPC9zZWN0aW9uPgo8c2VjdGlvbiBjbGFzcz0ibG9jYXRpb24tc2VjdGlvbg==
+          JS_B64: PHNjcmlwdD4KKGZ1bmN0aW9uKCl7CiAgY29uc3QgY2Fyb3VzZWw9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2ZpeGVkRnJhbWVDYXJvdXNlbCcpOwogIGlmKCFjYXJvdXNlbClyZXR1cm47CiAgY29uc3Qgc2xpZGVzPUFycmF5LmZyb20oY2Fyb3VzZWwucXVlcnlTZWxlY3RvckFsbCgnLmZpeGVkLXBob3RvLXNsaWRlJykpOwogIGNvbnN0IGRvdHM9QXJyYXkuZnJvbShkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCcjZml4ZWRQaG90b0RvdHMgLmZpeGVkLXBob3RvLWRvdCcpKTsKICBsZXQgY3VycmVudD0wLHRpbWVyPW51bGw7CiAgZnVuY3Rpb24gc2hvd1Bob3RvKGluZGV4KXsKICAgIGlmKCFzbGlkZXMubGVuZ3RoKXJldHVybjsKICAgIGNvbnN0IG5leHQ9KGluZGV4K3NsaWRlcy5sZW5ndGgpJXNsaWRlcy5sZW5ndGg7CiAgICBpZihuZXh0PT09Y3VycmVudClyZXR1cm47CiAgICBjb25zdCBvbGQ9c2xpZGVzW2N1cnJlbnRdLGluY29taW5nPXNsaWRlc1tuZXh0XTsKICAgIG9sZC5jbGFzc0xpc3QucmVtb3ZlKCdpcy1hY3RpdmUnKTsKICAgIG9sZC5jbGFzc0xpc3QuYWRkKCdpcy1sZWF2aW5nJyk7CiAgICBpbmNvbWluZy5jbGFzc0xpc3QucmVtb3ZlKCdpcy1sZWF2aW5nJyk7CiAgICBpbmNvbWluZy5jbGFzc0xpc3QuYWRkKCdpcy1hY3RpdmUnKTsKICAgIHdpbmRvdy5zZXRUaW1lb3V0KCgpPT5vbGQuY2xhc3NMaXN0LnJlbW92ZSgnaXMtbGVhdmluZycpLDEyMDApOwogICAgY3VycmVudD1uZXh0OwogICAgZG90cy5mb3JFYWNoKChkb3QsaSk9PmRvdC5jbGFzc0xpc3QudG9nZ2xlKCdpcy1hY3RpdmUnLGk9PT1jdXJyZW50KSk7CiAgfQogIGZ1bmN0aW9uIHJlc3RhcnQoKXtpZih0aW1lciljbGVhckludGVydmFsKHRpbWVyKTt0aW1lcj1zZXRJbnRlcnZhbCgoKT0+c2hvd1Bob3RvKGN1cnJlbnQrMSksNDMwMCk7fQogIGRvdHMuZm9yRWFjaCgoZG90LGkpPT5kb3QuYWRkRXZlbnRMaXN0ZW5lcignY2xpY2snLCgpPT57c2hvd1Bob3RvKGkpO3Jlc3RhcnQoKTt9KSk7CiAgcmVzdGFydCgpOwp9KSgpOwo8L3NjcmlwdD4K
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re
-
-          p = Path('invitacion_2.html')
-          s = p.read_text(encoding='utf-8')
-
-          css = r'''
-
-    /* ===== MARCO FIJO DE FOTOS — INVITACION 2 ===== */
-    .framed-story-section{
-      padding:34px 0 46px !important;
-      overflow:hidden;
-    }
-
-    .fixed-frame-carousel{
-      position:relative;
-      width:min(92vw, 520px);
-      aspect-ratio:915 / 1600;
-      margin:14px auto 0;
-    }
-
-    .fixed-photo-window{
-      position:absolute;
-      left:9.3%;
-      top:15.7%;
-      width:81.4%;
-      height:77.1%;
-      overflow:hidden;
-      background:#e9ded0;
-      z-index:1;
-    }
-
-    .fixed-photo-slide{
-      position:absolute;
-      inset:0;
-      opacity:0;
-      transform:translateX(8%) scale(1.025);
-      transition:opacity 1s ease, transform 1.15s cubic-bezier(.22,.75,.25,1);
-      will-change:opacity, transform;
-    }
-
-    .fixed-photo-slide.is-active{
-      opacity:1;
-      transform:translateX(0) scale(1.045);
-      z-index:2;
-    }
-
-    .fixed-photo-slide.is-leaving{
-      opacity:0;
-      transform:translateX(-8%) scale(1.06);
-      z-index:1;
-    }
-
-    .fixed-photo-slide img{
-      width:100%;
-      height:100%;
-      display:block;
-      object-fit:cover;
-      object-position:center;
-    }
-
-    .fixed-photo-overlay{
-      position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
-      display:block;
-      object-fit:contain;
-      z-index:5;
-      pointer-events:none;
-      user-select:none;
-    }
-
-    .fixed-photo-dots{
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      gap:8px;
-      margin:12px auto 0;
-    }
-
-    .fixed-photo-dot{
-      width:7px;
-      height:7px;
-      padding:0;
-      border:0;
-      border-radius:999px;
-      background:rgba(104,114,83,.28);
-      cursor:pointer;
-      transition:width .28s ease, background .28s ease;
-    }
-
-    .fixed-photo-dot.is-active{
-      width:25px;
-      background:#798366;
-    }
-
-    @media(max-width:540px){
-      .framed-story-section{
-        padding-top:26px !important;
-        padding-bottom:34px !important;
-      }
-      .fixed-frame-carousel{
-        width:min(96vw, 500px);
-        margin-top:8px;
-      }
-      .fixed-photo-dots{
-        margin-top:7px;
-      }
-    }
-'''
-
-          if 'MARCO FIJO DE FOTOS — INVITACION 2' not in s:
-              s = s.replace('</style>', css + '\n</style>', 1)
-
-          new_section = r'''      <!-- =========================
-           MARCO FIJO DE FOTOS
-           El marco permanece fijo y las fotos cambian por debajo.
-           ========================= -->
-      <section class="photo-story-section reveal-final framed-story-section" id="photoStorySection" aria-label="Nuestros recuerdos">
-        <div class="photo-story-head">
-          <p class="photo-story-kicker">Un pedacito de nosotros</p>
-          <h2 class="photo-story-title">Nuestra historia</h2>
-          <p class="photo-story-subtitle">Algunos recuerdos que nos trajeron hasta aquí.</p>
-        </div>
-
-        <div class="fixed-frame-carousel" id="fixedFrameCarousel">
-          <div class="fixed-photo-window" aria-live="polite">
-            <figure class="fixed-photo-slide is-active">
-              <img src="https://lh3.googleusercontent.com/d/1ev6oiga4uoc6JmluJrTEATrIHC82LVv7=w1600"
-                   onerror="this.onerror=null;this.src='https://drive.google.com/thumbnail?id=1ev6oiga4uoc6JmluJrTEATrIHC82LVv7&sz=w1600';"
-                   alt="Foto especial de Antonio y Lucero 1" loading="lazy">
-            </figure>
-            <figure class="fixed-photo-slide">
-              <img src="https://lh3.googleusercontent.com/d/1r2i5LNx2A5yd2xFl-_dfEuBhpYgQSPhX=w1600"
-                   onerror="this.onerror=null;this.src='https://drive.google.com/thumbnail?id=1r2i5LNx2A5yd2xFl-_dfEuBhpYgQSPhX&sz=w1600';"
-                   alt="Foto especial de Antonio y Lucero 2" loading="lazy">
-            </figure>
-            <figure class="fixed-photo-slide">
-              <img src="https://lh3.googleusercontent.com/d/1eoMeudALM1oexDh-pVRAduFCdcmVZNHX=w1600"
-                   onerror="this.onerror=null;this.src='https://drive.google.com/thumbnail?id=1eoMeudALM1oexDh-pVRAduFCdcmVZNHX&sz=w1600';"
-                   alt="Foto especial de Antonio y Lucero 3" loading="lazy">
-            </figure>
-          </div>
-
-          <img class="fixed-photo-overlay"
-               src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/marco_de_fotos_2.png"
-               alt="Marco decorativo de recuerdos">
-        </div>
-
-        <div class="fixed-photo-dots" id="fixedPhotoDots" aria-label="Selector de fotos">
-          <button class="fixed-photo-dot is-active" type="button" data-index="0" aria-label="Ver foto 1"></button>
-          <button class="fixed-photo-dot" type="button" data-index="1" aria-label="Ver foto 2"></button>
-          <button class="fixed-photo-dot" type="button" data-index="2" aria-label="Ver foto 3"></button>
-        </div>
-      </section>
-
-      <section class="location-section"'''
-
-          pattern = re.compile(r'\s*<!-- =========================\s*\n\s*CARRUSEL DE FOTOS.*?<section class="location-section"', re.S)
-          s2, n = pattern.subn('\n' + new_section, s, count=1)
-          if n != 1:
-              raise SystemExit(f'No se pudo reemplazar el carrusel actual: {n}')
-          s = s2
-
-          js = r'''
-<script>
-(function(){
-  const carousel = document.getElementById('fixedFrameCarousel');
-  if(!carousel) return;
-
-  const slides = Array.from(carousel.querySelectorAll('.fixed-photo-slide'));
-  const dots = Array.from(document.querySelectorAll('#fixedPhotoDots .fixed-photo-dot'));
-  let current = 0;
-  let timer = null;
-
-  function showPhoto(index){
-    if(!slides.length) return;
-    const next = (index + slides.length) % slides.length;
-    if(next === current) return;
-
-    const old = slides[current];
-    const incoming = slides[next];
-
-    old.classList.remove('is-active');
-    old.classList.add('is-leaving');
-    incoming.classList.remove('is-leaving');
-    incoming.classList.add('is-active');
-
-    window.setTimeout(() => old.classList.remove('is-leaving'), 1200);
-    current = next;
-
-    dots.forEach((dot, i) => dot.classList.toggle('is-active', i === current));
-  }
-
-  function restart(){
-    if(timer) clearInterval(timer);
-    timer = setInterval(() => showPhoto(current + 1), 4300);
-  }
-
-  dots.forEach((dot, i) => {
-    dot.addEventListener('click', () => {
-      showPhoto(i);
-      restart();
-    });
-  });
-
-  restart();
-})();
-</script>
-'''
-
-          if "id='fixedFrameCarousel'" not in s and 'const carousel = document.getElementById(\'fixedFrameCarousel\')' not in s:
-              s = s.replace('</body>', js + '\n</body>', 1)
-
-          p.write_text(s, encoding='utf-8')
+          import os, base64, re
+          p=Path('invitacion_2.html')
+          s=p.read_text(encoding='utf-8')
+          css=base64.b64decode(os.environ['CSS_B64']).decode('utf-8')
+          section=base64.b64decode(os.environ['SECTION_B64']).decode('utf-8')
+          js=base64.b64decode(os.environ['JS_B64']).decode('utf-8')
+          if 'MARCO FIJO DE FOTOS' not in s:
+              s=s.replace('</style>', css+'\n</style>', 1)
+          pattern=re.compile(r'\s*<!-- =========================\s*\n\s*CARRUSEL DE FOTOS.*?<section class="location-section"', re.S)
+          s,n=pattern.subn('\n'+section, s, count=1)
+          if n!=1:
+              raise SystemExit(f'No se reemplazo el carrusel: {n}')
+          if "document.getElementById('fixedFrameCarousel')" not in s:
+              s=s.replace('</body>', js+'\n</body>', 1)
+          p.write_text(s,encoding='utf-8')
           PY
-
       - name: Validar
         run: |
           grep -q "marco_de_fotos_2.png" invitacion_2.html
+          grep -q "fixedFrameCarousel" invitacion_2.html
           grep -q "1ev6oiga4uoc6JmluJrTEATrIHC82LVv7" invitacion_2.html
           grep -q "1r2i5LNx2A5yd2xFl-_dfEuBhpYgQSPhX" invitacion_2.html
           grep -q "1eoMeudALM1oexDh-pVRAduFCdcmVZNHX" invitacion_2.html
-          grep -q "fixedFrameCarousel" invitacion_2.html
           ! grep -q 'src="foto_5.jpg"' invitacion_2.html
-
       - name: Commit y limpiar workflow temporal
         run: |
           rm .github/workflows/marco-fotos-invitacion-2.yml
