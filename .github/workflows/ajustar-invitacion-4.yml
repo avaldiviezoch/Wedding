@@ -13,52 +13,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Ajustar contenido y consistencia
-        shell: python
         run: |
+          python3 <<'PY'
           from pathlib import Path
           p = Path('invitacion_4.html')
           s = p.read_text(encoding='utf-8')
 
-          changes = []
-
-          old = '''      background: #000;'''
-          new = '''      background: var(--crema);'''
-          if old in s:
-              s = s.replace(old, new, 1)
-              changes.append('intro fondo crema')
-
-          old = '''            <span>Ver mapa</span>'''
-          new = '''            <span>Ver ubicación</span>'''
-          if old in s:
-              s = s.replace(old, new, 1)
-              changes.append('texto ubicacion')
-
-          old = '''          <p class="texto-adicional">
+          replacements = [
+              ('      background: #000;', '      background: var(--crema);'),
+              ('            <span>Ver mapa</span>', '            <span>Ver ubicación</span>'),
+              ('            Ver datos de regalo', '            Otro tipo de regalo'),
+              ('''          <p class="texto-adicional">
             Aceptamos abrazos, buenos deseos y regalos en la recepción. Para quienes
             prefieran no llevar paquetes, también dejamos una opción por Yape.
-          </p>'''
-          new = '''          <p class="texto-adicional">
+          </p>''', '''          <p class="texto-adicional">
             Lo más importante para nosotros es compartir este día contigo. Si deseas tener un detalle,
             lo recibiremos con muchísimo cariño. Puedes hacerlo mediante Yape o transferencia bancaria;
             y si prefieres un regalo físico, también podremos recibirlo en la recepción el día de la boda.
-          </p>'''
-          if old in s:
-              s = s.replace(old, new, 1)
-              changes.append('texto regalos')
-
-          old = '''            Ver datos de regalo'''
-          new = '''            Otro tipo de regalo'''
-          if old in s:
-              s = s.replace(old, new, 1)
-              changes.append('boton regalos')
-
-          old = '''          <div class="panel-interactivo datos-regalo" id="giftDetails" hidden>
+          </p>'''),
+              ('''          <div class="panel-interactivo datos-regalo" id="giftDetails" hidden>
             <p>Podremos recibir sus regalos durante la recepción.</p>
             <p class="numero-yape"><strong>Yape:</strong> 993219142</p>
             <button class="boton-cerrar-panel" id="giftClose" type="button">Cerrar información</button>
-          </div>'''
-          new = '''          <div class="panel-interactivo datos-regalo" id="giftDetails" hidden>
+          </div>''', '''          <div class="panel-interactivo datos-regalo" id="giftDetails" hidden>
             <p>Si deseas acompañarnos con un detalle adicional, puedes hacerlo a través de cualquiera de estas opciones.</p>
             <p><strong>Banco:</strong> BCP</p>
             <p><strong>Número de cuenta:</strong> 19335282760050</p>
@@ -66,14 +45,17 @@ jobs:
             <p class="numero-yape"><strong>Yape:</strong> 993 219 142</p>
             <p>Los regalos físicos también serán recibidos con mucho cariño durante la recepción.</p>
             <button class="boton-cerrar-panel" id="giftClose" type="button">Cerrar información</button>
-          </div>'''
-          if old not in s:
-              raise SystemExit('No se encontró el panel de regalos esperado')
-          s = s.replace(old, new, 1)
-          changes.append('datos bancarios completos')
+          </div>''')
+          ]
 
-          css_marker = '''    .nombres-cierre{'''
-          credits_css = '''    .creditos-finales{
+          for old, new in replacements:
+              if old not in s:
+                  raise SystemExit('No se encontró bloque esperado: ' + old[:80])
+              s = s.replace(old, new, 1)
+
+          if '.creditos-finales{' not in s:
+              marker = '    .nombres-cierre{'
+              css = '''    .creditos-finales{
       padding: 12px 20px 44px;
       text-align: center;
       color: var(--verde-suave);
@@ -98,43 +80,33 @@ jobs:
     }
 
 '''
-          if 'creditos-finales' not in s and css_marker in s:
-              s = s.replace(css_marker, credits_css + css_marker, 1)
-              changes.append('css creditos')
+              if marker not in s:
+                  raise SystemExit('No se encontró marcador CSS de cierre')
+              s = s.replace(marker, css + marker, 1)
 
-          closing = '''        </article>
+          if 'aria-label="Créditos"' not in s:
+              closing = '''        </article>
       </div>
     </section>
 '''
-          idx = s.rfind(closing)
-          if idx == -1:
-              raise SystemExit('No se encontró cierre final para insertar créditos')
-          if 'aria-label="Créditos"' not in s:
-              insert = '''        </article>
+              idx = s.rfind(closing)
+              if idx == -1:
+                  raise SystemExit('No se encontró cierre final')
+              footer = '''        </article>
       </div>
     </section>
 
     <footer class="creditos-finales" aria-label="Créditos">
-      <img
-        class="creditos-brook"
-        src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/brook.gif"
-        alt="Detalle inspirado en One Piece"
-        loading="lazy"
-      />
+      <img class="creditos-brook" src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/brook.gif" alt="Detalle inspirado en One Piece" loading="lazy" />
       <p class="creditos-texto">Créditos: Antonio Valdiviezo © Derechos reservados</p>
     </footer>
 '''
-              s = s[:idx] + s[idx:].replace(closing, insert, 1)
-              changes.append('creditos finales')
-
-          if not changes:
-              raise SystemExit('No se aplicó ningún cambio')
+              s = s[:idx] + s[idx:].replace(closing, footer, 1)
 
           p.write_text(s, encoding='utf-8')
-          print('Cambios:', ', '.join(changes))
+          PY
 
       - name: Validar cambios
-        shell: bash
         run: |
           grep -q '19335282760050' invitacion_4.html
           grep -q '00219313528276005017' invitacion_4.html
@@ -142,19 +114,16 @@ jobs:
           grep -q 'Otro tipo de regalo' invitacion_4.html
           grep -q 'Ver ubicación' invitacion_4.html
           grep -q 'Créditos: Antonio Valdiviezo' invitacion_4.html
-          grep -q 'background: var(--crema);' invitacion_4.html
 
-      - name: Limpiar workflow y trigger
-        shell: bash
+      - name: Limpiar archivos temporales
         run: |
           rm -f .github/workflows/ajustar-invitacion-4.yml
           rm -f .github/triggers/ajustar-invitacion-4.txt
 
       - name: Commit
-        shell: bash
         run: |
           git config user.name 'avaldiviezoch'
           git config user.email '155109177+avaldiviezoch@users.noreply.github.com'
-          git add invitacion_4.html .github/workflows/ajustar-invitacion-4.yml .github/triggers/ajustar-invitacion-4.txt || true
+          git add -A
           git commit -m 'Completar y estandarizar invitacion 4'
           git push
