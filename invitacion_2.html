@@ -2823,7 +2823,7 @@
     <button class="fixed-photo-dot" type="button" data-index="2" aria-label="Ver foto 3"></button>
   </div>
 </section>
-<section class="location-section aria-label="Ubicación de la boda">
+<section class="location-section" aria-label="Ubicación de la boda">
         <div class="location-image-wrap">
           <img
             class="location-image"
@@ -3274,7 +3274,7 @@
 
     // =========================
     // ANIMACIÓN DE LAS MANOS
-    // Se reinicia cada vez que la sección vuelve a entrar en pantalla.
+    // Se ejecuta una sola vez y permanece visible.
     // =========================
     const handsSection = document.getElementById('handsSection');
 
@@ -3289,8 +3289,7 @@
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             restartHandsAnimation();
-          } else {
-            handsSection.classList.remove('is-visible');
+            handsObserver.unobserve(entry.target);
           }
         });
       }, {
@@ -3304,7 +3303,7 @@
 
     // =========================
     // EFECTO DE LLEGADA DE LA TRIPULACIÓN
-    // Se repite cuando la sección sale y vuelve a entrar en pantalla.
+    // Se ejecuta una sola vez y permanece visible.
     // =========================
     const crewSection = document.getElementById('crewSection');
 
@@ -3319,8 +3318,7 @@
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             restartCrewAnimation();
-          } else {
-            crewSection.classList.remove('is-visible');
+            crewObserver.unobserve(entry.target);
           }
         });
       }, {
@@ -3333,7 +3331,7 @@
 
     // =========================
     // EFECTO DE LLEGADA DEL ITINERARIO
-    // Se repite cuando la sección sale y vuelve a entrar en pantalla.
+    // Se ejecuta una sola vez y permanece visible.
     // =========================
     const itinerarySection = document.getElementById('itinerarySection');
 
@@ -3348,8 +3346,7 @@
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             restartItineraryAnimation();
-          } else {
-            itinerarySection.classList.remove('is-visible');
+            itineraryObserver.unobserve(entry.target);
           }
         });
       }, {
@@ -3362,7 +3359,7 @@
 
     // =========================
     // EFECTO DE LLEGADA DEL DRESS CODE
-    // Se repite cuando la sección sale y vuelve a entrar en pantalla.
+    // Se ejecuta una sola vez y permanece visible.
     // =========================
     const dresscodeSection = document.getElementById('dresscodeSection');
 
@@ -3377,8 +3374,7 @@
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             restartDresscodeAnimation();
-          } else {
-            dresscodeSection.classList.remove('is-visible');
+            dresscodeObserver.unobserve(entry.target);
           }
         });
       }, {
@@ -3398,8 +3394,7 @@
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             entry.target.classList.add('is-visible');
-          } else {
-            entry.target.classList.remove('is-visible');
+            finalObserver.unobserve(entry.target);
           }
         });
       }, {
