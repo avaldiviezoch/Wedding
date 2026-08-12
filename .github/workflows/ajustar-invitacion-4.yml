@@ -1,4 +1,4 @@
-name: Fix invitation 4
+name: Finalize invitation 4
 
 "on":
   push:
@@ -13,51 +13,90 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Patch HTML
+      - name: Final parity fixes
         shell: python
         run: |
           from pathlib import Path
-          import re
           p = Path('invitacion_4.html')
           s = p.read_text(encoding='utf-8')
 
-          pairs = [
-            ('      background: #000;', '      background: var(--crema);'),
-            ('            <span>Ver mapa</span>', '            <span>Ver ubicación</span>'),
-            ('            Ver datos de regalo', '            Otro tipo de regalo')
-          ]
-          for old,new in pairs:
-            if old not in s:
-              raise SystemExit('missing: ' + old)
-            s = s.replace(old,new,1)
+          old = '''          <p class="texto-adicional">
+            Aceptamos abrazos, buenos deseos y regalos en la recepción. Para quienes
+            prefieran no llevar paquetes, también dejamos una opción por Yape.
+          </p>'''
+          new = '''          <p class="texto-adicional">
+            Lo más importante para nosotros es compartir este día contigo. Si deseas tener un detalle,
+            lo recibiremos con muchísimo cariño. Puedes hacerlo mediante Yape o transferencia bancaria;
+            y si prefieres un regalo físico, también podremos recibirlo en la recepción el día de la boda.
+          </p>'''
+          if old not in s:
+            raise SystemExit('gift descriptive text missing')
+          s = s.replace(old, new, 1)
 
-          pattern = r'<div class="panel-interactivo datos-regalo" id="giftDetails" hidden>.*?<button class="boton-cerrar-panel" id="giftClose" type="button">Cerrar información</button>\s*</div>'
-          replacement = '''<div class="panel-interactivo datos-regalo" id="giftDetails" hidden>
-            <p>Si deseas acompañarnos con un detalle adicional, puedes hacerlo a través de cualquiera de estas opciones.</p>
-            <p><strong>Banco:</strong> BCP</p>
-            <p><strong>Número de cuenta:</strong> 19335282760050</p>
-            <p><strong>CCI:</strong> 00219313528276005017</p>
-            <p class="numero-yape"><strong>Yape:</strong> 993 219 142</p>
-            <p>Los regalos físicos también serán recibidos con mucho cariño durante la recepción.</p>
-            <button class="boton-cerrar-panel" id="giftClose" type="button">Cerrar información</button>
-          </div>'''
-          s2, count = re.subn(pattern, replacement, s, count=1, flags=re.S)
-          if count != 1:
-            raise SystemExit('gift block regex missing')
-          s = s2
+          if '.creditos-finales{' not in s:
+            css = '''
+    .creditos-finales{
+      padding: 12px 20px 42px;
+      text-align: center;
+      color: var(--verde-suave);
+      background: var(--crema);
+    }
 
-          p.write_text(s,encoding='utf-8')
+    .creditos-brook{
+      width: 70px;
+      height: auto;
+      display: block;
+      margin: 0 auto 14px;
+      object-fit: contain;
+      filter: drop-shadow(0 3px 8px rgba(70,83,60,.10));
+    }
+
+    .creditos-texto{
+      margin: 0;
+      font-size: .68rem;
+      line-height: 1.7;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      opacity: .82;
+    }
+'''
+            marker = '  </style>'
+            if marker not in s:
+              raise SystemExit('style close missing')
+            s = s.replace(marker, css + '\n' + marker, 1)
+
+          if 'aria-label="Créditos"' not in s:
+            footer = '''
+  <footer class="creditos-finales" aria-label="Créditos">
+    <img
+      class="creditos-brook"
+      src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/brook.gif"
+      alt="Detalle inspirado en One Piece"
+      loading="lazy"
+    />
+    <p class="creditos-texto">Créditos: Antonio Valdiviezo © Derechos reservados</p>
+  </footer>
+
+'''
+            marker = '  <script>'
+            if marker not in s:
+              raise SystemExit('script marker missing')
+            s = s.replace(marker, footer + marker, 1)
+
+          p.write_text(s, encoding='utf-8')
       - name: Validate
         run: |
-          grep -q '19335282760050' invitacion_4.html
-          grep -q '00219313528276005017' invitacion_4.html
-          grep -q '993 219 142' invitacion_4.html
-          grep -q 'Otro tipo de regalo' invitacion_4.html
-          grep -q 'Ver ubicación' invitacion_4.html
+          grep -q 'transferencia bancaria' invitacion_4.html
+          grep -q 'Créditos: Antonio Valdiviezo' invitacion_4.html
+          grep -q 'brook.gif' invitacion_4.html
+      - name: Cleanup temp files
+        run: |
+          rm -f .github/workflows/ajustar-invitacion-4.yml
+          rm -f .github/triggers/ajustar-invitacion-4.txt
       - name: Commit
         run: |
           git config user.name avaldiviezoch
           git config user.email 155109177+avaldiviezoch@users.noreply.github.com
-          git add invitacion_4.html
-          git commit -m 'Estandarizar datos y textos de invitacion 4'
+          git add -A
+          git commit -m 'Completar cierre y regalos de invitacion 4'
           git push
