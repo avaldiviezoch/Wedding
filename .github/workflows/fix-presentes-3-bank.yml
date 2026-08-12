@@ -17,24 +17,24 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
+          import re
           p = Path('invitacion_3.html')
           s = p.read_text(encoding='utf-8')
-          old = '''          <p class="gift-envelope-yape"><strong>Yape:</strong> 993219142</p>
-          <button class="gift-envelope-back" id="giftEnvelopeBack" type="button">← Volver a la animación</button>'''
-          new = '''          <div class="gift-envelope-bank-data" style="margin:18px auto 20px;display:grid;gap:10px;width:min(100%,390px);text-align:center;">
+          new = '''<div class="gift-envelope-bank-data" style="margin:18px auto 20px;display:grid;gap:10px;width:min(100%,390px);text-align:center;">
             <p style="margin:0;"><strong>Banco:</strong> BCP</p>
             <p style="margin:0;"><strong>Número de cuenta:</strong> 19335282760050</p>
             <p style="margin:0;"><strong>CCI:</strong> 00219313528276005017</p>
             <p class="gift-envelope-yape" style="margin:0;"><strong>Yape:</strong> 993 219 142</p>
-          </div>
-          <button class="gift-envelope-back" id="giftEnvelopeBack" type="button">← Volver a la animación</button>'''
-          if old not in s:
-              raise SystemExit('No se encontró el bloque esperado de Yape en invitacion_3.html')
-          s = s.replace(old, new, 1)
-          p.write_text(s, encoding='utf-8')
+          </div>'''
+          pattern = r'<p\s+class="gift-envelope-yape"[^>]*>\s*<strong>Yape:</strong>\s*993\s*219\s*142\s*</p>'
+          s2, n = re.subn(pattern, new, s, count=1, flags=re.I)
+          if n != 1:
+              raise SystemExit(f'No se encontró el Yape esperado; reemplazos={n}')
+          p.write_text(s2, encoding='utf-8')
       - name: Validar datos
         shell: bash
         run: |
+          grep -q 'Banco:</strong> BCP' invitacion_3.html
           grep -q '19335282760050' invitacion_3.html
           grep -q '00219313528276005017' invitacion_3.html
           grep -q '993 219 142' invitacion_3.html
