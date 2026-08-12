@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#fbeed8" />
+  <title>Vista previa · Animación preguntas · Invitación 3</title>
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #fbeed8;
+    }
+
+    #preview {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #fbeed8;
+    }
+
+    .preview-badge {
+      position: fixed;
+      z-index: 999999;
+      top: max(10px, env(safe-area-inset-top));
+      right: 10px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255, 250, 240, .88);
+      color: #355a35;
+      border: 1px solid rgba(53, 90, 53, .16);
+      box-shadow: 0 5px 16px rgba(67, 50, 30, .12);
+      font: 600 10px/1.1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-badge">Prueba de animación</div>
+  <iframe id="preview" src="invitacion_3.html" title="Vista previa de invitación 3"></iframe>
+
+  <script>
+    const iframe = document.getElementById('preview');
+
+    iframe.addEventListener('load', () => {
+      try {
+        const doc = iframe.contentDocument;
+        const win = iframe.contentWindow;
+        if (!doc || !win) return;
+
+        const style = doc.createElement('style');
+        style.id = 'faq-animation-preview';
+        style.textContent = `
+          /* PRUEBA: animaciones para las ilustraciones de preguntas */
+          #preguntas .faq details .faq-illustration {
+            will-change: transform, opacity;
+            transform-origin: center center;
+          }
+
+          #preguntas .faq details:not([open]) .faq-illustration {
+            opacity: 0;
+            transform: translateY(14px) scale(.97);
+          }
+
+          #preguntas .faq details:nth-child(1)[open] .faq-illustration {
+            animation: faqPicInOne .66s cubic-bezier(.22,.88,.3,1.16) both;
+          }
+
+          #preguntas .faq details:nth-child(2)[open] .faq-illustration {
+            animation: faqPicInTwo .7s cubic-bezier(.18,.9,.28,1.18) both;
+          }
+
+          #preguntas .faq details:nth-child(3)[open] .faq-illustration {
+            animation: faqPicInThree .68s cubic-bezier(.22,.86,.28,1.12) both;
+          }
+
+          #preguntas .faq details:nth-child(1)[open] .faq-illustration img {
+            transform-origin: 50% 82%;
+            animation: faqPicIdleOne 4.8s ease-in-out .7s infinite;
+          }
+
+          #preguntas .faq details:nth-child(2)[open] .faq-illustration img {
+            transform-origin: 50% 55%;
+            animation: faqPicIdleTwo 4s ease-in-out .75s infinite;
+          }
+
+          #preguntas .faq details:nth-child(3)[open] .faq-illustration img {
+            transform-origin: 50% 80%;
+            animation: faqPicIdleThree 4.4s ease-in-out .72s infinite;
+          }
+
+          @keyframes faqPicInOne {
+            0%   { opacity: 0; transform: translateY(20px) scale(.96) rotate(-2deg); }
+            68%  { opacity: 1; transform: translateY(-3px) scale(1.015) rotate(.7deg); }
+            100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+          }
+
+          @keyframes faqPicInTwo {
+            0%   { opacity: 0; transform: translateY(10px) scale(.86); }
+            62%  { opacity: 1; transform: translateY(-2px) scale(1.045); }
+            82%  { transform: translateY(1px) scale(.988); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+          }
+
+          @keyframes faqPicInThree {
+            0%   { opacity: 0; transform: translateY(17px) scale(.97) rotate(1.8deg); }
+            70%  { opacity: 1; transform: translateY(-2px) scale(1.01) rotate(-.7deg); }
+            100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+          }
+
+          @keyframes faqPicIdleOne {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50%      { transform: translateY(-4px) rotate(.7deg); }
+          }
+
+          @keyframes faqPicIdleTwo {
+            0%, 100% { transform: scale(1); }
+            50%      { transform: scale(1.018); }
+          }
+
+          @keyframes faqPicIdleThree {
+            0%, 100% { transform: translateY(0) rotate(-1deg); }
+            50%      { transform: translateY(-3px) rotate(1deg); }
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            #preguntas .faq details .faq-illustration,
+            #preguntas .faq details .faq-illustration img {
+              animation: none !important;
+              opacity: 1 !important;
+              transform: none !important;
+            }
+          }
+        `;
+        doc.head.appendChild(style);
+
+        /* Saltamos la portada solamente en esta vista de prueba para ir directo a las preguntas. */
+        doc.body.classList.remove('locked');
+        const intro = doc.querySelector('.intro');
+        if (intro) {
+          intro.classList.add('is-hidden');
+          intro.style.display = 'none';
+        }
+
+        const invitation = doc.getElementById('invitation');
+        if (invitation) invitation.style.visibility = 'visible';
+
+        setTimeout(() => {
+          const questions = doc.getElementById('preguntas');
+          if (questions) questions.scrollIntoView({ behavior: 'auto', block: 'start' });
+        }, 120);
+      } catch (error) {
+        console.error('No se pudo preparar la vista previa:', error);
+      }
+    });
+  </script>
+</body>
+</html>
