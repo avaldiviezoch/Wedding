@@ -2692,6 +2692,20 @@
       .photo-next{ right:3%; }
     }
 
+/* ===== MARCO FIJO DE FOTOS — INVITACION 2 ===== */
+.framed-story-section{padding:34px 0 46px !important;overflow:hidden;}
+.fixed-frame-carousel{position:relative;width:min(92vw,520px);aspect-ratio:915/1600;margin:14px auto 0;}
+.fixed-photo-window{position:absolute;left:9.3%;top:15.7%;width:81.4%;height:77.1%;overflow:hidden;background:#e9ded0;z-index:1;}
+.fixed-photo-slide{position:absolute;inset:0;opacity:0;transform:translateX(8%) scale(1.025);transition:opacity 1s ease,transform 1.15s cubic-bezier(.22,.75,.25,1);will-change:opacity,transform;}
+.fixed-photo-slide.is-active{opacity:1;transform:translateX(0) scale(1.045);z-index:2;}
+.fixed-photo-slide.is-leaving{opacity:0;transform:translateX(-8%) scale(1.06);z-index:1;}
+.fixed-photo-slide img{width:100%;height:100%;display:block;object-fit:cover;object-position:center;}
+.fixed-photo-overlay{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:contain;z-index:5;pointer-events:none;user-select:none;}
+.fixed-photo-dots{display:flex;justify-content:center;align-items:center;gap:8px;margin:12px auto 0;}
+.fixed-photo-dot{width:7px;height:7px;padding:0;border:0;border-radius:999px;background:rgba(104,114,83,.28);cursor:pointer;transition:width .28s ease,background .28s ease;}
+.fixed-photo-dot.is-active{width:25px;background:#798366;}
+@media(max-width:540px){.framed-story-section{padding-top:26px !important;padding-bottom:34px !important;}.fixed-frame-carousel{width:min(96vw,500px);margin-top:8px;}.fixed-photo-dots{margin-top:7px;}}
+
 </style>
 </head>
 <body>
@@ -2785,74 +2799,31 @@
         </div>
         <p class="hands-caption">Dos caminos que se encontraron para caminar juntos para siempre.</p>
       </section>
-
-      <!-- =========================
-           CARRUSEL DE FOTOS
-           Coloca foto_1.jpg ... foto_5.jpg en la raíz del repositorio
-           ========================= -->
-      <section class="photo-story-section reveal-final" id="photoStorySection" aria-label="Nuestros recuerdos">
-        <div class="photo-story-head">
-          <p class="photo-story-kicker">Un pedacito de nosotros</p>
-          <h2 class="photo-story-title">Nuestra historia</h2>
-          <p class="photo-story-subtitle">Algunos recuerdos que nos trajeron hasta aquí.</p>
-        </div>
-
-        <div class="photo-carousel" id="photoCarousel">
-          <div class="photo-track" id="photoTrack">
-
-            <figure class="photo-slide is-active">
-              <div class="photo-frame">
-                <img src="foto_1.jpg" alt="Antonio y Lucero - recuerdo 1" loading="lazy"
-                  onerror="this.style.display='none';this.parentElement.classList.add('photo-placeholder');">
-              </div>
-            </figure>
-
-            <figure class="photo-slide">
-              <div class="photo-frame">
-                <img src="foto_2.jpg" alt="Antonio y Lucero - recuerdo 2" loading="lazy"
-                  onerror="this.style.display='none';this.parentElement.classList.add('photo-placeholder');">
-              </div>
-            </figure>
-
-            <figure class="photo-slide">
-              <div class="photo-frame">
-                <img src="foto_3.jpg" alt="Antonio y Lucero - recuerdo 3" loading="lazy"
-                  onerror="this.style.display='none';this.parentElement.classList.add('photo-placeholder');">
-              </div>
-            </figure>
-
-            <figure class="photo-slide">
-              <div class="photo-frame">
-                <img src="foto_4.jpg" alt="Antonio y Lucero - recuerdo 4" loading="lazy"
-                  onerror="this.style.display='none';this.parentElement.classList.add('photo-placeholder');">
-              </div>
-            </figure>
-
-            <figure class="photo-slide">
-              <div class="photo-frame">
-                <img src="foto_5.jpg" alt="Antonio y Lucero - recuerdo 5" loading="lazy"
-                  onerror="this.style.display='none';this.parentElement.classList.add('photo-placeholder');">
-              </div>
-            </figure>
-
-          </div>
-
-          <button class="photo-nav photo-prev" type="button" onclick="movePhotoCarousel(-1)" aria-label="Foto anterior">‹</button>
-          <button class="photo-nav photo-next" type="button" onclick="movePhotoCarousel(1)" aria-label="Foto siguiente">›</button>
-
-          <div class="photo-dots" id="photoDots" aria-label="Selector de fotos">
-            <button class="photo-dot is-active" type="button" onclick="goToPhoto(0)" aria-label="Ir a foto 1"></button>
-            <button class="photo-dot" type="button" onclick="goToPhoto(1)" aria-label="Ir a foto 2"></button>
-            <button class="photo-dot" type="button" onclick="goToPhoto(2)" aria-label="Ir a foto 3"></button>
-            <button class="photo-dot" type="button" onclick="goToPhoto(3)" aria-label="Ir a foto 4"></button>
-            <button class="photo-dot" type="button" onclick="goToPhoto(4)" aria-label="Ir a foto 5"></button>
-          </div>
-        </div>
-
-        <div class="photo-story-signature" aria-hidden="true">A <span>&amp;</span> L</div>
-      </section>
-
-      <section class="location-section" aria-label="Ubicación de la boda">
+<!-- =========================
+     MARCO FIJO DE FOTOS
+     El marco permanece fijo y las fotos cambian por debajo.
+     ========================= -->
+<section class="photo-story-section reveal-final framed-story-section" id="photoStorySection" aria-label="Nuestros recuerdos">
+  <div class="photo-story-head">
+    <p class="photo-story-kicker">Un pedacito de nosotros</p>
+    <h2 class="photo-story-title">Nuestra historia</h2>
+    <p class="photo-story-subtitle">Algunos recuerdos que nos trajeron hasta aquí.</p>
+  </div>
+  <div class="fixed-frame-carousel" id="fixedFrameCarousel">
+    <div class="fixed-photo-window" aria-live="polite">
+      <figure class="fixed-photo-slide is-active"><img src="https://lh3.googleusercontent.com/d/1ev6oiga4uoc6JmluJrTEATrIHC82LVv7=w1600" onerror="this.onerror=null;this.src='https://drive.google.com/thumbnail?id=1ev6oiga4uoc6JmluJrTEATrIHC82LVv7&sz=w1600';" alt="Foto especial de Antonio y Lucero 1" loading="lazy"></figure>
+      <figure class="fixed-photo-slide"><img src="https://lh3.googleusercontent.com/d/1r2i5LNx2A5yd2xFl-_dfEuBhpYgQSPhX=w1600" onerror="this.onerror=null;this.src='https://drive.google.com/thumbnail?id=1r2i5LNx2A5yd2xFl-_dfEuBhpYgQSPhX&sz=w1600';" alt="Foto especial de Antonio y Lucero 2" loading="lazy"></figure>
+      <figure class="fixed-photo-slide"><img src="https://lh3.googleusercontent.com/d/1eoMeudALM1oexDh-pVRAduFCdcmVZNHX=w1600" onerror="this.onerror=null;this.src='https://drive.google.com/thumbnail?id=1eoMeudALM1oexDh-pVRAduFCdcmVZNHX&sz=w1600';" alt="Foto especial de Antonio y Lucero 3" loading="lazy"></figure>
+    </div>
+    <img class="fixed-photo-overlay" src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/marco_de_fotos_2.png" alt="Marco decorativo de recuerdos">
+  </div>
+  <div class="fixed-photo-dots" id="fixedPhotoDots" aria-label="Selector de fotos">
+    <button class="fixed-photo-dot is-active" type="button" data-index="0" aria-label="Ver foto 1"></button>
+    <button class="fixed-photo-dot" type="button" data-index="1" aria-label="Ver foto 2"></button>
+    <button class="fixed-photo-dot" type="button" data-index="2" aria-label="Ver foto 3"></button>
+  </div>
+</section>
+<section class="location-section aria-label="Ubicación de la boda">
         <div class="location-image-wrap">
           <img
             class="location-image"
@@ -3868,5 +3839,31 @@
     });
 
 </script>
+<script>
+(function(){
+  const carousel=document.getElementById('fixedFrameCarousel');
+  if(!carousel)return;
+  const slides=Array.from(carousel.querySelectorAll('.fixed-photo-slide'));
+  const dots=Array.from(document.querySelectorAll('#fixedPhotoDots .fixed-photo-dot'));
+  let current=0,timer=null;
+  function showPhoto(index){
+    if(!slides.length)return;
+    const next=(index+slides.length)%slides.length;
+    if(next===current)return;
+    const old=slides[current],incoming=slides[next];
+    old.classList.remove('is-active');
+    old.classList.add('is-leaving');
+    incoming.classList.remove('is-leaving');
+    incoming.classList.add('is-active');
+    window.setTimeout(()=>old.classList.remove('is-leaving'),1200);
+    current=next;
+    dots.forEach((dot,i)=>dot.classList.toggle('is-active',i===current));
+  }
+  function restart(){if(timer)clearInterval(timer);timer=setInterval(()=>showPhoto(current+1),4300);}
+  dots.forEach((dot,i)=>dot.addEventListener('click',()=>{showPhoto(i);restart();}));
+  restart();
+})();
+</script>
+
 </body>
 </html>
