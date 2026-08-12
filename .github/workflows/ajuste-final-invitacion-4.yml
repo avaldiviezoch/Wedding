@@ -5,79 +5,20 @@ on:
       - '.github/triggers/ajuste-final-invitacion-4.txt'
 permissions:
   contents: write
+env:
+  CSS_B64: LyogPT09PT0gQUpVU1RFIEZJTkFMIFBPUlRBREEgWSBDUkVESVRPUyDigJQgSU5WSVRBQ0lPTiA0ID09PT09ICovCi50ZXh0b3MtZmVjaGF7Ym90dG9tOjEuOCUgIWltcG9ydGFudDt3aWR0aDptaW4oODIlLDUyMHB4KSAhaW1wb3J0YW50O30KLmljb25vLWNhbGVuZGFyaW97d2lkdGg6MjdweCAhaW1wb3J0YW50O2hlaWdodDoyN3B4ICFpbXBvcnRhbnQ7bWFyZ2luOjAgYXV0byA3cHggIWltcG9ydGFudDt9Ci5mZWNoYS1ldGlxdWV0YXtmb250LXNpemU6Y2xhbXAoLjU4cmVtLDIuMjV2dywuNzhyZW0pICFpbXBvcnRhbnQ7bGV0dGVyLXNwYWNpbmc6LjE0ZW0gIWltcG9ydGFudDtsaW5lLWhlaWdodDoxLjIgIWltcG9ydGFudDt9Ci5mZWNoYXttYXJnaW4tdG9wOjVweCAhaW1wb3J0YW50O2ZvbnQtc2l6ZTpjbGFtcCgxLjU1cmVtLDYuNHZ3LDIuNzVyZW0pICFpbXBvcnRhbnQ7Zm9udC13ZWlnaHQ6NTAwICFpbXBvcnRhbnQ7bGluZS1oZWlnaHQ6MSAhaW1wb3J0YW50O2xldHRlci1zcGFjaW5nOi0uMDE1ZW0gIWltcG9ydGFudDt3aGl0ZS1zcGFjZTpub3dyYXAgIWltcG9ydGFudDt9Ci5jcmVkaXRvcy1maW5hbGVze3BhZGRpbmc6MTBweCAxNnB4IDE0cHggIWltcG9ydGFudDttaW4taGVpZ2h0OjAgIWltcG9ydGFudDtiYWNrZ3JvdW5kOnZhcigtLWNyZW1hKSAhaW1wb3J0YW50O30KLmNyZWRpdG9zLXRleHRve21hcmdpbjowICFpbXBvcnRhbnQ7Zm9udC1zaXplOjYuNXB4ICFpbXBvcnRhbnQ7bGluZS1oZWlnaHQ6MS4yNSAhaW1wb3J0YW50O2xldHRlci1zcGFjaW5nOi4wNGVtICFpbXBvcnRhbnQ7b3BhY2l0eTouNDggIWltcG9ydGFudDt0ZXh0LXRyYW5zZm9ybTp1cHBlcmNhc2UgIWltcG9ydGFudDt9Ci5jcmVkaXRvcy1icm9va3tkaXNwbGF5Om5vbmUgIWltcG9ydGFudDt9CkBtZWRpYShtYXgtd2lkdGg6NTIwcHgpey50ZXh0b3MtZmVjaGF7Ym90dG9tOjEuNSUgIWltcG9ydGFudDt3aWR0aDo4NCUgIWltcG9ydGFudDt9LmZlY2hhe2ZvbnQtc2l6ZTpjbGFtcCgxLjQ4cmVtLDYuMTV2dywycmVtKSAhaW1wb3J0YW50O30uZmVjaGEtZXRpcXVldGF7Zm9udC1zaXplOi41N3JlbSAhaW1wb3J0YW50O30uY3JlZGl0b3MtZmluYWxlc3twYWRkaW5nOjhweCAxMnB4IDEycHggIWltcG9ydGFudDt9LmNyZWRpdG9zLXRleHRve2ZvbnQtc2l6ZTo2cHggIWltcG9ydGFudDt9fQo=
+  SCRIPT_B64: ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCmltcG9ydCByZSxiYXNlNjQsb3MKcD1QYXRoKCdpbnZpdGFjaW9uXzQuaHRtbCcpCnM9cC5yZWFkX3RleHQoZW5jb2Rpbmc9J3V0Zi04JykKcyxuPXJlLnN1Ym4ocidccyo8aW1nXHMrY2xhc3M9ImNyZWRpdG9zLWJyb29rIi4qPy8+XHMqJywnXG4nLHMsY291bnQ9MSxmbGFncz1yZS5TKQppZiBuIT0xOiByYWlzZSBTeXN0ZW1FeGl0KCdObyBzZSBlbmNvbnRybyBCcm9vayBlbiBjcmVkaXRvcycpCmNzcz1iYXNlNjQuYjY0ZGVjb2RlKG9zLmVudmlyb25bJ0NTU19CNjQnXSkuZGVjb2RlKCd1dGYtOCcpCmlmICdBSlVTVEUgRklOQUwgUE9SVEFEQSBZIENSRURJVE9TIOKAlCBJTlZJVEFDSU9OIDQnIG5vdCBpbiBzOiBzPXMucmVwbGFjZSgnPC9zdHlsZT4nLGNzczsnXG48L3N0eWxlPicsMSkKcC53cml0ZV90ZXh0KHMsZW5jb2Rpbmc9J3V0Zi04JykK
 jobs:
   patch:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Ajustar portada y creditos
-        shell: python
-        run: |
-          from pathlib import Path
-          import re
-          p=Path('invitacion_4.html')
-          s=p.read_text(encoding='utf-8')
-
-          # Quitar Brook del bloque de creditos.
-          s,n=re.subn(r'\s*<img\s+class="creditos-brook".*?/>\s*', '\n', s, count=1, flags=re.S)
-          if n!=1:
-              raise SystemExit('No se encontro Brook en creditos')
-
-          # Ajustes finales de portada + creditos. Se agregan al final para prevalecer.
-          css='''
-    /* ===== AJUSTE FINAL PORTADA Y CREDITOS — INVITACION 4 ===== */
-    .textos-fecha{
-      bottom:1.8% !important;
-      width:min(82%,520px) !important;
-    }
-    .icono-calendario{
-      width:27px !important;
-      height:27px !important;
-      margin:0 auto 7px !important;
-    }
-    .fecha-etiqueta{
-      font-size:clamp(.58rem,2.25vw,.78rem) !important;
-      letter-spacing:.14em !important;
-      line-height:1.2 !important;
-    }
-    .fecha{
-      margin-top:5px !important;
-      font-size:clamp(1.55rem,6.4vw,2.75rem) !important;
-      font-weight:500 !important;
-      line-height:1 !important;
-      letter-spacing:-.015em !important;
-      white-space:nowrap !important;
-    }
-    .creditos-finales{
-      padding:10px 16px 14px !important;
-      min-height:0 !important;
-      background:var(--crema) !important;
-    }
-    .creditos-texto{
-      margin:0 !important;
-      font-size:6.5px !important;
-      line-height:1.25 !important;
-      letter-spacing:.04em !important;
-      opacity:.48 !important;
-      text-transform:uppercase !important;
-    }
-    .creditos-brook{display:none !important;}
-    @media(max-width:520px){
-      .textos-fecha{bottom:1.5% !important;width:84% !important;}
-      .fecha{font-size:clamp(1.48rem,6.15vw,2rem) !important;}
-      .fecha-etiqueta{font-size:.57rem !important;}
-      .creditos-finales{padding:8px 12px 12px !important;}
-      .creditos-texto{font-size:6px !important;}
-    }
-'''
-          marker='AJUSTE FINAL PORTADA Y CREDITOS — INVITACION 4'
-          if marker not in s:
-              s=s.replace('</style>',css+'\n  </style>',1)
-          p.write_text(s,encoding='utf-8')
+        run: python -c "import base64,os;exec(base64.b64decode(os.environ['SCRIPT_B64']))"
       - name: Validar
         run: |
           grep -q 'AJUSTE FINAL PORTADA Y CREDITOS' invitacion_4.html
-          ! grep -q 'class="creditos-brook"' invitacion_4.html
+          if grep -q 'class="creditos-brook"' invitacion_4.html; then exit 1; fi
           grep -q 'font-size:6.5px' invitacion_4.html
           grep -q 'bottom:1.8%' invitacion_4.html
       - name: Limpiar workflow y trigger
