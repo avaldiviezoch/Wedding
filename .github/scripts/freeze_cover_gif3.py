@@ -137,3 +137,5 @@ if 'Portada GIF: reproducir una sola vez y congelar el último frame.' in html:
 html = html.replace('</body>', js + '\n</body>', 1)
 html_path.write_text(html, encoding='utf-8')
 print(f'Duración GIF: {total_ms} ms; frames: {im.n_frames}')
+
+# trigger
