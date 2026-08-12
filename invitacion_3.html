@@ -3444,6 +3444,41 @@
   to{opacity:1;transform:translateY(-50%);}
 }
 
+
+/* VOLVER_ANIMACION_PRESENTES_CONFIRMACION_3 */
+.gift-envelope-back,
+.rsvp-back-to-gif{
+  appearance:none;
+  border:0;
+  background:transparent;
+  color:#1f5f9c;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:13px;
+  line-height:1.35;
+  cursor:pointer;
+  padding:4px 2px;
+  text-decoration:underline;
+  text-underline-offset:4px;
+  -webkit-tap-highlight-color:transparent;
+}
+.rsvp-back-to-gif{
+  display:none;
+  position:relative;
+  z-index:8;
+  width:max-content;
+  max-width:calc(100% - 28px);
+  margin:13px auto 0;
+}
+.rsvp-experience.show-form .rsvp-back-to-gif{display:block;}
+.rsvp-experience.show-form .rsvp-success-msg{
+  position:relative;
+  left:auto;
+  bottom:auto;
+  transform:none;
+  width:min(calc(100% - 28px),430px);
+  margin:12px auto 0;
+}
+
 </style>
 </head>
 <body class="locked">
@@ -3791,7 +3826,7 @@
             y Yape estará feliz de recibirlos.
           </p>
           <p class="gift-envelope-yape"><strong>Yape:</strong> 993219142</p>
-          <button class="gift-envelope-back" id="giftEnvelopeBack" type="button">Volver al sobre</button>
+          <button class="gift-envelope-back" id="giftEnvelopeBack" type="button">← Volver a la animación</button>
         </div>
       </div>
     </section>
@@ -3853,6 +3888,7 @@
           </div>
 
           <p id="rsvp-success" class="rsvp-success-msg">Gracias, confirmación enviada ✨</p>
+          <button id="rsvpBackToGif" class="rsvp-back-to-gif" type="button">← Volver a la animación</button>
         </div>
       </div>
     </section>
@@ -4502,6 +4538,40 @@
 
     function toggleRSVP(){
       openRsvpFromImage();
+    }
+
+    function resetRsvpToGif(){
+      clearTimeout(rsvpRevealTimer);
+      rsvpRevealTimer = null;
+      rsvpStarted = false;
+      attendanceValue = "";
+      guestAmount = 1;
+
+      const experience = document.getElementById('rsvpExperience');
+      const gif = document.getElementById('rsvpPlayingGif');
+      const panel = document.getElementById('rsvp-panel');
+      const success = document.getElementById('rsvp-success');
+      const guestWrap = document.getElementById('guest-count-wrap');
+      const guestCounter = document.getElementById('guestCount');
+      const guestName = document.getElementById('guestName');
+
+      if(experience) experience.classList.remove('is-playing','show-form');
+      if(panel){
+        panel.classList.remove('show');
+        panel.setAttribute('aria-hidden','true');
+      }
+      if(gif) gif.removeAttribute('src');
+      if(success) success.style.display = 'none';
+      if(guestWrap) guestWrap.classList.remove('show');
+      if(guestCounter) guestCounter.textContent = '1';
+      if(guestName) guestName.value = '';
+      document.querySelectorAll('.rsvp-option-btn').forEach(btn => btn.classList.remove('active'));
+      prepareRsvpPoster();
+    }
+
+    const rsvpBackToGif = document.getElementById('rsvpBackToGif');
+    if(rsvpBackToGif){
+      rsvpBackToGif.addEventListener('click', resetRsvpToGif);
     }
 
     const rsvpStartLayer = document.getElementById('rsvpStartLayer');
