@@ -45,7 +45,7 @@
       display: grid;
       place-items: center;
       overflow: hidden;
-      background: #000;
+      background: var(--crema);
       cursor: pointer;
       transition:
         opacity 1.2s ease,
@@ -2293,7 +2293,7 @@
               <path d="m3.5 5.5 5-2 7 2.5 5-2v14.5l-5 2-7-2.5-5 2V5.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
               <path d="M8.5 3.5V18M15.5 6v14.5" stroke="currentColor" stroke-width="1.5"/>
             </svg>
-            <span>Ver mapa</span>
+            <span>Ver ubicación</span>
           </a>
         </div>
       </div>
@@ -2449,14 +2449,18 @@
             prefieran no llevar paquetes, también dejamos una opción por Yape.
           </p>
           <button class="boton-adicional" id="giftToggle" type="button" aria-expanded="false" aria-controls="giftDetails">
-            Ver datos de regalo
+            Otro tipo de regalo
           </button>
 
           <div class="panel-interactivo datos-regalo" id="giftDetails" hidden>
-            <p>Podremos recibir sus regalos durante la recepción.</p>
-            <p class="numero-yape"><strong>Yape:</strong> 993219142</p>
-            <button class="boton-cerrar-panel" id="giftClose" type="button">Cerrar información</button>
-          </div>
+  <p>Si deseas acompañarnos con un detalle adicional, puedes hacerlo a través de cualquiera de estas opciones.</p>
+  <p><strong>Banco:</strong> BCP</p>
+  <p><strong>Número de cuenta:</strong> 19335282760050</p>
+  <p><strong>CCI:</strong> 00219313528276005017</p>
+  <p class="numero-yape"><strong>Yape:</strong> 993 219 142</p>
+  <p>Los regalos físicos también serán recibidos con mucho cariño durante la recepción.</p>
+  <button class="boton-cerrar-panel" id="giftClose" type="button">Cerrar información</button>
+</div>
         </article>
       </div>
     </section>
