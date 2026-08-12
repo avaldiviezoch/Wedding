@@ -11,23 +11,92 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Ajustar programa sobre la mesa
+      - name: Aplicar ajuste
+        shell: bash
         run: |
-          echo 'ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCmltcG9ydCBiYXNlNjQKcD1QYXRoKCJpbnZpdGFjaW9uXzMuaHRtbCIpCnM9cC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IikKbWFya2VyPSJBSlVTVEUgUFJPR1JBTUEgSU5WSVRBQ0lPTiAzIOKAlCBNRVNBIgppZiBtYXJrZXIgaW4gczoKICAgIHJhaXNlIFN5c3RlbUV4aXQoIkVsIGFqdXN0ZSB5YSBleGlzdGU7IG5vIHNlIGR1cGxpY2EuIikKaWYgIjwvc3R5bGU+IiBub3QgaW4gczoKICAgIHJhaXNlIFN5c3RlbUV4aXQoIk5vIHNlIGVuY29udHJvIDwvc3R5bGU+IikKY3NzPWJhc2U2NC5iNjRkZWNvZGUoIkNpOHFJRDA5UFQwOUlFRktWVk5VUlNCUVVrOUhVa0ZOUVVrZ1NVNVdTVlJCUDBsT0lETWd3cVFVZ1UxU1JGTkFJRDA5UFQwOUlDb3ZDaTV3Y205bmNtRnRMV1JoWW14bExYTmxZM1JwYjI1N0NpQWdjR0ZrWkdsdVp6cGpiR0Z0Y0NneU1uQjRMRFYyZHl3ek9IQjRLU0F3SUdOc1lXMXdLRE0wY0hnc04zWjNMRFUwY0hncElDRnBiWEJ2Y25SaGJuUTdDbjBLQ2k1d2NtOW5jbUZ0TFhSaFlteGxMWFJwZEd4bGV3b2dJRzFoY21kcGJqb3dJREFnWTJ4aGJYQW9NVEJ3ZUN3eUxqUjJkeXd4Tm5CNEtTQWhhVzF3YjNKMFlXNTBPd3A5Q2dvdktpQkZiQ0JqYjNKaGVzw7NuSUdSbFkyOXlZWFJwZG04Z1pHVnNJSFIxeFhWc2J5QnpaU0JsYkdsdGFXNWhJSEJoY21FZ1pHRnlJTTJoeUlHRnBjbVVnWVNCc1lTQnRaWE5oTGlBcUx3b3VjSEp2WjNKaGJTMXRZWEpzWlMxdmNtNWhiV1Z1ZEhzS0lDQmthWE53YkdGNVpEcHVibTVsSUNGcGJYQnZjblJoYm5RN0NuMEtDaTV3Y205bmNtRnRMV1JoWW14bExYTjBZV2RsZXdvZ0lIZHBaSFJvT2pFd01DVWdJV2x0Y0c5eWRHRnVkRHNLSUNCdFlYZ3RkMmxrZEdnNmJtOXVaU0FoYVcxd2IzSjBZVzUwT3dvZ0lHMWhjbWRwYmpvd0lHRjFkRzhnSVdsdGNHOXlkR0Z1ZERzS2ZRcEtDaTV3Y205bmNtRnRMV1JoWW14bExXTnZiblJsYm5SN0NpQWdjRzl6YVhScGIyNDZZV0p6YjJ4MWRHVWdJV2x0Y0c5eWRHRnVkRHNLSUNCcGJuTmxkRG93SUNGcGJYQnZjblJoYm5RN0NpQWdiR1ZtZERvd0lDRnBiWEJ2Y25SaGJuUTdDaUEwYjNBNk1DQWhhVzF3YjNKMFlXNTBPd29nSUdKdmRIUnZiVHBoZFhSdklDRnBiWEJ2Y25SaGJuUTdDaUIzYVdSMGFEMHhNREFsSUNGcGJYQnZjblJoYm5RN0NpQWdhR1ZwWjJoME9qRXdNQ1VnSVdsdGNHOXlkR0Z1ZERzS0lDQjBjbUZ1YzJadmNtMDZibTl1WlNBaGFXMXdiM0owWVc1ME93b2dJR1JwYzNCc1lYazZZbXh2WTJzZ0lXbHRjRzl5ZEdGdWREc0tJQ0J3YjJsdWRHVnlMV1YyWlc1MGN6cHVibTVsT3dwOUNnb3ZLaUJNdXRtU2JtVmhJR05sYm5SeVlXdzZJTcO6Ym1sallXMWxiblJsSUdSbGJuUnlieUJsYkNCNmIyNWhJTU8xZEdsc0lHUmxiQ0J0WVc1MFpXd3VJQ292Q2k1d2NtOW5jbUZ0TFhSaFlteGxMV052Ym5SbGJuUTZPbUpsWm05eVpYdEsKICBsZWZ0OjUwJSAhaW1wb3J0YW50OwogIHRvcDoyMi44JSAhaW1wb3J0YW50OwogIGJvdHRvbTozMC4wJSAhaW1wb3J0YW50OwogIHdpZHRoOjFweCAhaW1wb3J0YW50OwogIHRyYW5zZm9ybTp0cmFuc2xhdGVYKC01MCUpICFpbXBvcnRhbnQ7CiAgYmFja2dyb3VuZDpsaW5lYXItZ3JhZGllbnQoCiAgICB0byBib3R0b20sCiAgICB0cmFuc3BhcmVudCwKICAgIHJnYmEoMTgsNjMsMTA2LC4yNSkgNyUsCiAgICByZ2JhKDE4LDYzLDEwNiwuMjUpIDkzJSwKICAgIHRyYW5zcGFyZW50CiAgKSAhaW1wb3J0YW50Owp9CgovKiBQb3NpY2lvbmVzIGNhbGlicmFkYXMgc29icmUgbGEgbWVzYSBkZSBwcm9ncmFtYWNpb25fMy5wbmcuICovCi5wcm9ncmFtLXRhYmxlLXJvd3sKICBwb3NpdGlvbjphYnNvbHV0ZSAhaW1wb3J0YW50OwogIGxlZnQ6MjIlICFpbXBvcnRhbnQ7CiAgd2lkdGg6NTYlICFpbXBvcnRhbnQ7CiAgbWluLWhlaWdodDowICFpbXBvcnRhbnQ7CiAgb3BhY2l0eTowOwogIHRyYW5zZm9ybTp0cmFuc2xhdGVZKGNhbGMoLTUwJSArIDE2cHgpKTsKfQoKLnByb2dyYW0tdGFibGUtcm93Om50aC1jaGlsZCgxKXsgdG9wOjI3LjMlICFpbXBvcnRhbnQ7IH0KLnByb2dyYW0tdGFibGUtcm93Om50aC1jaGlsZCgyKXsgdG9wOjQyLjclICFpbXBvcnRhbnQ7IH0KLnByb2dyYW0tdGFibGUtcm93Om50aC1jaGlsZCgzKXsgdG9wOjU4LjIlICFpbXBvcnRhbnQ7IH0KLnByb2dyYW0tdGFibGUtcm93Om50aC1jaGlsZCg0KXsgdG9wOjczLjglICFpbXBvcnRhbnQ7IH0KCi5wcm9ncmFtLXRhYmxlLW1hcmtlcnsKICB3aWR0aDoyMnB4ICFpbXBvcnRhbnQ7CiAgaGVpZ2h0OjIycHggIWltcG9ydGFudDsKICBtYXJnaW46MCBhdXRvIDNweCAhaW1wb3J0YW50OwogIGZvbnQtc2l6ZToxMnB4ICFpbXBvcnRhbnQ7CiAgYmFja2dyb3VuZDpyZ2JhKDI1MSwyMzgsMjE2LC45NCkgIWltcG9ydGFudDsKICBib3gtc2hhZG93OjAgMCAwIDNweCByZ2JhKDI1MSwyMzgsMjE2LC41NCkgIWltcG9ydGFudDsKfQoKLnByb2dyYW0tdGFibGUtdGltZXsKICBtYXJnaW46MnB4IDAgM3B4ICFpbXBvcnRhbnQ7CiAgZm9udC1zaXplOmNsYW1wKDE2cHgsMy44dncsMjRweCkgIWltcG9ydGFudDsKfQoKLnByb2dyYW0tdGFibGUtZXZlbnQgc3Ryb25newogIG1hcmdpbi1ib3R0b206MXB4ICFpbXBvcnRhbnQ7CiAgZm9udC1zaXplOmNsYW1wKDE2cHgsMy45dncsMjNweCkgIWltcG9ydGFudDsKICBsaW5lLWhlaWdodDoxLjA1ICFpbXBvcnRhbnQ7Cn0KCi5wcm9ncmFtLXRhYmxlLWV2ZW50IHNwYW57CiAgZm9udC1zaXplOmNsYW1wKDEwcHgsMi4yNXZ3LDEzcHgpICFpbXBvcnRhbnQ7CiAgbGluZS1oZWlnaHQ6MS4xOCAhaW1wb3J0YW50Owp9CgovKiBMYSBhbmltYWNpw7NuIGNvbnNlcnZhIGxhIHBvc2ljacOzbiB2ZXJ0aWNhbCBleGFjdGEgZGVsIHRleHRvLiAqLwpAa2V5ZnJhbWVzIHByb2dyYW1Sb3dJbnsKICB0b3sKICAgIG9wYWNpdHk6MTsKICAgIHRyYW5zZm9ybTp0cmFuc2xhdGVZKC01MCUpOwogIH0KfQoKQG1lZGlhKG1heC13aWR0aDo1MjBweCl7CiAgLnByb2dyYW0tdGFibGUtc2VjdGlvbnsKICAgIHBhZGRpbmctdG9wOjE4cHggIWltcG9ydGFudDsKICAgIHBhZGRpbmctYm90dG9tOjM4cHggIWltcG9ydGFudDsKICB9CgogIC5wcm9ncmFtLXRhYmxlLXRpdGxlewogICAgbWFyZ2luLWJvdHRvbToxMHB4ICFpbXBvcnRhbnQ7CiAgICBmb250LXNpemU6Y2xhbXAoMjlweCw3LjJ2dyw0MHB4KSAhaW1wb3J0YW50OwogIH0KCiAgLnByb2dyYW0tdGFibGUtcm93ewogICAgbGVmdDoyMS41JSAhaW1wb3J0YW50OwogICAgd2lkdGg6NTclICFpbXBvcnRhbnQ7CiAgfQoKICAucHJvZ3JhbS10YWJsZS1yb3c6bnRoLWNoaWxkKDEpeyB0b3A6MjcuNCUgIWltcG9ydGFudDsgfQogIC5wcm9ncmFtLXRhYmxlLXJvdzpudGgtY2hpbGQoMil7IHRvcDo0Mi44JSAhaW1wb3J0YW50OyB9CiAgLnByb2dyYW0tdGFibGUtcm93Om50aC1jaGlsZCgzKXsgdG9wOjU4LjMlICFpbXBvcnRhbnQ7IH0KICAucHJvZ3JhbS10YWJsZS1yb3c6bnRoLWNoaWxkKDQpeyB0b3A6NzMuOSUgIWltcG9ydGFudDsgfQoKICAucHJvZ3JhbS10YWJsZS1tYXJrZXJ7CiAgICB3aWR0aDoyMHB4ICFpbXBvcnRhbnQ7CiAgICBoZWlnaHQ6MjBweCAhaW1wb3J0YW50OwogICAgZm9udC1zaXplOjExcHggIWltcG9ydGFudDsKICAgIG1hcmdpbi1ib3R0b206MnB4ICFpbXBvcnRhbnQ7CiAgfQoKICAucHJvZ3JhbS10YWJsZS10aW1lewogICAgZm9udC1zaXplOmNsYW1wKDE1cHgsNHZ3LDIwcHgpICFpbXBvcnRhbnQ7CiAgICBtYXJnaW4tYm90dG9tOjJweCAhaW1wb3J0YW50OwogIH0KCiAgLnByb2dyYW0tdGFibGUtZXZlbnQgc3Ryb25newogICAgZm9udC1zaXplOmNsYW1wKDE1cHgsNHZ3LDIwcHgpICFpbXBvcnRhbnQ7CiAgfQoKICAucHJvZ3JhbS10YWJsZS1ldmVudCBzcGFuewogICAgZm9udC1zaXplOmNsYW1wKDlweCwyLjQ1dncsMTJweCkgIWltcG9ydGFudDsKICB9Cn0K').decode('utf-8')
-s=s.replace('</style>', css+'\n</style>', 1)
-p.write_text(s, encoding='utf-8')
-' | base64 -d > /tmp/patch.py
-          python /tmp/patch.py
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('invitacion_3.html')
+          s = p.read_text(encoding='utf-8')
+          marker = 'AJUSTE_PROGRAMA_INVITACION_3_MESA'
+          if marker in s:
+              raise SystemExit('Ajuste ya aplicado')
+          css = """
+          /* AJUSTE_PROGRAMA_INVITACION_3_MESA */
+          .program-table-section{
+            padding:18px 0 38px !important;
+          }
+          .program-table-title{
+            margin:0 0 10px !important;
+          }
+          .program-table-ornament{
+            display:none !important;
+          }
+          .program-table-content{
+            position:absolute !important;
+            inset:0 !important;
+            width:100% !important;
+            height:100% !important;
+            transform:none !important;
+            display:block !important;
+          }
+          .program-table-content::before{
+            left:50% !important;
+            top:22.5% !important;
+            bottom:30.5% !important;
+            transform:translateX(-50%) !important;
+          }
+          .program-table-row{
+            position:absolute !important;
+            left:21.5% !important;
+            width:57% !important;
+            min-height:0 !important;
+            opacity:0;
+            transform:translateY(calc(-50% + 16px));
+          }
+          .program-table-row:nth-child(1){top:27.4% !important;}
+          .program-table-row:nth-child(2){top:42.8% !important;}
+          .program-table-row:nth-child(3){top:58.3% !important;}
+          .program-table-row:nth-child(4){top:73.9% !important;}
+          .program-table-marker{
+            width:20px !important;
+            height:20px !important;
+            margin:0 auto 2px !important;
+            font-size:11px !important;
+            box-shadow:0 0 0 3px rgba(251,238,216,.55) !important;
+          }
+          .program-table-time{
+            margin:1px 0 2px !important;
+            font-size:clamp(15px,4vw,20px) !important;
+          }
+          .program-table-event strong{
+            margin-bottom:1px !important;
+            font-size:clamp(15px,4vw,20px) !important;
+            line-height:1.04 !important;
+          }
+          .program-table-event span{
+            font-size:clamp(9px,2.45vw,12px) !important;
+            line-height:1.18 !important;
+          }
+          @keyframes programRowIn{
+            to{opacity:1;transform:translateY(-50%);}
+          }
+          """
+          if '</style>' not in s:
+              raise SystemExit('No se encontro style final')
+          s = s.replace('</style>', css + '\n</style>', 1)
+          p.write_text(s, encoding='utf-8')
+          PY
       - name: Validar
         run: |
-          grep -q 'AJUSTE PROGRAMA INVITACION 3 — MESA' invitacion_3.html
-          grep -q 'top:27.3% !important' invitacion_3.html
-          grep -q 'display:none !important' invitacion_3.html
-      - name: Commit y limpiar workflow temporal
+          grep -q 'AJUSTE_PROGRAMA_INVITACION_3_MESA' invitacion_3.html
+          grep -q 'top:27.4% !important' invitacion_3.html
+          grep -q 'program-table-ornament' invitacion_3.html
+      - name: Commit y limpiar
         run: |
           rm .github/workflows/ajustar-programa-invitacion-3.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add invitacion_3.html .github/workflows/ajustar-programa-invitacion-3.yml
-          git commit -m "Ajustar programación dentro de la mesa en invitación 3"
+          git commit -m "Ajustar programa dentro de la mesa en invitación 3"
           git push
