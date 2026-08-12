@@ -3383,7 +3383,68 @@
     }
 
 
-  </style>
+  
+/* AJUSTE_PROGRAMA_INVITACION_3_MESA */
+.program-table-section{
+  padding:18px 0 38px !important;
+}
+.program-table-title{
+  margin:0 0 10px !important;
+}
+.program-table-ornament{
+  display:none !important;
+}
+.program-table-content{
+  position:absolute !important;
+  inset:0 !important;
+  width:100% !important;
+  height:100% !important;
+  transform:none !important;
+  display:block !important;
+}
+.program-table-content::before{
+  left:50% !important;
+  top:22.5% !important;
+  bottom:30.5% !important;
+  transform:translateX(-50%) !important;
+}
+.program-table-row{
+  position:absolute !important;
+  left:21.5% !important;
+  width:57% !important;
+  min-height:0 !important;
+  opacity:0;
+  transform:translateY(calc(-50% + 16px));
+}
+.program-table-row:nth-child(1){top:27.4% !important;}
+.program-table-row:nth-child(2){top:42.8% !important;}
+.program-table-row:nth-child(3){top:58.3% !important;}
+.program-table-row:nth-child(4){top:73.9% !important;}
+.program-table-marker{
+  width:20px !important;
+  height:20px !important;
+  margin:0 auto 2px !important;
+  font-size:11px !important;
+  box-shadow:0 0 0 3px rgba(251,238,216,.55) !important;
+}
+.program-table-time{
+  margin:1px 0 2px !important;
+  font-size:clamp(15px,4vw,20px) !important;
+}
+.program-table-event strong{
+  margin-bottom:1px !important;
+  font-size:clamp(15px,4vw,20px) !important;
+  line-height:1.04 !important;
+}
+.program-table-event span{
+  font-size:clamp(9px,2.45vw,12px) !important;
+  line-height:1.18 !important;
+}
+@keyframes programRowIn{
+  to{opacity:1;transform:translateY(-50%);}
+}
+
+</style>
 </head>
 <body class="locked">
 
