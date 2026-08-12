@@ -2063,6 +2063,44 @@
       opacity: .82;
     }
 
+  
+
+    /* AJUSTE_PORTADA_FECHA_4 */
+    .textos-fecha{
+      bottom: 4.8%;
+      width: min(84%, 560px);
+    }
+
+    .fecha-etiqueta{
+      font-family: "Montserrat", sans-serif;
+      font-size: clamp(.66rem, 2.35vw, .84rem);
+      font-weight: 500;
+      letter-spacing: .18em;
+      line-height: 1.2;
+      color: #46533c;
+      text-shadow: 0 1px 4px rgba(244,238,223,.82);
+    }
+
+    .fecha{
+      margin-top: 9px;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(1.78rem, 7.35vw, 3.05rem);
+      font-weight: 600;
+      line-height: 1.02;
+      letter-spacing: -.018em;
+      white-space: nowrap;
+      color: #46533c;
+      text-shadow:
+        0 1px 0 rgba(255,255,255,.42),
+        0 2px 7px rgba(244,238,223,.72);
+    }
+
+    @media(max-width:420px){
+      .textos-fecha{ bottom: 4.5%; width: 86%; }
+      .fecha{ font-size: clamp(1.72rem, 7.2vw, 2.2rem); }
+      .fecha-etiqueta{ letter-spacing: .16em; }
+    }
+
   </style>
 </head>
 
