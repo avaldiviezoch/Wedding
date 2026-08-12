@@ -6243,6 +6243,25 @@ textarea.dj-music-field{
   .dj-music-field{padding:12px 13px;font-size:13px;}
 }
 
+
+/* ===== FAQ INVITACION 1 — ESTILO VERDE OLIVA ===== */
+.faq-one-section{min-height:auto !important;padding:72px 20px 88px !important;position:relative;overflow:hidden;margin-top:-10px !important;background:#E9E1CC !important;}
+.faq-one-card{width:min(100%,520px);margin:0 auto;position:relative;z-index:3;text-align:center;}
+.faq-one-kicker{margin:0 0 7px;font-family:"Cormorant Garamond",serif;font-size:12px;letter-spacing:4px;text-transform:uppercase;color:#8B8B59;}
+.faq-one-title{margin:0 0 10px !important;font-family:"Great Vibes",cursive !important;font-size:clamp(52px,11vw,76px) !important;font-weight:400 !important;line-height:1 !important;color:#303827 !important;}
+.faq-one-copy{max-width:430px;margin:0 auto 24px !important;font-family:"Cormorant Garamond",serif;font-size:17px;line-height:1.6;color:#4F5741 !important;}
+.faq-one-list{width:100%;margin:0 auto;border-top:1px solid rgba(102,112,63,.22);text-align:left;}
+.faq-one-item{border-bottom:1px solid rgba(102,112,63,.22);background:transparent;}
+.faq-one-item summary{position:relative;list-style:none;cursor:pointer;padding:18px 46px 18px 4px;font-family:"Cormorant Garamond",serif;font-size:17px;line-height:1.35;font-weight:600;color:#404934;-webkit-tap-highlight-color:transparent;}
+.faq-one-item summary::-webkit-details-marker{display:none;}
+.faq-one-item summary::after{content:"+";position:absolute;right:5px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:grid;place-items:center;border:1px solid rgba(102,112,63,.30);border-radius:50%;font-family:"Cormorant Garamond",serif;font-size:21px;font-weight:400;line-height:1;color:#66703F;background:rgba(251,248,239,.24);transition:transform .25s ease,background .25s ease;}
+.faq-one-item[open] summary::after{content:"−";transform:translateY(-50%) rotate(180deg);background:rgba(139,139,89,.12);}
+.faq-one-answer{padding:0 44px 18px 4px;font-family:"Montserrat",sans-serif;font-size:13px;line-height:1.7;color:#596149;animation:faqOneOpen .28s ease both;}
+@keyframes faqOneOpen{from{opacity:0;transform:translateY(-5px);}to{opacity:1;transform:translateY(0);}}
+.faq-one-contact{margin-top:26px;}
+.faq-one-contact a{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:12px 20px;border-radius:999px;text-decoration:none;font-family:"Montserrat",sans-serif;font-size:10px;font-weight:500;letter-spacing:1.6px;text-transform:uppercase;background:#8B8B59;color:#FBF8EF;box-shadow:0 8px 18px rgba(48,56,39,.10);}
+@media(max-width:520px){.faq-one-section{padding:58px 16px 72px !important;margin-top:-8px !important;}.faq-one-copy{font-size:16px;margin-bottom:20px !important;}.faq-one-item summary{font-size:16px;padding-top:16px;padding-bottom:16px;}.faq-one-answer{font-size:12.5px;padding-right:36px;}}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 </head>
@@ -6796,6 +6815,33 @@ textarea.dj-music-field{
     </div>
 
     <p id="music-success" class="dj-music-success">¡Pedido musical enviado! 🎵</p>
+  </div>
+</section>
+
+
+<!-- ===== FAQ INVITACION 1 — ESTILO VERDE OLIVA ===== -->
+<section class="reveal-section faq-one-section" id="faqSection" aria-label="Preguntas frecuentes">
+  <div class="faq-one-card">
+    <p class="faq-one-kicker">¿Tienes dudas?</p>
+    <h2 class="faq-one-title">Preguntas frecuentes</h2>
+    <p class="faq-one-copy">Aquí encontrarás algunos detalles importantes para disfrutar el día con nosotros.</p>
+    <div class="faq-one-list">
+      <details class="faq-one-item">
+        <summary>¿La ceremonia y la recepción serán en el mismo lugar?</summary>
+        <div class="faq-one-answer">Sí. Ambas se realizarán en Casa Acapulco, por lo que no será necesario trasladarse a otro lugar.</div>
+      </details>
+      <details class="faq-one-item">
+        <summary>¿Qué colores debemos evitar?</summary>
+        <div class="faq-one-answer">Reservamos el color blanco para la novia y sus tonos derivados para los novios.</div>
+      </details>
+      <details class="faq-one-item">
+        <summary>¿Puedo hacer pedidos musicales durante la fiesta?</summary>
+        <div class="faq-one-answer">El DJ no recibirá pedidos durante la celebración. Puedes dejar anticipadamente tu canción en la sección de Música.</div>
+      </details>
+    </div>
+    <div class="faq-one-contact">
+      <a href="https://wa.me/51993219142?text=Hola%20Antonio%20y%20Lucero,%20tengo%20una%20consulta%20sobre%20su%20boda." target="_blank" rel="noopener noreferrer">Tengo otra consulta</a>
+    </div>
   </div>
 </section>
 
