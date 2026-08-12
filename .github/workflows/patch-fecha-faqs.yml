@@ -1,0 +1,38 @@
+name: Patch fecha y FAQs
+
+on:
+  push:
+    paths:
+      - '.github/triggers/patch-fecha-faqs.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Aplicar cambios
+        run: python .github/scripts/patch_fecha_faqs.py
+      - name: Validar
+        run: |
+          grep -q 'AJUSTE_PORTADA_FECHA_4' invitacion_4.html
+          grep -q '¿Podemos llevar un regalo?' invitacion_1.html
+          grep -q '¿Podemos llevar un regalo?' invitacion_2.html
+          grep -q '¿Podemos llevar un regalo?' invitacion_3.html
+          grep -q '¿Podemos solicitar canciones durante la fiesta?' invitacion_1.html
+          grep -q '¿Podemos solicitar canciones durante la fiesta?' invitacion_2.html
+          grep -q '¿Podemos solicitar canciones durante la fiesta?' invitacion_3.html
+      - name: Limpiar temporales
+        run: |
+          rm -f .github/scripts/patch_fecha_faqs.py
+          rm -f .github/workflows/patch-fecha-faqs.yml
+          rm -f .github/triggers/patch-fecha-faqs.txt
+      - name: Commit
+        run: |
+          git config user.name 'avaldiviezoch'
+          git config user.email '155109177+avaldiviezoch@users.noreply.github.com'
+          git add invitacion_1.html invitacion_2.html invitacion_3.html invitacion_4.html .github/scripts/patch_fecha_faqs.py .github/workflows/patch-fecha-faqs.yml .github/triggers/patch-fecha-faqs.txt || true
+          git commit -m 'Ajustar fecha invitacion 4 y unificar preguntas frecuentes'
+          git push
