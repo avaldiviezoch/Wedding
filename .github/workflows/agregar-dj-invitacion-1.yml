@@ -1,0 +1,400 @@
+name: Agregar DJ invitacion 1
+on:
+  push:
+    paths:
+      - '.github/workflows/agregar-dj-invitacion-1.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Agregar seccion DJ
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('invitacion_1.html')
+          s = p.read_text(encoding='utf-8')
+
+          marker = 'DJ PEDIDOS MUSICALES — INVITACION 1'
+          if marker in s:
+              raise SystemExit('La sección DJ ya existe; no se duplica.')
+
+          css = r'''
+
+/* ===== DJ PEDIDOS MUSICALES — INVITACION 1 ===== */
+.dj-music-section{
+  min-height:auto !important;
+  padding:72px 20px 86px !important;
+  position:relative;
+  overflow:hidden;
+  background:#E9E1CC !important;
+  margin-top:-10px !important;
+}
+
+.dj-music-card{
+  width:min(100%,520px);
+  margin:0 auto;
+  text-align:center;
+  position:relative;
+  z-index:3;
+}
+
+.dj-music-kicker{
+  font-family:"Cormorant Garamond",serif;
+  font-size:12px;
+  letter-spacing:4px;
+  color:#8B8B59;
+  text-transform:uppercase;
+  margin-bottom:7px;
+}
+
+.dj-music-title{
+  font-family:"Great Vibes",cursive !important;
+  font-size:clamp(52px,11vw,76px) !important;
+  line-height:1 !important;
+  font-weight:400 !important;
+  color:#303827 !important;
+  margin:0 0 10px !important;
+}
+
+.dj-music-copy{
+  max-width:430px;
+  margin:0 auto 10px !important;
+  font-family:"Cormorant Garamond",serif;
+  font-size:17px;
+  line-height:1.55;
+  color:#4F5741 !important;
+}
+
+.dj-music-warning{
+  max-width:440px;
+  margin:12px auto 12px !important;
+  padding:11px 14px;
+  border:1px solid rgba(102,112,63,.18);
+  border-radius:18px;
+  font-family:"Montserrat",sans-serif;
+  font-size:12px;
+  line-height:1.55;
+  color:#66703F !important;
+  background:rgba(251,248,239,.28);
+}
+
+.dj-music-image-stage{
+  width:min(82%,330px);
+  margin:12px auto 2px;
+  cursor:pointer;
+  position:relative;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .3s ease;
+}
+
+.dj-music-image-stage:hover{
+  transform:translateY(-2px) scale(1.015);
+}
+
+.dj-music-image-stage:active{
+  transform:scale(.98);
+}
+
+.dj-music-image{
+  width:100%;
+  height:auto;
+  display:block;
+  object-fit:contain;
+  background:transparent !important;
+  filter:drop-shadow(0 14px 18px rgba(48,56,39,.10));
+}
+
+.dj-music-hint{
+  margin:0 auto 14px !important;
+  font-family:"Montserrat",sans-serif;
+  font-size:10px;
+  letter-spacing:2px;
+  color:#7C8069 !important;
+  text-transform:uppercase;
+}
+
+.dj-music-panel{
+  width:min(100%,460px);
+  max-height:0;
+  overflow:hidden;
+  opacity:0;
+  transform:translateY(-8px);
+  margin:0 auto;
+  transition:max-height .55s ease,opacity .4s ease,transform .45s ease,margin .45s ease;
+}
+
+.dj-music-panel.open{
+  max-height:620px;
+  opacity:1;
+  transform:translateY(0);
+  margin-top:14px;
+}
+
+.dj-music-form{
+  padding:20px 18px;
+  border-radius:24px;
+  background:rgba(251,248,239,.72);
+  border:1px solid rgba(102,112,63,.18);
+  box-shadow:0 16px 34px rgba(48,56,39,.08);
+}
+
+.dj-music-field{
+  width:100%;
+  display:block;
+  border:1px solid rgba(102,112,63,.22);
+  background:rgba(255,253,248,.84);
+  color:#303827;
+  border-radius:15px;
+  padding:13px 14px;
+  margin:0 0 10px;
+  font-family:"Montserrat",sans-serif;
+  font-size:13px;
+  outline:none;
+}
+
+.dj-music-field:focus{
+  border-color:#8B8B59;
+  box-shadow:0 0 0 3px rgba(139,139,89,.10);
+}
+
+textarea.dj-music-field{
+  min-height:92px;
+  resize:vertical;
+}
+
+.dj-music-send{
+  width:100%;
+  border:0;
+  border-radius:999px;
+  padding:13px 18px;
+  background:#66703F;
+  color:#FBF8EF;
+  font-family:"Montserrat",sans-serif;
+  font-size:11px;
+  letter-spacing:1.4px;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:transform .2s ease,opacity .2s ease;
+}
+
+.dj-music-send:active{ transform:scale(.985); }
+.dj-music-send:disabled{ opacity:.58; cursor:default; }
+
+.dj-music-success{
+  display:none;
+  margin:16px auto 0 !important;
+  font-family:"Cormorant Garamond",serif;
+  font-size:18px;
+  color:#66703F !important;
+}
+
+.dj-note-particle{
+  position:absolute;
+  left:50%;
+  top:50%;
+  z-index:8;
+  pointer-events:none;
+  font-family:Georgia,serif;
+  font-size:24px;
+  color:#8B8B59;
+  opacity:0;
+  animation:djNoteFly 1.55s ease-out forwards;
+}
+
+@keyframes djNoteFly{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.65) rotate(0deg);}
+  18%{opacity:.9;}
+  100%{opacity:0;transform:translate(calc(-50% + var(--dx)),var(--dy)) scale(1.12) rotate(var(--rot));}
+}
+
+@media(max-width:520px){
+  .dj-music-section{
+    padding:58px 16px 72px !important;
+    margin-top:-8px !important;
+  }
+  .dj-music-copy{font-size:16px;}
+  .dj-music-warning{font-size:11px;padding:10px 12px;}
+  .dj-music-image-stage{width:min(88%,300px);}
+  .dj-music-form{padding:17px 14px;border-radius:20px;}
+  .dj-music-field{padding:12px 13px;font-size:13px;}
+}
+'''
+
+          section = r'''
+
+<!-- ===== DJ PEDIDOS MUSICALES — INVITACION 1 ===== -->
+<section class="reveal-section dj-music-section" id="musicSection" aria-label="Pedidos musicales para el DJ">
+  <div class="dj-music-card">
+    <div class="dj-music-kicker">Nuestra banda sonora</div>
+    <h2 class="dj-music-title">Pedidos musicales</h2>
+    <p class="dj-music-copy">¿Hay una canción que te gustaría escuchar durante la recepción o la fiesta? Déjanos tu pedido para considerarlo con anticipación.</p>
+    <p class="dj-music-warning">El DJ no aceptará pedidos musicales durante la celebración, así que este será el momento para compartirnos tu canción.</p>
+
+    <div class="dj-music-image-stage" id="musicImageStage" role="button" tabindex="0" aria-controls="music-request-panel" aria-expanded="false" onclick="openMusicRequest()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMusicRequest();}">
+      <img class="dj-music-image" src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/musica_dj_1.gif" alt="DJ animado para dejar un pedido musical" loading="lazy">
+    </div>
+
+    <p class="dj-music-hint">Toca el DJ para dejar tu canción</p>
+
+    <div id="music-request-panel" class="dj-music-panel">
+      <div class="dj-music-form">
+        <input id="musicGuestName" class="dj-music-field" type="text" maxlength="100" autocomplete="name" placeholder="Tu nombre completo">
+        <input id="musicSongName" class="dj-music-field" type="text" maxlength="150" placeholder="Nombre de la canción">
+        <input id="musicArtistName" class="dj-music-field" type="text" maxlength="150" placeholder="Artista">
+        <textarea id="musicComment" class="dj-music-field" maxlength="300" placeholder="Comentario o dedicatoria (opcional)"></textarea>
+        <button id="submitMusicBtn" class="dj-music-send" type="button" onclick="sendMusicRequest()">Enviar pedido musical →</button>
+      </div>
+    </div>
+
+    <p id="music-success" class="dj-music-success">¡Pedido musical enviado! 🎵</p>
+  </div>
+</section>
+'''
+
+          js = r'''
+
+<script>
+// ===== PEDIDOS MUSICALES — MISMO FORMULARIO / DESTINO DE LAS OTRAS INVITACIONES =====
+const MUSIC_REQUEST_URL = "https://script.google.com/macros/s/AKfycbzrxfoPVuu5u1ZOn570xnSQfOeLHnt5oK8wiuksxKZCEpAVWkwehR5LlNZVJNkTJFli/exec";
+const MUSIC_INVITATION_NAME = "Invitación 1";
+
+function launchMusicNotes(stage,total=8){
+  if(!stage) return;
+  const notes=['♪','♫','♩'];
+  for(let i=0;i<total;i++){
+    const note=document.createElement('span');
+    note.className='dj-note-particle';
+    note.textContent=notes[Math.floor(Math.random()*notes.length)];
+    note.style.setProperty('--dx',`${-110+Math.random()*220}px`);
+    note.style.setProperty('--dy',`${-80-Math.random()*105}px`);
+    note.style.setProperty('--rot',`${-35+Math.random()*70}deg`);
+    note.style.animationDelay=`${i*45}ms`;
+    stage.appendChild(note);
+    setTimeout(()=>note.remove(),1900+i*45);
+  }
+}
+
+function openMusicRequest(){
+  const panel=document.getElementById('music-request-panel');
+  const stage=document.getElementById('musicImageStage');
+  if(!panel) return;
+
+  const willOpen=!panel.classList.contains('open');
+  panel.classList.toggle('open',willOpen);
+
+  if(stage){
+    stage.setAttribute('aria-expanded',String(willOpen));
+    launchMusicNotes(stage,8);
+  }
+
+  if(willOpen){
+    setTimeout(()=>{
+      const input=document.getElementById('musicGuestName');
+      if(input) input.focus({preventScroll:true});
+    },450);
+  }
+}
+
+function buildMusicRequestId(){
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const date=`${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
+  const time=`${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  const random=Math.random().toString(36).slice(2,7).toUpperCase();
+  return `PM-${date}-${time}-${random}`;
+}
+
+function sendMusicRequest(){
+  const name=(document.getElementById('musicGuestName')?.value||'').trim();
+  const song=(document.getElementById('musicSongName')?.value||'').trim();
+  const artist=(document.getElementById('musicArtistName')?.value||'').trim();
+  const comment=(document.getElementById('musicComment')?.value||'').trim();
+  const button=document.getElementById('submitMusicBtn');
+  const panel=document.getElementById('music-request-panel');
+  const success=document.getElementById('music-success');
+
+  if(!name || !song || !artist){
+    alert('Por favor completa tu nombre, la canción y el artista.');
+    return;
+  }
+
+  const requestId=buildMusicRequestId();
+  const sentAt=new Date().toISOString();
+
+  if(button){
+    button.disabled=true;
+    button.textContent='Enviando...';
+  }
+
+  fetch(MUSIC_REQUEST_URL,{
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      fecha_hora:sentAt,
+      fechaHora:sentAt,
+      nombre:name,
+      cancion:song,
+      artista:artist,
+      invitacion:MUSIC_INVITATION_NAME,
+      estado:'Pendiente',
+      id:requestId,
+      observacion:'',
+      comentario:comment
+    })
+  }).catch(()=>{}).finally(()=>{
+    if(panel) panel.classList.remove('open');
+    if(success) success.style.display='block';
+    if(button){
+      button.disabled=false;
+      button.textContent='Enviar pedido musical →';
+    }
+    ['musicGuestName','musicSongName','musicArtistName','musicComment'].forEach(id=>{
+      const field=document.getElementById(id);
+      if(field) field.value='';
+    });
+    const stage=document.getElementById('musicImageStage');
+    if(stage){
+      stage.setAttribute('aria-expanded','false');
+      launchMusicNotes(stage,12);
+    }
+  });
+}
+</script>
+'''
+
+          if '</style>' not in s or '<footer>' not in s or '</body>' not in s:
+              raise SystemExit('No se encontraron anclas esperadas en invitacion_1.html')
+
+          s = s.replace('</style>', css + '\n</style>', 1)
+          s = s.replace('<footer>', section + '\n<footer>', 1)
+          s = s.replace('</body>', js + '\n</body>', 1)
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Validar
+        run: |
+          grep -q "DJ PEDIDOS MUSICALES — INVITACION 1" invitacion_1.html
+          grep -q "musica_dj_1.gif" invitacion_1.html
+          grep -q 'MUSIC_INVITATION_NAME = "Invitación 1"' invitacion_1.html
+          grep -q "musicGuestName" invitacion_1.html
+          grep -q "musicSongName" invitacion_1.html
+          grep -q "musicArtistName" invitacion_1.html
+          grep -q "musicComment" invitacion_1.html
+          grep -q "AKfycbzrxfoPVuu5u1ZOn570xnSQfOeLHnt5oK8wiuksxKZCEpAVWkwehR5LlNZVJNkTJFli" invitacion_1.html
+
+      - name: Commit y limpiar workflow temporal
+        run: |
+          rm .github/workflows/agregar-dj-invitacion-1.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add invitacion_1.html .github/workflows/agregar-dj-invitacion-1.yml
+          git commit -m "Agregar pedidos musicales DJ a invitación 1"
+          git push
