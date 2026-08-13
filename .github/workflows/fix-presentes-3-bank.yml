@@ -1,4 +1,4 @@
-name: Test workflow temporal
+name: Ajuste visual invitacion 4 temporal
 "on":
   push:
     paths:
@@ -6,8 +6,21 @@ name: Test workflow temporal
 permissions:
   contents: write
 jobs:
-  test:
+  patch:
     runs-on: ubuntu-latest
+    env:
+      CSS_B64: Ci8qID09PT09IEFKVVNURV9WSVNVQUxfNF8yMDI2MDgxMyA9PT09PSAqLwouaW50cm97d2lkdGg6MTAwdnchaW1wb3J0YW50O2hlaWdodDoxMDBkdmghaW1wb3J0YW50O21pbi1oZWlnaHQ6MTAwZHZoIWltcG9ydGFudDtiYWNrZ3JvdW5kOiMxMDEzMGQhaW1wb3J0YW50O30KLmludHJvIHZpZGVve3dpZHRoOjEwMHZ3IWltcG9ydGFudDtoZWlnaHQ6MTAwZHZoIWltcG9ydGFudDttaW4td2lkdGg6MTAwJSFpbXBvcnRhbnQ7bWluLWhlaWdodDoxMDAlIWltcG9ydGFudDtvYmplY3QtZml0OmNvdmVyIWltcG9ydGFudDtvYmplY3QtcG9zaXRpb246Y2VudGVyIGNlbnRlciFpbXBvcnRhbnQ7ZGlzcGxheTpibG9jayFpbXBvcnRhbnQ7dHJhbnNmb3JtOnNjYWxlKDEuMDE1KSFpbXBvcnRhbnQ7fQoudGV4dG9zLXN1cGVyaW9yZXN7dG9wOjQuNCUhaW1wb3J0YW50O3dpZHRoOm1pbig5MCUsNjIwcHgpIWltcG9ydGFudDtwYWRkaW5nOjEwcHggMTZweCFpbXBvcnRhbnQ7Ym9yZGVyLXJhZGl1czoyMnB4IWltcG9ydGFudDtiYWNrZ3JvdW5kOnJnYmEoMjQ0LDIzOCwyMjMsLjE4KSFpbXBvcnRhbnQ7LXdlYmtpdC1iYWNrZHJvcC1maWx0ZXI6Ymx1cig1cHgpIWltcG9ydGFudDtiYWNrZHJvcC1maWx0ZXI6Ymx1cig1cHgpIWltcG9ydGFudDt9Ci50ZXh0b3MtZmVjaGF7Ym90dG9tOjQuMiUhaW1wb3J0YW50O3dpZHRoOm1pbig3NiUsNDMwcHgpIWltcG9ydGFudDtwYWRkaW5nOjExcHggMTZweCAxM3B4IWltcG9ydGFudDtib3JkZXItcmFkaXVzOjI0cHghaW1wb3J0YW50O2JhY2tncm91bmQ6cmdiYSgyNDQsMjM4LDIyMywuMzApIWltcG9ydGFudDstd2Via2l0LWJhY2tkcm9wLWZpbHRlcjpibHVyKDZweCkhaW1wb3J0YW50O2JhY2tkcm9wLWZpbHRlcjpibHVyKDZweCkhaW1wb3J0YW50O30KLmZlY2hhLWV0aXF1ZXRhe2ZvbnQtc2l6ZTpjbGFtcCguNzByZW0sMi40NXZ3LC44OHJlbSkhaW1wb3J0YW50O2xldHRlci1zcGFjaW5nOi4xN2VtIWltcG9ydGFudDtsaW5lLWhlaWdodDoxLjMhaW1wb3J0YW50O30KLmZlY2hhe21hcmdpbi10b3A6NXB4IWltcG9ydGFudDtmb250LXNpemU6Y2xhbXAoMS45NXJlbSw2LjR2dywzLjA1cmVtKSFpbXBvcnRhbnQ7bGluZS1oZWlnaHQ6MS4wMiFpbXBvcnRhbnQ7bGV0dGVyLXNwYWNpbmc6LS4wMWVtIWltcG9ydGFudDt3aGl0ZS1zcGFjZTpub3dyYXAhaW1wb3J0YW50O30KLmludml0YWNpb24gaDEsLmludml0YWNpb24gaDIsLmludml0YWNpb24gaDMsLmludml0YWNpb24gcCwuaW52aXRhY2lvbiAubm9tYnJlcywuaW52aXRhY2lvbiAuZmVjaGEsLmludml0YWNpb24gLmZlY2hhLWV0aXF1ZXRhLC5pbnZpdGFjaW9uIC5ldGlxdWV0YS1zZWNjaW9uLC5pbnZpdGFjaW9uIC50aXR1bG8tdWJpY2FjaW9uLC5pbnZpdGFjaW9uIC5jb250YWRvci1udW1lcm8sLmludml0YWNpb24gLmNvbnRhZG9yLXRleHRvewp0ZXh0LXNoYWRvdzowIDAgMnB4IHJnYmEoMjUyLDI0OCwyNDAsMSksMCAwIDZweCByZ2JhKDI1MiwyNDgsMjQwLDEpLDAgMCAxMnB4IHJnYmEoMjUyLDI0OCwyNDAsLjk2KSwwIDAgMjJweCByZ2JhKDI1MiwyNDgsMjQwLC44MCksMCAycHggNnB4IHJnYmEoMjUyLDI0OCwyNDAsLjg1KSFpbXBvcnRhbnQ7Ci13ZWJraXQtdGV4dC1zdHJva2U6LjE4cHggcmdiYSgyNTIsMjQ4LDI0MCwuNzIpOwpwYWludC1vcmRlcjpzdHJva2UgZmlsbDsKfQouaW52aXRhY2lvbiAubm9tYnJlcywuaW52aXRhY2lvbiAuZmVjaGEsLmludml0YWNpb24gaDEsLmludml0YWNpb24gaDJ7CnRleHQtc2hhZG93OjAgMCAzcHggcmdiYSgyNTIsMjQ4LDI0MCwxKSwwIDAgOHB4IHJnYmEoMjUyLDI0OCwyNDAsMSksMCAwIDE2cHggcmdiYSgyNTIsMjQ4LDI0MCwuOTgpLDAgMCAyOHB4IHJnYmEoMjUyLDI0OCwyNDAsLjg2KSFpbXBvcnRhbnQ7Ci13ZWJraXQtdGV4dC1zdHJva2U6LjI4cHggcmdiYSgyNTIsMjQ4LDI0MCwuNzgpOwp9CkBtZWRpYShtYXgtd2lkdGg6NTIwcHgpewoudGV4dG9zLXN1cGVyaW9yZXN7dG9wOjQlIWltcG9ydGFudDt3aWR0aDptaW4oOTIlLDQyMHB4KSFpbXBvcnRhbnQ7cGFkZGluZzo5cHggMTJweCFpbXBvcnRhbnQ7fQoudGV4dG9zLWZlY2hhe2JvdHRvbTo0JSFpbXBvcnRhbnQ7d2lkdGg6bWluKDgwJSwzNjBweCkhaW1wb3J0YW50O3BhZGRpbmc6OXB4IDEycHggMTFweCFpbXBvcnRhbnQ7fQouZmVjaGF7Zm9udC1zaXplOmNsYW1wKDEuODJyZW0sNS45dncsMi40NXJlbSkhaW1wb3J0YW50O30KfQovKiA9PT09PSBGSU5fQUpVU1RFX1ZJU1VBTF80XzIwMjYwODEzID09PT09ICovCg==
     steps:
       - uses: actions/checkout@v4
-      - run: echo OK
+      - name: Aplicar ajuste
+        run: |
+          python3 -c "import os,base64,re; from pathlib import Path; p=Path('invitacion_4.html'); s=p.read_text(encoding='utf-8'); s=re.sub(r'\n\s*/\* ===== AJUSTE_VISUAL_4_20260813 ===== \*/.*?/\* ===== FIN_AJUSTE_VISUAL_4_20260813 ===== \*/\s*','\n',s,flags=re.S); css=base64.b64decode(os.environ['CSS_B64']).decode(); s=s.replace('</style>',css+'\n</style>',1); p.write_text(s,encoding='utf-8')"
+      - name: Validar
+        run: grep -q 'AJUSTE_VISUAL_4_20260813' invitacion_4.html
+      - name: Commit
+        run: |
+          git config user.name 'avaldiviezoch'
+          git config user.email '155109177+avaldiviezoch@users.noreply.github.com'
+          git add invitacion_4.html
+          git diff --cached --quiet || git commit -m 'Mejorar intro fecha y contraste invitacion 4'
+          git push
