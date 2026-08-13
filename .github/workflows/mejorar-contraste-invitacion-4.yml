@@ -4,6 +4,8 @@ name: Mejorar contraste invitacion 4
   push:
     paths:
       - '.github/triggers/mejorar-contraste-4.txt'
+permissions:
+  contents: write
 jobs:
   patch:
     runs-on: ubuntu-latest
