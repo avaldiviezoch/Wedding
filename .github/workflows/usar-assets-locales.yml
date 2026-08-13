@@ -1,0 +1,35 @@
+name: Usar assets locales invitaciones
+"on":
+  push:
+    paths:
+      - '.github/triggers/usar-assets-locales.txt'
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Aplicar cambios
+        run: python .github/scripts/usar-assets-locales.py
+      - name: Validar
+        run: |
+          grep -q 'assets/invitacion_1/dres_code_movible_1.gif' invitacion_1.html
+          grep -q 'assets/invitacion_1/regalo_movible_1%20gif.gif' invitacion_1.html
+          grep -q 'assets/invitacion_1/historia_1.jpg' invitacion_2.html
+          grep -q 'assets/invitacion_1/historia_2.jpg' invitacion_2.html
+          grep -q 'assets/invitacion_1/historia_3.jpg' invitacion_2.html
+          ! grep -q 'lh3.googleusercontent.com/d/1ev6oiga4uoc6JmluJrTEATrIHC82LVv7' invitacion_2.html
+      - name: Limpiar temporales
+        run: |
+          rm -f .github/workflows/usar-assets-locales.yml
+          rm -f .github/triggers/usar-assets-locales.txt
+          rm -f .github/scripts/usar-assets-locales.py
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add invitacion_1.html invitacion_2.html .github/workflows/usar-assets-locales.yml .github/triggers/usar-assets-locales.txt .github/scripts/usar-assets-locales.py
+          git commit -m 'Usar GIF locales y fotos locales en invitaciones 1 y 2'
+          git push
