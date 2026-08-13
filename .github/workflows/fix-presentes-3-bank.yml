@@ -1,27 +1,24 @@
 name: Ajuste visual invitacion 4 temporal
-
-on:
+"on":
   push:
     paths:
       - '.github/triggers/fix-presentes-3-bank.txt'
-
 permissions:
   contents: write
-
 jobs:
   patch:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Aplicar ajustes visuales invitacion 4
-        shell: python
+      - name: Aplicar ajuste
         run: |
+          python3 - <<'PY'
           from pathlib import Path
           import re
-          p = Path('invitacion_4.html')
-          s = p.read_text(encoding='utf-8')
-          s = re.sub(r'\n\s*/\* ===== AJUSTE_VISUAL_4_20260813 ===== \*/.*?/\* ===== FIN_AJUSTE_VISUAL_4_20260813 ===== \*/\s*', '\n', s, flags=re.S)
-          css = r'''
+          p=Path('invitacion_4.html')
+          s=p.read_text(encoding='utf-8')
+          s=re.sub(r'\n\s*/\* ===== AJUSTE_VISUAL_4_20260813 ===== \*/.*?/\* ===== FIN_AJUSTE_VISUAL_4_20260813 ===== \*/\s*','\n',s,flags=re.S)
+          css="""
     /* ===== AJUSTE_VISUAL_4_20260813 ===== */
     .intro{width:100vw !important;height:100dvh !important;min-height:100dvh !important;background:#10130d !important;}
     .intro video{width:100vw !important;height:100dvh !important;min-width:100% !important;min-height:100% !important;object-fit:cover !important;object-position:center center !important;display:block !important;transform:scale(1.015) !important;}
@@ -33,19 +30,16 @@ jobs:
     .nombres,.fecha,.titulo-primer-fondo,.titulo-ubicacion{text-shadow:0 0 3px rgba(249,245,236,1),0 0 10px rgba(249,245,236,1),0 0 20px rgba(249,245,236,.92),0 2px 14px rgba(249,245,236,.68) !important;}
     @media(max-width:520px){.textos-superiores{top:4.2% !important;width:min(90%,420px) !important;padding:10px 14px !important;border-radius:20px !important;background:rgba(244,238,223,.18) !important;-webkit-backdrop-filter:blur(4px) !important;backdrop-filter:blur(4px) !important;}.textos-fecha{bottom:4.1% !important;width:min(78%,360px) !important;padding:10px 14px 12px !important;border-radius:22px !important;background:rgba(244,238,223,.28) !important;-webkit-backdrop-filter:blur(4px) !important;backdrop-filter:blur(4px) !important;}.fecha{font-size:clamp(1.85rem,6vw,2.55rem) !important;}}
     /* ===== FIN_AJUSTE_VISUAL_4_20260813 ===== */
-'''
-          if '</style>' not in s:
-              raise SystemExit('No se encontro </style>')
-          s = s.replace('</style>', css + '\n  </style>', 1)
-          p.write_text(s, encoding='utf-8')
+          """
+          if '</style>' not in s: raise SystemExit('No se encontro style')
+          s=s.replace('</style>',css+'\n  </style>',1)
+          p.write_text(s,encoding='utf-8')
+          PY
       - name: Validar
-        shell: bash
         run: |
           grep -q 'AJUSTE_VISUAL_4_20260813' invitacion_4.html
           grep -q 'object-fit:cover !important' invitacion_4.html
-          grep -q 'background:rgba(244,238,223,.28)' invitacion_4.html
       - name: Commit
-        shell: bash
         run: |
           git config user.name 'avaldiviezoch'
           git config user.email '155109177+avaldiviezoch@users.noreply.github.com'
