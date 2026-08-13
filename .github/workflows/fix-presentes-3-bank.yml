@@ -1,48 +1,29 @@
-name: Fix presentes invitacion 3 bank
-
-on:
+name: Ajustar fecha y halo invitacion 4
+"on":
   push:
     paths:
       - '.github/triggers/fix-presentes-3-bank.txt'
-
 permissions:
   contents: write
-
 jobs:
   patch:
     runs-on: ubuntu-latest
+    env:
+      CSS_B64: CiAgICAvKiA9PT09PSBBSlVTVEVfRkVDSEFfSEFMT180XzIwMjYwODEzID09PT09ICovCiAgICAudGV4dG9zLXN1cGVyaW9yZXN7CiAgICAgIGJhY2tncm91bmQ6dHJhbnNwYXJlbnQgIWltcG9ydGFudDsKICAgICAgLXdlYmtpdC1iYWNrZHJvcC1maWx0ZXI6bm9uZSAhaW1wb3J0YW50OwogICAgICBiYWNrZHJvcC1maWx0ZXI6bm9uZSAhaW1wb3J0YW50OwogICAgICBib3gtc2hhZG93Om5vbmUgIWltcG9ydGFudDsKICAgIH0KICAgIC50ZXh0b3MtZmVjaGF7CiAgICAgIGJvdHRvbToxLjglICFpbXBvcnRhbnQ7CiAgICAgIHdpZHRoOm1pbig4MiUsNDMwcHgpICFpbXBvcnRhbnQ7CiAgICAgIHBhZGRpbmc6MCAhaW1wb3J0YW50OwogICAgICBib3JkZXItcmFkaXVzOjAgIWltcG9ydGFudDsKICAgICAgYmFja2dyb3VuZDp0cmFuc3BhcmVudCAhaW1wb3J0YW50OwogICAgICAtd2Via2l0LWJhY2tkcm9wLWZpbHRlcjpub25lICFpbXBvcnRhbnQ7CiAgICAgIGJhY2tkcm9wLWZpbHRlcjpub25lICFpbXBvcnRhbnQ7CiAgICAgIGJveC1zaGFkb3c6bm9uZSAhaW1wb3J0YW50OwogICAgfQogICAgLnBvcnRhZGEgLm5vcy1jYXNhbW9zLAogICAgLnBvcnRhZGEgLm5vbWJyZXMsCiAgICAucG9ydGFkYSAubm9tYnJlcyBzcGFuLAogICAgLnBvcnRhZGEgLmNvcmF6b24sCiAgICAucG9ydGFkYSAuZnJhc2UsCiAgICAucG9ydGFkYSAuZmVjaGEtZXRpcXVldGEsCiAgICAucG9ydGFkYSAuZmVjaGF7CiAgICAgIHRleHQtc2hhZG93OgogICAgICAgIDAgMCAycHggI2ZmZmFmMSwKICAgICAgICAwIDAgNHB4ICNmZmZhZjEsCiAgICAgICAgMCAwIDdweCByZ2JhKDI1NSwyNTAsMjQxLC45OCksCiAgICAgICAgMCAwIDEycHggcmdiYSgyNTUsMjUwLDI0MSwuOTUpLAogICAgICAgIDAgMCAyMHB4IHJnYmEoMjU1LDI1MCwyNDEsLjc4KSwKICAgICAgICAwIDJweCA0cHggcmdiYSgyNTUsMjUwLDI0MSwuOTUpICFpbXBvcnRhbnQ7CiAgICAgIC13ZWJraXQtdGV4dC1zdHJva2U6LjI0cHggcmdiYSgyNTUsMjUwLDI0MSwuNzIpOwogICAgICBwYWludC1vcmRlcjpzdHJva2UgZmlsbDsKICAgIH0KICAgIC5wb3J0YWRhIC5ub21icmVzLAogICAgLnBvcnRhZGEgLmZlY2hhewogICAgICB0ZXh0LXNoYWRvdzoKICAgICAgICAwIDAgM3B4ICNmZmZhZjEsCiAgICAgICAgMCAwIDZweCAjZmZmYWYxLAogICAgICAgIDAgMCAxMXB4IHJnYmEoMjU1LDI1MCwyNDEsMSksCiAgICAgICAgMCAwIDE4cHggcmdiYSgyNTUsMjUwLDI0MSwuOTYpLAogICAgICAgIDAgMCAyOHB4IHJnYmEoMjU1LDI1MCwyNDEsLjgyKSAhaW1wb3J0YW50OwogICAgICAtd2Via2l0LXRleHQtc3Ryb2tlOi4zMnB4IHJnYmEoMjU1LDI1MCwyNDEsLjgwKTsKICAgIH0KICAgIC50ZXh0b3MtZmVjaGEgPiAqewogICAgICBvcGFjaXR5OjA7CiAgICAgIGFuaW1hdGlvbjpmZWNoYUxsZWdhZGE0IDEuMTVzIGN1YmljLWJlemllciguMiwuNzUsLjIsMSkgZm9yd2FyZHM7CiAgICB9CiAgICAudGV4dG9zLWZlY2hhIC5mZWNoYS1ldGlxdWV0YXthbmltYXRpb24tZGVsYXk6LjIyczt9CiAgICAudGV4dG9zLWZlY2hhIC5mZWNoYXthbmltYXRpb24tZGVsYXk6LjM4czt9CiAgICBAa2V5ZnJhbWVzIGZlY2hhTGxlZ2FkYTR7CiAgICAgIGZyb217b3BhY2l0eTowO3RyYW5zZm9ybTp0cmFuc2xhdGVZKDE4cHgpO2ZpbHRlcjpibHVyKDVweCk7fQogICAgICB0b3tvcGFjaXR5OjE7dHJhbnNmb3JtOnRyYW5zbGF0ZVkoMCk7ZmlsdGVyOmJsdXIoMCk7fQogICAgfQogICAgQG1lZGlhKG1heC13aWR0aDo1MjBweCl7CiAgICAgIC50ZXh0b3MtZmVjaGF7CiAgICAgICAgYm90dG9tOjEuMzUlICFpbXBvcnRhbnQ7CiAgICAgICAgd2lkdGg6bWluKDg0JSwzNzBweCkgIWltcG9ydGFudDsKICAgICAgfQogICAgICAuZmVjaGEtZXRpcXVldGF7CiAgICAgICAgZm9udC1zaXplOi42OHJlbSAhaW1wb3J0YW50OwogICAgICAgIGxldHRlci1zcGFjaW5nOi4xN2VtICFpbXBvcnRhbnQ7CiAgICAgIH0KICAgICAgLmZlY2hhewogICAgICAgIGZvbnQtc2l6ZTpjbGFtcCgxLjhyZW0sNS44dncsMi4zNXJlbSkgIW1wb3J0YW50OwogICAgICB9CiAgICB9CiAgICAvKiA9PT09PSBGSU5fQUpVU1RFX0ZFQ0hBX0hBTE9fNF8yMDI2MDgxMyA9PT09PSAqLwo=
     steps:
       - uses: actions/checkout@v4
-      - name: Completar datos bancarios
-        shell: python
+      - name: Aplicar ajuste
         run: |
-          from pathlib import Path
-          import re
-          p = Path('invitacion_3.html')
-          s = p.read_text(encoding='utf-8')
-          new = '''<div class="gift-envelope-bank-data" style="margin:18px auto 20px;display:grid;gap:10px;width:min(100%,390px);text-align:center;">
-            <p style="margin:0;"><strong>Banco:</strong> BCP</p>
-            <p style="margin:0;"><strong>Número de cuenta:</strong> 19335282760050</p>
-            <p style="margin:0;"><strong>CCI:</strong> 00219313528276005017</p>
-            <p class="gift-envelope-yape" style="margin:0;"><strong>Yape:</strong> 993 219 142</p>
-          </div>'''
-          pattern = r'<p\s+class="gift-envelope-yape"[^>]*>\s*<strong>Yape:</strong>\s*993\s*219\s*142\s*</p>'
-          s2, n = re.subn(pattern, new, s, count=1, flags=re.I)
-          if n != 1:
-              raise SystemExit(f'No se encontró el Yape esperado; reemplazos={n}')
-          p.write_text(s2, encoding='utf-8')
-      - name: Validar datos
-        shell: bash
+          python3 -c "import os,base64,re; from pathlib import Path; p=Path('invitacion_4.html'); s=p.read_text(encoding='utf-8'); s=re.sub(r'\n\s*/\* ===== AJUSTE_FECHA_HALO_4_20260813 ===== \*/.*?/\* ===== FIN_AJUSTE_FECHA_HALO_4_20260813 ===== \*/\s*','\n',s,flags=re.S); css=base64.b64decode(os.environ['CSS_B64']).decode(); s=s.replace('</style>',css+'\n</style>',1); p.write_text(s,encoding='utf-8')"
+      - name: Validar
         run: |
-          grep -q 'Banco:</strong> BCP' invitacion_3.html
-          grep -q '19335282760050' invitacion_3.html
-          grep -q '00219313528276005017' invitacion_3.html
-          grep -q '993 219 142' invitacion_3.html
+          grep -q 'AJUSTE_FECHA_HALO_4_20260813' invitacion_4.html
+          grep -q 'background:transparent !important' invitacion_4.html
+          grep -q 'fechaLlegada4' invitacion_4.html
       - name: Commit
-        shell: bash
         run: |
           git config user.name 'avaldiviezoch'
           git config user.email '155109177+avaldiviezoch@users.noreply.github.com'
-          git add invitacion_3.html
-          git commit -m 'Completar cuenta CCI y Yape en invitacion 3'
+          git add invitacion_4.html
+          git diff --cached --quiet || git commit -m 'Quitar fondo fecha mejorar halo y animacion invitacion 4'
           git push
