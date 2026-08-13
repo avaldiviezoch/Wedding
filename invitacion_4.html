@@ -2189,6 +2189,76 @@ text-shadow:0 0 3px rgba(252,248,240,1),0 0 8px rgba(252,248,240,1),0 0 16px rgb
 }
 /* ===== FIN_AJUSTE_VISUAL_4_20260813 ===== */
 
+
+    /* ===== AJUSTE_FECHA_HALO_4_20260813 ===== */
+    .textos-superiores{
+      background:transparent !important;
+      -webkit-backdrop-filter:none !important;
+      backdrop-filter:none !important;
+      box-shadow:none !important;
+    }
+    .textos-fecha{
+      bottom:1.8% !important;
+      width:min(82%,430px) !important;
+      padding:0 !important;
+      border-radius:0 !important;
+      background:transparent !important;
+      -webkit-backdrop-filter:none !important;
+      backdrop-filter:none !important;
+      box-shadow:none !important;
+    }
+    .portada .nos-casamos,
+    .portada .nombres,
+    .portada .nombres span,
+    .portada .corazon,
+    .portada .frase,
+    .portada .fecha-etiqueta,
+    .portada .fecha{
+      text-shadow:
+        0 0 2px #fffaf1,
+        0 0 4px #fffaf1,
+        0 0 7px rgba(255,250,241,.98),
+        0 0 12px rgba(255,250,241,.95),
+        0 0 20px rgba(255,250,241,.78),
+        0 2px 4px rgba(255,250,241,.95) !important;
+      -webkit-text-stroke:.24px rgba(255,250,241,.72);
+      paint-order:stroke fill;
+    }
+    .portada .nombres,
+    .portada .fecha{
+      text-shadow:
+        0 0 3px #fffaf1,
+        0 0 6px #fffaf1,
+        0 0 11px rgba(255,250,241,1),
+        0 0 18px rgba(255,250,241,.96),
+        0 0 28px rgba(255,250,241,.82) !important;
+      -webkit-text-stroke:.32px rgba(255,250,241,.80);
+    }
+    .textos-fecha > *{
+      opacity:0;
+      animation:fechaLlegada4 1.15s cubic-bezier(.2,.75,.2,1) forwards;
+    }
+    .textos-fecha .fecha-etiqueta{animation-delay:.22s;}
+    .textos-fecha .fecha{animation-delay:.38s;}
+    @keyframes fechaLlegada4{
+      from{opacity:0;transform:translateY(18px);filter:blur(5px);}
+      to{opacity:1;transform:translateY(0);filter:blur(0);}
+    }
+    @media(max-width:520px){
+      .textos-fecha{
+        bottom:1.35% !important;
+        width:min(84%,370px) !important;
+      }
+      .fecha-etiqueta{
+        font-size:.68rem !important;
+        letter-spacing:.17em !important;
+      }
+      .fecha{
+        font-size:clamp(1.8rem,5.8vw,2.35rem) !mportant;
+      }
+    }
+    /* ===== FIN_AJUSTE_FECHA_HALO_4_20260813 ===== */
+
 </style>
 <style id="gift-copy-style-4">
 .gift-copy-inline-4{margin-left:7px;padding:4px 9px;border:1px solid var(--verde-suave);border-radius:999px;background:transparent;color:var(--verde);font:inherit;font-size:.78em;cursor:pointer;vertical-align:middle;opacity:.85}
