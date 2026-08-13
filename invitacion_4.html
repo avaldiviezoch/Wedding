@@ -2165,7 +2165,31 @@
     .nombres,.fecha,.titulo-primer-fondo,.titulo-ubicacion{text-shadow:0 0 3px rgba(244,238,223,1),0 0 8px rgba(244,238,223,.96),0 2px 14px rgba(244,238,223,.78);}
     @media(max-width:520px){.textos-superiores,.textos-fecha{padding:8px 12px;background:rgba(244,238,223,.10);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);}}
 
-  </style>
+  
+/* ===== AJUSTE_VISUAL_4_20260813 ===== */
+.intro{width:100vw!important;height:100dvh!important;min-height:100dvh!important;background:#10130d!important;}
+.intro video{width:100vw!important;height:100dvh!important;min-width:100%!important;min-height:100%!important;object-fit:cover!important;object-position:center center!important;display:block!important;transform:scale(1.015)!important;}
+.textos-superiores{top:4.4%!important;width:min(90%,620px)!important;padding:10px 16px!important;border-radius:22px!important;background:rgba(244,238,223,.18)!important;-webkit-backdrop-filter:blur(5px)!important;backdrop-filter:blur(5px)!important;}
+.textos-fecha{bottom:4.2%!important;width:min(76%,430px)!important;padding:11px 16px 13px!important;border-radius:24px!important;background:rgba(244,238,223,.30)!important;-webkit-backdrop-filter:blur(6px)!important;backdrop-filter:blur(6px)!important;}
+.fecha-etiqueta{font-size:clamp(.70rem,2.45vw,.88rem)!important;letter-spacing:.17em!important;line-height:1.3!important;}
+.fecha{margin-top:5px!important;font-size:clamp(1.95rem,6.4vw,3.05rem)!important;line-height:1.02!important;letter-spacing:-.01em!important;white-space:nowrap!important;}
+.invitacion h1,.invitacion h2,.invitacion h3,.invitacion p,.invitacion .nombres,.invitacion .fecha,.invitacion .fecha-etiqueta,.invitacion .etiqueta-seccion,.invitacion .titulo-ubicacion,.invitacion .contador-numero,.invitacion .contador-texto{
+text-shadow:0 0 2px rgba(252,248,240,1),0 0 6px rgba(252,248,240,1),0 0 12px rgba(252,248,240,.96),0 0 22px rgba(252,248,240,.80),0 2px 6px rgba(252,248,240,.85)!important;
+-webkit-text-stroke:.18px rgba(252,248,240,.72);
+paint-order:stroke fill;
+}
+.invitacion .nombres,.invitacion .fecha,.invitacion h1,.invitacion h2{
+text-shadow:0 0 3px rgba(252,248,240,1),0 0 8px rgba(252,248,240,1),0 0 16px rgba(252,248,240,.98),0 0 28px rgba(252,248,240,.86)!important;
+-webkit-text-stroke:.28px rgba(252,248,240,.78);
+}
+@media(max-width:520px){
+.textos-superiores{top:4%!important;width:min(92%,420px)!important;padding:9px 12px!important;}
+.textos-fecha{bottom:4%!important;width:min(80%,360px)!important;padding:9px 12px 11px!important;}
+.fecha{font-size:clamp(1.82rem,5.9vw,2.45rem)!important;}
+}
+/* ===== FIN_AJUSTE_VISUAL_4_20260813 ===== */
+
+</style>
 <style id="gift-copy-style-4">
 .gift-copy-inline-4{margin-left:7px;padding:4px 9px;border:1px solid var(--verde-suave);border-radius:999px;background:transparent;color:var(--verde);font:inherit;font-size:.78em;cursor:pointer;vertical-align:middle;opacity:.85}
 .gift-copy-inline-4:active{transform:scale(.97)}
