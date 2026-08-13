@@ -1,0 +1,34 @@
+name: Mejorar contraste invitacion 4
+"on":
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/triggers/mejorar-contraste-4.txt'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Aplicar mejora
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('invitacion_4.html')
+          s=p.read_text(encoding='utf-8')
+          marker='MEJORA_CONTRASTE_TEXTO_INVITACION_4'
+          if marker not in s:
+              css='''\n    /* ===== MEJORA_CONTRASTE_TEXTO_INVITACION_4 ===== */\n    .textos-superiores,.textos-fecha{padding:10px 16px;border-radius:20px;background:rgba(244,238,223,.12);-webkit-backdrop-filter:blur(2.5px);backdrop-filter:blur(2.5px);}\n    .nos-casamos,.nombres,.corazon,.frase,.fecha-etiqueta,.fecha,.titulo-primer-fondo,.texto-primer-fondo,.contador-titulo,.contador-numero,.contador-texto,.detalle-inferior,.titulo-ubicacion,.fondo-ubicacion-contenido,.historia-contenido,.programa-contenido,.dress-code-contenido,.regalos-contenido,.confirmacion-contenido,.musica-contenido,.preguntas-contenido,.cierre-contenido{text-shadow:0 0 2px rgba(244,238,223,.98),0 0 6px rgba(244,238,223,.92),0 1px 10px rgba(244,238,223,.72);}\n    .nombres,.fecha,.titulo-primer-fondo,.titulo-ubicacion{text-shadow:0 0 3px rgba(244,238,223,1),0 0 8px rgba(244,238,223,.96),0 2px 14px rgba(244,238,223,.78);}\n    @media(max-width:520px){.textos-superiores,.textos-fecha{padding:8px 12px;background:rgba(244,238,223,.10);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);}}\n'''
+              s=s.replace('</style>',css+'\n  </style>',1)
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validar
+        run: grep -q 'MEJORA_CONTRASTE_TEXTO_INVITACION_4' invitacion_4.html
+      - name: Limpiar temporales
+        run: rm -f .github/workflows/mejorar-contraste-invitacion-4.yml .github/triggers/mejorar-contraste-4.txt
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add invitacion_4.html .github/workflows/mejorar-contraste-invitacion-4.yml .github/triggers/mejorar-contraste-4.txt
+          git diff --cached --quiet || git commit -m 'Mejorar contraste de textos invitacion 4'
+          git push
