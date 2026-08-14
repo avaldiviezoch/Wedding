@@ -1,8 +1,11 @@
-const VERSION = '20260814-1504-geometry1';
+const VERSION = '20260814-1646-geometry2';
+let geometryRaf = 0;
 
 function numberVar(node, name, fallback) {
-  const raw = node?.style?.getPropertyValue(name) || getComputedStyle(node || document.documentElement).getPropertyValue(name);
-  const value = Number.parseFloat(raw);
+  const inline = node?.style?.getPropertyValue(name);
+  const view = node?.ownerDocument?.defaultView;
+  const computed = node && view ? view.getComputedStyle(node).getPropertyValue(name) : '';
+  const value = Number.parseFloat(inline || computed);
   return Number.isFinite(value) ? value : fallback;
 }
 
@@ -39,8 +42,6 @@ function rectangularCounts(capacity) {
   if (capacity === 2) return { top: 1, right: 0, bottom: 1, left: 0 };
   if (capacity === 3) return { top: 1, right: 1, bottom: 1, left: 0 };
 
-  // En mesas rectangulares reales priorizamos los lados largos y usamos
-  // una silla en cada cabecera. Así 8 = 3+3+1+1, 10 = 4+4+1+1, etc.
   const remaining = capacity - 2;
   const top = Math.ceil(remaining / 2);
   const bottom = Math.floor(remaining / 2);
@@ -96,14 +97,19 @@ function applyGeometry(doc) {
   doc?.querySelectorAll('.mgd-table-card[data-table-id]').forEach(applyCard);
 }
 
+function scheduleGeometry(doc) {
+  cancelAnimationFrame(geometryRaf);
+  geometryRaf = requestAnimationFrame(() => applyGeometry(doc));
+}
+
 function bindFrame(frame) {
   let doc;
   try { doc = frame.contentDocument; } catch (_) { return false; }
   if (!doc?.getElementById('mgdTablesEditor')) return false;
-  applyGeometry(doc);
+  scheduleGeometry(doc);
   if (!doc.documentElement.dataset.mgdGeometryObserver) {
     doc.documentElement.dataset.mgdGeometryObserver = VERSION;
-    const observer = new MutationObserver(() => applyGeometry(doc));
+    const observer = new MutationObserver(() => scheduleGeometry(doc));
     observer.observe(doc.body, { childList: true, subtree: true });
   }
   return true;
