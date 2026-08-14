@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1528-menufast1';
+  const VERSION = '20260814-1540-menufast2';
 
   function setMenu(open) {
     const body = document.body;
@@ -19,7 +19,7 @@
   function bind() {
     const button = document.getElementById('menuButton');
     const backdrop = document.getElementById('backdrop');
-    if (!button || !backdrop || button.dataset.mgdFastMenu === VERSION) return;
+    if (!button || !backdrop || button.dataset.mgdFastMenu === VERSION) return false;
 
     button.dataset.mgdFastMenu = VERSION;
     button.addEventListener('click', (event) => {
@@ -38,8 +38,8 @@
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && document.body.classList.contains('menu-open')) setMenu(false);
     });
+    return true;
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind, { once: true });
-  else bind();
+  if (!bind()) document.addEventListener('DOMContentLoaded', bind, { once: true });
 })();
