@@ -7,6 +7,8 @@ import {
   listPendingInvitations,
   acceptWeddingInvitation,
   inviteWeddingMember,
+  listWeddingInvitations,
+  cancelWeddingInvitation,
   listWeddingMembers,
   updateWeddingMemberRole,
   removeWeddingMember
@@ -22,6 +24,7 @@ const state = {
   weddings: [],
   invitations: [],
   members: [],
+  sentInvitations: [],
   activeTab: 'weddings',
   loading: false
 };
@@ -134,7 +137,9 @@ function ensureUI() {
               <button type="submit" class="wedding-primary-action">Invitar</button>
             </form>
 
+            <div id="inviteWeddingStatus" class="invite-wedding-status" aria-live="polite"></div>
             <div id="teamOwnerNotice" class="team-owner-notice"></div>
+            <div id="pendingWeddingInvitations" class="pending-wedding-invitations"></div>
             <div id="weddingMembersList" class="members-list"></div>
           </section>
         </div>
@@ -211,11 +216,23 @@ function renderContext() {
   const notice = document.getElementById('teamOwnerNotice');
   const form = document.getElementById('inviteWeddingMemberForm');
   if (notice) {
-    notice.textContent = context.role === 'owner'
-      ? 'Como propietario puedes invitar personas y cambiar sus permisos.'
-      : 'Solo el propietario puede invitar personas o modificar permisos.';
+    notice.textContent = context.legacyMode
+      ? 'El acceso compartido está pendiente de habilitarse en las reglas de Firestore.'
+      : context.role === 'owner'
+        ? 'Como propietario puedes invitar personas y cambiar sus permisos.'
+        : 'Solo el propietario puede invitar personas o modificar permisos.';
   }
-  if (form) form.hidden = context.role !== 'owner';
+  if (form) {
+    form.hidden = context.role !== 'owner';
+    form.querySelectorAll('input, select, button').forEach((control) => {
+      control.disabled = Boolean(context.legacyMode);
+    });
+  }
+  if (context.legacyMode) {
+    setInviteStatus('Firebase aún está usando las reglas anteriores; por eso no puede crear invitaciones compartidas.', 'error');
+  } else if (document.getElementById('inviteWeddingStatus')?.classList.contains('is-error')) {
+    setInviteStatus('');
+  }
 }
 
 function renderWeddings() {
@@ -277,6 +294,40 @@ function renderInvitations() {
   `).join('');
 }
 
+function setInviteStatus(message = '', type = '') {
+  const status = document.getElementById('inviteWeddingStatus');
+  if (!status) return;
+  status.textContent = message;
+  status.className = `invite-wedding-status${type ? ` is-${type}` : ''}`;
+}
+
+function renderSentInvitations() {
+  const host = document.getElementById('pendingWeddingInvitations');
+  if (!host) return;
+  const context = getWeddingContext();
+  if (context.role !== 'owner' || context.legacyMode) {
+    host.innerHTML = '';
+    return;
+  }
+  if (!state.sentInvitations.length) {
+    host.innerHTML = '';
+    return;
+  }
+  host.innerHTML = `
+    <div class="pending-invitations-title">Invitaciones pendientes</div>
+    ${state.sentInvitations.map((invite) => `
+      <article class="pending-invite-card">
+        <div class="pending-invite-icon">✉</div>
+        <div class="pending-invite-info">
+          <strong>${escapeHtml(invite.email || '')}</strong>
+          <span>${escapeHtml(ROLE_LABELS[invite.role] || invite.role || '')} · Pendiente de aceptar</span>
+        </div>
+        <button type="button" data-cancel-invite="${escapeHtml(invite.id)}">Cancelar</button>
+      </article>
+    `).join('')}
+  `;
+}
+
 function renderMembers() {
   const host = document.getElementById('weddingMembersList');
   if (!host) return;
@@ -335,7 +386,14 @@ async function refreshInvitations() {
 async function refreshMembers() {
   if (!auth.currentUser || !getWeddingContext().id) return;
   try {
-    state.members = await listWeddingMembers();
+    const context = getWeddingContext();
+    const [members, sentInvitations] = await Promise.all([
+      listWeddingMembers(),
+      context.role === 'owner' ? listWeddingInvitations() : Promise.resolve([])
+    ]);
+    state.members = members;
+    state.sentInvitations = sentInvitations;
+    renderSentInvitations();
     renderMembers();
   } catch (error) {
     console.error('No se pudo cargar el equipo:', error);
@@ -389,16 +447,24 @@ function bindUI() {
     const email = document.getElementById('inviteWeddingEmail')?.value.trim();
     const role = document.getElementById('inviteWeddingRole')?.value || 'editor';
     if (!email) return;
-    const submit = event.submitter;
+    const submit = event.submitter || event.currentTarget.querySelector('button[type="submit"]');
     if (submit) submit.disabled = true;
+    setInviteStatus(`Enviando invitación a ${email}…`, 'loading');
     try {
-      await inviteWeddingMember(email, role);
+      const invitation = await inviteWeddingMember(email, role);
       event.currentTarget.reset();
-      toast(`Invitación preparada para ${email}.`);
+      setInviteStatus(`Invitación pendiente para ${invitation.email}.`, 'success');
+      toast(`Invitación preparada para ${invitation.email}.`);
       await refreshMembers();
     } catch (error) {
       console.error(error);
-      toast(error?.message || 'No se pudo crear la invitación.');
+      const code = String(error?.code || '');
+      const raw = String(error?.message || '');
+      const message = code.includes('permission-denied') || raw.toLowerCase().includes('permission')
+        ? 'Firebase rechazó la invitación por permisos. Las reglas de acceso compartido todavía no están publicadas.'
+        : (raw || 'No se pudo crear la invitación.');
+      setInviteStatus(message, 'error');
+      toast(message);
     } finally {
       if (submit) submit.disabled = false;
     }
@@ -433,6 +499,21 @@ function bindUI() {
     } catch (error) {
       console.error(error);
       toast('No se pudo aceptar la invitación.');
+      button.disabled = false;
+    }
+  });
+
+  document.getElementById('pendingWeddingInvitations')?.addEventListener('click', async (event) => {
+    const button = event.target.closest('[data-cancel-invite]');
+    if (!button) return;
+    button.disabled = true;
+    try {
+      await cancelWeddingInvitation(button.dataset.cancelInvite);
+      setInviteStatus('Invitación cancelada.', 'success');
+      await refreshMembers();
+    } catch (error) {
+      console.error(error);
+      setInviteStatus(error?.message || 'No se pudo cancelar la invitación.', 'error');
       button.disabled = false;
     }
   });

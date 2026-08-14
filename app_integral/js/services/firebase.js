@@ -624,6 +624,36 @@ export async function inviteWeddingMember(email, role = 'editor') {
   return { id: inviteId, email: normalizedEmail, role: cleanRole };
 }
 
+export async function listWeddingInvitations() {
+  if (!auth.currentUser || !activeWeddingId || legacyMode || activeWeddingRole !== 'owner') {
+    return [];
+  }
+
+  const q = query(
+    collection(db, 'invitations'),
+    where('weddingId', '==', activeWeddingId)
+  );
+  const snaps = await getDocs(q);
+  return snaps.docs
+    .map((snap) => ({ id: snap.id, ...snap.data() }))
+    .filter((item) => item.status === 'pending')
+    .sort((a, b) => String(a.email || '').localeCompare(String(b.email || ''), 'es'));
+}
+
+export async function cancelWeddingInvitation(inviteId) {
+  if (!auth.currentUser || !activeWeddingId || legacyMode || activeWeddingRole !== 'owner') {
+    throw new Error('Solo el propietario puede cancelar invitaciones.');
+  }
+  const ref = doc(db, 'invitations', String(inviteId || ''));
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+  const data = snap.data() || {};
+  if (String(data.weddingId || '') !== activeWeddingId) {
+    throw new Error('La invitación no pertenece a esta boda.');
+  }
+  await deleteDoc(ref);
+}
+
 export async function listPendingInvitations() {
   const user = auth.currentUser;
   if (!user?.email || legacyMode) return [];

@@ -66,3 +66,19 @@
 @media(max-width:680px){
   .wedding-workspace-header{padding:22px 18px 16px}.wedding-workspace-header h2{font-size:23px}.wedding-workspace-content{padding:20px 16px 34px}.wedding-workspace-tabs{padding:10px 12px}.wedding-pane-head{align-items:stretch;flex-direction:column}.wedding-primary-action{width:100%}.invite-member-form{grid-template-columns:1fr}.wedding-card,.member-card{flex-wrap:wrap}.member-info{min-width:calc(100% - 56px)}.member-role-select{flex:1}.share-wedding-button{width:100%;margin:8px 0 0}
 }
+
+/* Feedback visible para invitaciones dentro del modal */
+body.wedding-modal-open > .toast{z-index:10200!important;visibility:visible!important}
+.invite-wedding-status{display:none;margin:-2px 0 12px;padding:10px 12px;border-radius:12px;font-size:12px;line-height:1.4}
+.invite-wedding-status:not(:empty){display:block}
+.invite-wedding-status.is-loading{background:#eef1ed;color:#566158;border:1px solid #dce2da}
+.invite-wedding-status.is-success{background:#eaf4ea;color:#35613d;border:1px solid #cfe4d0}
+.invite-wedding-status.is-error{background:#f9e9e7;color:#8b4740;border:1px solid #edcfcb}
+.pending-wedding-invitations{display:grid;gap:8px;margin-bottom:16px}
+.pending-invitations-title{margin:3px 2px 0;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7d837f}
+.pending-invite-card{display:flex;align-items:center;gap:11px;padding:12px 13px;border:1px dashed #cfd7cc;border-radius:14px;background:#f4f7f2}
+.pending-invite-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:#e5ece2;color:#566653;flex:0 0 auto}
+.pending-invite-info{display:grid;gap:2px;min-width:0;flex:1}
+.pending-invite-info strong{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pending-invite-info span{font-size:10px;color:#7b827c}
+.pending-invite-card button{border:0;border-radius:9px;padding:7px 9px;background:#fff;color:#7b504c;font-size:10px;font-weight:700;cursor:pointer}
