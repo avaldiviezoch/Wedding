@@ -1,7 +1,10 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1540-menufast2';
+  const VERSION = '20260814-1552-menufast3';
+  let passthrough = false;
+  let queuedClick = false;
+  let authPoll = 0;
 
   function setMenu(open) {
     const body = document.body;
@@ -12,8 +15,53 @@
 
     body.classList.toggle('menu-open', Boolean(open));
     button.setAttribute('aria-expanded', open ? 'true' : 'false');
+    button.removeAttribute('aria-busy');
     drawer.setAttribute('aria-hidden', open ? 'false' : 'true');
     backdrop.setAttribute('aria-hidden', open ? 'false' : 'true');
+  }
+
+  function authState() {
+    const guard = window.WeddingPlannerAuthGuard;
+    if (!guard || !guard.ready) return { ready: false, authenticated: false };
+    return { ready: true, authenticated: Boolean(guard.authenticated) };
+  }
+
+  function releaseQueuedClick() {
+    if (!queuedClick) return;
+    const state = authState();
+    if (!state.ready) return;
+
+    queuedClick = false;
+    const button = document.getElementById('menuButton');
+    button?.removeAttribute('aria-busy');
+
+    if (state.authenticated) {
+      setMenu(true);
+      return;
+    }
+
+    if (button) {
+      passthrough = true;
+      button.click();
+      passthrough = false;
+    }
+  }
+
+  function startAuthPoll() {
+    if (authPoll) return;
+    authPoll = window.setInterval(() => {
+      releaseQueuedClick();
+      if (!queuedClick || authState().ready) {
+        clearInterval(authPoll);
+        authPoll = 0;
+      }
+    }, 60);
+    window.setTimeout(() => {
+      if (authPoll) {
+        clearInterval(authPoll);
+        authPoll = 0;
+      }
+    }, 10000);
   }
 
   function bind() {
@@ -23,6 +71,20 @@
 
     button.dataset.mgdFastMenu = VERSION;
     button.addEventListener('click', (event) => {
+      if (passthrough) return;
+
+      const state = authState();
+      if (!state.ready) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        queuedClick = true;
+        button.setAttribute('aria-busy', 'true');
+        startAuthPoll();
+        return;
+      }
+
+      if (!state.authenticated) return;
+
       event.preventDefault();
       event.stopImmediatePropagation();
       setMenu(!document.body.classList.contains('menu-open'));
@@ -38,6 +100,8 @@
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && document.body.classList.contains('menu-open')) setMenu(false);
     });
+
+    window.addEventListener('migrandia:wedding-context', releaseQueuedClick);
     return true;
   }
 
