@@ -1,0 +1,28 @@
+/* Mi Gran Día · Bandeja RSVP con revisión manual */
+.rsvp-safety-note{padding:13px 15px;border:1px solid #dfe3d3;border-radius:15px;background:#f4f6ed;color:#5d6756;font-size:11px;line-height:1.55}
+.rsvp-safety-note strong{color:#374234}
+.rsvp-response-v2{display:block!important;padding:0!important;overflow:hidden;background:#fcfbf8}
+.rsvp-response-main{display:grid;grid-template-columns:minmax(180px,1.2fr) auto;gap:10px 16px;align-items:start;padding:15px}
+.rsvp-response-summary{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.rsvp-response-v2 .rsvp-detail-chips,.rsvp-admin-tags{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap}
+.rsvp-admin-tag{font-weight:750;background:#eef1e5;color:#5d684d;border:1px solid #dce2cd}
+.rsvp-review-panel{border-top:1px solid #e7e4da;background:#fff}
+.rsvp-review-panel>summary{cursor:pointer;list-style:none;padding:12px 15px;font-size:11px;font-weight:800;color:#4f5948;display:flex;align-items:center;justify-content:space-between}
+.rsvp-review-panel>summary::-webkit-details-marker{display:none}
+.rsvp-review-panel>summary:after{content:'＋';font-size:16px;font-weight:500;color:#899267}
+.rsvp-review-panel[open]>summary:after{content:'−'}
+.rsvp-review-panel[open]>summary{background:#f7f8f2}
+.rsvp-review-panel>div,.rsvp-review-panel>select{margin-left:15px;margin-right:15px}
+.rsvp-review-grid{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:10px;padding-top:14px}
+.rsvp-family-field{min-width:0}
+.rsvp-match-box{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:14px;padding:12px;border:1px solid #e2e5d8;border-radius:13px;background:#f8f9f4}
+.rsvp-match-box strong{display:block;font-size:11px;color:#343c31}
+.rsvp-match-box p{margin:4px 0 0;max-width:620px;font-size:10px;line-height:1.45;color:#777f71}
+.rsvp-no-match{font-size:9px;color:#8a8f86;text-align:right}
+.rsvp-guest-link-select{display:block;width:calc(100% - 30px);box-sizing:border-box;margin-top:10px;min-height:128px;padding:6px;border:1px solid #d9dcd0;border-radius:12px;background:#fff;color:#343a31;font:500 11px/1.35 inherit;outline:none}
+.rsvp-guest-link-select:focus{border-color:#9ca57a;box-shadow:0 0 0 3px rgba(156,165,122,.13)}
+.rsvp-guest-link-select option{padding:7px 8px;border-radius:6px}
+.rsvp-link-help{margin:7px 15px 0;color:#8a9086;font-size:9px;line-height:1.4}
+.rsvp-review-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin:13px 15px 15px;padding-top:12px;border-top:1px solid #eceae3}
+@media(max-width:800px){.rsvp-review-grid{grid-template-columns:1fr}.rsvp-match-box{align-items:flex-start;flex-direction:column}.rsvp-no-match{text-align:left}.rsvp-response-main{grid-template-columns:1fr}.rsvp-response-summary{justify-content:flex-start}}
+@media(max-width:520px){.rsvp-review-actions{justify-content:stretch}.rsvp-review-actions .rsvp-btn{flex:1 1 100%}.rsvp-response-main{padding:12px}.rsvp-review-panel>summary{padding:11px 12px}.rsvp-review-panel>div,.rsvp-review-panel>select{margin-left:12px;margin-right:12px}.rsvp-guest-link-select{width:calc(100% - 24px)}}
