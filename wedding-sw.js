@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wedding-static-v2-20260814-tables-legacy';
+const CACHE_NAME = 'wedding-static-v3-20260814-neweditor-oldlook';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
