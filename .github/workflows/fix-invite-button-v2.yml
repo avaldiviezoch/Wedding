@@ -1,0 +1,192 @@
+name: Corregir invitacion v2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-invite-button-v2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Aplicar correccion robusta
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('app_integral/js/modules/configuracion/weddings.js')
+          s = p.read_text(encoding='utf-8')
+
+          s = s.replace(
+              '<button type="submit" class="wedding-primary-action">Invitar</button>',
+              '<button type="button" id="inviteWeddingButton" class="wedding-primary-action">Invitar</button>',
+              1
+          )
+
+          old = '''  document.getElementById('inviteWeddingMemberForm')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const email = document.getElementById('inviteWeddingEmail')?.value.trim();
+    const role = document.getElementById('inviteWeddingRole')?.value || 'editor';
+    if (!email) return;
+    const submit = event.submitter || event.currentTarget.querySelector('button[type="submit"]');
+    if (submit) submit.disabled = true;
+    setInviteStatus(`Enviando invitación a ${email}…`, 'loading');
+    try {
+      const invitation = await inviteWeddingMember(email, role);
+      event.currentTarget.reset();
+      setInviteStatus(`Invitación pendiente para ${invitation.email}.`, 'success');
+      toast(`Invitación preparada para ${invitation.email}.`);
+      await refreshMembers();
+    } catch (error) {
+      console.error(error);
+      const code = String(error?.code || '');
+      const raw = String(error?.message || '');
+      const message = code.includes('permission-denied') || raw.toLowerCase().includes('permission')
+        ? 'Firebase rechazó la invitación por permisos. Las reglas de acceso compartido todavía no están publicadas.'
+        : (raw || 'No se pudo crear la invitación.');
+      setInviteStatus(message, 'error');
+      toast(message);
+    } finally {
+      if (submit) submit.disabled = false;
+    }
+  });
+'''
+
+          new = '''  const inviteForm = document.getElementById('inviteWeddingMemberForm');
+  const inviteButton = document.getElementById('inviteWeddingButton');
+
+  async function handleInvite() {
+    if (!inviteForm || !inviteButton || inviteButton.dataset.busy === '1') return;
+
+    const emailInput = document.getElementById('inviteWeddingEmail');
+    const roleInput = document.getElementById('inviteWeddingRole');
+    const email = String(emailInput?.value || '').trim();
+    const role = String(roleInput?.value || 'editor');
+
+    if (!email) {
+      emailInput?.focus();
+      emailInput?.reportValidity?.();
+      setInviteStatus('Escribe el correo de la persona que quieres invitar.', 'error');
+      return;
+    }
+    if (emailInput && !emailInput.checkValidity()) {
+      emailInput.reportValidity();
+      setInviteStatus('Revisa el correo electrónico.', 'error');
+      return;
+    }
+
+    const context = getWeddingContext();
+    if (context.legacyMode) {
+      setInviteStatus('Firebase aún no tiene habilitadas las reglas para compartir bodas.', 'error');
+      return;
+    }
+    if (!context.id) {
+      setInviteStatus('No hay una boda activa para compartir.', 'error');
+      return;
+    }
+    if (context.role !== 'owner') {
+      setInviteStatus('Solo el propietario puede invitar personas.', 'error');
+      return;
+    }
+
+    inviteButton.dataset.busy = '1';
+    inviteButton.disabled = true;
+    inviteButton.textContent = 'Enviando…';
+    setInviteStatus(`Enviando invitación a ${email}…`, 'loading');
+
+    try {
+      const invitation = await inviteWeddingMember(email, role);
+      inviteForm.reset();
+      setInviteStatus(`Invitación creada para ${invitation.email}. Quedó pendiente de aceptar.`, 'success');
+      toast(`Invitación preparada para ${invitation.email}.`);
+      await refreshMembers();
+    } catch (error) {
+      console.error('Error al crear invitación:', error);
+      const code = String(error?.code || '');
+      const raw = String(error?.message || '');
+      const denied = code.includes('permission-denied') || raw.toLowerCase().includes('permission') || raw.toLowerCase().includes('permis');
+      const message = denied
+        ? 'Firebase rechazó la invitación por permisos. Hay que publicar las reglas nuevas de Firestore.'
+        : (raw || 'No se pudo crear la invitación.');
+      setInviteStatus(message, 'error');
+      toast(message);
+    } finally {
+      delete inviteButton.dataset.busy;
+      inviteButton.disabled = false;
+      inviteButton.textContent = 'Invitar';
+    }
+  }
+
+  inviteButton?.addEventListener('click', (event) => {
+    event.preventDefault();
+    handleInvite();
+  });
+
+  inviteForm?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    handleInvite();
+  });
+'''
+
+          if old not in s:
+              raise SystemExit('No se encontro el listener antiguo de invitacion')
+          s = s.replace(old, new, 1)
+
+          # Evita currentTarget nulo en el otro formulario asincrono.
+          s = s.replace(
+              "  document.getElementById('createWeddingForm')?.addEventListener('submit', async (event) => {\n    event.preventDefault();",
+              "  document.getElementById('createWeddingForm')?.addEventListener('submit', async (event) => {\n    event.preventDefault();\n    const createForm = event.currentTarget;",
+              1
+          )
+          s = s.replace('      event.currentTarget.reset();\n      await switchWedding(wedding.id);', '      createForm.reset();\n      await switchWedding(wedding.id);', 1)
+          p.write_text(s, encoding='utf-8')
+
+          f = Path('app_integral/js/services/firebase.js')
+          fs = f.read_text(encoding='utf-8')
+          fs = fs.replace(
+              "import('../modules/configuracion/weddings.js').catch((error) => {",
+              "import('../modules/configuracion/weddings.js?v=20260813-2119').catch((error) => {",
+              1
+          )
+          f.write_text(fs, encoding='utf-8')
+
+          h = Path('app_integral/applu.html')
+          hs = h.read_text(encoding='utf-8')
+          hs = hs.replace('src="js/services/firebase.js"', 'src="js/services/firebase.js?v=20260813-2119"', 1)
+          hs = hs.replace('\n  <script type="module" src="js/modules/configuracion/invite-direct.js?v=20260813-2108"></script>', '', 1)
+          h.write_text(hs, encoding='utf-8')
+          PY
+
+      - name: Pruebas estaticas
+        shell: bash
+        run: |
+          cp app_integral/js/services/firebase.js /tmp/firebase.mjs
+          cp app_integral/js/modules/configuracion/weddings.js /tmp/weddings.mjs
+          node --check /tmp/firebase.mjs
+          node --check /tmp/weddings.mjs
+          grep -q 'id="inviteWeddingButton"' app_integral/js/modules/configuracion/weddings.js
+          grep -q "inviteButton?.addEventListener('click'" app_integral/js/modules/configuracion/weddings.js
+          grep -q "inviteForm.reset()" app_integral/js/modules/configuracion/weddings.js
+          grep -q 'firebase.js?v=20260813-2119' app_integral/applu.html
+          grep -q 'weddings.js?v=20260813-2119' app_integral/js/services/firebase.js
+          ! grep -q 'invite-direct.js' app_integral/applu.html
+          echo 'PRUEBAS OK'
+
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app_integral
+          git diff --cached --quiet && exit 0
+          git commit -m "Corregir definitivamente el boton Invitar"
+          git push origin HEAD:main
