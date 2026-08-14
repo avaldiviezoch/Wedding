@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1532-tableslazy1';
+  const VERSION = '20260814-1602-tableslazy2';
   let tablesRuntime = null;
 
   function loadTablesRuntime() {
@@ -26,7 +26,8 @@
   function tablesVisible(doc) {
     const view = doc?.getElementById('tablesView');
     if (!view) return false;
-    return !view.hidden && getComputedStyle(view).display !== 'none';
+    const display = doc.defaultView?.getComputedStyle(view)?.display || '';
+    return !view.hidden && display !== 'none';
   }
 
   function bindGuestFrame(frame) {
