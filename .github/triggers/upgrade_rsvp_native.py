@@ -55,16 +55,28 @@ marker = """      window.addEventListener('beforeunload',() => {
 
       loadState();"""
 
+patched_real_html = False
 for field in ['html', 'previewHtml']:
     encoded = modules.get('invitados', {}).get(field) or ''
     if not encoded:
         continue
     decoded = base64.b64decode(encoded).decode('utf-8')
-    if 'MIGRANDIA_RSVP_SYNC' not in decoded:
-        if marker not in decoded:
-            raise RuntimeError(f'No se encontró punto de inserción RSVP en invitados.{field}')
-        decoded = decoded.replace(marker, listener + marker, 1)
+    if 'MIGRANDIA_RSVP_SYNC' in decoded:
+        if field == 'html':
+            patched_real_html = True
+        continue
+    if marker not in decoded:
+        # previewHtml es una versión reducida y no contiene todo el IIFE.
+        if field == 'html':
+            raise RuntimeError('No se encontró punto de inserción RSVP en invitados.html')
+        continue
+    decoded = decoded.replace(marker, listener + marker, 1)
     modules['invitados'][field] = base64.b64encode(decoded.encode('utf-8')).decode('ascii')
+    if field == 'html':
+        patched_real_html = True
+
+if not patched_real_html:
+    raise RuntimeError('No se pudo integrar el receptor RSVP en invitados.html')
 
 new_json = json.dumps(modules, ensure_ascii=False, separators=(',', ':'))
 legacy = legacy[:json_start] + new_json + legacy[json_end:]
