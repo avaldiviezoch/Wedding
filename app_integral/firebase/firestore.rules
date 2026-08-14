@@ -79,6 +79,80 @@ service cloud.firestore {
         && getAfter(weddingPath(weddingId)).data.ownerUid == request.auth.uid;
     }
 
+    function publicRsvpPath(token) {
+      return /databases/$(database)/documents/publicRsvp/$(token);
+    }
+
+    function publicRsvpExists(token) {
+      return exists(publicRsvpPath(token));
+    }
+
+    function publicRsvpWedding(token) {
+      return get(publicRsvpPath(token)).data.get('weddingId', '');
+    }
+
+    function publicRsvpActive(token) {
+      return publicRsvpExists(token)
+        && get(publicRsvpPath(token)).data.get('active', false) == true;
+    }
+
+    function publicRsvpMaxGuests(token) {
+      return get(publicRsvpPath(token)).data.get('maxGuests', 1);
+    }
+
+    function validRsvpSubmission(token) {
+      return request.resource.data.keys().hasOnly([
+          'version',
+          'name',
+          'attendance',
+          'quantity',
+          'companions',
+          'menu',
+          'email',
+          'phone',
+          'restriction',
+          'notes',
+          'customData',
+          'editToken',
+          'clientDate',
+          'source',
+          'submittedAt',
+          'updatedAt'
+        ])
+        && request.resource.data.version == 1
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 120
+        && request.resource.data.attendance in ['confirmed', 'declined', 'tentative']
+        && request.resource.data.quantity is int
+        && request.resource.data.quantity >= 0
+        && request.resource.data.quantity <= publicRsvpMaxGuests(token)
+        && (
+          (request.resource.data.attendance == 'declined' && request.resource.data.quantity == 0)
+          || (request.resource.data.attendance != 'declined' && request.resource.data.quantity >= 1)
+        )
+        && request.resource.data.companions is list
+        && request.resource.data.companions.size() <= publicRsvpMaxGuests(token)
+        && request.resource.data.menu is string
+        && request.resource.data.menu.size() <= 120
+        && request.resource.data.email is string
+        && request.resource.data.email.size() <= 120
+        && request.resource.data.phone is string
+        && request.resource.data.phone.size() <= 60
+        && request.resource.data.restriction is string
+        && request.resource.data.restriction.size() <= 160
+        && request.resource.data.notes is string
+        && request.resource.data.notes.size() <= 700
+        && request.resource.data.customData is map
+        && request.resource.data.customData.keys().size() <= 15
+        && request.resource.data.editToken is string
+        && request.resource.data.editToken.size() >= 30
+        && request.resource.data.editToken.size() <= 180
+        && request.resource.data.clientDate is string
+        && request.resource.data.clientDate.size() <= 60
+        && request.resource.data.source == 'public-rsvp';
+    }
+
     match /users/{uid} {
       allow read, create, update, delete: if signedIn() && request.auth.uid == uid;
 
@@ -136,6 +210,11 @@ service cloud.firestore {
         allow read: if hasActiveMembership(weddingId);
         allow write: if canEditPlanner(weddingId);
       }
+
+      match /rsvpConfig/{configId} {
+        allow read: if hasActiveMembership(weddingId);
+        allow create, update, delete: if canEditPlanner(weddingId);
+      }
     }
 
     match /invitations/{inviteId} {
@@ -168,6 +247,42 @@ service cloud.firestore {
           resource.data.email == authEmail()
           || canManageTeam(resource.data.weddingId)
         );
+    }
+
+    // Configuración pública del formulario RSVP. El token largo funciona como
+    // enlace no enumerado; solo se puede leer públicamente mientras esté activo.
+    match /publicRsvp/{token} {
+      allow read: if resource.data.get('active', false) == true
+        || (signedIn() && hasActiveMembership(resource.data.get('weddingId', '')));
+
+      allow create: if signedIn()
+        && canEditPlanner(request.resource.data.get('weddingId', ''));
+
+      allow update, delete: if signedIn()
+        && canEditPlanner(resource.data.get('weddingId', ''));
+
+      match /responses/{responseId} {
+        // El invitado no necesita cuenta. Puede crear una respuesta limitada
+        // por la configuración pública y actualizarla únicamente con su editToken.
+        allow create: if publicRsvpActive(token)
+          && validRsvpSubmission(token);
+
+        allow update: if (
+            publicRsvpActive(token)
+            && validRsvpSubmission(token)
+            && resource.data.editToken is string
+            && request.resource.data.editToken == resource.data.editToken
+          ) || (
+            signedIn()
+            && canEditPlanner(publicRsvpWedding(token))
+          );
+
+        allow read: if signedIn()
+          && hasActiveMembership(publicRsvpWedding(token));
+
+        allow delete: if signedIn()
+          && canEditPlanner(publicRsvpWedding(token));
+      }
     }
   }
 }
