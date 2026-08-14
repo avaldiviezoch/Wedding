@@ -3571,7 +3571,7 @@ window.WeddingPlannerAuthGuard = { ready:false, authenticated:false, uid:'' };
 
       if (cloudBackup) {
         await bridge.restoreCloudBackup(cloudBackup);
-        bridge.showToast('Tus datos se cargaron desde Firebase.');
+        
       } else if (localOwner && localOwner !== user.uid) {
         // Este navegador pertenecía a otra cuenta: jamás reutilizar esos datos.
         await bridge.clearLocalUserData();
