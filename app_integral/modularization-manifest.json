@@ -1,0 +1,78 @@
+{
+  "files": {
+    "app_integral/applu.html": {
+      "styles": [
+        {
+          "file": "app_integral/css/legacy/applu-style-01.css",
+          "bytes": 34582
+        }
+      ],
+      "scripts": [
+        {
+          "file": "app_integral/js/legacy/applu-script-01.js",
+          "bytes": 10456046,
+          "firebase": false
+        },
+        {
+          "file": "app_integral/js/services/firebase.js",
+          "bytes": 15677,
+          "firebase": true
+        }
+      ],
+      "skipped_scripts": 0,
+      "before_bytes": 10520582,
+      "after_bytes": 14387
+    },
+    "app_integral/appludesktop.html": {
+      "styles": [
+        {
+          "file": "app_integral/css/legacy/appludesktop-style-01.css",
+          "bytes": 27397
+        }
+      ],
+      "scripts": [
+        {
+          "file": "app_integral/js/legacy/appludesktop-script-01.js",
+          "bytes": 94719,
+          "firebase": false
+        },
+        {
+          "file": "app_integral/js/legacy/appludesktop-script-02.js",
+          "bytes": 381,
+          "firebase": false
+        }
+      ],
+      "skipped_scripts": 0,
+      "before_bytes": 3628172,
+      "after_bytes": 3505811
+    },
+    "app_integral/applumovil.html": {
+      "styles": [
+        {
+          "file": "app_integral/css/legacy/applumovil-style-01.css",
+          "bytes": 43015
+        }
+      ],
+      "scripts": [
+        {
+          "file": "app_integral/js/legacy/applumovil-script-01.js",
+          "bytes": 99662,
+          "firebase": false
+        },
+        {
+          "file": "app_integral/js/legacy/applumovil-script-02.js",
+          "bytes": 6366,
+          "firebase": false
+        },
+        {
+          "file": "app_integral/js/legacy/applumovil-script-03.js",
+          "bytes": 381,
+          "firebase": false
+        }
+      ],
+      "skipped_scripts": 0,
+      "before_bytes": 3657257,
+      "after_bytes": 3508003
+    }
+  }
+}
