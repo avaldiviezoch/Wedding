@@ -10,21 +10,46 @@ import {
   saveRsvpConfig,
   subscribeRsvpResponses
 } from './rsvp-service.js?v=20260814-1205-rsvp1';
+import { db, getWeddingContext } from '../../services/firebase.js?v=20260814-1136-collab1';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  onSnapshot,
+  serverTimestamp,
+  setDoc
+} from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
 export const moduleId = 'invitados';
 
-const VERSION = '20260814-1205-rsvp1';
+const VERSION = '20260814-1242-rsvp2';
 const GUEST_STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 const RSVP_CSS_URL = new URL(`css/modules/invitados-rsvp.css?v=${VERSION}`, document.baseURI).href;
+const RSVP_MANAGEMENT_CSS_URL = new URL(`css/modules/invitados-rsvp-management.css?v=${VERSION}`, document.baseURI).href;
+
+const SIDE_LABELS = Object.freeze({
+  novio: 'Del novio',
+  novia: 'De la novia',
+  ambos: 'De ambos'
+});
+
+const GROUP_LABELS = Object.freeze({
+  familia: 'Familia',
+  amigos: 'Amigos',
+  trabajo: 'Trabajo',
+  otros: 'Otros'
+});
 
 let guestFrame = null;
 let guestDocument = null;
 let rsvpConfig = null;
 let responses = [];
+let responseManagement = new Map();
 let unsubscribeResponses = null;
+let unsubscribeManagement = null;
 let attachTimer = 0;
-let lastSyncSignature = '';
 
 function escapeHtml(value = '') {
   return String(value)
@@ -44,6 +69,10 @@ function normalizeName(value = '') {
     .toLowerCase();
 }
 
+function cleanText(value = '', max = 160) {
+  return String(value ?? '').trim().slice(0, max);
+}
+
 function formatDate(value) {
   const date = value instanceof Date ? value : value ? new Date(value) : null;
   if (!date || Number.isNaN(date.getTime())) return 'Sin fecha';
@@ -54,6 +83,81 @@ function formatDate(value) {
 
 function statusLabel(status) {
   return RSVP_ATTENDANCE[status] || status || 'Pendiente';
+}
+
+function currentWedding() {
+  const context = getWeddingContext();
+  if (!context?.id || context.legacyMode) throw new Error('No hay una boda activa para administrar el RSVP.');
+  return context;
+}
+
+function canEditWedding() {
+  const role = getWeddingContext()?.role || 'viewer';
+  return ['owner', 'admin', 'editor'].includes(role);
+}
+
+function managementCollection() {
+  const context = currentWedding();
+  return collection(db, 'weddings', context.id, 'rsvpManagement');
+}
+
+function managementDocId(token, responseId) {
+  return `${cleanText(token, 180)}__${cleanText(responseId, 180)}`;
+}
+
+async function listManagement(token) {
+  if (!token) return [];
+  const snaps = await getDocs(managementCollection());
+  return snaps.docs
+    .map((snap) => ({ id: snap.id, ...(snap.data() || {}) }))
+    .filter((item) => item.token === token);
+}
+
+function subscribeManagement(token, onData, onError = console.error) {
+  if (!token) {
+    onData?.([]);
+    return () => {};
+  }
+  return onSnapshot(managementCollection(), (snaps) => {
+    onData?.(
+      snaps.docs
+        .map((snap) => ({ id: snap.id, ...(snap.data() || {}) }))
+        .filter((item) => item.token === token)
+    );
+  }, onError);
+}
+
+async function saveManagement(token, responseId, input = {}) {
+  if (!canEditWedding()) throw new Error('Tu rol no permite clasificar ni vincular respuestas RSVP.');
+  const context = currentWedding();
+  const linkedGuestIds = Array.isArray(input.linkedGuestIds)
+    ? [...new Set(input.linkedGuestIds.map((item) => cleanText(item, 180)).filter(Boolean))].slice(0, 40)
+    : [];
+  const side = ['novio', 'novia', 'ambos'].includes(input.side) ? input.side : '';
+  const group = ['familia', 'amigos', 'trabajo', 'otros'].includes(input.group) ? input.group : '';
+  const payload = {
+    version: 1,
+    token,
+    responseId,
+    weddingId: context.id,
+    side,
+    group,
+    familyLabel: cleanText(input.familyLabel, 100),
+    linkedGuestIds,
+    reviewed: true,
+    updatedAt: serverTimestamp()
+  };
+  await setDoc(
+    doc(db, 'weddings', context.id, 'rsvpManagement', managementDocId(token, responseId)),
+    payload,
+    { merge: true }
+  );
+  return payload;
+}
+
+async function deleteManagement(token, responseId) {
+  const context = currentWedding();
+  await deleteDoc(doc(db, 'weddings', context.id, 'rsvpManagement', managementDocId(token, responseId)));
 }
 
 function readGuestState() {
@@ -75,7 +179,7 @@ function buildSharedState(data) {
   const guests = Array.isArray(data.guests) ? data.guests : [];
   const tables = Array.isArray(data.tables) ? data.tables : [];
   return {
-    version: 1,
+    version: 2,
     updatedAt: new Date().toISOString(),
     source: 'invitados',
     guests: guests.map((guest) => ({
@@ -90,7 +194,12 @@ function buildSharedState(data) {
       seatNumber: guest.seatNumber ?? null,
       photoId: guest.photoId || '',
       photoThumb: guest.photoThumb || '',
-      notes: guest.notes || ''
+      notes: guest.notes || '',
+      rsvpResponseId: guest.rsvpResponseId || '',
+      rsvpResponseName: guest.rsvpResponseName || '',
+      rsvpGroup: guest.rsvpGroup || '',
+      rsvpFamilyLabel: guest.rsvpFamilyLabel || '',
+      rsvpTags: Array.isArray(guest.rsvpTags) ? guest.rsvpTags : []
     })),
     tables: tables.map((table) => ({
       ...table,
@@ -102,203 +211,143 @@ function buildSharedState(data) {
   };
 }
 
-function effectiveResponses(items = responses) {
-  const byName = new Map();
-  [...items]
-    .sort((a, b) => {
-      const ta = a.submittedAtDate?.getTime?.() || a.updatedAtDate?.getTime?.() || 0;
-      const tb = b.submittedAtDate?.getTime?.() || b.updatedAtDate?.getTime?.() || 0;
-      return tb - ta;
-    })
-    .forEach((item) => {
-      const key = normalizeName(item.name);
-      if (!key || byName.has(key)) return;
-      byName.set(key, item);
-    });
-  return [...byName.values()];
-}
-
-function responseNote(response) {
-  const parts = [];
-  if (response.menu) parts.push(`Menú: ${response.menu}`);
-  if (response.quantity) parts.push(`Cantidad RSVP: ${response.quantity}`);
-  if (response.customData && typeof response.customData === 'object') {
-    const custom = Object.entries(response.customData)
-      .filter(([, value]) => String(value ?? '').trim())
-      .slice(0, 4)
-      .map(([key, value]) => `${key}: ${value}`);
-    parts.push(...custom);
-  }
-  return parts.length ? `[RSVP] ${parts.join(' · ')}` : '';
-}
-
-function mergeRsvpIntoGuests(items = responses) {
-  const data = readGuestState();
-  const originalGuests = data.guests || [];
-  let guests = originalGuests.map((guest) => ({ ...guest }));
-  const latest = effectiveResponses(items);
-
-  latest.forEach((response) => {
-    const attendance = ['confirmed', 'declined', 'tentative'].includes(response.attendance)
-      ? response.attendance
-      : 'pending';
-    const guestStatus = attendance === 'confirmed'
-      ? 'confirmed'
-      : attendance === 'declined'
-        ? 'declined'
-        : 'pending';
-    const mainName = String(response.name || '').trim();
-    if (!mainName) return;
-
-    const responsePrefix = `rsvp_${String(response.id || '').replace(/[^a-zA-Z0-9_-]/g, '')}`;
-    const mainKey = normalizeName(mainName);
-    let mainGuest = guests.find((guest) => normalizeName(guest.name) === mainKey);
-    if (!mainGuest) {
-      mainGuest = {
-        id: `${responsePrefix}_main`,
-        name: mainName,
-        status: 'pending',
-        invitationSent: true,
-        side: 'ambos',
-        relation: '',
-        phone: '',
-        email: '',
-        restriction: 'Ninguna',
-        tableId: '',
-        seatNumber: null,
-        photoId: '',
-        photoThumb: '',
-        notes: '',
-        order: guests.length,
-        createdAt: new Date().toISOString()
-      };
-      guests.push(mainGuest);
-    }
-
-    mainGuest.name = mainName;
-    mainGuest.status = guestStatus;
-    mainGuest.invitationSent = true;
-    if (response.phone) mainGuest.phone = String(response.phone).trim();
-    if (response.email) mainGuest.email = String(response.email).trim();
-    if (response.restriction) mainGuest.restriction = String(response.restriction).trim();
-    const note = responseNote(response);
-    if (note) {
-      const previous = String(mainGuest.notes || '')
-        .split('\n')
-        .filter((line) => !line.trim().startsWith('[RSVP]'))
-        .join('\n')
-        .trim();
-      mainGuest.notes = [previous, note].filter(Boolean).join('\n');
-    }
-
-    const desiredCompanions = attendance === 'confirmed'
-      ? Math.max(0, Math.min(19, Number(response.quantity || 1) - 1))
-      : 0;
-    const companionNames = Array.isArray(response.companions) ? response.companions : [];
-    const desiredIds = new Set();
-
-    for (let index = 0; index < desiredCompanions; index++) {
-      const companionName = String(companionNames[index] || '').trim()
-        || `Acompañante de ${mainName} ${index + 1}`;
-      const companionKey = normalizeName(companionName);
-      let companion = guests.find((guest) => normalizeName(guest.name) === companionKey);
-      const generatedId = `${responsePrefix}_c${index + 1}`;
-      desiredIds.add(generatedId);
-
-      if (!companion) {
-        companion = {
-          id: generatedId,
-          name: companionName,
-          status: 'confirmed',
-          invitationSent: true,
-          side: mainGuest.side || 'ambos',
-          relation: mainGuest.relation || `Acompañante de ${mainName}`,
-          phone: '',
-          email: '',
-          restriction: 'Ninguna',
-          tableId: '',
-          seatNumber: null,
-          photoId: '',
-          photoThumb: '',
-          notes: `[RSVP] Acompañante de ${mainName}`,
-          order: guests.length,
-          createdAt: new Date().toISOString()
-        };
-        guests.push(companion);
-      } else {
-        companion.status = 'confirmed';
-        companion.invitationSent = true;
-      }
-    }
-
-    guests = guests.filter((guest) => {
-      if (!String(guest.id || '').startsWith(`${responsePrefix}_c`)) return true;
-      return desiredIds.has(guest.id);
-    });
-  });
-
-  guests.forEach((guest, index) => { guest.order = index; });
-  return { ...data, guests };
-}
-
-function guestSyncSignature(data) {
-  return JSON.stringify((data.guests || []).map((guest) => [
-    guest.id, guest.name, guest.status, guest.invitationSent, guest.email, guest.phone,
-    guest.restriction, guest.tableId, guest.seatNumber, guest.notes
-  ]));
-}
-
-function synchronizeResponsesWithGuests(force = false) {
-  if (!responses.length) return false;
-  const merged = mergeRsvpIntoGuests(responses);
-  const signature = guestSyncSignature(merged);
-  if (!force && signature === lastSyncSignature) return false;
-  lastSyncSignature = signature;
-
-  localStorage.setItem(GUEST_STORAGE_KEY, JSON.stringify(merged));
-  const shared = buildSharedState(merged);
+function writeGuestState(data, source = 'rsvp-manual-link') {
+  localStorage.setItem(GUEST_STORAGE_KEY, JSON.stringify(data));
+  const shared = buildSharedState(data);
   localStorage.setItem(SHARED_STORAGE_KEY, JSON.stringify(shared));
 
   try {
     guestFrame?.contentWindow?.postMessage({
       type: 'MIGRANDIA_RSVP_SYNC',
-      payload: { guests: merged.guests, tables: merged.tables }
+      payload: { guests: data.guests || [], tables: data.tables || [] }
     }, '*');
   } catch (error) {
     console.warn('No se pudo refrescar Invitados en caliente:', error);
   }
 
   window.dispatchEvent(new CustomEvent('migrandia:datachange', {
-    detail: { source: 'rsvp', guests: merged.guests.length }
+    detail: { source, guests: (data.guests || []).length }
   }));
-  return true;
+}
+
+function effectiveResponses(items = responses) {
+  return [...items].sort((a, b) => {
+    const ta = a.submittedAtDate?.getTime?.() || a.updatedAtDate?.getTime?.() || new Date(a.clientDate || 0).getTime() || 0;
+    const tb = b.submittedAtDate?.getTime?.() || b.updatedAtDate?.getTime?.() || new Date(b.clientDate || 0).getTime() || 0;
+    return tb - ta;
+  });
+}
+
+function responseById(responseId) {
+  return responses.find((item) => String(item.id) === String(responseId));
+}
+
+function guestStatusFromAttendance(attendance) {
+  if (attendance === 'confirmed') return 'confirmed';
+  if (attendance === 'declined') return 'declined';
+  return 'pending';
+}
+
+function responseTags(response, meta = {}) {
+  const tags = [statusLabel(response?.attendance)];
+  if (meta.group && GROUP_LABELS[meta.group]) tags.push(GROUP_LABELS[meta.group]);
+  if (meta.side && SIDE_LABELS[meta.side]) tags.push(SIDE_LABELS[meta.side]);
+  if (meta.familyLabel) tags.push(meta.familyLabel);
+  return [...new Set(tags.filter(Boolean))];
+}
+
+function suggestedGuestIds(response) {
+  const data = readGuestState();
+  const wantedNames = [response?.name, ...(Array.isArray(response?.companions) ? response.companions : [])]
+    .map(normalizeName)
+    .filter(Boolean);
+  if (!wantedNames.length) return [];
+  const wanted = new Set(wantedNames);
+  return (data.guests || [])
+    .filter((guest) => wanted.has(normalizeName(guest.name)))
+    .map((guest) => guest.id);
+}
+
+function applyResponseToGuests(response, meta) {
+  if (!response) throw new Error('No se encontró la respuesta RSVP.');
+  const selected = new Set(Array.isArray(meta.linkedGuestIds) ? meta.linkedGuestIds : []);
+  if (!selected.size) throw new Error('Selecciona al menos un invitado de tu lista antes de aplicar.');
+
+  const data = readGuestState();
+  const previous = responseManagement.get(response.id) || {};
+  const previousLinked = new Set(Array.isArray(previous.linkedGuestIds) ? previous.linkedGuestIds : []);
+  const tags = responseTags(response, meta);
+  const status = guestStatusFromAttendance(response.attendance);
+  const timestamp = new Date().toISOString();
+
+  const guests = (data.guests || []).map((guest) => {
+    const next = { ...guest };
+
+    if (previousLinked.has(next.id) && !selected.has(next.id) && next.rsvpResponseId === response.id) {
+      delete next.rsvpResponseId;
+      delete next.rsvpResponseName;
+      delete next.rsvpGroup;
+      delete next.rsvpFamilyLabel;
+      delete next.rsvpTags;
+      delete next.rsvpLinkedAt;
+    }
+
+    if (!selected.has(next.id)) return next;
+
+    next.status = status;
+    if (meta.side) next.side = meta.side;
+    next.rsvpResponseId = response.id;
+    next.rsvpResponseName = cleanText(response.name, 120);
+    next.rsvpGroup = meta.group || '';
+    next.rsvpFamilyLabel = meta.familyLabel || '';
+    next.rsvpTags = tags;
+    next.rsvpLinkedAt = timestamp;
+
+    if (meta.familyLabel && !String(next.relation || '').trim()) {
+      next.relation = meta.familyLabel;
+    }
+
+    const rsvpLine = `[RSVP] ${tags.join(' · ')} · respuesta de ${cleanText(response.name, 120)}`;
+    const previousNotes = String(next.notes || '')
+      .split('\n')
+      .filter((line) => !line.trim().startsWith('[RSVP]'))
+      .join('\n')
+      .trim();
+    next.notes = [previousNotes, rsvpLine].filter(Boolean).join('\n');
+    return next;
+  });
+
+  writeGuestState({ ...data, guests });
+  return selected.size;
 }
 
 function calculateKpis() {
-  const roster = readGuestState().guests || [];
   const latest = effectiveResponses();
   const confirmed = latest.filter((item) => item.attendance === 'confirmed');
   const declined = latest.filter((item) => item.attendance === 'declined');
-  const tentative = latest.filter((item) => item.attendance === 'tentative');
   const peopleConfirmed = confirmed.reduce((sum, item) => sum + Math.max(1, Number(item.quantity || 1)), 0);
-  const pending = roster.filter((guest) => guest.status === 'pending').length;
+  const unreviewed = latest.filter((item) => !responseManagement.get(item.id)?.reviewed).length;
   return {
     responses: latest.length,
     confirmed: confirmed.length,
     peopleConfirmed,
-    pending,
-    declined: declined.length,
-    tentative: tentative.length
+    unreviewed,
+    declined: declined.length
   };
 }
 
 function ensureStyles(doc) {
-  if (doc.querySelector('link[data-rsvp-native-css]')) return;
-  const link = doc.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = RSVP_CSS_URL;
-  link.dataset.rsvpNativeCss = 'true';
-  doc.head.appendChild(link);
+  [
+    ['rsvpNativeCss', RSVP_CSS_URL],
+    ['rsvpManagementCss', RSVP_MANAGEMENT_CSS_URL]
+  ].forEach(([key, href]) => {
+    if (doc.querySelector(`link[data-${key}]`)) return;
+    const link = doc.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    link.dataset[key] = 'true';
+    doc.head.appendChild(link);
+  });
 }
 
 function panelMarkup() {
@@ -308,7 +357,7 @@ function panelMarkup() {
         <div>
           <span class="rsvp-admin-eyebrow">Confirmaciones · Firebase</span>
           <h2>RSVP nativo</h2>
-          <p>Recibe confirmaciones directamente en tu boda, controla cupos y campos, y sincroniza automáticamente los estados con Invitados, Mesas y Distribución.</p>
+          <p>Funciona para invitaciones digitales sin alterar automáticamente tu lista. Cada respuesta entra primero a una bandeja de revisión y el administrador decide a qué invitados o grupo familiar corresponde.</p>
           <span class="rsvp-publish-state" id="rsvpPublishState">Sin publicar</span>
         </div>
         <div class="rsvp-admin-actions">
@@ -317,16 +366,20 @@ function panelMarkup() {
         </div>
       </section>
 
+      <div class="rsvp-safety-note">
+        <strong>Control manual.</strong> Si una persona escribe cualquier nombre, su respuesta se conserva tal cual. Si coincide con alguien de tu lista, Mi Gran Día solo lo sugiere; no crea, elimina ni cambia invitados hasta que tú pulses “Aplicar a invitados”.
+      </div>
+
       <section class="rsvp-kpis">
-        <article class="rsvp-kpi"><span>Respondieron</span><strong id="rsvpKpiResponses">0</strong></article>
+        <article class="rsvp-kpi"><span>Respuestas</span><strong id="rsvpKpiResponses">0</strong></article>
         <article class="rsvp-kpi"><span>Confirmaciones</span><strong id="rsvpKpiConfirmed">0</strong></article>
         <article class="rsvp-kpi"><span>Personas confirmadas</span><strong id="rsvpKpiPeople">0</strong></article>
-        <article class="rsvp-kpi"><span>Pendientes en lista</span><strong id="rsvpKpiPending">0</strong></article>
+        <article class="rsvp-kpi"><span>Por revisar</span><strong id="rsvpKpiPending">0</strong></article>
         <article class="rsvp-kpi"><span>No asistirán</span><strong id="rsvpKpiDeclined">0</strong></article>
       </section>
 
       <nav class="rsvp-admin-tabs" aria-label="RSVP">
-        <button class="rsvp-admin-tab is-active" type="button" data-rsvp-pane-tab="responses">Respuestas</button>
+        <button class="rsvp-admin-tab is-active" type="button" data-rsvp-pane-tab="responses">Bandeja RSVP</button>
         <button class="rsvp-admin-tab" type="button" data-rsvp-pane-tab="form">Formulario</button>
         <button class="rsvp-admin-tab" type="button" data-rsvp-pane-tab="integrate">&lt;/&gt; Integrar</button>
       </nav>
@@ -334,7 +387,10 @@ function panelMarkup() {
       <section class="rsvp-pane is-active" data-rsvp-pane="responses">
         <div class="rsvp-card">
           <div class="rsvp-card-head">
-            <div><h3>Confirmaciones recibidas</h3><p>La respuesta más reciente de cada nombre alimenta automáticamente la lista de invitados.</p></div>
+            <div>
+              <h3>Respuestas recibidas</h3>
+              <p>Clasifica cada respuesta como Familia, Amigos, Trabajo u Otros; indica si corresponde al novio, a la novia o a ambos y vincúlala con uno o varios invitados existentes.</p>
+            </div>
             <span class="rsvp-sync-state" id="rsvpSyncState">Esperando respuestas</span>
           </div>
           <div class="rsvp-responses-list" id="rsvpResponsesList"></div>
@@ -343,7 +399,7 @@ function panelMarkup() {
 
       <section class="rsvp-pane" data-rsvp-pane="form">
         <div class="rsvp-card">
-          <div class="rsvp-card-head"><div><h3>Campos del formulario</h3><p>Fecha, Nombre, Asistencia y Cantidad son la base. Tú eliges el resto.</p></div></div>
+          <div class="rsvp-card-head"><div><h3>Campos del formulario</h3><p>Nombre, Asistencia y Cantidad son la base. El nombre identifica la respuesta, pero no obliga a que exista en la lista de invitados.</p></div></div>
           <div class="rsvp-base-fields">
             <div class="rsvp-base-field"><small>Base</small><strong>Fecha automática</strong></div>
             <div class="rsvp-base-field"><small>Base</small><strong>Nombre</strong></div>
@@ -374,7 +430,7 @@ function panelMarkup() {
 
       <section class="rsvp-pane" data-rsvp-pane="integrate">
         <div class="rsvp-card">
-          <div class="rsvp-card-head"><div><h3>Integrar en tu invitación</h3><p>Usa el enlace directo o inserta el formulario como HTML dentro de cualquiera de tus invitaciones.</p></div></div>
+          <div class="rsvp-card-head"><div><h3>Integrar en tu invitación digital</h3><p>Usa el enlace directo o inserta el formulario como HTML. Las invitaciones impresas pueden seguir administrándose manualmente desde la lista de invitados.</p></div></div>
           <div class="rsvp-integrate-grid">
             <div class="rsvp-code-box">
               <label>Enlace público</label>
@@ -387,7 +443,7 @@ function panelMarkup() {
               <div class="rsvp-copy-actions"><button class="rsvp-btn" id="rsvpCopyEmbed" type="button">Copiar HTML</button><button class="rsvp-btn danger" id="rsvpRegenerateLink" type="button">Regenerar enlace</button></div>
             </div>
           </div>
-          <div class="rsvp-note">El enlace contiene un token largo y no requiere que el invitado tenga cuenta. Las respuestas se guardan en Firestore y solo los colaboradores autorizados de la boda pueden leerlas.</div>
+          <div class="rsvp-note">El enlace contiene un token largo y no requiere cuenta del invitado. Las respuestas permanecen independientes hasta que un administrador las clasifica o vincula.</div>
         </div>
       </section>
     </div>
@@ -398,7 +454,7 @@ function fieldRowMarkup(key, config) {
   return `
     <label class="rsvp-toggle-row" data-built-in-field="${escapeHtml(key)}">
       <input type="checkbox" data-field-enabled ${config.enabled ? 'checked' : ''}>
-      <span class="rsvp-toggle-copy"><strong>${escapeHtml(config.label)}</strong><span>${key === 'companions' ? 'Nombres de quienes acompañan al invitado' : key === 'menu' ? 'Selección de plato o menú' : 'Dato opcional del RSVP'}</span></span>
+      <span class="rsvp-toggle-copy"><strong>${escapeHtml(config.label)}</strong><span>${key === 'companions' ? 'Nombres de quienes acompañan a quien responde' : key === 'menu' ? 'Selección de plato o menú' : 'Dato opcional del RSVP'}</span></span>
       <span class="rsvp-required"><input type="checkbox" data-field-required ${config.required ? 'checked' : ''}> obligatorio</span>
     </label>`;
 }
@@ -431,8 +487,7 @@ function renderConfig(doc) {
   doc.getElementById('rsvpBuiltInFields').innerHTML = Object.entries(rsvpConfig.fields || RSVP_DEFAULT_FIELDS)
     .map(([key, config]) => fieldRowMarkup(key, config)).join('');
   doc.getElementById('rsvpMenuOptions').value = (rsvpConfig.menuOptions || []).join('\n');
-  doc.getElementById('rsvpCustomFields').innerHTML = (rsvpConfig.customFields || [])
-    .map(customFieldMarkup).join('');
+  doc.getElementById('rsvpCustomFields').innerHTML = (rsvpConfig.customFields || []).map(customFieldMarkup).join('');
   updateMenuVisibility(doc);
   renderIntegration(doc);
   renderPublishState(doc);
@@ -465,7 +520,7 @@ function renderKpis(doc) {
     rsvpKpiResponses: kpi.responses,
     rsvpKpiConfirmed: kpi.confirmed,
     rsvpKpiPeople: kpi.peopleConfirmed,
-    rsvpKpiPending: kpi.pending,
+    rsvpKpiPending: kpi.unreviewed,
     rsvpKpiDeclined: kpi.declined
   };
   Object.entries(values).forEach(([id, value]) => {
@@ -474,30 +529,109 @@ function renderKpis(doc) {
   });
 }
 
+function optionMarkup(guest, selectedIds) {
+  const selected = selectedIds.has(guest.id) ? 'selected' : '';
+  const detail = [guest.status ? statusLabel(guest.status) : '', guest.relation || ''].filter(Boolean).join(' · ');
+  return `<option value="${escapeHtml(guest.id)}" ${selected}>${escapeHtml(guest.name || 'Sin nombre')}${detail ? ` — ${escapeHtml(detail)}` : ''}</option>`;
+}
+
+function renderResponseTags(item, meta) {
+  const tags = responseTags(item, meta);
+  if (meta.reviewed) tags.push('Revisado');
+  if (Array.isArray(meta.linkedGuestIds) && meta.linkedGuestIds.length) tags.push(`${meta.linkedGuestIds.length} vinculado(s)`);
+  else tags.push('Sin vincular');
+  return tags.map((tag) => `<span class="rsvp-chip rsvp-admin-tag">${escapeHtml(tag)}</span>`).join('');
+}
+
 function renderResponses(doc) {
   const host = doc.getElementById('rsvpResponsesList');
   if (!host) return;
   const latest = effectiveResponses();
+  const roster = readGuestState().guests || [];
+
   if (!latest.length) {
-    host.innerHTML = '<div class="rsvp-empty">Todavía no hay respuestas. Publica el enlace RSVP y las confirmaciones aparecerán aquí en tiempo real.</div>';
+    host.innerHTML = '<div class="rsvp-empty">Todavía no hay respuestas. Cuando alguien use el formulario digital, aparecerá aquí exactamente como la persona lo escribió.</div>';
     renderKpis(doc);
     return;
   }
+
   host.innerHTML = latest.map((item) => {
-    const chips = [];
-    if (item.menu) chips.push(`Menú: ${escapeHtml(item.menu)}`);
-    if (item.restriction) chips.push(escapeHtml(item.restriction));
-    if (Array.isArray(item.companions) && item.companions.filter(Boolean).length) chips.push(`${item.companions.filter(Boolean).length} acompañante(s)`);
+    const meta = responseManagement.get(item.id) || {};
+    const selectedIds = new Set(Array.isArray(meta.linkedGuestIds) ? meta.linkedGuestIds : []);
+    const suggestions = suggestedGuestIds(item);
+    const companions = Array.isArray(item.companions) ? item.companions.filter(Boolean) : [];
+    const detailChips = [];
+    if (item.menu) detailChips.push(`Menú: ${item.menu}`);
+    if (item.restriction) detailChips.push(`Restricción: ${item.restriction}`);
+    if (companions.length) detailChips.push(`Acompañantes: ${companions.join(', ')}`);
+    if (item.notes) detailChips.push(`Nota: ${item.notes}`);
+
     return `
-      <article class="rsvp-response">
-        <div class="rsvp-response-name"><strong>${escapeHtml(item.name || 'Sin nombre')}</strong><span>${escapeHtml(item.email || item.phone || '')}</span></div>
-        <span class="rsvp-status ${escapeHtml(item.attendance || 'pending')}">${escapeHtml(statusLabel(item.attendance))}</span>
-        <span class="rsvp-qty">${item.attendance === 'declined' ? '0' : Math.max(1, Number(item.quantity || 1))} pers.</span>
-        <div class="rsvp-detail-chips">${chips.map((chip) => `<span class="rsvp-chip">${chip}</span>`).join('')}</div>
-        <button class="rsvp-btn danger" type="button" data-delete-rsvp="${escapeHtml(item.id)}">Eliminar</button>
-        <span class="rsvp-response-date">${escapeHtml(formatDate(item.submittedAtDate || item.clientDate))}</span>
+      <article class="rsvp-response rsvp-response-v2" data-rsvp-response-id="${escapeHtml(item.id)}">
+        <div class="rsvp-response-main">
+          <div class="rsvp-response-name">
+            <strong>${escapeHtml(item.name || 'Sin nombre')}</strong>
+            <span>${escapeHtml(item.email || item.phone || 'Respuesta sin datos de contacto')}</span>
+          </div>
+          <div class="rsvp-response-summary">
+            <span class="rsvp-status ${escapeHtml(item.attendance || 'pending')}">${escapeHtml(statusLabel(item.attendance))}</span>
+            <span class="rsvp-qty">${item.attendance === 'declined' ? '0' : Math.max(1, Number(item.quantity || 1))} pers.</span>
+            <span class="rsvp-response-date">${escapeHtml(formatDate(item.submittedAtDate || item.clientDate))}</span>
+          </div>
+          <div class="rsvp-detail-chips">${detailChips.map((chip) => `<span class="rsvp-chip">${escapeHtml(chip)}</span>`).join('')}</div>
+          <div class="rsvp-admin-tags">${renderResponseTags(item, meta)}</div>
+        </div>
+
+        <details class="rsvp-review-panel">
+          <summary>Clasificar y vincular</summary>
+          <div class="rsvp-review-grid">
+            <label class="rsvp-field">
+              <span>Tipo / grupo</span>
+              <select data-rsvp-group>
+                <option value="">Sin etiqueta</option>
+                <option value="familia" ${meta.group === 'familia' ? 'selected' : ''}>Familia</option>
+                <option value="amigos" ${meta.group === 'amigos' ? 'selected' : ''}>Amigos</option>
+                <option value="trabajo" ${meta.group === 'trabajo' ? 'selected' : ''}>Trabajo</option>
+                <option value="otros" ${meta.group === 'otros' ? 'selected' : ''}>Otros</option>
+              </select>
+            </label>
+            <label class="rsvp-field">
+              <span>Lado</span>
+              <select data-rsvp-side>
+                <option value="">Sin definir</option>
+                <option value="novio" ${meta.side === 'novio' ? 'selected' : ''}>Del novio</option>
+                <option value="novia" ${meta.side === 'novia' ? 'selected' : ''}>De la novia</option>
+                <option value="ambos" ${meta.side === 'ambos' ? 'selected' : ''}>De ambos</option>
+              </select>
+            </label>
+            <label class="rsvp-field rsvp-family-field">
+              <span>Etiqueta familiar / grupo</span>
+              <input data-rsvp-family-label maxlength="100" placeholder="Ej. Familia García" value="${escapeHtml(meta.familyLabel || '')}">
+            </label>
+          </div>
+
+          <div class="rsvp-match-box">
+            <div>
+              <strong>Vincular con tu lista de invitados</strong>
+              <p>Selecciona una o varias personas que ya existen en tu lista. Una respuesta de “Papá” puede vincularse, por ejemplo, con padre, madre e hija.</p>
+            </div>
+            ${suggestions.length ? `<button class="rsvp-btn" type="button" data-use-rsvp-suggestions data-suggestions="${escapeHtml(suggestions.join(','))}">Usar ${suggestions.length} coincidencia(s)</button>` : '<span class="rsvp-no-match">Sin coincidencia exacta por nombre · selección manual disponible</span>'}
+          </div>
+
+          <select class="rsvp-guest-link-select" data-rsvp-linked-guests multiple size="${Math.min(7, Math.max(4, roster.length || 4))}">
+            ${roster.length ? roster.map((guest) => optionMarkup(guest, selectedIds)).join('') : '<option disabled>No hay invitados cargados todavía</option>'}
+          </select>
+          <div class="rsvp-link-help">Ctrl/Cmd + clic permite elegir varias personas. La cantidad del RSVP es informativa: tú decides exactamente a quién vincular.</div>
+
+          <div class="rsvp-review-actions">
+            <button class="rsvp-btn" type="button" data-save-rsvp-management>Guardar etiquetas</button>
+            <button class="rsvp-btn primary" type="button" data-apply-rsvp-guests>Aplicar a invitados</button>
+            <button class="rsvp-btn danger" type="button" data-delete-rsvp="${escapeHtml(item.id)}">Eliminar respuesta</button>
+          </div>
+        </details>
       </article>`;
   }).join('');
+
   renderKpis(doc);
 }
 
@@ -539,6 +673,15 @@ function collectConfig(doc) {
   };
 }
 
+function collectManagementFromCard(card) {
+  return {
+    group: card.querySelector('[data-rsvp-group]')?.value || '',
+    side: card.querySelector('[data-rsvp-side]')?.value || '',
+    familyLabel: card.querySelector('[data-rsvp-family-label]')?.value.trim() || '',
+    linkedGuestIds: [...(card.querySelector('[data-rsvp-linked-guests]')?.selectedOptions || [])].map((option) => option.value)
+  };
+}
+
 async function copyText(doc, text, button) {
   if (!text) return;
   try {
@@ -563,6 +706,22 @@ function setSyncState(doc, message, type = '') {
   el.className = `rsvp-sync-state${type ? ` is-${type}` : ''}`;
 }
 
+async function persistCardManagement(doc, card, applyToGuests = false) {
+  if (!rsvpConfig?.token) throw new Error('Publica primero el formulario RSVP.');
+  const responseId = card.dataset.rsvpResponseId;
+  const response = responseById(responseId);
+  if (!response) throw new Error('No se encontró la respuesta RSVP.');
+  const meta = collectManagementFromCard(card);
+  const saved = await saveManagement(rsvpConfig.token, responseId, meta);
+
+  if (applyToGuests) {
+    const linked = applyResponseToGuests(response, saved);
+    setSyncState(doc, `${linked} invitado(s) actualizados desde esta respuesta`, 'success');
+  } else {
+    setSyncState(doc, 'Clasificación RSVP guardada', 'success');
+  }
+}
+
 function bindPanel(doc) {
   doc.querySelectorAll('[data-rsvp-pane-tab]').forEach((button) => {
     button.addEventListener('click', () => {
@@ -576,14 +735,14 @@ function bindPanel(doc) {
   });
 
   doc.getElementById('rsvpCustomFields')?.addEventListener('change', (event) => {
-    if (event.target.matches('[data-custom-type]')) {
-      event.target.closest('[data-custom-field]').dataset.type = event.target.value;
-    }
+    if (event.target.matches('[data-custom-type]')) event.target.closest('[data-custom-field]').dataset.type = event.target.value;
   });
+
   doc.getElementById('rsvpCustomFields')?.addEventListener('click', (event) => {
     const button = event.target.closest('[data-remove-custom]');
     button?.closest('[data-custom-field]')?.remove();
   });
+
   doc.getElementById('rsvpAddCustomField')?.addEventListener('click', () => {
     const host = doc.getElementById('rsvpCustomFields');
     const index = host.children.length;
@@ -597,7 +756,7 @@ function bindPanel(doc) {
     try {
       rsvpConfig = await saveRsvpConfig(collectConfig(doc));
       renderConfig(doc);
-      restartSubscription(doc);
+      restartSubscriptions(doc);
       setSyncState(doc, 'Configuración publicada en Firebase', 'success');
     } catch (error) {
       console.error(error);
@@ -608,7 +767,8 @@ function bindPanel(doc) {
     }
   });
 
-  doc.getElementById('rsvpRefreshButton')?.addEventListener('click', () => refreshPanel(doc, true));
+  doc.getElementById('rsvpRefreshButton')?.addEventListener('click', () => refreshPanel(doc));
+
   const openPublic = () => {
     const url = publicRsvpUrl(rsvpConfig?.token || '');
     if (url) window.open(url, '_blank', 'noopener');
@@ -617,15 +777,19 @@ function bindPanel(doc) {
   doc.getElementById('rsvpOpenUrl')?.addEventListener('click', openPublic);
   doc.getElementById('rsvpCopyUrl')?.addEventListener('click', (event) => copyText(doc, publicRsvpUrl(rsvpConfig?.token || ''), event.currentTarget));
   doc.getElementById('rsvpCopyEmbed')?.addEventListener('click', (event) => copyText(doc, rsvpEmbedCode(rsvpConfig?.token || ''), event.currentTarget));
+
   doc.getElementById('rsvpRegenerateLink')?.addEventListener('click', async (event) => {
     if (!confirm('¿Regenerar el enlace RSVP? El enlace anterior dejará de aceptar respuestas.')) return;
     const button = event.currentTarget;
     button.disabled = true;
     try {
       rsvpConfig = await regenerateRsvpToken(collectConfig(doc));
+      responses = [];
+      responseManagement = new Map();
       renderConfig(doc);
-      restartSubscription(doc);
-      setSyncState(doc, 'Nuevo enlace generado. Actualiza el enlace de tus invitaciones.', 'success');
+      renderResponses(doc);
+      restartSubscriptions(doc);
+      setSyncState(doc, 'Nuevo enlace generado. La bandeja corresponde ahora al nuevo formulario.', 'success');
     } catch (error) {
       setSyncState(doc, error?.message || 'No se pudo regenerar el enlace.', 'error');
     } finally {
@@ -634,55 +798,119 @@ function bindPanel(doc) {
   });
 
   doc.getElementById('rsvpResponsesList')?.addEventListener('click', async (event) => {
-    const button = event.target.closest('[data-delete-rsvp]');
-    if (!button || !rsvpConfig?.token) return;
-    if (!confirm('¿Eliminar esta respuesta RSVP?')) return;
-    button.disabled = true;
-    try {
-      await deleteRsvpResponse(rsvpConfig.token, button.dataset.deleteRsvp);
-    } catch (error) {
-      setSyncState(doc, error?.message || 'No se pudo eliminar la respuesta.', 'error');
-      button.disabled = false;
+    const suggestionButton = event.target.closest('[data-use-rsvp-suggestions]');
+    if (suggestionButton) {
+      const card = suggestionButton.closest('[data-rsvp-response-id]');
+      const ids = String(suggestionButton.dataset.suggestions || '').split(',').filter(Boolean);
+      const select = card?.querySelector('[data-rsvp-linked-guests]');
+      if (select) [...select.options].forEach((option) => { option.selected = ids.includes(option.value); });
+      return;
+    }
+
+    const saveButton = event.target.closest('[data-save-rsvp-management]');
+    if (saveButton) {
+      const card = saveButton.closest('[data-rsvp-response-id]');
+      saveButton.disabled = true;
+      try {
+        await persistCardManagement(doc, card, false);
+      } catch (error) {
+        console.error(error);
+        setSyncState(doc, error?.message || 'No se pudo guardar la clasificación.', 'error');
+      } finally {
+        saveButton.disabled = false;
+      }
+      return;
+    }
+
+    const applyButton = event.target.closest('[data-apply-rsvp-guests]');
+    if (applyButton) {
+      const card = applyButton.closest('[data-rsvp-response-id]');
+      applyButton.disabled = true;
+      applyButton.textContent = 'Aplicando…';
+      try {
+        await persistCardManagement(doc, card, true);
+      } catch (error) {
+        console.error(error);
+        setSyncState(doc, error?.message || 'No se pudo aplicar la respuesta a invitados.', 'error');
+      } finally {
+        applyButton.disabled = false;
+        applyButton.textContent = 'Aplicar a invitados';
+      }
+      return;
+    }
+
+    const deleteButton = event.target.closest('[data-delete-rsvp]');
+    if (deleteButton && rsvpConfig?.token) {
+      if (!confirm('¿Eliminar esta respuesta RSVP? La lista de invitados no se eliminará ni se revertirá automáticamente.')) return;
+      deleteButton.disabled = true;
+      try {
+        await deleteRsvpResponse(rsvpConfig.token, deleteButton.dataset.deleteRsvp);
+        await deleteManagement(rsvpConfig.token, deleteButton.dataset.deleteRsvp).catch(() => {});
+      } catch (error) {
+        setSyncState(doc, error?.message || 'No se pudo eliminar la respuesta.', 'error');
+        deleteButton.disabled = false;
+      }
     }
   });
 }
 
-function restartSubscription(doc) {
+function restartSubscriptions(doc) {
   unsubscribeResponses?.();
+  unsubscribeManagement?.();
   unsubscribeResponses = null;
+  unsubscribeManagement = null;
+
   if (!rsvpConfig?.token) {
     responses = [];
+    responseManagement = new Map();
     renderResponses(doc);
     return;
   }
-  unsubscribeResponses = subscribeRsvpResponses(rsvpConfig.token, (items) => {
+
+  const token = rsvpConfig.token;
+  unsubscribeResponses = subscribeRsvpResponses(token, (items) => {
     responses = items;
-    const changed = synchronizeResponsesWithGuests();
     renderResponses(doc);
-    setSyncState(doc, changed ? 'Lista de invitados y mesas sincronizada' : 'Firebase conectado · sincronizado', 'success');
+    setSyncState(doc, 'Bandeja RSVP conectada · revisión manual', 'success');
   }, async (error) => {
     console.error('RSVP snapshot error:', error);
     try {
-      responses = await listRsvpResponses(rsvpConfig.token);
-      synchronizeResponsesWithGuests();
+      responses = await listRsvpResponses(token);
       renderResponses(doc);
       setSyncState(doc, 'Respuestas actualizadas', 'success');
     } catch (fallbackError) {
       setSyncState(doc, fallbackError?.message || 'No se pudieron leer las respuestas.', 'error');
     }
   });
+
+  unsubscribeManagement = subscribeManagement(token, (items) => {
+    responseManagement = new Map(items.map((item) => [item.responseId, item]));
+    renderResponses(doc);
+  }, (error) => {
+    console.error('RSVP management snapshot error:', error);
+    setSyncState(doc, error?.message || 'No se pudieron leer las clasificaciones RSVP.', 'error');
+  });
 }
 
-async function refreshPanel(doc, forceSync = false) {
+async function refreshPanel(doc) {
   setSyncState(doc, 'Cargando RSVP…');
   try {
     rsvpConfig = await loadRsvpConfig();
     renderConfig(doc);
-    responses = rsvpConfig.token ? await listRsvpResponses(rsvpConfig.token) : [];
-    if (forceSync) synchronizeResponsesWithGuests(true);
+    if (rsvpConfig.token) {
+      const [responseItems, managementItems] = await Promise.all([
+        listRsvpResponses(rsvpConfig.token),
+        listManagement(rsvpConfig.token)
+      ]);
+      responses = responseItems;
+      responseManagement = new Map(managementItems.map((item) => [item.responseId, item]));
+    } else {
+      responses = [];
+      responseManagement = new Map();
+    }
     renderResponses(doc);
-    restartSubscription(doc);
-    setSyncState(doc, rsvpConfig.token ? 'Firebase conectado · sincronizado' : 'Configura y publica tu formulario');
+    restartSubscriptions(doc);
+    setSyncState(doc, rsvpConfig.token ? 'Bandeja RSVP conectada · revisión manual' : 'Configura y publica tu formulario');
   } catch (error) {
     console.error('No se pudo cargar RSVP:', error);
     setSyncState(doc, error?.message || 'No se pudo cargar RSVP.', 'error');
@@ -711,6 +939,7 @@ function injectRsvpIntoFrame(frame) {
   let doc;
   try { doc = frame.contentDocument; } catch (_) { return false; }
   if (!doc?.body || !doc.getElementById('guestList') || !doc.querySelector('.view-tabs')) return false;
+
   if (doc.getElementById('rsvpNativeView')) {
     guestFrame = frame;
     guestDocument = doc;
@@ -769,10 +998,12 @@ document.addEventListener('DOMContentLoaded', scanFrames);
 window.addEventListener('load', scanFrames);
 window.addEventListener('migrandia:wedding-context', () => {
   unsubscribeResponses?.();
+  unsubscribeManagement?.();
   unsubscribeResponses = null;
+  unsubscribeManagement = null;
   responses = [];
+  responseManagement = new Map();
   rsvpConfig = null;
-  lastSyncSignature = '';
   if (guestDocument?.getElementById('rsvpNativeView')) refreshPanel(guestDocument);
   scanFrames();
 });
