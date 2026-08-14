@@ -1,4 +1,4 @@
-const VERSION = '20260814-1532-touch1';
+const VERSION = '20260814-1608-touch2';
 const STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 
@@ -134,8 +134,7 @@ function ensureStyle(doc) {
   const style = doc.createElement('style');
   style.id = 'mgdTouchDragStyle';
   style.textContent = `
-    .mgd-guest-drag{display:grid;place-items:center;min-width:34px;min-height:34px;border-radius:10px;touch-action:none;user-select:none;cursor:grab}
-    .mgd-seat.is-occupied{touch-action:none}
+    .mgd-guest-drag{display:grid;place-items:center;min-width:38px;min-height:38px;border-radius:10px;touch-action:none;user-select:none;cursor:grab}
     .mgd-touch-drag-ghost{position:fixed;z-index:10040;left:0;top:0;transform:translate(-50%,-50%);pointer-events:none;padding:9px 12px;border-radius:999px;background:#343a31;color:#fff;font-size:12px;font-weight:700;box-shadow:0 12px 32px rgba(29,34,27,.24);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .mgd-table-card.is-touch-target{outline:3px solid rgba(111,125,93,.25);outline-offset:2px}
     .mgd-seat.is-touch-target{transform:scale(1.18);border-color:rgba(111,125,93,.7);background:#e9f0e3}
@@ -220,12 +219,9 @@ function bindRoot(root, doc) {
   root.addEventListener('pointerdown', (event) => {
     if (!['touch', 'pen'].includes(event.pointerType)) return;
     const dragHandle = event.target.closest('.mgd-guest-drag');
-    const occupiedSeat = event.target.closest('.mgd-seat.is-occupied[data-guest-id]');
-    if (dragHandle) {
-      const item = dragHandle.closest('.mgd-guest-item[data-guest-id]');
-      return startDrag(event, root, item?.dataset.guestId, dragHandle);
-    }
-    if (occupiedSeat) return startDrag(event, root, occupiedSeat.dataset.guestId, occupiedSeat);
+    if (!dragHandle) return;
+    const item = dragHandle.closest('.mgd-guest-item[data-guest-id]');
+    startDrag(event, root, item?.dataset.guestId, dragHandle);
   }, true);
   root.addEventListener('pointermove', (event) => moveDrag(event, root), true);
   root.addEventListener('pointerup', (event) => endDrag(event, root), true);
