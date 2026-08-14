@@ -1,10 +1,13 @@
 # App Integral Wedding
 
-Esta carpeta es el espacio principal de trabajo para la app integral de Wedding.
+Esta carpeta contiene únicamente el módulo integral de planificación y organización de bodas.
 
-- `applu.html`: versión integral principal.
+Archivos principales:
+- `applu.html`: aplicación integral principal.
 - `appludesktop.html`: versión/interfaz de escritorio.
 - `applumovil.html`: versión/interfaz móvil.
-- Los demás HTML, recursos multimedia y `assets/` se mantienen dentro de esta carpeta para conservar las rutas relativas y trabajar sin depender de los archivos de la raíz.
+- `anillo_loop_planifcador.mp4`: recurso visual de portada del planificador.
 
-A partir de esta estructura, los cambios nuevos de la app integral deben realizarse dentro de `app_integral/`. La raíz del repositorio se conserva temporalmente como respaldo de la versión anterior.
+Las invitaciones digitales, sus imágenes, GIF, videos, assets y workflows permanecen fuera de esta carpeta y no forman parte de este módulo.
+
+A partir de ahora, los cambios del planificador integral se trabajarán dentro de `app_integral/`.
