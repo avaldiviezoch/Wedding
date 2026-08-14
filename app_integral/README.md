@@ -1,13 +1,19 @@
-# App Integral Wedding
+# App Integral de Bodas
 
-Esta carpeta contiene únicamente el módulo integral de planificación y organización de bodas.
+Esta carpeta contiene únicamente el planificador integral de bodas.
 
-Archivos principales:
-- `applu.html`: aplicación integral principal.
-- `appludesktop.html`: versión/interfaz de escritorio.
-- `applumovil.html`: versión/interfaz móvil.
-- `anillo_loop_planifcador.mp4`: recurso visual de portada del planificador.
+## Estructura
 
-Las invitaciones digitales, sus imágenes, GIF, videos, assets y workflows permanecen fuera de esta carpeta y no forman parte de este módulo.
+- `applu.html`: entrada principal actual.
+- `css/legacy/`: CSS existente extraído del HTML.
+- `css/core/`: variables, layout y componentes globales.
+- `css/modules/`: estilos separados por módulo.
+- `js/legacy/`: JavaScript heredado todavía no migrado.
+- `js/core/`: núcleo de la aplicación.
+- `js/services/`: Firebase, autenticación, Firestore y almacenamiento.
+- `js/modules/`: lógica por módulo de negocio.
+- `ARCHITECTURE.md`: reglas de arquitectura.
 
-A partir de ahora, los cambios del planificador integral se trabajarán dentro de `app_integral/`.
+## Regla de desarrollo
+
+No volver a agregar bloques grandes de CSS o JavaScript dentro de los HTML. Todo desarrollo nuevo debe ubicarse en `core`, `services` o en el módulo correspondiente. El código de `legacy` se migrará progresivamente para evitar romper funcionalidades existentes.
