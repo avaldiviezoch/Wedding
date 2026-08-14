@@ -1,10 +1,11 @@
-const VERSION = '20260814-1518-canvas1';
+const VERSION = '20260814-1628-canvas2';
 const STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 const ZOOM_KEY = 'migrandia_tables_zoom_v1';
 const DESKTOP_QUERY = '(min-width: 901px)';
-const CARD_W = 304;
+const CARD_MIN_W = 304;
 const CARD_H = 312;
+const SLOT_W = 392;
 const GAP_X = 34;
 const GAP_Y = 34;
 
@@ -13,6 +14,7 @@ let activeDoc = null;
 let zoom = readZoom();
 let drag = null;
 let resizeTimer = 0;
+let canvasRaf = 0;
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, Number(value) || min));
@@ -81,10 +83,32 @@ function isDesktop() {
   return window.matchMedia(DESKTOP_QUERY).matches;
 }
 
+function normalizeType(value) {
+  const clean = String(value || '').toLowerCase();
+  if (['rect', 'rectangle', 'rectangular'].includes(clean)) return 'rectangular';
+  if (['square', 'cuadrada', 'cuadrado'].includes(clean)) return 'square';
+  return 'round';
+}
+
+function cardWidth(table) {
+  const type = normalizeType(table?.type || table?.shape);
+  const capacity = clamp(table?.capacity || table?.seats?.length || 10, 1, 40);
+  if (type === 'rectangular') {
+    const bodyWidth = clamp(142 + Math.max(0, capacity - 6) * 11, 142, 280);
+    return clamp(bodyWidth + 96, CARD_MIN_W, 382);
+  }
+  if (type === 'square') {
+    const bodyWidth = clamp(112 + Math.max(0, capacity - 4) * 5, 112, 160);
+    return Math.max(CARD_MIN_W, bodyWidth + 96);
+  }
+  const bodyWidth = clamp(112 + Math.max(0, capacity - 4) * 4, 112, 172);
+  return Math.max(CARD_MIN_W, bodyWidth + 92);
+}
+
 function defaultPosition(index) {
   const cols = 3;
   return {
-    x: 28 + (index % cols) * (CARD_W + GAP_X),
+    x: 28 + (index % cols) * (SLOT_W + GAP_X),
     y: 28 + Math.floor(index / cols) * (CARD_H + GAP_Y)
   };
 }
@@ -109,10 +133,11 @@ function ensureStyle(doc) {
     .mgd-canvas-shell{position:relative;min-width:100%;min-height:100%}
     .mgd-tables-editor.is-canvas .mgd-canvas-toolbar{display:flex}
     .mgd-tables-editor.is-canvas .mgd-table-grid{display:block!important;position:relative;margin:0;transform-origin:0 0;will-change:transform}
-    .mgd-tables-editor.is-canvas .mgd-table-card{position:absolute!important;width:${CARD_W}px;min-height:${CARD_H}px;margin:0;touch-action:none}
+    .mgd-tables-editor.is-canvas .mgd-table-card{position:absolute!important;min-width:${CARD_MIN_W}px;min-height:${CARD_H}px;margin:0;touch-action:none}
     .mgd-tables-editor.is-canvas .mgd-table-order-tools{display:none!important}
-    .mgd-table-move-handle{display:none;position:absolute;z-index:10;left:10px;top:10px;width:36px;height:36px;border:1px solid rgba(78,88,72,.14);border-radius:50%;background:rgba(255,255,255,.95);color:#66705f;place-items:center;font:inherit;font-size:15px;cursor:grab;box-shadow:0 4px 13px rgba(58,65,52,.06);touch-action:none;user-select:none}
+    .mgd-table-move-handle{display:none;position:absolute;z-index:10;left:10px;top:10px;width:40px;height:40px;border:1px solid rgba(78,88,72,.14);border-radius:50%;background:rgba(255,255,255,.95);color:#66705f;place-items:center;font:inherit;font-size:15px;cursor:grab;box-shadow:0 4px 13px rgba(58,65,52,.06);touch-action:none;user-select:none}
     .mgd-tables-editor.is-canvas .mgd-table-move-handle{display:grid}
+    .mgd-tables-editor.is-readonly .mgd-table-move-handle{display:none!important}
     .mgd-table-move-handle:active{cursor:grabbing}
     .mgd-table-card.is-position-dragging{z-index:30!important;box-shadow:0 22px 55px rgba(52,60,47,.18)!important;transition:none!important}
     .mgd-canvas-help{display:none;margin-left:8px;color:#7b8077;font-size:12px}
@@ -183,9 +208,10 @@ function extents(data) {
   let minX = Infinity, minY = Infinity, maxX = 0, maxY = 0;
   data.tables.forEach((table, index) => {
     const p = tablePosition(table, index);
+    const width = cardWidth(table);
     minX = Math.min(minX, p.x);
     minY = Math.min(minY, p.y);
-    maxX = Math.max(maxX, p.x + CARD_W);
+    maxX = Math.max(maxX, p.x + width);
     maxY = Math.max(maxY, p.y + CARD_H);
   });
   const width = Math.max(1050, maxX + 50);
@@ -213,6 +239,7 @@ function applyPositions(root, data) {
     if (isDesktop()) {
       card.style.left = `${p.x}px`;
       card.style.top = `${p.y}px`;
+      card.style.width = `${cardWidth(table)}px`;
     } else {
       card.style.left = '';
       card.style.top = '';
@@ -234,7 +261,12 @@ function renderCanvas(root, doc) {
   applyZoom(root, elements, data);
 }
 
-function contentCenter(viewport, data) {
+function scheduleRender(root, doc) {
+  cancelAnimationFrame(canvasRaf);
+  canvasRaf = requestAnimationFrame(() => renderCanvas(root, doc));
+}
+
+function contentCenter(data) {
   const bounds = extents(data);
   return {
     x: ((bounds.minX + bounds.maxX) / 2) * zoom,
@@ -245,7 +277,7 @@ function contentCenter(viewport, data) {
 function centerContent(root) {
   const viewport = root.querySelector('#mgdCanvasViewport');
   if (!viewport || !isDesktop()) return;
-  const center = contentCenter(viewport, readState());
+  const center = contentCenter(readState());
   viewport.scrollTo({
     left: Math.max(0, center.x - viewport.clientWidth / 2),
     top: Math.max(0, center.y - viewport.clientHeight / 2),
@@ -296,7 +328,7 @@ function pointerDown(event, root) {
   try { handle.setPointerCapture(event.pointerId); } catch (_) {}
 }
 
-function pointerMove(event, root) {
+function pointerMove(event) {
   if (!drag || event.pointerId !== drag.pointerId) return;
   event.preventDefault();
   const dx = (event.clientX - drag.startClientX) / zoom;
@@ -333,7 +365,7 @@ function bindRoot(root, doc) {
     if (action === 'center') centerContent(root);
   });
   root.addEventListener('pointerdown', (event) => pointerDown(event, root), true);
-  root.addEventListener('pointermove', (event) => pointerMove(event, root), true);
+  root.addEventListener('pointermove', (event) => pointerMove(event), true);
   root.addEventListener('pointerup', (event) => pointerUp(event, root), true);
   root.addEventListener('pointercancel', (event) => pointerUp(event, root), true);
 }
@@ -346,7 +378,7 @@ function bindFrame(frame) {
   activeFrame = frame;
   activeDoc = doc;
   bindRoot(root, doc);
-  renderCanvas(root, doc);
+  scheduleRender(root, doc);
 
   if (!doc.documentElement.dataset.mgdCanvasObserver) {
     doc.documentElement.dataset.mgdCanvasObserver = VERSION;
@@ -354,7 +386,7 @@ function bindFrame(frame) {
       const nextRoot = doc.getElementById('mgdTablesEditor');
       if (!nextRoot) return;
       bindRoot(nextRoot, doc);
-      renderCanvas(nextRoot, doc);
+      scheduleRender(nextRoot, doc);
     });
     observer.observe(doc.body, { childList: true, subtree: true });
   }
