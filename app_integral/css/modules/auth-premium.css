@@ -1,0 +1,196 @@
+/* Mi Gran Día · Login premium */
+.auth-overlay{
+  background:rgba(5,7,6,.72)!important;
+  backdrop-filter:blur(12px) saturate(115%);
+  -webkit-backdrop-filter:blur(12px) saturate(115%);
+}
+
+.auth-card{
+  width:min(430px,calc(100vw - 28px))!important;
+  padding:28px!important;
+  border-radius:26px!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  background:linear-gradient(180deg,rgba(22,24,22,.98),rgba(10,11,10,.99))!important;
+  box-shadow:0 28px 80px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.045)!important;
+  overflow:hidden;
+  position:relative;
+}
+
+.auth-card::before{
+  content:"";
+  position:absolute;
+  width:220px;
+  height:220px;
+  right:-110px;
+  top:-125px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(160,171,119,.13),rgba(160,171,119,0) 70%);
+  pointer-events:none;
+}
+
+.auth-card h2{
+  position:relative;
+  margin:0 0 8px!important;
+  color:#fff!important;
+  font-size:clamp(25px,5vw,31px)!important;
+  line-height:1.08!important;
+  letter-spacing:-.035em!important;
+  font-weight:800!important;
+}
+
+.auth-card>p:first-of-type{
+  position:relative;
+  margin:0 0 22px!important;
+  max-width:360px;
+  color:rgba(255,255,255,.63)!important;
+  font-size:13px!important;
+  line-height:1.55!important;
+}
+
+.auth-google{
+  width:100%!important;
+  min-height:58px!important;
+  padding:9px 14px!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:13px!important;
+  border:1px solid rgba(0,0,0,.08)!important;
+  border-radius:17px!important;
+  background:linear-gradient(180deg,#fff,#f6f3ee)!important;
+  color:#20211f!important;
+  text-align:left!important;
+  cursor:pointer!important;
+  box-shadow:0 12px 30px rgba(0,0,0,.20)!important;
+  transition:transform .18s ease,box-shadow .18s ease,background .18s ease!important;
+}
+
+.auth-google:hover{
+  transform:translateY(-1px);
+  background:#fff!important;
+  box-shadow:0 16px 34px rgba(0,0,0,.25)!important;
+}
+
+.auth-google:active{transform:translateY(0) scale(.995)}
+.auth-google:focus-visible{outline:3px solid rgba(158,170,117,.32)!important;outline-offset:2px}
+.auth-google:disabled{opacity:.58;cursor:wait!important;transform:none}
+
+.auth-google-icon{
+  width:38px;
+  height:38px;
+  flex:0 0 38px;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  background:#fff;
+  border:1px solid #ebe9e4;
+  box-shadow:0 3px 10px rgba(0,0,0,.06);
+}
+.auth-google-icon svg{width:21px;height:21px;display:block}
+.auth-google-copy{display:grid;gap:2px;min-width:0}
+.auth-google-title{font-size:14px;font-weight:800;line-height:1.2;letter-spacing:-.01em}
+.auth-google-subtitle{font-size:10.5px;font-weight:500;color:#73766f;line-height:1.25}
+
+.auth-divider{
+  display:flex!important;
+  align-items:center!important;
+  gap:12px!important;
+  margin:20px 0 16px!important;
+  color:rgba(255,255,255,.34)!important;
+  font-size:9px!important;
+  letter-spacing:.13em!important;
+  text-transform:uppercase!important;
+}
+.auth-divider::before,.auth-divider::after{
+  content:"";
+  height:1px;
+  flex:1;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.13));
+}
+.auth-divider::after{background:linear-gradient(90deg,rgba(255,255,255,.13),transparent)}
+
+.auth-fields{display:grid!important;gap:10px!important}
+#authEmail,#authPassword{
+  width:100%!important;
+  min-height:50px!important;
+  box-sizing:border-box!important;
+  padding:0 15px!important;
+  border:1px solid rgba(255,255,255,.11)!important;
+  border-radius:14px!important;
+  background:rgba(255,255,255,.045)!important;
+  color:#fff!important;
+  font-size:13px!important;
+  outline:none!important;
+  transition:border-color .18s ease,background .18s ease,box-shadow .18s ease!important;
+}
+#authEmail::placeholder,#authPassword::placeholder{color:rgba(255,255,255,.34)!important}
+#authEmail:focus,#authPassword:focus{
+  border-color:rgba(164,176,121,.70)!important;
+  background:rgba(255,255,255,.065)!important;
+  box-shadow:0 0 0 3px rgba(164,176,121,.11)!important;
+}
+
+.auth-actions{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:10px!important;
+  margin-top:11px!important;
+}
+.auth-action,.auth-secondary{
+  min-height:48px!important;
+  border-radius:14px!important;
+  font-size:13px!important;
+  font-weight:800!important;
+  cursor:pointer!important;
+  transition:transform .18s ease,background .18s ease,box-shadow .18s ease!important;
+}
+.auth-action{
+  border:0!important;
+  background:linear-gradient(135deg,#a4ad79,#8f9868)!important;
+  color:#fff!important;
+  box-shadow:0 10px 24px rgba(143,152,104,.20)!important;
+}
+.auth-action:hover{transform:translateY(-1px);box-shadow:0 13px 28px rgba(143,152,104,.27)!important}
+.auth-secondary{
+  border:1px solid rgba(255,255,255,.12)!important;
+  background:rgba(255,255,255,.035)!important;
+  color:#fff!important;
+}
+.auth-secondary:hover{transform:translateY(-1px);background:rgba(255,255,255,.075)!important}
+
+.auth-status{
+  min-height:18px!important;
+  margin:11px 2px 0!important;
+  color:#d8d9d4!important;
+  font-size:11px!important;
+  line-height:1.35!important;
+}
+.auth-help{
+  margin:17px 0 0!important;
+  color:rgba(255,255,255,.34)!important;
+  font-size:9.5px!important;
+  line-height:1.45!important;
+  text-align:center!important;
+}
+.auth-close{
+  display:block!important;
+  margin:15px auto -4px!important;
+  padding:8px 15px!important;
+  border:0!important;
+  background:transparent!important;
+  color:rgba(255,255,255,.66)!important;
+  font-size:12px!important;
+  font-weight:700!important;
+  cursor:pointer!important;
+}
+.auth-close:hover{color:#fff!important}
+
+@media(max-width:480px){
+  .auth-card{padding:23px 18px 20px!important;border-radius:22px!important}
+  .auth-card h2{font-size:26px!important}
+  .auth-card>p:first-of-type{font-size:12px!important;margin-bottom:19px!important}
+  .auth-google{min-height:56px!important;padding:8px 11px!important}
+  .auth-google-icon{width:36px;height:36px;flex-basis:36px}
+  .auth-google-title{font-size:13px}
+  .auth-google-subtitle{font-size:9.5px}
+  .auth-actions{grid-template-columns:1fr 1fr!important}
+}
