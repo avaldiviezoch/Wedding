@@ -12,7 +12,7 @@ import {
   listWeddingMembers,
   updateWeddingMemberRole,
   removeWeddingMember
-} from '../../services/firebase.js';
+} from '../../services/firebase.js?v=20260814-1047-auth3';
 
 const ROLE_LABELS = {
   owner: 'Propietario',

@@ -2,8 +2,8 @@
 // Carga la interfaz anterior y conecta el botón Invitar usando la MISMA
 // instancia canónica de firebase.js que utiliza esa interfaz.
 
-await import('./weddings-legacy.js');
-const firebaseApi = await import('../../services/firebase.js');
+await import('./weddings-legacy.js?v=20260814-1047-auth3');
+const firebaseApi = await import('../../services/firebase.js?v=20260814-1047-auth3');
 
 const FORM_ID = 'inviteWeddingMemberForm';
 const BUTTON_ID = 'inviteWeddingButton';

@@ -57,6 +57,9 @@ const accountEmail = document.getElementById('accountEmail');
 const cloudState = document.getElementById('cloudState');
 const logoutButton = document.getElementById('logoutButton');
 const moduleSessionLogout = document.getElementById('moduleSessionLogout');
+const mainDrawer = document.getElementById('mainDrawer');
+const backdrop = document.getElementById('backdrop');
+const unifiedLoader = document.getElementById('unifiedLoader');
 
 let pendingOpenMenu = false;
 let activeUid = '';
@@ -68,6 +71,8 @@ let activeWeddingId = '';
 let activeWeddingRole = '';
 let activeWeddingName = '';
 let legacyMode = false;
+let authTransitioning = false;
+let logoutInProgress = false;
 
 const CHUNK_SIZE = 180000;
 const LOCAL_OWNER_KEY = 'migrandia_local_owner_uid_v1';
@@ -107,35 +112,71 @@ function safeInviteId(weddingId, email) {
   return `${weddingId}__${normalized}`;
 }
 
+function setAuthControlsBusy(busy) {
+  authTransitioning = Boolean(busy);
+  [googleLoginButton, emailLoginButton, emailRegisterButton].forEach((button) => {
+    if (button) button.disabled = Boolean(busy);
+  });
+  authOverlay?.toggleAttribute('data-auth-busy', Boolean(busy));
+}
+
+function closePrivatePanels() {
+  document.body.classList.remove('menu-open', 'module-view', 'wedding-modal-open');
+  menuButton?.setAttribute('aria-expanded', 'false');
+  menuButton?.setAttribute('aria-label', 'Abrir menú');
+  mainDrawer?.setAttribute('aria-hidden', 'true');
+  backdrop?.setAttribute('aria-hidden', 'true');
+  unifiedLoader?.classList.remove('show');
+
+  document.querySelectorAll('.module.open').forEach((module) => {
+    module.classList.remove('open');
+    module.querySelector('.module-toggle')?.setAttribute('aria-expanded', 'false');
+  });
+
+  const weddingsModal = document.getElementById('weddingWorkspaceModal');
+  weddingsModal?.classList.remove('show');
+  weddingsModal?.setAttribute('aria-hidden', 'true');
+  const createWeddingSheet = document.getElementById('createWeddingSheet');
+  createWeddingSheet?.classList.remove('show');
+  createWeddingSheet?.setAttribute('aria-hidden', 'true');
+}
+
 function openAuth() {
+  if (logoutInProgress) return;
   pendingOpenMenu = true;
+  closePrivatePanels();
   authOverlay.classList.add('show');
   authOverlay.setAttribute('aria-hidden', 'false');
   authStatus.textContent = '';
-  googleLoginButton.disabled = false;
-  emailLoginButton.disabled = false;
-  emailRegisterButton.disabled = false;
+  setAuthControlsBusy(false);
   setTimeout(() => googleLoginButton.focus(), 40);
 }
 
 window.WeddingPlannerRequestAuth = () => {
+  if (logoutInProgress) return;
+
+  // Si Firebase ya conoce al usuario pero todavía está restaurando la boda,
+  // no volvemos a disparar click sobre el mismo botón: eso generaba recursión.
   if (auth.currentUser) {
-    pendingOpenMenu = false;
-    menuButton.click();
+    pendingOpenMenu = true;
+    closeAuth(true);
     return;
   }
+
   openAuth();
 };
 
 function closeAuth(force = false) {
-  if (!force && auth.currentUser && pendingOpenMenu) return;
   authOverlay.classList.remove('show');
   authOverlay.setAttribute('aria-hidden', 'true');
+  if (force) authStatus.textContent = '';
 }
 
 function lockPlanner() {
   document.body.classList.add('auth-locked');
-  document.body.classList.remove('menu-open', 'module-view');
+  document.body.classList.remove('auth-hydrating');
+  closePrivatePanels();
+  menuButton.disabled = false;
   window.WeddingPlannerAuthGuard.ready = authResolved;
   window.WeddingPlannerAuthGuard.authenticated = false;
   window.WeddingPlannerAuthGuard.uid = '';
@@ -149,7 +190,8 @@ function unlockPlanner(user) {
   window.WeddingPlannerAuthGuard.ready = true;
   window.WeddingPlannerAuthGuard.authenticated = true;
   window.WeddingPlannerAuthGuard.uid = user.uid;
-  document.body.classList.remove('auth-locked');
+  document.body.classList.remove('auth-locked', 'auth-hydrating');
+  menuButton.disabled = false;
   closeAuth(true);
   window.dispatchEvent(new Event('hashchange'));
 }
@@ -778,14 +820,15 @@ export async function removeWeddingMember(uid) {
 let googleAttemptToken = 0;
 
 function reactivateGoogleButton(message = '') {
-  googleLoginButton.disabled = false;
+  setAuthControlsBusy(false);
   googleLoginButton.removeAttribute('aria-busy');
   if (message !== undefined) authStatus.textContent = message;
 }
 
 googleLoginButton.addEventListener('click', async () => {
+  if (authTransitioning || logoutInProgress) return;
   const token = ++googleAttemptToken;
-  googleLoginButton.disabled = false;
+  setAuthControlsBusy(true);
   googleLoginButton.setAttribute('aria-busy', 'true');
   authStatus.textContent = 'Elige la cuenta de Google que deseas usar…';
 
@@ -796,7 +839,8 @@ googleLoginButton.addEventListener('click', async () => {
     const result = await signInWithPopup(auth, attemptProvider);
     if (token !== googleAttemptToken) return;
     if (result?.user) {
-      authStatus.textContent = 'Acceso correcto. Abriendo tu planificador…';
+      authStatus.textContent = 'Acceso correcto. Cargando tu boda…';
+      closeAuth(true);
     }
   } catch (error) {
     if (token !== googleAttemptToken) return;
@@ -812,27 +856,43 @@ googleLoginButton.addEventListener('click', async () => {
       authStatus.textContent = friendlyAuthError(error);
     }
   } finally {
+    googleLoginButton.removeAttribute('aria-busy');
     if (token === googleAttemptToken && !auth.currentUser) {
-      reactivateGoogleButton(authStatus.textContent);
+      setAuthControlsBusy(false);
     }
   }
 });
 
+
 emailLoginButton.addEventListener('click', async () => {
+  if (authTransitioning || logoutInProgress) return;
   authStatus.textContent = 'Ingresando…';
+  setAuthControlsBusy(true);
   try {
-    await signInWithEmailAndPassword(auth, authEmail.value.trim(), authPassword.value);
+    const result = await signInWithEmailAndPassword(auth, authEmail.value.trim(), authPassword.value);
+    if (result?.user) {
+      authStatus.textContent = 'Acceso correcto. Cargando tu boda…';
+      closeAuth(true);
+    }
   } catch (error) {
     authStatus.textContent = friendlyAuthError(error);
+    setAuthControlsBusy(false);
   }
 });
 
 emailRegisterButton.addEventListener('click', async () => {
+  if (authTransitioning || logoutInProgress) return;
   authStatus.textContent = 'Creando tu cuenta…';
+  setAuthControlsBusy(true);
   try {
-    await createUserWithEmailAndPassword(auth, authEmail.value.trim(), authPassword.value);
+    const result = await createUserWithEmailAndPassword(auth, authEmail.value.trim(), authPassword.value);
+    if (result?.user) {
+      authStatus.textContent = 'Cuenta creada. Cargando tu boda…';
+      closeAuth(true);
+    }
   } catch (error) {
     authStatus.textContent = friendlyAuthError(error);
+    setAuthControlsBusy(false);
   }
 });
 
@@ -840,46 +900,61 @@ authPassword.addEventListener('keydown', (event) => {
   if (event.key === 'Enter') emailLoginButton.click();
 });
 
-authCloseButton.addEventListener('click', () => {
+function cancelAuthDialog() {
   pendingOpenMenu = false;
   googleAttemptToken++;
   reactivateGoogleButton('');
-  authStatus.textContent = '';
   closeAuth(true);
-});
+  closePrivatePanels();
+  if (!auth.currentUser) lockPlanner();
+}
+
+authCloseButton.addEventListener('click', cancelAuthDialog);
 
 authOverlay.addEventListener('click', (event) => {
-  if (event.target === authOverlay) {
-    pendingOpenMenu = false;
-    googleAttemptToken++;
-    reactivateGoogleButton('');
-    authStatus.textContent = '';
-    closeAuth(true);
-  }
+  if (event.target === authOverlay) cancelAuthDialog();
 });
 
 async function performLogout(button) {
   const currentUser = auth.currentUser;
-  if (!currentUser) return;
+  if (!currentUser || logoutInProgress) return;
+
+  logoutInProgress = true;
+  pendingOpenMenu = false;
+  googleAttemptToken++;
   if (button) button.disabled = true;
+
+  // El usuario queda visualmente fuera en el mismo instante en que pulsa salir.
+  authResolved = true;
+  lockPlanner();
+  accountCard.classList.remove('show');
   cloudState.textContent = 'Cerrando sesión…';
+
   try {
-    await writeCloudBackup(currentUser);
-  } catch (error) {
-    console.error('Final cloud save before logout failed:', error);
-  }
-  hydrated = false;
-  try {
+    try {
+      await writeCloudBackup(currentUser);
+    } catch (error) {
+      console.error('Final cloud save before logout failed:', error);
+    }
+
+    hydrated = false;
     await window.WeddingPlannerBridge?.clearLocalUserData?.();
     localStorage.removeItem(LOCAL_OWNER_KEY);
-  } finally {
     await signOut(auth);
-    if (button) button.disabled = false;
-    document.body.classList.remove('menu-open', 'module-view');
     history.replaceState(null, '', location.pathname + location.search);
     window.scrollTo(0, 0);
+  } catch (error) {
+    console.error('Logout failed:', error);
+    if (auth.currentUser) {
+      unlockPlanner(auth.currentUser);
+      window.WeddingPlannerBridge?.showToast?.('No se pudo cerrar la sesión. Inténtalo nuevamente.');
+    }
+  } finally {
+    logoutInProgress = false;
+    if (button) button.disabled = false;
   }
 }
+
 
 logoutButton?.addEventListener('click', () => performLogout(logoutButton));
 moduleSessionLogout?.addEventListener('click', () => performLogout(moduleSessionLogout));
@@ -902,15 +977,16 @@ setInterval(() => {
 }, 15000);
 
 onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    document.body.classList.remove('menu-open', 'module-view');
-    if (location.hash) {
-      history.replaceState(null, '', location.pathname + location.search);
-    }
-  }
-
   authResolved = true;
+
   if (user) {
+    // Firebase ya autenticó. El modal se cierra antes de restaurar todos los datos.
+    closeAuth(true);
+    setAuthControlsBusy(false);
+    closePrivatePanels();
+    document.body.classList.add('auth-locked', 'auth-hydrating');
+    menuButton.disabled = true;
+
     accountCard.classList.add('show');
     accountName.textContent = user.displayName || 'Mi Gran Día';
     accountEmail.textContent = user.email || '';
@@ -925,9 +1001,11 @@ onAuthStateChanged(auth, async (user) => {
     if (activeUid && activeUid !== user.uid) {
       await window.WeddingPlannerBridge?.clearLocalUserData?.();
     }
+
     activeUid = user.uid;
     await hydrateUser(user);
     unlockPlanner(user);
+
     window.dispatchEvent(
       new CustomEvent('migrandia:auth', {
         detail: { authenticated: true, uid: user.uid }
@@ -936,30 +1014,38 @@ onAuthStateChanged(auth, async (user) => {
 
     if (pendingOpenMenu) {
       pendingOpenMenu = false;
-      setTimeout(() => menuButton.click(), 80);
+      setTimeout(() => {
+        if (window.WeddingPlannerAuthGuard?.authenticated === true) menuButton.click();
+      }, 40);
     }
-  } else {
-    const hadAuthenticatedUser = Boolean(activeUid);
-    activeUid = '';
-    hydrated = false;
-    if (hadAuthenticatedUser) {
-      await window.WeddingPlannerBridge?.clearLocalUserData?.();
-      localStorage.removeItem(LOCAL_OWNER_KEY);
-    }
-    accountCard.classList.remove('show');
-    accountName.textContent = '';
-    accountEmail.textContent = '';
-    accountAvatar.removeAttribute('src');
-    accountAvatar.classList.remove('show');
-    cloudState.textContent = 'Inicia sesión para sincronizar';
-    pendingOpenMenu = false;
-    setWeddingContext({ id: '', name: '', role: 'viewer', legacyMode: false });
-    lockPlanner();
-    window.dispatchEvent(
-      new CustomEvent('migrandia:auth', { detail: { authenticated: false } })
-    );
+    return;
   }
+
+  // Sin sesión, se bloquea ANTES de cualquier limpieza asíncrona.
+  lockPlanner();
+  setAuthControlsBusy(false);
+  const hadAuthenticatedUser = Boolean(activeUid);
+  activeUid = '';
+  hydrated = false;
+
+  if (hadAuthenticatedUser) {
+    await window.WeddingPlannerBridge?.clearLocalUserData?.();
+    localStorage.removeItem(LOCAL_OWNER_KEY);
+  }
+
+  accountCard.classList.remove('show');
+  accountName.textContent = '';
+  accountEmail.textContent = '';
+  accountAvatar.removeAttribute('src');
+  accountAvatar.classList.remove('show');
+  cloudState.textContent = 'Inicia sesión para sincronizar';
+  pendingOpenMenu = false;
+  setWeddingContext({ id: '', name: '', role: 'viewer', legacyMode: false });
+  window.dispatchEvent(
+    new CustomEvent('migrandia:auth', { detail: { authenticated: false } })
+  );
 });
+
 
 if (!document.querySelector('link[data-weddings-style]')) {
   const weddingsStyle = document.createElement('link');
@@ -969,6 +1055,6 @@ if (!document.querySelector('link[data-weddings-style]')) {
   document.head.appendChild(weddingsStyle);
 }
 
-import('../modules/configuracion/weddings.js').catch((error) => {
+import('../modules/configuracion/weddings.js?v=20260814-1047-auth3').catch((error) => {
   console.error('No se pudo cargar el módulo de bodas compartidas:', error);
 });

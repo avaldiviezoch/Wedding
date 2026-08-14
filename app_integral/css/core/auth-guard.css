@@ -1,0 +1,18 @@
+/* Guard visual central del planificador. */
+body.auth-locked .modules,
+body.auth-locked .unified-workspace,
+body.auth-locked .module-quick-nav,
+body.auth-locked .unified-home-button,
+body.auth-locked .module-session-logout,
+body.auth-locked .wedding-workspace-modal,
+body.auth-locked .create-wedding-sheet,
+body.auth-locked .unified-loader {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.auth-hydrating .menu-button {
+  opacity: .7;
+  cursor: wait;
+}

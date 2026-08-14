@@ -986,6 +986,9 @@ window.WeddingPlannerAuthGuard = { ready:false, authenticated:false, uid:'' };
   }
 
   function setMenu(open) {
+    if (open && window.WeddingPlannerAuthGuard?.authenticated !== true) {
+      open = false;
+    }
     body.classList.toggle('menu-open', open);
     menuButton.setAttribute('aria-expanded', String(open));
     menuButton.setAttribute(
@@ -1254,6 +1257,11 @@ window.WeddingPlannerAuthGuard = { ready:false, authenticated:false, uid:'' };
     const toggle = module.querySelector('.module-toggle');
 
     toggle.addEventListener('click', () => {
+      if (window.WeddingPlannerAuthGuard?.authenticated !== true) {
+        setMenu(false);
+        window.WeddingPlannerRequestAuth?.();
+        return;
+      }
       const willOpen = !module.classList.contains('open');
 
       closeOtherModules(module);
@@ -1272,6 +1280,11 @@ window.WeddingPlannerAuthGuard = { ready:false, authenticated:false, uid:'' };
   document.querySelectorAll('.pending').forEach((link) => {
     link.addEventListener('click', (event) => {
       event.preventDefault();
+      if (window.WeddingPlannerAuthGuard?.authenticated !== true) {
+        setMenu(false);
+        window.WeddingPlannerRequestAuth?.();
+        return;
+      }
 
       showToast(
         link.dataset.message ||
@@ -1300,6 +1313,10 @@ window.WeddingPlannerAuthGuard = { ready:false, authenticated:false, uid:'' };
     const message = event.data;
 
     if (!message || typeof message !== 'object') {
+      return;
+    }
+
+    if (window.WeddingPlannerAuthGuard?.authenticated !== true) {
       return;
     }
 
