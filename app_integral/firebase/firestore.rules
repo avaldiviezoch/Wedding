@@ -12,6 +12,10 @@ service cloud.firestore {
         : '';
     }
 
+    function weddingPath(weddingId) {
+      return /databases/$(database)/documents/weddings/$(weddingId);
+    }
+
     function memberPath(weddingId) {
       return /databases/$(database)/documents/weddings/$(weddingId)/members/$(request.auth.uid);
     }
@@ -48,6 +52,15 @@ service cloud.firestore {
         && get(invitationPath(weddingId)).data.get('email', '') == authEmail();
     }
 
+    function isOwnerBootstrap(weddingId, memberUid) {
+      return signedIn()
+        && memberUid == request.auth.uid
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.role == 'owner'
+        && request.resource.data.status == 'active'
+        && getAfter(weddingPath(weddingId)).data.ownerUid == request.auth.uid;
+    }
+
     // Perfil e índice privado de cada cuenta. Se conserva también la estructura
     // heredada cloudSync/cloudChunks mientras termina la migración automática.
     match /users/{uid} {
@@ -67,9 +80,10 @@ service cloud.firestore {
       match /members/{memberUid} {
         allow read: if hasActiveMembership(weddingId);
 
-        // El propietario administra el equipo. El invitado también puede crear
-        // exclusivamente su propio registro cuando posee una invitación pendiente.
+        // Permite el alta inicial del propietario dentro del mismo batch y,
+        // posteriormente, que un invitado cree solo su propio registro.
         allow create: if isOwner(weddingId)
+          || isOwnerBootstrap(weddingId, memberUid)
           || (
             signedIn()
             && memberUid == request.auth.uid
@@ -105,7 +119,7 @@ service cloud.firestore {
         && request.resource.data.status == 'pending'
         && isOwner(request.resource.data.weddingId);
 
-      // Para que una consulta sea válida el cliente debe filtrar por su propio email.
+      // Para que una consulta sea válida, el cliente filtra por su propio email.
       allow read: if signedIn()
         && (
           resource.data.email == authEmail()
