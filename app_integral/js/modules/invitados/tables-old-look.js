@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1708-oldlook1';
+  const VERSION = '20260814-1712-oldlook2';
   const CSS_HREF = new URL(`css/modules/invitados-tables-old-look.css?v=${VERSION}`, document.baseURI).href;
   let timer = 0;
   let attempts = 0;
@@ -34,7 +34,6 @@
     editor.dataset.oldTableLookVersion = VERSION;
 
     editor.querySelectorAll('.mgd-table-edit').forEach((button) => {
-      if (button.dataset.oldLookEdit === VERSION) return;
       button.dataset.oldLookEdit = VERSION;
       button.textContent = '✎';
       button.setAttribute('title', 'Editar mesa');
@@ -44,31 +43,33 @@
       seat.dataset.seatLabel = shortSeatLabel(seat);
     });
 
-    if (editor.dataset.oldLookObserver !== VERSION) {
-      editor.dataset.oldLookObserver = VERSION;
-      let scheduled = false;
-      new MutationObserver(() => {
-        if (scheduled) return;
-        scheduled = true;
-        requestAnimationFrame(() => {
-          scheduled = false;
-          decorate(doc);
-        });
-      }).observe(editor, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ['title', 'data-guest-id', 'class']
-      });
-    }
-
     return true;
+  }
+
+  function ensureObserver(doc) {
+    const host = doc.getElementById('tablesView') || doc.body;
+    if (!host || doc.documentElement.dataset.mgdOldLookObserver === VERSION) return;
+    doc.documentElement.dataset.mgdOldLookObserver = VERSION;
+
+    let scheduled = false;
+    new MutationObserver(() => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(() => {
+        scheduled = false;
+        decorate(doc);
+      });
+    }).observe(host, {
+      childList: true,
+      subtree: true
+    });
   }
 
   function apply(frame) {
     let doc;
     try { doc = frame.contentDocument; } catch (_) { return false; }
-    if (!doc?.head || !doc.getElementById('mgdTablesEditor')) return false;
+    if (!doc?.head || !doc.body || !doc.getElementById('tablesView')) return false;
+    ensureObserver(doc);
     return decorate(doc);
   }
 
@@ -79,7 +80,7 @@
 
     if (workspace) {
       workspace.querySelectorAll('iframe').forEach((frame) => {
-        if (!frame.dataset.mgdOldLookLoadBound) {
+        if (frame.dataset.mgdOldLookLoadBound !== VERSION) {
           frame.dataset.mgdOldLookLoadBound = VERSION;
           frame.addEventListener('load', () => setTimeout(() => apply(frame), 80));
         }
