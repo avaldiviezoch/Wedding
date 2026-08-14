@@ -1,0 +1,73 @@
+name: Patch invitacion 3 FAQ images
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/patch-invitacion-3.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add FAQ images 4 and 5
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('invitacion_3.html')
+          text = path.read_text(encoding='utf-8')
+
+          gift_old = '''        <details>
+          <summary>¿Podemos llevar un regalo?</summary>
+          <div class="faq-answer">Sí. Podremos recibir regalos físicos durante la recepción y también encontrarás opciones de Yape o transferencia en la sección de regalos.</div>
+        </details>'''
+
+          gift_new = '''        <details>
+          <summary>¿Podemos llevar un regalo?</summary>
+          <div class="faq-answer">Sí. Podremos recibir regalos físicos durante la recepción y también encontrarás opciones de Yape o transferencia en la sección de regalos.</div>
+          <div class="faq-illustration">
+            <img src="pic_preguntas_3_5.png" onerror="this.classList.add('media-error')" alt="Ilustración para la pregunta de regalos" loading="lazy" />
+          </div>
+        </details>'''
+
+          music_old = '''        <details>
+          <summary>¿Podemos solicitar canciones durante la fiesta?</summary>
+          <div class="faq-answer">Las sugerencias se recibirán mediante el formulario antes de la boda. Durante la celebración, el DJ no recibirá pedidos en vivo.</div>
+        </details>'''
+
+          music_new = '''        <details>
+          <summary>¿Podemos solicitar canciones durante la fiesta?</summary>
+          <div class="faq-answer">Las sugerencias se recibirán mediante el formulario antes de la boda. Durante la celebración, el DJ no recibirá pedidos en vivo.</div>
+          <div class="faq-illustration">
+            <img src="pic_preguntas_3_4.png" onerror="this.classList.add('media-error')" alt="Ilustración de los novios con audífonos y consola de DJ" loading="lazy" />
+          </div>
+        </details>'''
+
+          if gift_old not in text:
+              raise SystemExit('No se encontró el bloque de la pregunta de regalos.')
+          if music_old not in text:
+              raise SystemExit('No se encontró el bloque de la pregunta de música.')
+
+          text = text.replace(gift_old, gift_new, 1)
+          text = text.replace(music_old, music_new, 1)
+          path.write_text(text, encoding='utf-8')
+
+      - name: Remove temporary workflow
+        run: rm .github/workflows/patch-invitacion-3.yml
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add invitacion_3.html .github/workflows/patch-invitacion-3.yml
+          git commit -m "Agregar ilustraciones 4 y 5 a FAQ de invitación 3"
+          git push
