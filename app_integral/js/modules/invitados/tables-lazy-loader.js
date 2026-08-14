@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1708-neweditor-oldlook1';
+  const VERSION = '20260814-1712-neweditor-oldlook2';
   let tablesRuntime = null;
 
   function restoreLegacyTables() {
@@ -29,7 +29,7 @@
 
   function loadTablesRuntime() {
     if (tablesRuntime) return tablesRuntime;
-    tablesRuntime = import(new URL('tables-editor-entry.js?v=20260814-1708-neweditor-oldlook1', import.meta.url).href)
+    tablesRuntime = import(new URL('tables-editor-entry.js?v=20260814-1712-neweditor-oldlook2', import.meta.url).href)
       .catch((error) => {
         console.error('No se pudo iniciar el Editor de Mesas:', error);
         restoreLegacyTables();
