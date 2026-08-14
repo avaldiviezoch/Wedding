@@ -1,13 +1,3 @@
 import './tables-data-guard.js?v=20260814-1359-guard1';
 await import('./tables-editor.js?v=20260814-1354-tables1');
-await import('./tables-order.js?v=20260814-1422-order2');
-await import('./tables-live-edit.js?v=20260814-1431-live1');
-await import('./tables-permissions.js?v=20260814-1438-permissions1');
-await import('./tables-mobile-panel.js?v=20260814-1448-mobile1');
-await import('./tables-interactions.js?v=20260814-1456-interactions1');
-await import('./tables-geometry.js?v=20260814-1646-geometry2');
-await import('./tables-canvas.js?v=20260814-1628-canvas2');
-await import('./tables-touch-drag.js?v=20260814-1608-touch2');
-await import('./tables-seat-detail.js?v=20260814-1544-seatdetail1');
-await import('./tables-polish.js?v=20260814-1558-polish1');
-await import('./tables-accessibility.js?v=20260814-1638-access2');
+await import('./tables-stable-polish.js?v=20260814-1645-stable1');
