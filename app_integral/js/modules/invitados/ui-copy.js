@@ -169,3 +169,9 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindWorkspace, { once: true });
   else bindWorkspace();
 })();
+
+(() => {
+  const current = document.currentScript?.src || document.baseURI;
+  const lazyUrl = new URL('tables-lazy-loader.js?v=20260814-1532-tableslazy1', current).href;
+  import(lazyUrl).catch((error) => console.error('No se pudo preparar Mesas:', error));
+})();
