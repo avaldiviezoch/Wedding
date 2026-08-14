@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f4f0e8">
+  <title>Invitación 2 · prueba RSVP Mi Gran Día</title>
+  <style>
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f4f0e8}
+    #invitation2Frame{position:fixed;inset:0;width:100%;height:100%;border:0;display:block;background:#f4f0e8}
+  </style>
+</head>
+<body>
+  <iframe id="invitation2Frame" src="../invitacion_2.html" title="Invitación 2 · RSVP Mi Gran Día" allow="autoplay; clipboard-write; geolocation"></iframe>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
+    import {
+      doc,
+      getDoc,
+      getFirestore,
+      serverTimestamp,
+      setDoc
+    } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: 'AIzaSyDCRuQgMjnm7KcAN_qo8AHPD3ueyis4-LY',
+      authDomain: 'migrandia.firebaseapp.com',
+      projectId: 'migrandia',
+      storageBucket: 'migrandia.firebasestorage.app',
+      messagingSenderId: '7432985765',
+      appId: '1:7432985765:web:b3a4844f41ac2a1376c14c'
+    };
+
+    const RSVP_TOKEN = 'b00bca195e8e448eab17557bb6b4ffc480ad2e95c0db4c85bca52a62ff60b499';
+    const app = initializeApp(firebaseConfig, 'invitation2-rsvp-test');
+    const db = getFirestore(app);
+    const frame = document.getElementById('invitation2Frame');
+
+    let maxGuests = 20;
+    let configLoaded = false;
+
+    function makeId() {
+      return crypto?.randomUUID?.() || `rsvp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    }
+
+    function readSession() {
+      const key = `migrandia_rsvp_session_${RSVP_TOKEN}_invitacion2`;
+      try {
+        const saved = JSON.parse(localStorage.getItem(key) || 'null');
+        if (saved?.id && saved?.editToken) return saved;
+      } catch (_) {}
+      const next = {
+        id: makeId(),
+        editToken: `${makeId()}${makeId()}`.replaceAll('-', '')
+      };
+      localStorage.setItem(key, JSON.stringify(next));
+      return next;
+    }
+
+    const session = readSession();
+
+    async function loadPublicConfig() {
+      if (configLoaded) return;
+      try {
+        const snap = await getDoc(doc(db, 'publicRsvp', RSVP_TOKEN));
+        if (!snap.exists()) throw new Error('El RSVP de prueba no existe.');
+        const data = snap.data() || {};
+        if (data.active !== true) throw new Error('El RSVP de prueba está pausado.');
+        maxGuests = Math.max(1, Math.min(20, Number(data.maxGuests || 1)));
+        configLoaded = true;
+      } catch (error) {
+        console.error('No se pudo cargar la configuración RSVP:', error);
+        throw error;
+      }
+    }
+
+    function selectedAttendance(docInside) {
+      const active = docInside.querySelector('.rsvp-option-btn.active');
+      if (!active) return '';
+      const handler = active.getAttribute('onclick') || '';
+      if (handler.includes("'Sí'") || handler.includes('"Sí"')) return 'confirmed';
+      if (handler.includes("'No'") || handler.includes('"No"')) return 'declined';
+      const text = String(active.textContent || '').toLowerCase();
+      if (text.includes('sí')) return 'confirmed';
+      if (text.includes('no')) return 'declined';
+      return '';
+    }
+
+    function installRsvpOverride() {
+      const win = frame.contentWindow;
+      const docInside = frame.contentDocument;
+      if (!win || !docInside) return;
+
+      const originalChangeGuests = win.changeGuests;
+      win.changeGuests = function(amount) {
+        const counter = docInside.getElementById('guestCount');
+        if (!counter) {
+          if (typeof originalChangeGuests === 'function') originalChangeGuests(amount);
+          return;
+        }
+        const current = Math.max(1, Number(counter.textContent || 1));
+        const next = Math.max(1, Math.min(maxGuests, current + Number(amount || 0)));
+        counter.textContent = String(next);
+      };
+
+      win.sendRSVP = async function() {
+        const input = docInside.getElementById('guestName');
+        const button = docInside.getElementById('submitRsvpBtn');
+        const panel = docInside.getElementById('rsvp-panel');
+        const success = docInside.getElementById('rsvp-success');
+        const name = String(input?.value || '').trim();
+        const attendance = selectedAttendance(docInside);
+
+        if (!name || !attendance) {
+          win.alert('Por favor completa tu nombre y confirma si asistirás.');
+          return;
+        }
+
+        if (button) {
+          button.disabled = true;
+          button.textContent = 'Enviando...';
+        }
+
+        try {
+          await loadPublicConfig();
+
+          const counter = docInside.getElementById('guestCount');
+          const requestedAmount = Math.max(1, Number(counter?.textContent || 1));
+          const quantity = attendance === 'declined'
+            ? 0
+            : Math.max(1, Math.min(maxGuests, requestedAmount));
+
+          if (counter && attendance === 'confirmed') {
+            counter.textContent = String(quantity);
+          }
+
+          const payload = {
+            version: 1,
+            name: name.slice(0, 120),
+            attendance,
+            quantity,
+            companions: [],
+            menu: '',
+            email: '',
+            phone: '',
+            restriction: '',
+            notes: '',
+            customData: {
+              invitacion: 'Invitación 2',
+              origenVisual: 'formulario-vintage-invitacion-2'
+            },
+            editToken: session.editToken,
+            clientDate: new Date().toISOString(),
+            source: 'public-rsvp',
+            submittedAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          };
+
+          await setDoc(
+            doc(db, 'publicRsvp', RSVP_TOKEN, 'responses', session.id),
+            payload,
+            { merge: true }
+          );
+
+          if (panel) panel.classList.remove('open');
+          if (success) success.style.display = 'block';
+          if (button) {
+            button.disabled = false;
+            button.textContent = 'Enviar confirmación →';
+          }
+        } catch (error) {
+          console.error('Invitación 2 RSVP Firebase error:', error);
+          if (button) {
+            button.disabled = false;
+            button.textContent = 'Enviar confirmación →';
+          }
+          win.alert(
+            error?.code === 'permission-denied'
+              ? 'Firebase rechazó la confirmación. Revisa que las reglas RSVP estén publicadas.'
+              : 'No se pudo enviar la confirmación. Intenta nuevamente.'
+          );
+        }
+      };
+
+      console.info('Invitación 2: RSVP redirigido a Mi Gran Día / Firebase.');
+    }
+
+    frame.addEventListener('load', async () => {
+      try {
+        await loadPublicConfig();
+      } catch (_) {}
+      installRsvpOverride();
+    });
+  </script>
+</body>
+</html>
