@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1712-neweditor-oldlook2';
+  const VERSION = '20260814-1745-no-legacy-flash';
   let loading = null;
 
   function moduleUrl(file, version) {
@@ -13,7 +13,7 @@
     loading = Promise.all([
       import(moduleUrl('index.js', '20260814-1242-rsvp2')),
       import(moduleUrl('ui-copy.js', '20260814-1532-uicopy3')),
-      import(moduleUrl('tables-lazy-loader.js', '20260814-1712-neweditor-oldlook2'))
+      import(moduleUrl('tables-lazy-loader.js', '20260814-1745-no-legacy-flash'))
     ]).catch((error) => {
       console.error('No se pudo iniciar Invitados:', error);
       loading = null;
