@@ -1,16 +1,39 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1625-tableslazy3';
+  const VERSION = '20260814-1633-tableslazy4';
   let tablesRuntime = null;
+
+  function restoreLegacyTables() {
+    const workspace = document.getElementById('unifiedWorkspace');
+    if (!workspace) return;
+    workspace.querySelectorAll('iframe').forEach((frame) => {
+      let doc;
+      try { doc = frame.contentDocument; } catch (_) { return; }
+      const view = doc?.getElementById('tablesView');
+      if (!view) return;
+
+      view.classList.remove('mgd-tables-enhanced');
+      view.querySelector('#mgdTablesEditor')?.remove();
+      doc.getElementById('mgdTablesModal')?.remove();
+      doc.querySelector('link[data-mgd-tables-css]')?.remove();
+
+      const legacy = view.querySelector('.mgd-legacy-tables-backup');
+      if (legacy) {
+        legacy.style.removeProperty('display');
+        legacy.style.removeProperty('visibility');
+      }
+    });
+  }
 
   function loadTablesRuntime() {
     if (tablesRuntime) return tablesRuntime;
     tablesRuntime = import(new URL('tables-editor-entry.js?v=20260814-1655-tables4', import.meta.url).href)
       .catch((error) => {
         console.error('No se pudo iniciar el Editor de Mesas:', error);
+        restoreLegacyTables();
         tablesRuntime = null;
-        throw error;
+        return null;
       });
     return tablesRuntime;
   }
