@@ -1,0 +1,196 @@
+name: Modularizar app integral
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/modularizar-app-integral.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  modularizar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extraer CSS y JavaScript embebidos
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, json, hashlib
+
+          ROOT = Path('app_integral')
+          HTML_FILES = [ROOT/'applu.html', ROOT/'appludesktop.html', ROOT/'applumovil.html']
+          CSS_DIR = ROOT/'css'/'legacy'
+          JS_DIR = ROOT/'js'/'legacy'
+          SERVICE_DIR = ROOT/'js'/'services'
+          CSS_DIR.mkdir(parents=True, exist_ok=True)
+          JS_DIR.mkdir(parents=True, exist_ok=True)
+          SERVICE_DIR.mkdir(parents=True, exist_ok=True)
+
+          style_re = re.compile(r'<style(?P<attrs>[^>]*)>(?P<body>.*?)</style>', re.I|re.S)
+          script_re = re.compile(r'<script(?P<attrs>[^>]*)>(?P<body>.*?)</script>', re.I|re.S)
+          attr_re = re.compile(r'([:\w-]+)\s*=\s*(["\'])(.*?)\2', re.S)
+
+          manifest = {'files': {}}
+          firebase_assigned = False
+
+          def attrs_dict(raw):
+              return {m.group(1).lower(): m.group(3) for m in attr_re.finditer(raw)}
+
+          def safe_link_attrs(raw):
+              a = attrs_dict(raw)
+              keep = []
+              for key in ('id','media','title','nonce'):
+                  if key in a:
+                      val = a[key].replace('&','&amp;').replace('"','&quot;')
+                      keep.append(f'{key}="{val}"')
+              return (' ' + ' '.join(keep)) if keep else ''
+
+          def rewrite_css_urls(css):
+              # Los CSS se mueven dos niveles abajo: css/legacy/. Corrige solo URLs relativas.
+              url_re = re.compile(r'url\(\s*(["\']?)([^)"\']+)\1\s*\)', re.I)
+              def repl(m):
+                  q = m.group(1) or ''
+                  u = m.group(2).strip()
+                  low = u.lower()
+                  if low.startswith(('data:','http://','https://','blob:','/','#','var(')):
+                      return m.group(0)
+                  return f'url({q}../../{u}{q})'
+              return url_re.sub(repl, css)
+
+          def script_is_extractable(raw_attrs, body):
+              a = attrs_dict(raw_attrs)
+              if 'src' in a:
+                  return False
+              t = a.get('type','').strip().lower()
+              if t and t not in ('text/javascript','application/javascript','module'):
+                  return False
+              # Las importaciones absolutas de Firebase son seguras; las relativas no.
+              if re.search(r'\b(?:import|export)\b[^\n]*?["\']\.{1,2}/', body):
+                  return False
+              if re.search(r'\bimport\s*\(\s*["\']\.{1,2}/', body):
+                  return False
+              return bool(body.strip())
+
+          for html_path in HTML_FILES:
+              if not html_path.exists():
+                  continue
+              original = html_path.read_text(encoding='utf-8')
+              html = original
+              stem = html_path.stem
+              info = {'styles': [], 'scripts': [], 'skipped_scripts': 0}
+
+              # CSS: reemplazo por callback preserva exactamente el orden del documento.
+              style_idx = 0
+              def style_cb(m):
+                  nonlocal_style = None
+                  # workaround de contador mutable
+                  return ''
+
+              parts = []
+              last = 0
+              for m in style_re.finditer(html):
+                  parts.append(html[last:m.start()])
+                  style_idx += 1
+                  css_name = f'{stem}-style-{style_idx:02d}.css'
+                  css_path = CSS_DIR/css_name
+                  css = rewrite_css_urls(m.group('body'))
+                  css_path.write_text(css, encoding='utf-8', newline='')
+                  href = f'css/legacy/{css_name}'
+                  parts.append(f'<link rel="stylesheet" href="{href}"{safe_link_attrs(m.group("attrs"))}>')
+                  info['styles'].append({'file': str(css_path), 'bytes': len(css.encode('utf-8'))})
+                  last = m.end()
+              parts.append(html[last:])
+              html = ''.join(parts)
+
+              # JS: conserva cada bloque y sus atributos. Firebase principal recibe nombre semántico.
+              parts = []
+              last = 0
+              script_idx = 0
+              for m in script_re.finditer(html):
+                  parts.append(html[last:m.start()])
+                  attrs = m.group('attrs')
+                  body = m.group('body')
+                  if not script_is_extractable(attrs, body):
+                      parts.append(m.group(0))
+                      info['skipped_scripts'] += 1
+                      last = m.end()
+                      continue
+                  script_idx += 1
+                  is_firebase = ('initializeApp' in body and 'getAuth' in body and 'firebase' in body.lower())
+                  if is_firebase and stem == 'applu' and not firebase_assigned:
+                      js_path = SERVICE_DIR/'firebase.js'
+                      firebase_assigned = True
+                      src = 'js/services/firebase.js'
+                  else:
+                      js_name = f'{stem}-script-{script_idx:02d}.js'
+                      js_path = JS_DIR/js_name
+                      src = f'js/legacy/{js_name}'
+                  js_path.write_text(body, encoding='utf-8', newline='')
+                  # El atributo src se añade sin alterar type=module u otros atributos válidos.
+                  clean_attrs = attrs.rstrip()
+                  parts.append(f'<script{clean_attrs} src="{src}"></script>')
+                  info['scripts'].append({'file': str(js_path), 'bytes': len(body.encode('utf-8')), 'firebase': is_firebase})
+                  last = m.end()
+              parts.append(html[last:])
+              html = ''.join(parts)
+
+              html_path.write_text(html, encoding='utf-8', newline='')
+              info['before_bytes'] = len(original.encode('utf-8'))
+              info['after_bytes'] = len(html.encode('utf-8'))
+              manifest['files'][str(html_path)] = info
+
+          # Estructura para el desarrollo futuro: archivos guía mantienen las carpetas en Git.
+          guides = {
+            ROOT/'js'/'core'/'README.md': '# Core\n\nInfraestructura transversal de la aplicación: arranque, estado, eventos, navegación y utilidades compartidas.\n',
+            ROOT/'js'/'modules'/'README.md': '# Módulos\n\nCada funcionalidad de negocio tendrá su propia carpeta: dashboard, checklist, presupuesto, proveedores, invitados, mesas, cronograma, documentos y configuración.\n',
+            ROOT/'css'/'core'/'README.md': '# CSS Core\n\nVariables, reset, tipografía, layout base y componentes visuales compartidos.\n',
+            ROOT/'css'/'modules'/'README.md': '# CSS Modules\n\nEstilos específicos de cada módulo funcional.\n',
+          }
+          for p, text in guides.items():
+              p.parent.mkdir(parents=True, exist_ok=True)
+              p.write_text(text, encoding='utf-8')
+
+          arch = '''# Arquitectura de App Integral\n\n`app_integral` es el producto principal de planificación de bodas.\n\n## Estructura\n\n- `applu.html`: shell principal actual.\n- `appludesktop.html` / `applumovil.html`: vistas heredadas mientras se consolida una interfaz responsive única.\n- `css/legacy/`: CSS extraído del HTML sin alterar su orden.\n- `css/core/`: estilos globales nuevos.\n- `css/modules/`: estilos nuevos por módulo.\n- `js/legacy/`: JavaScript existente extraído del HTML sin reescribir su lógica.\n- `js/core/`: núcleo de la aplicación.\n- `js/services/`: Firebase y futuros servicios de datos.\n- `js/modules/`: lógica de negocio por módulo.\n\n## Regla desde ahora\n\nNo agregar lógica grande ni CSS nuevo directamente en los HTML. Cada nueva funcionalidad debe vivir en su módulo correspondiente y consumir servicios compartidos.\n'''
+          (ROOT/'ARCHITECTURE.md').write_text(arch, encoding='utf-8')
+          (ROOT/'modularization-manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
+
+          print(json.dumps(manifest, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Validar estructura y funciones críticas
+        shell: bash
+        run: |
+          set -e
+          test -f app_integral/applu.html
+          test -f app_integral/js/services/firebase.js
+          test -d app_integral/js/legacy
+          test -d app_integral/css/legacy
+          grep -R -q "restoreCloudBackup" app_integral/js app_integral/*.html
+          grep -R -q "initializeApp" app_integral/js app_integral/*.html
+          grep -q "js/services/firebase.js" app_integral/applu.html
+          grep -q "css/legacy/" app_integral/applu.html
+          if grep -R -q "Tus datos se cargaron desde Firebase" app_integral; then
+            echo "Regresó el aviso Firebase eliminado" >&2
+            exit 1
+          fi
+          echo "Validación OK"
+
+      - name: Commit modularización
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app_integral
+          git diff --cached --stat
+          git diff --cached --quiet && exit 0
+          git commit -m "Modularizar app_integral en CSS y JavaScript externos"
+          git push origin HEAD:main
