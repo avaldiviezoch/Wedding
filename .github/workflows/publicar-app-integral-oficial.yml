@@ -1,0 +1,58 @@
+name: Publicar app integral oficial
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/publicar-app-integral-oficial.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Actualizar applu oficial
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          source = Path('app_integral/applu.html')
+          target = Path('applu.html')
+          html = source.read_text(encoding='utf-8')
+
+          base = '  <base href="app_integral/">\n'
+          if '<base href="app_integral/">' not in html:
+              html = html.replace('<head>\n', '<head>\n' + base, 1)
+
+          marker = '<!-- ENLACE OFICIAL: recursos servidos desde app_integral/ -->\n'
+          html = html.replace('<body class="auth-locked">', marker + '<body class="auth-locked">', 1)
+          target.write_text(html, encoding='utf-8')
+          PY
+
+      - name: Validar enlace oficial
+        run: |
+          grep -q '<base href="app_integral/">' applu.html
+          grep -q 'js/services/firebase.js?v=20260814-1047-auth3' applu.html
+          grep -q 'css/core/auth-guard.css?v=20260814-1047-auth3' applu.html
+          grep -q '<body class="auth-locked">' applu.html
+          echo OFFICIAL_APP_OK
+
+      - name: Guardar enlace oficial
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add applu.html
+          if git diff --cached --quiet; then
+            echo 'El enlace oficial ya estaba actualizado'
+            exit 0
+          fi
+          git commit -m 'Actualizar app original con versión integral estable'
+          git push origin HEAD:main
