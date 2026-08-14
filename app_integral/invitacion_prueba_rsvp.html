@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f4efe7">
+  <title>Invitación de prueba · RSVP Mi Gran Día</title>
+  <style>
+    :root{
+      --paper:#f4efe7;
+      --paper-2:#fbf8f3;
+      --ink:#2f342d;
+      --muted:#7b8178;
+      --olive:#7f8963;
+      --olive-dark:#5e674a;
+      --line:rgba(80,88,70,.16);
+      --shadow:0 24px 70px rgba(54,60,47,.12);
+    }
+
+    *{box-sizing:border-box}
+
+    html{scroll-behavior:smooth}
+
+    body{
+      margin:0;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(141,151,107,.12), transparent 34%),
+        radial-gradient(circle at 90% 18%, rgba(196,165,145,.10), transparent 30%),
+        var(--paper);
+      color:var(--ink);
+      font-family:Georgia,"Times New Roman",serif;
+    }
+
+    .page{
+      width:min(100%, 820px);
+      margin:0 auto;
+      padding:24px 18px 64px;
+    }
+
+    .hero{
+      min-height:72vh;
+      display:grid;
+      place-items:center;
+      text-align:center;
+      padding:48px 20px;
+      position:relative;
+    }
+
+    .hero-card{
+      width:min(100%, 650px);
+      padding:48px 28px;
+      border:1px solid var(--line);
+      border-radius:32px;
+      background:rgba(251,248,243,.88);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(8px);
+    }
+
+    .eyebrow{
+      display:block;
+      margin-bottom:14px;
+      font-family:Arial,Helvetica,sans-serif;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.22em;
+      text-transform:uppercase;
+      color:var(--olive-dark);
+    }
+
+    h1{
+      margin:0;
+      font-size:clamp(42px,9vw,72px);
+      line-height:.98;
+      font-weight:400;
+      letter-spacing:-.045em;
+    }
+
+    .hero p{
+      max-width:520px;
+      margin:20px auto 0;
+      color:var(--muted);
+      font-family:Arial,Helvetica,sans-serif;
+      font-size:14px;
+      line-height:1.7;
+    }
+
+    .scroll-btn{
+      display:inline-flex;
+      margin-top:28px;
+      align-items:center;
+      justify-content:center;
+      min-height:48px;
+      padding:0 20px;
+      border:0;
+      border-radius:999px;
+      background:var(--olive-dark);
+      color:#fff;
+      text-decoration:none;
+      font-family:Arial,Helvetica,sans-serif;
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.04em;
+      box-shadow:0 12px 28px rgba(73,82,57,.2);
+    }
+
+    .section{
+      margin-top:26px;
+      padding:30px 22px;
+      border:1px solid var(--line);
+      border-radius:28px;
+      background:rgba(251,248,243,.92);
+      box-shadow:0 16px 44px rgba(54,60,47,.07);
+    }
+
+    .section-heading{
+      text-align:center;
+      margin-bottom:22px;
+    }
+
+    .section-heading span{
+      display:block;
+      margin-bottom:8px;
+      color:var(--olive-dark);
+      font-family:Arial,Helvetica,sans-serif;
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+    }
+
+    .section-heading h2{
+      margin:0;
+      font-size:clamp(28px,6vw,42px);
+      font-weight:400;
+      letter-spacing:-.03em;
+    }
+
+    .section-heading p{
+      max-width:570px;
+      margin:10px auto 0;
+      color:var(--muted);
+      font-family:Arial,Helvetica,sans-serif;
+      font-size:13px;
+      line-height:1.6;
+    }
+
+    .rsvp-wrap{
+      overflow:hidden;
+      border-radius:24px;
+      background:#fff;
+      box-shadow:0 10px 32px rgba(44,49,40,.08);
+    }
+
+    #rsvpFrame{
+      display:block;
+      width:100%;
+      min-height:860px;
+      border:0;
+      background:#fff;
+      transition:height .25s ease;
+    }
+
+    .test-note{
+      margin-top:16px;
+      padding:14px 16px;
+      border-radius:14px;
+      background:#eef1e5;
+      color:#5d6650;
+      font-family:Arial,Helvetica,sans-serif;
+      font-size:11px;
+      line-height:1.55;
+      text-align:center;
+    }
+
+    footer{
+      padding:34px 10px 0;
+      text-align:center;
+      color:#8a9086;
+      font-family:Arial,Helvetica,sans-serif;
+      font-size:10px;
+      letter-spacing:.05em;
+    }
+
+    @media(max-width:600px){
+      .page{padding:12px 10px 42px}
+      .hero{min-height:62vh;padding:28px 8px}
+      .hero-card{padding:38px 18px;border-radius:24px}
+      .section{padding:22px 10px;border-radius:22px}
+      .rsvp-wrap{border-radius:18px}
+      #rsvpFrame{min-height:920px}
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="hero-card">
+        <span class="eyebrow">Mi Gran Día · Prueba de integración</span>
+        <h1>Invitación<br>de prueba</h1>
+        <p>
+          Esta página existe únicamente para comprobar que el RSVP nativo puede vivir dentro de una invitación digital y enviar sus respuestas a la boda correcta en Firebase.
+        </p>
+        <a class="scroll-btn" href="#confirmacion">Probar confirmación</a>
+      </div>
+    </section>
+
+    <section class="section" id="confirmacion">
+      <div class="section-heading">
+        <span>Confirmación de asistencia</span>
+        <h2>¿Nos acompañas?</h2>
+        <p>
+          Completa el formulario sin salir de la invitación. La respuesta se guardará en el RSVP de Mi Gran Día y luego podrá revisarse desde la bandeja del administrador.
+        </p>
+      </div>
+
+      <div class="rsvp-wrap">
+        <iframe
+          id="rsvpFrame"
+          src="../rsvp.html?token=b00bca195e8e448eab17557bb6b4ffc480ad2e95c0db4c85bca52a62ff60b499"
+          title="Confirmar asistencia"
+          loading="eager"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allow="clipboard-write"
+        ></iframe>
+      </div>
+
+      <div class="test-note">
+        PRUEBA: envía una respuesta con un nombre cualquiera. Después abre Mi Gran Día → Invitados → RSVP → Bandeja RSVP y verifica que aparezca como una respuesta independiente, sin crear automáticamente un nuevo invitado.
+      </div>
+    </section>
+
+    <footer>Mi Gran Día · Invitación temporal para pruebas RSVP</footer>
+  </main>
+
+  <script>
+    const rsvpFrame = document.getElementById('rsvpFrame');
+
+    window.addEventListener('message', (event) => {
+      if (event.origin !== window.location.origin) return;
+      if (!event.data || event.data.type !== 'MIGRANDIA_RSVP_HEIGHT') return;
+
+      const height = Number(event.data.height);
+      if (!Number.isFinite(height)) return;
+
+      const safeHeight = Math.max(620, Math.min(2200, Math.ceil(height) + 12));
+      rsvpFrame.style.height = safeHeight + 'px';
+    });
+
+    rsvpFrame.addEventListener('load', () => {
+      setTimeout(() => {
+        try {
+          const doc = rsvpFrame.contentDocument;
+          if (!doc) return;
+          const height = Math.max(doc.documentElement.scrollHeight, doc.body?.scrollHeight || 0);
+          if (height) rsvpFrame.style.height = Math.max(620, height + 12) + 'px';
+        } catch (_) {}
+      }, 250);
+    });
+  </script>
+</body>
+</html>
