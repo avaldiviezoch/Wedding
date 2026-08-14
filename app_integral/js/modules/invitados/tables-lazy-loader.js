@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1602-tableslazy2';
+  const VERSION = '20260814-1625-tableslazy3';
   let tablesRuntime = null;
 
   function loadTablesRuntime() {
@@ -19,15 +19,8 @@
     const control = node?.closest?.('[data-view],#tablesTab,[data-tab]');
     if (!control) return false;
     const values = [control.dataset?.view, control.dataset?.tab, control.id, control.textContent]
-      .map((value) => String(value || '').toLowerCase());
-    return values.some((value) => value.includes('table') || value.includes('mesa'));
-  }
-
-  function tablesVisible(doc) {
-    const view = doc?.getElementById('tablesView');
-    if (!view) return false;
-    const display = doc.defaultView?.getComputedStyle(view)?.display || '';
-    return !view.hidden && display !== 'none';
+      .map((value) => String(value || '').trim().toLowerCase());
+    return values.some((value) => value === 'tables' || value === 'table' || value === 'mesas' || value.includes('mesa'));
   }
 
   function bindGuestFrame(frame) {
@@ -35,22 +28,14 @@
     try { doc = frame.contentDocument; } catch (_) { return false; }
     if (!doc?.body || !doc.getElementById('guestList') || !doc.getElementById('tablesView')) return false;
 
-    if (doc.documentElement.dataset.mgdTablesLazyBound !== VERSION) {
-      doc.documentElement.dataset.mgdTablesLazyBound = VERSION;
+    if (doc.documentElement.dataset.mgdTablesLazyBound === VERSION) return true;
+    doc.documentElement.dataset.mgdTablesLazyBound = VERSION;
 
-      doc.addEventListener('click', (event) => {
-        if (isTablesControl(event.target)) loadTablesRuntime();
-      }, true);
+    doc.addEventListener('click', (event) => {
+      if (!isTablesControl(event.target)) return;
+      loadTablesRuntime();
+    }, true);
 
-      const tablesView = doc.getElementById('tablesView');
-      if (tablesView) {
-        new MutationObserver(() => {
-          if (tablesVisible(doc)) loadTablesRuntime();
-        }).observe(tablesView, { attributes: true, attributeFilter: ['hidden', 'class', 'style'] });
-      }
-    }
-
-    if (tablesVisible(doc)) loadTablesRuntime();
     return true;
   }
 
