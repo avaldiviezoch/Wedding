@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1645-exactlegacy1';
+  const VERSION = '20260814-1708-neweditor-oldlook1';
   let loading = null;
 
   function moduleUrl(file, version) {
@@ -13,7 +13,7 @@
     loading = Promise.all([
       import(moduleUrl('index.js', '20260814-1242-rsvp2')),
       import(moduleUrl('ui-copy.js', '20260814-1532-uicopy3')),
-      import(moduleUrl('tables-lazy-loader.js', '20260814-1645-exactlegacy1'))
+      import(moduleUrl('tables-lazy-loader.js', '20260814-1708-neweditor-oldlook1'))
     ]).catch((error) => {
       console.error('No se pudo iniciar Invitados:', error);
       loading = null;
@@ -35,7 +35,7 @@
     const workspace = document.getElementById('unifiedWorkspace');
     if (!workspace) return;
     workspace.querySelectorAll('iframe').forEach((frame) => {
-      if (!frame.dataset.mgdInvitadosRuntimeLoad) {
+      if (frame.dataset.mgdInvitadosRuntimeLoad !== VERSION) {
         frame.dataset.mgdInvitadosRuntimeLoad = VERSION;
         frame.addEventListener('load', () => {
           if (looksLikeInvitadosFrame(frame)) loadInvitadosRuntime();
