@@ -36,8 +36,20 @@ service cloud.firestore {
       return memberRole(weddingId) == 'owner';
     }
 
-    function canEdit(weddingId) {
-      return memberRole(weddingId) in ['owner', 'editor'];
+    function isAdmin(weddingId) {
+      return memberRole(weddingId) == 'admin';
+    }
+
+    function canManageTeam(weddingId) {
+      return memberRole(weddingId) in ['owner', 'admin'];
+    }
+
+    function canEditPlanner(weddingId) {
+      return memberRole(weddingId) in ['owner', 'admin', 'editor'];
+    }
+
+    function isValidCollaboratorRole(role) {
+      return role in ['admin', 'editor', 'provider', 'viewer'];
     }
 
     function invitationPath(weddingId) {
@@ -52,6 +64,12 @@ service cloud.firestore {
         && get(invitationPath(weddingId)).data.get('email', '') == authEmail();
     }
 
+    function pendingInvitationRole(weddingId) {
+      return hasPendingInvitation(weddingId)
+        ? get(invitationPath(weddingId)).data.get('role', 'viewer')
+        : 'none';
+    }
+
     function isOwnerBootstrap(weddingId, memberUid) {
       return signedIn()
         && memberUid == request.auth.uid
@@ -61,8 +79,6 @@ service cloud.firestore {
         && getAfter(weddingPath(weddingId)).data.ownerUid == request.auth.uid;
     }
 
-    // Perfil e índice privado de cada cuenta. Se conserva también la estructura
-    // heredada cloudSync/cloudChunks mientras termina la migración automática.
     match /users/{uid} {
       allow read, create, update, delete: if signedIn() && request.auth.uid == uid;
 
@@ -80,8 +96,6 @@ service cloud.firestore {
       match /members/{memberUid} {
         allow read: if hasActiveMembership(weddingId);
 
-        // Permite el alta inicial del propietario dentro del mismo batch y,
-        // posteriormente, que un invitado cree solo su propio registro.
         allow create: if isOwner(weddingId)
           || isOwnerBootstrap(weddingId, memberUid)
           || (
@@ -90,23 +104,37 @@ service cloud.firestore {
             && hasPendingInvitation(weddingId)
             && request.resource.data.uid == request.auth.uid
             && request.resource.data.email == authEmail()
-            && request.resource.data.role in ['editor', 'viewer']
+            && request.resource.data.role == pendingInvitationRole(weddingId)
+            && isValidCollaboratorRole(request.resource.data.role)
             && request.resource.data.status == 'active'
           );
 
-        allow update: if isOwner(weddingId);
+        allow update: if (
+            isOwner(weddingId)
+            && resource.data.role != 'owner'
+            && isValidCollaboratorRole(request.resource.data.role)
+          ) || (
+            isAdmin(weddingId)
+            && resource.data.role in ['editor', 'provider', 'viewer']
+            && request.resource.data.role in ['editor', 'provider', 'viewer']
+          );
+
         allow delete: if isOwner(weddingId)
-          || (signedIn() && memberUid == request.auth.uid);
+          || (
+            isAdmin(weddingId)
+            && resource.data.role in ['editor', 'provider', 'viewer']
+          )
+          || (signedIn() && memberUid == request.auth.uid && resource.data.role != 'owner');
       }
 
       match /cloudSync/{syncId} {
         allow read: if hasActiveMembership(weddingId);
-        allow write: if canEdit(weddingId);
+        allow write: if canEditPlanner(weddingId);
       }
 
       match /cloudChunks/{chunkId} {
         allow read: if hasActiveMembership(weddingId);
-        allow write: if canEdit(weddingId);
+        allow write: if canEditPlanner(weddingId);
       }
     }
 
@@ -115,29 +143,30 @@ service cloud.firestore {
         && request.resource.data.invitedBy == request.auth.uid
         && request.resource.data.email is string
         && request.resource.data.email == request.resource.data.email.lower()
-        && request.resource.data.role in ['editor', 'viewer']
+        && isValidCollaboratorRole(request.resource.data.role)
         && request.resource.data.status == 'pending'
-        && isOwner(request.resource.data.weddingId);
+        && canManageTeam(request.resource.data.weddingId)
+        && (request.resource.data.role != 'admin' || isOwner(request.resource.data.weddingId));
 
-      // Para que una consulta sea válida, el cliente filtra por su propio email.
       allow read: if signedIn()
         && (
           resource.data.email == authEmail()
-          || isOwner(resource.data.weddingId)
+          || canManageTeam(resource.data.weddingId)
         );
 
       allow update: if signedIn()
         && (
           resource.data.email == authEmail()
-          || isOwner(resource.data.weddingId)
+          || canManageTeam(resource.data.weddingId)
         )
         && request.resource.data.weddingId == resource.data.weddingId
-        && request.resource.data.email == resource.data.email;
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.role == resource.data.role;
 
       allow delete: if signedIn()
         && (
           resource.data.email == authEmail()
-          || isOwner(resource.data.weddingId)
+          || canManageTeam(resource.data.weddingId)
         );
     }
   }

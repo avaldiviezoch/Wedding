@@ -12,13 +12,23 @@ import {
   listWeddingMembers,
   updateWeddingMemberRole,
   removeWeddingMember
-} from '../../services/firebase.js?v=20260814-1047-auth3';
+} from '../../services/firebase.js?v=20260814-1136-collab1';
 
 const ROLE_LABELS = {
   owner: 'Propietario',
+  admin: 'Administrador',
   editor: 'Editor',
-  viewer: 'Lector'
+  provider: 'Proveedor',
+  viewer: 'Solo lectura'
 };
+
+function canManageTeam(role) {
+  return role === 'owner' || role === 'admin';
+}
+
+function isReadOnlyRole(role) {
+  return role === 'viewer' || role === 'provider';
+}
 
 const state = {
   weddings: [],
@@ -130,8 +140,10 @@ function ensureUI() {
               <label>
                 <span>Permiso</span>
                 <select id="inviteWeddingRole">
+                  <option value="admin">Administrador</option>
                   <option value="editor">Editor</option>
-                  <option value="viewer">Lector</option>
+                  <option value="provider">Proveedor</option>
+                  <option value="viewer">Solo lectura</option>
                 </select>
               </label>
               <button type="submit" class="wedding-primary-action">Invitar</button>
@@ -207,9 +219,10 @@ function renderContext() {
   if (name) name.textContent = context.name || 'Mi boda';
   if (role) role.textContent = ROLE_LABELS[context.role] || context.role || '';
   if (teamName) teamName.textContent = context.name ? `Accesos de ${context.name}` : 'Gestiona quién puede entrar a la boda actual.';
-  if (shareButton) shareButton.hidden = context.role !== 'owner';
+  if (shareButton) shareButton.hidden = !canManageTeam(context.role);
 
-  document.body.classList.toggle('wedding-readonly', context.role === 'viewer');
+  document.body.classList.toggle('wedding-readonly', isReadOnlyRole(context.role));
+  document.body.classList.toggle('wedding-provider', context.role === 'provider');
   document.body.dataset.weddingRole = context.role || '';
   document.body.dataset.weddingId = context.id || '';
 
@@ -219,11 +232,15 @@ function renderContext() {
     notice.textContent = context.legacyMode
       ? 'El acceso compartido está pendiente de habilitarse en las reglas de Firestore.'
       : context.role === 'owner'
-        ? 'Como propietario puedes invitar personas y cambiar sus permisos.'
-        : 'Solo el propietario puede invitar personas o modificar permisos.';
+        ? 'Como propietario tienes control total: puedes invitar, asignar administradores y cambiar permisos.'
+        : context.role === 'admin'
+          ? 'Como administrador puedes gestionar colaboradores y editar la boda. Solo el propietario puede crear o modificar administradores.'
+          : context.role === 'provider'
+            ? 'Acceso de proveedor: por seguridad, la edición global queda bloqueada hasta asignar permisos por módulo.'
+            : 'Tu rol no permite administrar el equipo de esta boda.';
   }
   if (form) {
-    form.hidden = context.role !== 'owner';
+    form.hidden = !canManageTeam(context.role);
     form.querySelectorAll('input, select, button').forEach((control) => {
       control.disabled = Boolean(context.legacyMode);
     });
@@ -245,7 +262,8 @@ function renderWeddings() {
   }
 
   const own = state.weddings.filter((item) => item.role === 'owner');
-  const shared = state.weddings.filter((item) => item.role !== 'owner');
+  const managed = state.weddings.filter((item) => item.role === 'admin');
+  const shared = state.weddings.filter((item) => !['owner', 'admin'].includes(item.role));
   const renderGroup = (title, items) => {
     if (!items.length) return '';
     return `
@@ -268,7 +286,7 @@ function renderWeddings() {
       </div>
     `;
   };
-  host.innerHTML = renderGroup('Mis bodas', own) + renderGroup('Compartidas conmigo', shared);
+  host.innerHTML = renderGroup('Mis bodas', own) + renderGroup('Bodas que administras', managed) + renderGroup('Otras compartidas contigo', shared);
 }
 
 function renderInvitations() {
@@ -305,7 +323,7 @@ function renderSentInvitations() {
   const host = document.getElementById('pendingWeddingInvitations');
   if (!host) return;
   const context = getWeddingContext();
-  if (context.role !== 'owner' || context.legacyMode) {
+  if (!canManageTeam(context.role) || context.legacyMode) {
     host.innerHTML = '';
     return;
   }
@@ -343,7 +361,20 @@ function renderMembers() {
 
   host.innerHTML = state.members.map((member) => {
     const owner = member.role === 'owner';
-    const editable = context.role === 'owner' && !owner && member.uid !== auth.currentUser?.uid;
+    const adminProtected = context.role === 'admin' && member.role === 'admin';
+    const editable = canManageTeam(context.role) && !owner && !adminProtected && member.uid !== auth.currentUser?.uid;
+    const roleOptions = context.role === 'owner'
+      ? [
+          ['admin', 'Administrador'],
+          ['editor', 'Editor'],
+          ['provider', 'Proveedor'],
+          ['viewer', 'Solo lectura']
+        ]
+      : [
+          ['editor', 'Editor'],
+          ['provider', 'Proveedor'],
+          ['viewer', 'Solo lectura']
+        ];
     return `
       <article class="member-card">
         <div class="member-avatar">${escapeHtml((member.displayName || member.email || '?').trim().charAt(0).toUpperCase())}</div>
@@ -353,8 +384,7 @@ function renderMembers() {
         </div>
         ${editable ? `
           <select class="member-role-select" data-member-role="${escapeHtml(member.uid)}">
-            <option value="editor" ${member.role === 'editor' ? 'selected' : ''}>Editor</option>
-            <option value="viewer" ${member.role === 'viewer' ? 'selected' : ''}>Lector</option>
+            ${roleOptions.map(([value, label]) => `<option value="${value}" ${member.role === value ? 'selected' : ''}>${label}</option>`).join('')}
           </select>
           <button type="button" class="member-remove" data-remove-member="${escapeHtml(member.uid)}">Quitar</button>
         ` : `<span class="member-role-pill">${escapeHtml(ROLE_LABELS[member.role] || member.role || '')}</span>`}
@@ -389,7 +419,7 @@ async function refreshMembers() {
     const context = getWeddingContext();
     const [members, sentInvitations] = await Promise.all([
       listWeddingMembers(),
-      context.role === 'owner' ? listWeddingInvitations() : Promise.resolve([])
+      canManageTeam(context.role) ? listWeddingInvitations() : Promise.resolve([])
     ]);
     state.members = members;
     state.sentInvitations = sentInvitations;

@@ -78,7 +78,20 @@ const CHUNK_SIZE = 180000;
 const LOCAL_OWNER_KEY = 'migrandia_local_owner_uid_v1';
 
 function normalizeRole(role) {
-  return ['owner', 'editor', 'viewer'].includes(role) ? role : 'viewer';
+  return ['owner', 'admin', 'editor', 'provider', 'viewer'].includes(role) ? role : 'viewer';
+}
+
+function canManageTeamRole(role = activeWeddingRole) {
+  return ['owner', 'admin'].includes(normalizeRole(role));
+}
+
+function canEditPlannerRole(role = activeWeddingRole) {
+  return ['owner', 'admin', 'editor'].includes(normalizeRole(role));
+}
+
+function normalizeCollaboratorRole(role, fallback = 'editor') {
+  const clean = String(role || '').trim().toLowerCase();
+  return ['admin', 'editor', 'provider', 'viewer'].includes(clean) ? clean : fallback;
 }
 
 function currentContext() {
@@ -356,7 +369,7 @@ async function ensureWeddingContext(user) {
 
 async function writeCloudBackup(user, silent = false) {
   if (!user || cloudBusy || !hydrated) return;
-  if (!legacyMode && (!activeWeddingId || activeWeddingRole === 'viewer')) return;
+  if (!legacyMode && (!activeWeddingId || !canEditPlannerRole())) return;
   const bridge = window.WeddingPlannerBridge;
   if (!bridge) return;
 
@@ -433,7 +446,7 @@ async function writeCloudBackup(user, silent = false) {
 }
 
 function scheduleCloudSave(delay = 2500) {
-  if (!auth.currentUser || !hydrated || activeWeddingRole === 'viewer') return;
+  if (!auth.currentUser || !hydrated || !canEditPlannerRole()) return;
   clearTimeout(cloudTimer);
   cloudTimer = setTimeout(() => writeCloudBackup(auth.currentUser, true), delay);
 }
@@ -537,9 +550,10 @@ export async function listUserWeddings() {
     items.push({ id: snap.id, ...data, name, role });
   }
 
+  const roleRank = { owner: 0, admin: 1, editor: 2, provider: 3, viewer: 4 };
   return items.sort((a, b) => {
-    if (a.role === 'owner' && b.role !== 'owner') return -1;
-    if (a.role !== 'owner' && b.role === 'owner') return 1;
+    const rankDiff = (roleRank[a.role] ?? 9) - (roleRank[b.role] ?? 9);
+    if (rankDiff) return rankDiff;
     return String(a.name || '').localeCompare(String(b.name || ''), 'es');
   });
 }
@@ -593,7 +607,7 @@ export async function switchWedding(weddingId) {
   if (!targetId) throw new Error('Boda no válida.');
   if (activeWeddingId === targetId && hydrated) return currentContext();
 
-  if (activeWeddingId && hydrated && activeWeddingRole !== 'viewer') {
+  if (activeWeddingId && hydrated && canEditPlannerRole()) {
     try {
       await writeCloudBackup(user, true);
     } catch (_) {}
@@ -633,8 +647,8 @@ export async function inviteWeddingMember(email, role = 'editor') {
   if (!user || !activeWeddingId || legacyMode) {
     throw new Error('La función de compartir todavía no está disponible en Firestore.');
   }
-  if (activeWeddingRole !== 'owner') {
-    throw new Error('Solo el propietario puede invitar personas.');
+  if (!canManageTeamRole()) {
+    throw new Error('Solo el propietario o un administrador puede invitar personas.');
   }
 
   const normalizedEmail = String(email || '').trim().toLowerCase();
@@ -645,7 +659,10 @@ export async function inviteWeddingMember(email, role = 'editor') {
     throw new Error('Ya eres propietario de esta boda.');
   }
 
-  const cleanRole = role === 'viewer' ? 'viewer' : 'editor';
+  const cleanRole = normalizeCollaboratorRole(role);
+  if (activeWeddingRole === 'admin' && cleanRole === 'admin') {
+    throw new Error('Solo el propietario puede asignar el rol Administrador.');
+  }
   const inviteId = safeInviteId(activeWeddingId, normalizedEmail);
   await setDoc(
     doc(db, 'invitations', inviteId),
@@ -667,7 +684,7 @@ export async function inviteWeddingMember(email, role = 'editor') {
 }
 
 export async function listWeddingInvitations() {
-  if (!auth.currentUser || !activeWeddingId || legacyMode || activeWeddingRole !== 'owner') {
+  if (!auth.currentUser || !activeWeddingId || legacyMode || !canManageTeamRole()) {
     return [];
   }
 
@@ -683,8 +700,8 @@ export async function listWeddingInvitations() {
 }
 
 export async function cancelWeddingInvitation(inviteId) {
-  if (!auth.currentUser || !activeWeddingId || legacyMode || activeWeddingRole !== 'owner') {
-    throw new Error('Solo el propietario puede cancelar invitaciones.');
+  if (!auth.currentUser || !activeWeddingId || legacyMode || !canManageTeamRole()) {
+    throw new Error('Solo el propietario o un administrador puede cancelar invitaciones.');
   }
   const ref = doc(db, 'invitations', String(inviteId || ''));
   const snap = await getDoc(ref);
@@ -722,7 +739,7 @@ export async function acceptWeddingInvitation(inviteId) {
   if (invite.status !== 'pending') throw new Error('Esta invitación ya fue utilizada.');
 
   const weddingId = String(invite.weddingId || '');
-  const role = invite.role === 'viewer' ? 'viewer' : 'editor';
+  const role = normalizeCollaboratorRole(invite.role);
   const weddingName = String(invite.weddingName || 'Boda compartida');
   const batch = writeBatch(db);
 
@@ -782,16 +799,28 @@ export async function listWeddingMembers() {
 }
 
 export async function updateWeddingMemberRole(uid, role) {
-  if (!auth.currentUser || activeWeddingRole !== 'owner' || legacyMode) {
-    throw new Error('Solo el propietario puede cambiar permisos.');
+  if (!auth.currentUser || !canManageTeamRole() || legacyMode) {
+    throw new Error('Solo el propietario o un administrador puede cambiar permisos.');
   }
   const targetUid = String(uid || '');
   if (!targetUid || targetUid === auth.currentUser.uid) {
-    throw new Error('No puedes cambiar tu rol de propietario.');
+    throw new Error('No puedes cambiar tu propio rol desde aquí.');
   }
-  const cleanRole = role === 'viewer' ? 'viewer' : 'editor';
+
+  const memberRef = doc(db, 'weddings', activeWeddingId, 'members', targetUid);
+  const memberSnap = await getDoc(memberRef);
+  if (!memberSnap.exists()) throw new Error('Ese miembro ya no pertenece a la boda.');
+
+  const currentRole = normalizeRole(memberSnap.data()?.role);
+  if (currentRole === 'owner') throw new Error('El rol del propietario no se puede modificar.');
+
+  const cleanRole = normalizeCollaboratorRole(role);
+  if (activeWeddingRole === 'admin' && (currentRole === 'admin' || cleanRole === 'admin')) {
+    throw new Error('Solo el propietario puede administrar el rol Administrador.');
+  }
+
   await setDoc(
-    doc(db, 'weddings', activeWeddingId, 'members', targetUid),
+    memberRef,
     { role: cleanRole, updatedAt: serverTimestamp() },
     { merge: true }
   );
@@ -799,15 +828,25 @@ export async function updateWeddingMemberRole(uid, role) {
 }
 
 export async function removeWeddingMember(uid) {
-  if (!auth.currentUser || activeWeddingRole !== 'owner' || legacyMode) {
-    throw new Error('Solo el propietario puede retirar accesos.');
+  if (!auth.currentUser || !canManageTeamRole() || legacyMode) {
+    throw new Error('Solo el propietario o un administrador puede retirar accesos.');
   }
   const targetUid = String(uid || '');
   if (!targetUid || targetUid === auth.currentUser.uid) {
-    throw new Error('No puedes retirarte como propietario.');
+    throw new Error('No puedes retirar tu propio acceso desde aquí.');
   }
+
+  const memberRef = doc(db, 'weddings', activeWeddingId, 'members', targetUid);
+  const memberSnap = await getDoc(memberRef);
+  if (!memberSnap.exists()) return;
+  const currentRole = normalizeRole(memberSnap.data()?.role);
+  if (currentRole === 'owner') throw new Error('No se puede retirar al propietario.');
+  if (activeWeddingRole === 'admin' && currentRole === 'admin') {
+    throw new Error('Solo el propietario puede retirar a otro administrador.');
+  }
+
   await setDoc(
-    doc(db, 'weddings', activeWeddingId, 'members', targetUid),
+    memberRef,
     {
       status: 'removed',
       removedAt: serverTimestamp(),
@@ -1055,6 +1094,6 @@ if (!document.querySelector('link[data-weddings-style]')) {
   document.head.appendChild(weddingsStyle);
 }
 
-import('../modules/configuracion/weddings.js?v=20260814-1047-auth3').catch((error) => {
+import('../modules/configuracion/weddings.js?v=20260814-1136-collab1').catch((error) => {
   console.error('No se pudo cargar el módulo de bodas compartidas:', error);
 });

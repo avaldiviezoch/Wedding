@@ -2,12 +2,14 @@
 // Carga la interfaz anterior y conecta el botón Invitar usando la MISMA
 // instancia canónica de firebase.js que utiliza esa interfaz.
 
-await import('./weddings-legacy.js?v=20260814-1047-auth3');
-const firebaseApi = await import('../../services/firebase.js?v=20260814-1047-auth3');
+await import('./weddings-legacy.js?v=20260814-1136-collab1');
+const firebaseApi = await import('../../services/firebase.js?v=20260814-1136-collab1');
 
 const FORM_ID = 'inviteWeddingMemberForm';
 const BUTTON_ID = 'inviteWeddingButton';
 const STATUS_ID = 'inviteWeddingStatus';
+const ROLE_LABELS = { admin: 'Administrador', editor: 'Editor', provider: 'Proveedor', viewer: 'Solo lectura' };
+const canManageTeam = (role) => role === 'owner' || role === 'admin';
 
 function setStatus(message = '', type = '') {
   const el = document.getElementById(STATUS_ID);
@@ -41,7 +43,7 @@ async function renderPending() {
           <div class="pending-invite-icon">✉</div>
           <div class="pending-invite-info">
             <strong>${escapeHtml(item.email || '')}</strong>
-            <span>${item.role === 'viewer' ? 'Lector' : 'Editor'} · Pendiente de aceptar</span>
+            <span>${escapeHtml(ROLE_LABELS[item.role] || item.role || 'Editor')} · Pendiente de aceptar</span>
           </div>
         </article>
       `).join('')}
@@ -80,8 +82,12 @@ async function sendInvitation(form, button) {
     setStatus('Firebase aún no tiene habilitado el modelo compartido para esta cuenta.', 'error');
     return;
   }
-  if (context.role !== 'owner') {
-    setStatus('Solo el propietario puede invitar personas.', 'error');
+  if (!canManageTeam(context.role)) {
+    setStatus('Solo el propietario o un administrador puede invitar personas.', 'error');
+    return;
+  }
+  if (context.role === 'admin' && role === 'admin') {
+    setStatus('Solo el propietario puede asignar el rol Administrador.', 'error');
     return;
   }
 
