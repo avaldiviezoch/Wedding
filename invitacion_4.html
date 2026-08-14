@@ -14,7 +14,7 @@
   <div class="loading-halo-4">Cargando invitación…</div>
   <script>
     (async function(){
-      const response = await fetch('invitacion_4_base.html?v=20260813-2137', {cache:'no-store'});
+      const response = await fetch('invitacion_4_base.html?v=20260813-2140', {cache:'no-store'});
       if(!response.ok) throw new Error('No se pudo cargar la invitación base');
       let html = await response.text();
 
@@ -35,26 +35,39 @@
       .invitacion input,
       .invitacion textarea,
       .invitacion select,
-      .invitacion option {
-        text-shadow:
-          0 0 2px rgba(244,238,223,1),
-          0 0 6px rgba(244,238,223,.96),
-          0 0 10px rgba(244,238,223,.84),
-          0 1px 14px rgba(244,238,223,.68) !important;
-      }
-
+      .invitacion option,
+      .invitacion .nos-casamos,
       .invitacion .nombres,
+      .invitacion .corazon,
+      .invitacion .frase,
+      .invitacion .fecha-etiqueta,
       .invitacion .fecha,
+      .invitacion .etiqueta-seccion,
       .invitacion .titulo-primer-fondo,
+      .invitacion .texto-primer-fondo,
+      .invitacion .contador-titulo,
+      .invitacion .contador-numero,
+      .invitacion .contador-texto,
+      .invitacion .detalle-inferior,
       .invitacion .titulo-ubicacion,
       .invitacion .titulo-itinerario,
       .invitacion .titulo-adicional,
-      .invitacion .historia-transicion-titulo {
+      .invitacion .subtitulo-adicional,
+      .invitacion .texto-adicional,
+      .invitacion .dresscode-intro,
+      .invitacion .dresscode-colors-title,
+      .invitacion .dresscode-note-final,
+      .invitacion .aviso-musica,
+      .invitacion .nota-itinerario,
+      .invitacion .texto-ubicacion,
+      .invitacion .hora-itinerario,
+      .invitacion .nombre-itinerario,
+      .invitacion .historia-transicion-titulo,
+      .invitacion .historia-transicion-subtitulo {
         text-shadow:
-          0 0 3px rgba(244,238,223,1),
-          0 0 8px rgba(244,238,223,.98),
-          0 0 14px rgba(244,238,223,.86),
-          0 2px 18px rgba(244,238,223,.72) !important;
+          0 0 2px rgba(244,238,223,.98),
+          0 0 6px rgba(244,238,223,.92),
+          0 1px 10px rgba(244,238,223,.72) !important;
       }
       </style>`;
 
@@ -64,7 +77,7 @@
       document.close();
     })().catch(function(error){
       console.error(error);
-      location.replace('invitacion_4_base.html?v=20260813-2137');
+      location.replace('invitacion_4_base.html?v=20260813-2140');
     });
   </script>
 </body>
