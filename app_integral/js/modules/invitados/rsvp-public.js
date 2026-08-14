@@ -272,7 +272,7 @@ function showSuccess(payload) {
       ? 'No asistiré'
       : 'Por confirmar';
   document.getElementById('rsvpSuccessText').textContent = payload.attendance === 'confirmed'
-    ? '¡Qué alegría! Tu respuesta ya está en la lista de invitados.'
+    ? '¡Qué alegría! Recibimos tu confirmación. Los novios revisarán el grupo de asistentes.'
     : 'Tu respuesta quedó registrada. Puedes modificarla desde este mismo enlace.';
   document.getElementById('rsvpSuccessSummary').innerHTML = `
     <div class="rsvp-success-item"><small>Nombre</small><strong>${escapeHtml(payload.name)}</strong></div>
