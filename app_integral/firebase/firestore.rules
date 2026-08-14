@@ -1,0 +1,130 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function authEmail() {
+      return signedIn() && request.auth.token.email is string
+        ? request.auth.token.email.lower()
+        : '';
+    }
+
+    function memberPath(weddingId) {
+      return /databases/$(database)/documents/weddings/$(weddingId)/members/$(request.auth.uid);
+    }
+
+    function hasActiveMembership(weddingId) {
+      return signedIn()
+        && exists(memberPath(weddingId))
+        && get(memberPath(weddingId)).data.get('status', 'active') == 'active';
+    }
+
+    function memberRole(weddingId) {
+      return hasActiveMembership(weddingId)
+        ? get(memberPath(weddingId)).data.get('role', 'viewer')
+        : 'none';
+    }
+
+    function isOwner(weddingId) {
+      return memberRole(weddingId) == 'owner';
+    }
+
+    function canEdit(weddingId) {
+      return memberRole(weddingId) in ['owner', 'editor'];
+    }
+
+    function invitationPath(weddingId) {
+      return /databases/$(database)/documents/invitations/$(weddingId + '__' + authEmail());
+    }
+
+    function hasPendingInvitation(weddingId) {
+      return signedIn()
+        && authEmail() != ''
+        && exists(invitationPath(weddingId))
+        && get(invitationPath(weddingId)).data.get('status', '') == 'pending'
+        && get(invitationPath(weddingId)).data.get('email', '') == authEmail();
+    }
+
+    // Perfil e índice privado de cada cuenta. Se conserva también la estructura
+    // heredada cloudSync/cloudChunks mientras termina la migración automática.
+    match /users/{uid} {
+      allow read, create, update, delete: if signedIn() && request.auth.uid == uid;
+
+      match /{document=**} {
+        allow read, write: if signedIn() && request.auth.uid == uid;
+      }
+    }
+
+    match /weddings/{weddingId} {
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow read: if hasActiveMembership(weddingId);
+      allow update, delete: if isOwner(weddingId);
+
+      match /members/{memberUid} {
+        allow read: if hasActiveMembership(weddingId);
+
+        // El propietario administra el equipo. El invitado también puede crear
+        // exclusivamente su propio registro cuando posee una invitación pendiente.
+        allow create: if isOwner(weddingId)
+          || (
+            signedIn()
+            && memberUid == request.auth.uid
+            && hasPendingInvitation(weddingId)
+            && request.resource.data.uid == request.auth.uid
+            && request.resource.data.email == authEmail()
+            && request.resource.data.role in ['editor', 'viewer']
+            && request.resource.data.status == 'active'
+          );
+
+        allow update: if isOwner(weddingId);
+        allow delete: if isOwner(weddingId)
+          || (signedIn() && memberUid == request.auth.uid);
+      }
+
+      match /cloudSync/{syncId} {
+        allow read: if hasActiveMembership(weddingId);
+        allow write: if canEdit(weddingId);
+      }
+
+      match /cloudChunks/{chunkId} {
+        allow read: if hasActiveMembership(weddingId);
+        allow write: if canEdit(weddingId);
+      }
+    }
+
+    match /invitations/{inviteId} {
+      allow create: if signedIn()
+        && request.resource.data.invitedBy == request.auth.uid
+        && request.resource.data.email is string
+        && request.resource.data.email == request.resource.data.email.lower()
+        && request.resource.data.role in ['editor', 'viewer']
+        && request.resource.data.status == 'pending'
+        && isOwner(request.resource.data.weddingId);
+
+      // Para que una consulta sea válida el cliente debe filtrar por su propio email.
+      allow read: if signedIn()
+        && (
+          resource.data.email == authEmail()
+          || isOwner(resource.data.weddingId)
+        );
+
+      allow update: if signedIn()
+        && (
+          resource.data.email == authEmail()
+          || isOwner(resource.data.weddingId)
+        )
+        && request.resource.data.weddingId == resource.data.weddingId
+        && request.resource.data.email == resource.data.email;
+
+      allow delete: if signedIn()
+        && (
+          resource.data.email == authEmail()
+          || isOwner(resource.data.weddingId)
+        );
+    }
+  }
+}
