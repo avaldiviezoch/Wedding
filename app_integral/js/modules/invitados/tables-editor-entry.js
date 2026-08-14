@@ -10,4 +10,4 @@ await import('./tables-canvas.js?v=20260814-1628-canvas2');
 await import('./tables-touch-drag.js?v=20260814-1608-touch2');
 await import('./tables-seat-detail.js?v=20260814-1544-seatdetail1');
 await import('./tables-polish.js?v=20260814-1558-polish1');
-await import('./tables-accessibility.js?v=20260814-1618-access1');
+await import('./tables-accessibility.js?v=20260814-1638-access2');
