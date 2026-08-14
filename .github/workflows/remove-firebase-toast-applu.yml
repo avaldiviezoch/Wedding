@@ -1,0 +1,53 @@
+name: Retirar aviso Firebase de applu
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/remove-firebase-toast-applu.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Retirar solo el aviso visual
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('applu.html')
+          data = p.read_bytes()
+          needle = b"bridge.showToast('Tus datos se cargaron desde Firebase.');"
+          count = data.count(needle)
+          if count == 0:
+              raise SystemExit('No se encontro el aviso esperado en applu.html')
+          p.write_bytes(data.replace(needle, b''))
+          print(f'Avisos retirados: {count}')
+          PY
+
+      - name: Confirmar que Firebase sigue intacto
+        shell: bash
+        run: |
+          grep -q "restoreCloudBackup" applu.html
+          if grep -q "Tus datos se cargaron desde Firebase" applu.html; then
+            echo "El aviso sigue presente" >&2
+            exit 1
+          fi
+
+      - name: Commit del cambio
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add applu.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Retirar aviso de carga Firebase en applu"
+          git push origin HEAD:main
