@@ -1,6 +1,6 @@
 import { getWeddingContext } from '../../services/firebase.js?v=20260814-1136-collab1';
 
-const VERSION = '20260814-1618-access1';
+const VERSION = '20260814-1638-access2';
 const STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 let activeFrame = null;
@@ -39,12 +39,24 @@ function buildSharedState(data) {
   };
 }
 
+function currentVisualPosition(tableId) {
+  const cards = [...(activeDoc?.querySelectorAll('.mgd-table-card[data-table-id]') || [])];
+  const card = cards.find((node) => String(node.dataset.tableId) === String(tableId));
+  const x = Number.parseFloat(card?.style.left || '');
+  const y = Number.parseFloat(card?.style.top || '');
+  return {
+    x: Number.isFinite(x) ? x : 28,
+    y: Number.isFinite(y) ? y : 28
+  };
+}
+
 function persistPosition(tableId, dx, dy) {
   const data = readState();
   const table = data.tables.find((item) => String(item.id) === String(tableId));
   if (!table) return;
-  const x = Number.isFinite(Number(table.positionX)) ? Number(table.positionX) : 28;
-  const y = Number.isFinite(Number(table.positionY)) ? Number(table.positionY) : 28;
+  const visual = currentVisualPosition(tableId);
+  const x = Number.isFinite(Number(table.positionX)) ? Number(table.positionX) : visual.x;
+  const y = Number.isFinite(Number(table.positionY)) ? Number(table.positionY) : visual.y;
   table.positionX = Math.max(0, Math.round(x + dx));
   table.positionY = Math.max(0, Math.round(y + dy));
   table.updatedAt = new Date().toISOString();
