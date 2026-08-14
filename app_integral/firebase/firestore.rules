@@ -215,6 +215,13 @@ service cloud.firestore {
         allow read: if hasActiveMembership(weddingId);
         allow create, update, delete: if canEditPlanner(weddingId);
       }
+
+      // Metadatos privados de revisión del RSVP: etiquetas, lado de los novios
+      // y vínculos manuales con invitados existentes. Nunca se exponen al invitado público.
+      match /rsvpManagement/{managementId} {
+        allow read: if hasActiveMembership(weddingId);
+        allow create, update, delete: if canEditPlanner(weddingId);
+      }
     }
 
     match /invitations/{inviteId} {
