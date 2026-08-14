@@ -1,6 +1,7 @@
 (() => {
   const FORM_ID = 'inviteWeddingMemberForm';
   const STATUS_ID = 'inviteWeddingStatus';
+  const BUILD = '20260813-2131';
 
   function setStatus(message, type = '') {
     const el = document.getElementById(STATUS_ID);
@@ -41,7 +42,7 @@
     setStatus(`Enviando invitación a ${email}…`, 'loading');
 
     try {
-      const firebaseUrl = new URL('js/services/firebase.js', document.baseURI).href;
+      const firebaseUrl = new URL(`js/services/firebase.js?v=${BUILD}`, document.baseURI).href;
       const api = await import(firebaseUrl);
       const context = api.getWeddingContext();
 
@@ -111,7 +112,11 @@
     const button = form.querySelector('button');
     if (button) {
       button.type = 'button';
-      button.dataset.inviteFallbackReady = '1';
+      button.dataset.inviteFallbackReady = BUILD;
+      button.title = 'Control de invitaciones activo';
+      if (!document.getElementById(STATUS_ID)?.textContent?.trim()) {
+        setStatus('Control de invitaciones listo.', 'success');
+      }
     }
     return true;
   };
