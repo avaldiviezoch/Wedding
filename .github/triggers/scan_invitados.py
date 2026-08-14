@@ -5,28 +5,32 @@ files = [
     Path('app_integral/appludesktop.html'),
     Path('app_integral/applumovil.html'),
 ]
-terms = ['invitados', 'invitado', 'guest', 'guests', 'mesa', 'table', 'unifiedWorkspace', 'MODULE', 'iframe']
+terms = [
+    'tab-rsvp', 'data-tab="rsvp"', "data-tab='rsvp'", 'rsvp',
+    'google sheets', 'sheets', 'asistencia', 'cantidad', 'acompañante',
+    'guest', 'guests', 'guestRows', 'invitados:', 'invitados =',
+    'localStorage', 'mesa', 'tableId', 'tableName'
+]
 for path in files:
     print(f'\n===== {path} =====')
     text = path.read_text(encoding='utf-8', errors='ignore')
     low = text.lower()
-    hits=[]
+    printed = 0
     for term in terms:
-        start=0
-        t=term.lower()
+        pos = 0
+        found = 0
         while True:
-            i=low.find(t,start)
-            if i<0: break
-            hits.append((i,term))
-            start=i+len(t)
-    hits=sorted(hits)[:120]
-    seen=[]
-    for i,term in hits:
-        a=max(0,i-500); b=min(len(text),i+1200)
-        snippet=text[a:b].replace('\r','')
-        key=snippet[:100]
-        if key in seen: continue
-        seen.append(key)
-        print(f'\n--- HIT {term} @ {i} ---')
-        print(snippet)
-        if len(seen)>=35: break
+            i = low.find(term.lower(), pos)
+            if i < 0:
+                break
+            found += 1
+            a = max(0, i - 900)
+            b = min(len(text), i + 2200)
+            print(f'\n--- TERM {term!r} HIT {found} @ {i} ---')
+            print(text[a:b].replace('\r',''))
+            pos = i + len(term)
+            printed += 1
+            if found >= 5 or printed >= 70:
+                break
+        if printed >= 70:
+            break
