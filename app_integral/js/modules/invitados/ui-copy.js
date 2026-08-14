@@ -1,24 +1,22 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1655-ui2';
-  const BOUND = 'migrandiaUiCopyBound';
+  const VERSION = '20260814-1532-uicopy3';
 
   const cleanStatus = (value = '') => {
     const text = String(value || '').trim();
     if (!text) return '';
-
     const lower = text.toLowerCase();
 
     if (lower.includes('configuración publicada en firebase')) return 'Formulario publicado correctamente';
     if (lower.includes('bandeja rsvp conectada')) return 'Confirmaciones actualizadas';
     if (lower.includes('clasificación rsvp guardada')) return 'Clasificación guardada';
     if (lower.includes('cargando rsvp')) return 'Cargando confirmaciones…';
-    if (lower.includes('firebase') || lower.includes('supabase') || lower.includes('firestore')) {
-      return 'No se pudo completar la acción. Inténtalo nuevamente.';
-    }
     if (lower.includes('missing or insufficient permissions') || lower.includes('permission-denied')) {
       return 'No tienes permiso para realizar esta acción.';
+    }
+    if (lower.includes('firebase') || lower.includes('supabase') || lower.includes('firestore')) {
+      return 'No se pudo completar la acción. Inténtalo nuevamente.';
     }
 
     return text
@@ -38,29 +36,20 @@
   }
 
   function simplifyRsvpUi(doc) {
-    if (!doc?.body) return;
-
-    const panel = doc.getElementById('rsvpNativeView');
-    const tab = doc.getElementById('rsvpNativeTab');
-
-    if (tab && tab.textContent !== 'Confirmaciones') {
-      tab.textContent = 'Confirmaciones';
-    }
-
-    if (!panel) return;
+    const panel = doc?.getElementById('rsvpNativeView');
+    const tab = doc?.getElementById('rsvpNativeTab');
+    if (tab && tab.textContent !== 'Confirmaciones') tab.textContent = 'Confirmaciones';
+    if (!panel) return false;
 
     setText(panel, '.rsvp-admin-eyebrow', 'Módulo de confirmación de invitación digital');
     setText(panel, '.rsvp-admin-hero h2', 'Confirmaciones de asistencia');
 
     const heroDescription = panel.querySelector('.rsvp-admin-hero p');
-    if (heroDescription) {
-      heroDescription.textContent = 'Recibe y organiza las respuestas enviadas desde tus invitaciones digitales.';
-    }
+    if (heroDescription) heroDescription.textContent = 'Recibe y organiza las respuestas enviadas desde tus invitaciones digitales.';
 
     panel.querySelector('.rsvp-safety-note')?.remove();
 
-    const tabs = panel.querySelectorAll('[data-rsvp-pane-tab]');
-    tabs.forEach((button) => {
+    panel.querySelectorAll('[data-rsvp-pane-tab]').forEach((button) => {
       const key = button.dataset.rsvpPaneTab;
       if (key === 'responses') button.textContent = 'Confirmaciones';
       if (key === 'form') button.textContent = 'Formulario';
@@ -103,9 +92,7 @@
     }
 
     const note = panel.querySelector('[data-rsvp-pane="integrate"] .rsvp-note');
-    if (note) {
-      note.textContent = 'Las respuestas aparecerán automáticamente en la pestaña Confirmaciones.';
-    }
+    if (note) note.textContent = 'Las respuestas aparecerán automáticamente en la pestaña Confirmaciones.';
 
     panel.querySelectorAll('.rsvp-link-help').forEach((help) => {
       help.textContent = 'La cantidad indicada es referencial. Tú decides exactamente a qué personas de tu lista corresponde cada confirmación.';
@@ -120,54 +107,65 @@
       const next = cleanStatus(syncState.textContent);
       if (next && next !== syncState.textContent) syncState.textContent = next;
     }
+
+    return true;
   }
 
-  function bindDocument(doc) {
-    if (!doc?.documentElement || doc.documentElement.dataset[BOUND]) return;
-    doc.documentElement.dataset[BOUND] = VERSION;
-
+  function bindPanel(doc) {
+    const panel = doc?.getElementById('rsvpNativeView');
+    if (!panel) return false;
     simplifyRsvpUi(doc);
+    if (panel.dataset.mgdUiCopyBound === VERSION) return true;
+    panel.dataset.mgdUiCopyBound = VERSION;
 
-    const observer = new MutationObserver(() => simplifyRsvpUi(doc));
-    observer.observe(doc.documentElement, {
-      childList: true,
-      subtree: true,
-      characterData: true
+    let scheduled = false;
+    const observer = new MutationObserver(() => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(() => {
+        scheduled = false;
+        simplifyRsvpUi(doc);
+      });
     });
+    observer.observe(panel, { childList: true, subtree: true, characterData: true });
+    return true;
+  }
+
+  function watchFrame(frame) {
+    let doc;
+    try { doc = frame.contentDocument; } catch (_) { return; }
+    if (!doc?.body || !doc.getElementById('guestList')) return;
+
+    if (bindPanel(doc)) return;
+    if (doc.documentElement.dataset.mgdUiCopyWait === VERSION) return;
+    doc.documentElement.dataset.mgdUiCopyWait = VERSION;
+
+    const waitObserver = new MutationObserver(() => {
+      if (bindPanel(doc)) waitObserver.disconnect();
+    });
+    waitObserver.observe(doc.body, { childList: true, subtree: true });
   }
 
   function scan() {
-    bindDocument(document);
-
-    document.querySelectorAll('iframe').forEach((frame) => {
-      try {
-        const doc = frame.contentDocument;
-        if (doc?.documentElement) bindDocument(doc);
-        if (!frame.dataset.migrandiaUiCopyLoadBound) {
-          frame.dataset.migrandiaUiCopyLoadBound = '1';
-          frame.addEventListener('load', () => {
-            try { bindDocument(frame.contentDocument); } catch (_) {}
-          });
-        }
-      } catch (_) {}
+    const workspace = document.getElementById('unifiedWorkspace');
+    if (!workspace) return;
+    workspace.querySelectorAll('iframe').forEach((frame) => {
+      if (!frame.dataset.mgdUiCopyLoadBound) {
+        frame.dataset.mgdUiCopyLoadBound = VERSION;
+        frame.addEventListener('load', () => setTimeout(() => watchFrame(frame), 20));
+      }
+      watchFrame(frame);
     });
   }
 
-  const rootObserver = new MutationObserver(scan);
-  rootObserver.observe(document.documentElement, { childList: true, subtree: true });
+  function bindWorkspace() {
+    const workspace = document.getElementById('unifiedWorkspace');
+    if (!workspace || workspace.dataset.mgdUiCopyObserver === VERSION) return;
+    workspace.dataset.mgdUiCopyObserver = VERSION;
+    new MutationObserver(scan).observe(workspace, { childList: true, subtree: true });
+    scan();
+  }
 
-  document.addEventListener('DOMContentLoaded', scan);
-  window.addEventListener('load', scan);
-  window.addEventListener('migrandia:wedding-context', scan);
-
-  if (document.readyState !== 'loading') scan();
-})();
-
-(() => {
-  if (document.querySelector('script[data-mgd-tables-editor-loader]')) return;
-  const script = document.createElement('script');
-  script.type = 'module';
-  script.src = new URL('js/modules/invitados/tables-editor-entry.js?v=20260814-1655-tables4', document.baseURI).href;
-  script.dataset.mgdTablesEditorLoader = '1';
-  document.head.appendChild(script);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindWorkspace, { once: true });
+  else bindWorkspace();
 })();
