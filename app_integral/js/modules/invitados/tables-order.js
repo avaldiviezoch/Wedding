@@ -1,4 +1,4 @@
-const VERSION = '20260814-1418-order1';
+const VERSION = '20260814-1422-order2';
 const STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 
@@ -6,6 +6,7 @@ let activeFrame = null;
 let activeDoc = null;
 let activeRoot = null;
 let observer = null;
+let draggingTableId = '';
 
 function readState() {
   try {
@@ -132,34 +133,41 @@ function bindRoot(root) {
   root.addEventListener('dragstart', (event) => {
     const handle = event.target.closest('[data-table-order-drag]');
     if (!handle) return;
-    const id = handle.dataset.tableOrderDrag;
+    draggingTableId = handle.dataset.tableOrderDrag;
     event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('text/mgd-table-order', id);
-    event.dataTransfer.setData('text/plain', `table:${id}`);
+    try { event.dataTransfer.setData('text/mgd-table-order', draggingTableId); } catch (_) {}
     handle.closest('.mgd-table-card')?.classList.add('is-order-drag');
   });
 
   root.addEventListener('dragover', (event) => {
-    const id = event.dataTransfer?.getData('text/mgd-table-order');
-    if (!id) return;
+    if (!draggingTableId) return;
     const card = event.target.closest('.mgd-table-card[data-table-id]');
-    if (!card || String(card.dataset.tableId) === String(id)) return;
+    if (!card || String(card.dataset.tableId) === String(draggingTableId)) return;
     event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
     root.querySelectorAll('.mgd-table-card').forEach((item) => item.classList.toggle('is-order-target', item === card));
   });
 
   root.addEventListener('drop', (event) => {
-    const sourceId = event.dataTransfer?.getData('text/mgd-table-order');
+    const sourceId = draggingTableId;
     const card = event.target.closest('.mgd-table-card[data-table-id]');
     if (!sourceId || !card || String(card.dataset.tableId) === String(sourceId)) return;
     event.preventDefault();
+    event.stopPropagation();
     const rect = card.getBoundingClientRect();
-    const after = event.clientY > rect.top + rect.height / 2 || event.clientX > rect.left + rect.width / 2;
+    const verticalBias = Math.abs(event.clientY - (rect.top + rect.height / 2)) >= Math.abs(event.clientX - (rect.left + rect.width / 2));
+    const after = verticalBias
+      ? event.clientY > rect.top + rect.height / 2
+      : event.clientX > rect.left + rect.width / 2;
     moveTable(sourceId, card.dataset.tableId, after);
+    draggingTableId = '';
     clearDragClasses(root);
   });
 
-  root.addEventListener('dragend', () => clearDragClasses(root));
+  root.addEventListener('dragend', () => {
+    draggingTableId = '';
+    clearDragClasses(root);
+  });
 }
 
 function bindFrame(frame) {
