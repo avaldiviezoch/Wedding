@@ -1,161 +1,125 @@
-import {
-  inviteWeddingMember,
-  listWeddingInvitations,
-  getWeddingContext
-} from '../../services/firebase.js';
+(() => {
+  const FORM_ID = 'inviteWeddingMemberForm';
+  const STATUS_ID = 'inviteWeddingStatus';
 
-function getStatus() {
-  return document.getElementById('inviteWeddingStatus');
-}
-
-function setStatus(message = '', type = '') {
-  const status = getStatus();
-  if (!status) return;
-  status.textContent = message;
-  status.className = `invite-wedding-status${type ? ` is-${type}` : ''}`;
-}
-
-function escapeHtml(value = '') {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
-
-function roleLabel(role) {
-  return role === 'viewer' ? 'Lector' : 'Editor';
-}
-
-async function renderPendingInvitations() {
-  const host = document.getElementById('pendingWeddingInvitations');
-  if (!host) return;
-
-  const context = getWeddingContext();
-  if (!context.id || context.role !== 'owner' || context.legacyMode) {
-    host.innerHTML = '';
-    return;
+  function setStatus(message, type = '') {
+    const el = document.getElementById(STATUS_ID);
+    if (!el) return;
+    el.textContent = message;
+    el.className = `invite-wedding-status${type ? ` is-${type}` : ''}`;
   }
 
-  try {
-    const invitations = await listWeddingInvitations();
-    if (!invitations.length) {
-      host.innerHTML = '';
+  function isInviteButton(target) {
+    return target instanceof Element && Boolean(target.closest(`#${FORM_ID} button`));
+  }
+
+  async function handle(button) {
+    const form = button?.closest('form');
+    if (!form || form.dataset.fallbackBusy === '1') return;
+
+    const emailInput = form.querySelector('#inviteWeddingEmail');
+    const roleInput = form.querySelector('#inviteWeddingRole');
+    const email = String(emailInput?.value || '').trim();
+    const role = String(roleInput?.value || 'editor');
+
+    if (!email) {
+      emailInput?.focus();
+      emailInput?.reportValidity?.();
+      setStatus('Escribe el correo de la persona que quieres invitar.', 'error');
+      return;
+    }
+    if (emailInput && !emailInput.checkValidity()) {
+      emailInput.reportValidity();
+      setStatus('Revisa el correo electrónico.', 'error');
       return;
     }
 
-    host.innerHTML = `
-      <div class="pending-invitations-title">Invitaciones pendientes</div>
-      ${invitations.map((invite) => `
-        <article class="pending-invite-card">
-          <div class="pending-invite-icon">✉</div>
-          <div class="pending-invite-info">
-            <strong>${escapeHtml(invite.email || '')}</strong>
-            <span>${roleLabel(invite.role)} · Pendiente de aceptar</span>
-          </div>
-        </article>
-      `).join('')}
-    `;
-  } catch (error) {
-    console.error('No se pudieron refrescar las invitaciones pendientes:', error);
-  }
-}
-
-async function sendInvitation(form, button) {
-  if (!form || form.dataset.inviteBusy === '1') return;
-
-  const emailInput = form.querySelector('#inviteWeddingEmail');
-  const roleInput = form.querySelector('#inviteWeddingRole');
-  const email = String(emailInput?.value || '').trim();
-  const role = String(roleInput?.value || 'editor');
-
-  if (!email) {
-    emailInput?.focus();
-    emailInput?.reportValidity?.();
-    setStatus('Escribe el correo de la persona que quieres invitar.', 'error');
-    return;
-  }
-
-  if (emailInput && !emailInput.checkValidity()) {
-    emailInput.reportValidity();
-    setStatus('Revisa el correo electrónico.', 'error');
-    return;
-  }
-
-  const context = getWeddingContext();
-  if (context.legacyMode) {
-    setStatus('Firebase aún no tiene habilitadas las reglas para compartir bodas.', 'error');
-    return;
-  }
-  if (!context.id) {
-    setStatus('No hay una boda activa para compartir.', 'error');
-    return;
-  }
-  if (context.role !== 'owner') {
-    setStatus('Solo el propietario puede invitar personas.', 'error');
-    return;
-  }
-
-  form.dataset.inviteBusy = '1';
-  if (button) {
+    form.dataset.fallbackBusy = '1';
     button.disabled = true;
-    button.dataset.originalText = button.textContent || 'Invitar';
+    button.dataset.oldText = button.textContent || 'Invitar';
     button.textContent = 'Enviando…';
-  }
-  setStatus(`Enviando invitación a ${email}…`, 'loading');
+    setStatus(`Enviando invitación a ${email}…`, 'loading');
 
-  try {
-    const invitation = await inviteWeddingMember(email, role);
-    form.reset();
-    setStatus(`Invitación creada para ${invitation.email}. Quedó pendiente de aceptar.`, 'success');
-    await renderPendingInvitations();
-  } catch (error) {
-    console.error('Error al invitar:', error);
-    const code = String(error?.code || '');
-    const raw = String(error?.message || '');
-    const permissionDenied =
-      code.includes('permission-denied') ||
-      raw.toLowerCase().includes('permission') ||
-      raw.toLowerCase().includes('permis');
+    try {
+      const firebaseUrl = new URL('js/services/firebase.js', document.baseURI).href;
+      const api = await import(firebaseUrl);
+      const context = api.getWeddingContext();
 
-    setStatus(
-      permissionDenied
-        ? 'Firebase rechazó la invitación por permisos. Hay que publicar las reglas nuevas de Firestore.'
-        : (raw || 'No se pudo crear la invitación.'),
-      'error'
-    );
-  } finally {
-    delete form.dataset.inviteBusy;
-    if (button) {
+      if (!context?.id) throw new Error('No hay una boda activa para compartir.');
+      if (context.legacyMode) throw new Error('Firebase todavía está usando las reglas anteriores para esta cuenta.');
+      if (context.role !== 'owner') throw new Error('Solo el propietario puede invitar personas.');
+
+      const invitation = await api.inviteWeddingMember(email, role);
+      form.reset();
+      setStatus(`Invitación creada para ${invitation.email}. Quedó pendiente de aceptar.`, 'success');
+
+      try {
+        const pending = await api.listWeddingInvitations();
+        const host = document.getElementById('pendingWeddingInvitations');
+        if (host && Array.isArray(pending)) {
+          host.innerHTML = pending.map(item => `
+            <article class="pending-invite-card">
+              <div class="pending-invite-icon">✉</div>
+              <div class="pending-invite-info">
+                <strong>${String(item.email || '').replace(/[&<>"']/g, '')}</strong>
+                <span>${item.role === 'viewer' ? 'Lector' : 'Editor'} · Pendiente de aceptar</span>
+              </div>
+            </article>`).join('');
+        }
+      } catch (refreshError) {
+        console.warn('Invitación creada, pero no se pudo refrescar la lista:', refreshError);
+      }
+    } catch (error) {
+      console.error('Fallback invitación:', error);
+      const code = String(error?.code || '');
+      const raw = String(error?.message || '');
+      const denied = code.includes('permission-denied') || /permission|permis/i.test(raw);
+      setStatus(
+        denied
+          ? 'Firebase rechazó la invitación por permisos. Las reglas nuevas de Firestore todavía no están publicadas.'
+          : (raw || 'No se pudo crear la invitación.'),
+        'error'
+      );
+    } finally {
+      delete form.dataset.fallbackBusy;
       button.disabled = false;
-      button.textContent = button.dataset.originalText || 'Invitar';
-      delete button.dataset.originalText;
+      button.textContent = button.dataset.oldText || 'Invitar';
+      delete button.dataset.oldText;
     }
   }
-}
 
-// Capturamos el clic antes que cualquier listener anterior del formulario.
-document.addEventListener('click', (event) => {
-  const button = event.target.closest('#inviteWeddingMemberForm button[type="submit"]');
-  if (!button) return;
+  document.addEventListener('click', (event) => {
+    if (!isInviteButton(event.target)) return;
+    const button = event.target.closest(`#${FORM_ID} button`);
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    handle(button);
+  }, true);
 
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  sendInvitation(button.closest('form'), button);
-}, true);
+  document.addEventListener('submit', (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || form.id !== FORM_ID) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const button = form.querySelector('button');
+    if (button) handle(button);
+  }, true);
 
-// También cubre Enter desde el campo de correo.
-document.addEventListener('submit', (event) => {
-  const form = event.target.closest?.('#inviteWeddingMemberForm');
-  if (!form) return;
+  const arm = () => {
+    const form = document.getElementById(FORM_ID);
+    if (!form) return false;
+    const button = form.querySelector('button');
+    if (button) {
+      button.type = 'button';
+      button.dataset.inviteFallbackReady = '1';
+    }
+    return true;
+  };
 
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  const button = form.querySelector('button[type="submit"]');
-  sendInvitation(form, button);
-}, true);
-
-window.addEventListener('migrandia:wedding-context', () => {
-  renderPendingInvitations();
-});
+  if (!arm()) {
+    const observer = new MutationObserver(() => {
+      if (arm()) observer.disconnect();
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+  }
+})();
