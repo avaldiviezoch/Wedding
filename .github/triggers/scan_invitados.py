@@ -1,36 +1,43 @@
 from pathlib import Path
+import base64, json, re
 
-files = [
-    Path('app_integral/js/legacy/applu-script-01.js'),
-    Path('app_integral/appludesktop.html'),
-    Path('app_integral/applumovil.html'),
-]
-terms = [
-    'tab-rsvp', 'data-tab="rsvp"', "data-tab='rsvp'", 'rsvp',
-    'google sheets', 'sheets', 'asistencia', 'cantidad', 'acompañante',
-    'guest', 'guests', 'guestRows', 'invitados:', 'invitados =',
-    'localStorage', 'mesa', 'tableId', 'tableName'
-]
-for path in files:
-    print(f'\n===== {path} =====')
-    text = path.read_text(encoding='utf-8', errors='ignore')
-    low = text.lower()
-    printed = 0
+path = Path('app_integral/js/legacy/applu-script-01.js')
+text = path.read_text(encoding='utf-8', errors='ignore')
+
+start = text.find('const MODULES = ')
+if start < 0:
+    raise SystemExit('MODULES no encontrado')
+start += len('const MODULES = ')
+end = text.find(';\n', start)
+if end < 0:
+    end = text.find(';\r\n', start)
+raw = text[start:end]
+modules = json.loads(raw)
+print('MODULE KEYS:', ', '.join(modules.keys()))
+inv = modules.get('invitados') or {}
+print('INVITADOS FIELDS:', ', '.join(inv.keys()))
+for field in ['html','previewHtml']:
+    encoded = inv.get(field) or ''
+    if not encoded:
+        continue
+    decoded = base64.b64decode(encoded).decode('utf-8', errors='ignore')
+    print(f'\n===== INVITADOS {field} decoded chars={len(decoded)} =====')
+    # IDs y clases clave para entender la estructura
+    ids = sorted(set(re.findall(r'id=["\']([^"\']+)', decoded)))
+    print('IDS:', ', '.join(ids[:250]))
+    # claves de almacenamiento
+    storage = sorted(set(re.findall(r"(?:localStorage\.(?:getItem|setItem|removeItem)\(\s*|STORAGE_KEY\s*=\s*)['\"]([^'\"]+)", decoded)))
+    print('STORAGE:', ', '.join(storage))
+    terms = ['data-tab="rsvp"','tab-rsvp','RSVP','Google','Sheets','sheet','Asistencia','Cantidad','acompañ','guest','invitad','PLANIFICADOR_BODAS_UPDATE','localStorage','Fecha','Nombre']
+    low = decoded.lower()
     for term in terms:
-        pos = 0
-        found = 0
+        pos=0
+        count=0
         while True:
-            i = low.find(term.lower(), pos)
-            if i < 0:
-                break
-            found += 1
-            a = max(0, i - 900)
-            b = min(len(text), i + 2200)
-            print(f'\n--- TERM {term!r} HIT {found} @ {i} ---')
-            print(text[a:b].replace('\r',''))
-            pos = i + len(term)
-            printed += 1
-            if found >= 5 or printed >= 70:
-                break
-        if printed >= 70:
-            break
+            i=low.find(term.lower(),pos)
+            if i<0: break
+            count+=1
+            print(f'\n--- {field} TERM {term!r} #{count} @ {i} ---')
+            print(decoded[max(0,i-650):min(len(decoded),i+1600)].replace('\r',''))
+            pos=i+len(term)
+            if count>=5: break
