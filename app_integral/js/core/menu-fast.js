@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1552-menufast3';
+  const VERSION = '20260814-1622-menufast4';
   let passthrough = false;
   let queuedClick = false;
   let authPoll = 0;
@@ -21,9 +21,23 @@
   }
 
   function authState() {
+    // auth-hydrating solo se activa después de que Firebase ya identificó
+    // una sesión válida. El contenido privado sigue protegido por auth-guard.css.
+    if (document.body?.classList.contains('auth-hydrating')) {
+      return { ready: true, authenticated: true, hydrating: true };
+    }
     const guard = window.WeddingPlannerAuthGuard;
-    if (!guard || !guard.ready) return { ready: false, authenticated: false };
-    return { ready: true, authenticated: Boolean(guard.authenticated) };
+    if (!guard || !guard.ready) return { ready: false, authenticated: false, hydrating: false };
+    return { ready: true, authenticated: Boolean(guard.authenticated), hydrating: false };
+  }
+
+  function keepHydratingMenuResponsive() {
+    const button = document.getElementById('menuButton');
+    if (!button) return;
+    if (document.body.classList.contains('auth-hydrating')) {
+      button.disabled = false;
+      button.removeAttribute('aria-busy');
+    }
   }
 
   function releaseQueuedClick() {
@@ -50,6 +64,7 @@
   function startAuthPoll() {
     if (authPoll) return;
     authPoll = window.setInterval(() => {
+      keepHydratingMenuResponsive();
       releaseQueuedClick();
       if (!queuedClick || authState().ready) {
         clearInterval(authPoll);
@@ -70,6 +85,12 @@
     if (!button || !backdrop || button.dataset.mgdFastMenu === VERSION) return false;
 
     button.dataset.mgdFastMenu = VERSION;
+
+    new MutationObserver(() => {
+      keepHydratingMenuResponsive();
+      releaseQueuedClick();
+    }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
     button.addEventListener('click', (event) => {
       if (passthrough) return;
 
@@ -102,6 +123,7 @@
     });
 
     window.addEventListener('migrandia:wedding-context', releaseQueuedClick);
+    keepHydratingMenuResponsive();
     return true;
   }
 
