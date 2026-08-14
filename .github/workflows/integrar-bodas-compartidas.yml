@@ -1,0 +1,541 @@
+name: Integrar bodas compartidas
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/integrar-bodas-compartidas.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  integrar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Integrar contexto multi-boda en Firebase
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('app_integral/js/services/firebase.js')
+          s = p.read_text(encoding='utf-8')
+
+          s = s.replace(
+            "getFirestore, doc, getDoc, setDoc, collection, getDocs,\n    writeBatch, serverTimestamp",
+            "getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where, deleteDoc,\n    writeBatch, serverTimestamp"
+          )
+
+          marker = "  const LOCAL_OWNER_KEY = 'migrandia_local_owner_uid_v1';\n"
+          addition = r'''
+  let activeWeddingId = '';
+  let activeWeddingRole = '';
+  let activeWeddingName = '';
+
+  function normalizeRole(role) {
+    return ['owner', 'editor', 'viewer'].includes(role) ? role : 'viewer';
+  }
+
+  function currentContext() {
+    return {
+      id: activeWeddingId,
+      role: activeWeddingRole,
+      name: activeWeddingName
+    };
+  }
+
+  function emitWeddingContext() {
+    window.WeddingPlannerWeddingContext = currentContext();
+    window.dispatchEvent(new CustomEvent('migrandia:wedding-context', { detail: currentContext() }));
+  }
+
+  function setWeddingContext(data = {}) {
+    activeWeddingId = String(data.id || data.weddingId || '');
+    activeWeddingRole = normalizeRole(data.role || 'viewer');
+    activeWeddingName = String(data.name || 'Mi boda');
+    emitWeddingContext();
+  }
+
+  function safeInviteId(weddingId, email) {
+    const normalized = String(email || '').trim().toLowerCase();
+    if (!normalized || normalized.includes('/')) throw new Error('Correo no válido para invitación.');
+    return `${weddingId}__${normalized}`;
+  }
+
+  async function getWeddingMembership(weddingId, uid) {
+    if (!weddingId || !uid) return null;
+    const snap = await getDoc(doc(db, 'weddings', weddingId, 'members', uid));
+    if (!snap.exists()) return null;
+    const data = snap.data() || {};
+    return data.status === 'removed' ? null : data;
+  }
+
+  async function readLegacyCloudBackup(uid) {
+    const metaRef = doc(db, 'users', uid, 'cloudSync', 'main');
+    const metaSnap = await getDoc(metaRef);
+    if (!metaSnap.exists()) return null;
+    const count = Number(metaSnap.data().chunkCount || 0);
+    if (!count) return null;
+    const parts = await Promise.all(
+      Array.from({ length: count }, (_, index) =>
+        getDoc(doc(db, 'users', uid, 'cloudChunks', String(index).padStart(5, '0')))
+      )
+    );
+    const text = parts.map((snap) => snap.exists() ? String(snap.data().data || '') : '').join('');
+    return text ? JSON.parse(text) : null;
+  }
+
+  async function readWeddingCloudBackup(weddingId) {
+    if (!weddingId) return null;
+    const metaRef = doc(db, 'weddings', weddingId, 'cloudSync', 'main');
+    const metaSnap = await getDoc(metaRef);
+    if (!metaSnap.exists()) return null;
+    const count = Number(metaSnap.data().chunkCount || 0);
+    if (!count) return null;
+    const parts = await Promise.all(
+      Array.from({ length: count }, (_, index) =>
+        getDoc(doc(db, 'weddings', weddingId, 'cloudChunks', String(index).padStart(5, '0')))
+      )
+    );
+    const text = parts.map((snap) => snap.exists() ? String(snap.data().data || '') : '').join('');
+    return text ? JSON.parse(text) : null;
+  }
+
+  async function ensureWeddingContext(user) {
+    if (!user) return null;
+    const profileRef = doc(db, 'users', user.uid);
+    const profileSnap = await getDoc(profileRef);
+    const profile = profileSnap.exists() ? profileSnap.data() : {};
+    let requestedId = String(profile.activeWeddingId || '');
+
+    if (requestedId) {
+      const indexSnap = await getDoc(doc(db, 'users', user.uid, 'weddings', requestedId));
+      const membership = await getWeddingMembership(requestedId, user.uid);
+      if (indexSnap.exists() && membership) {
+        const index = indexSnap.data() || {};
+        setWeddingContext({
+          id: requestedId,
+          name: index.name || membership.weddingName || 'Mi boda',
+          role: membership.role || index.role
+        });
+        return currentContext();
+      }
+    }
+
+    const indexSnaps = await getDocs(collection(db, 'users', user.uid, 'weddings'));
+    for (const item of indexSnaps.docs) {
+      const membership = await getWeddingMembership(item.id, user.uid);
+      if (!membership) {
+        try { await deleteDoc(item.ref); } catch (_) {}
+        continue;
+      }
+      const data = item.data() || {};
+      setWeddingContext({
+        id: item.id,
+        name: data.name || membership.weddingName || 'Mi boda',
+        role: membership.role || data.role
+      });
+      await setDoc(profileRef, { activeWeddingId: item.id, lastSeenAt: serverTimestamp() }, { merge: true });
+      return currentContext();
+    }
+
+    const weddingId = `wedding_${user.uid}`;
+    const weddingName = user.displayName ? `Boda de ${user.displayName}` : 'Mi boda';
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'weddings', weddingId), {
+      name: weddingName,
+      ownerUid: user.uid,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      version: 1
+    }, { merge: true });
+    batch.set(doc(db, 'weddings', weddingId, 'members', user.uid), {
+      uid: user.uid,
+      email: String(user.email || '').toLowerCase(),
+      displayName: user.displayName || '',
+      role: 'owner',
+      status: 'active',
+      weddingName,
+      joinedAt: serverTimestamp()
+    }, { merge: true });
+    batch.set(doc(db, 'users', user.uid, 'weddings', weddingId), {
+      weddingId,
+      name: weddingName,
+      role: 'owner',
+      ownerUid: user.uid,
+      addedAt: serverTimestamp()
+    }, { merge: true });
+    batch.set(profileRef, {
+      email: user.email || '',
+      displayName: user.displayName || '',
+      activeWeddingId: weddingId,
+      lastSeenAt: serverTimestamp()
+    }, { merge: true });
+    await batch.commit();
+    setWeddingContext({ id: weddingId, name: weddingName, role: 'owner' });
+    return currentContext();
+  }
+'''
+          if addition.strip() not in s:
+            s = s.replace(marker, marker + addition)
+
+          # Sustituir el lector antiguo por un alias de compatibilidad hacia la boda activa.
+          pattern = re.compile(r"\n  async function readCloudBackup\(uid\) \{.*?\n  \}\n\n  async function writeCloudBackup", re.S)
+          replacement = "\n  async function readCloudBackup() {\n    return readWeddingCloudBackup(activeWeddingId);\n  }\n\n  async function writeCloudBackup"
+          s, count = pattern.subn(replacement, s, count=1)
+          if count != 1:
+            raise SystemExit('No se encontró readCloudBackup para reemplazar')
+
+          s = s.replace(
+            "    if (!user || cloudBusy || !hydrated) return;",
+            "    if (!user || cloudBusy || !hydrated || !activeWeddingId || activeWeddingRole === 'viewer') return;"
+          )
+          s = s.replace(
+            "const metaRef = doc(db, 'users', user.uid, 'cloudSync', 'main');",
+            "const metaRef = doc(db, 'weddings', activeWeddingId, 'cloudSync', 'main');"
+          )
+          s = s.replace(
+            "batch.set(doc(db, 'users', user.uid, 'cloudChunks', String(index).padStart(5, '0')), {",
+            "batch.set(doc(db, 'weddings', activeWeddingId, 'cloudChunks', String(index).padStart(5, '0')), {"
+          )
+          s = s.replace(
+            "batch.delete(doc(db, 'users', user.uid, 'cloudChunks', String(index).padStart(5, '0')));",
+            "batch.delete(doc(db, 'weddings', activeWeddingId, 'cloudChunks', String(index).padStart(5, '0')));"
+          )
+
+          old_hydrate = re.compile(r"\n  async function hydrateUser\(user\) \{.*?\n  \}\n\n  let googleAttemptToken", re.S)
+          new_hydrate = r'''
+  async function hydrateUser(user) {
+    const bridge = window.WeddingPlannerBridge;
+    if (!bridge) return;
+    hydrated = false;
+    cloudState.textContent = 'Cargando tu boda…';
+    try {
+      await ensureWeddingContext(user);
+      let cloudBackup = await readWeddingCloudBackup(activeWeddingId);
+      let migratedLegacy = false;
+      const localOwner = localStorage.getItem(LOCAL_OWNER_KEY) || '';
+
+      if (!cloudBackup && activeWeddingRole === 'owner') {
+        try {
+          const legacy = await readLegacyCloudBackup(user.uid);
+          if (legacy) {
+            cloudBackup = legacy;
+            migratedLegacy = true;
+          }
+        } catch (legacyError) {
+          console.warn('No se pudo leer la copia heredada:', legacyError);
+        }
+      }
+
+      if (cloudBackup) {
+        await bridge.restoreCloudBackup(cloudBackup);
+      } else if (localOwner && localOwner !== user.uid) {
+        await bridge.clearLocalUserData();
+      } else if (!cloudBackup) {
+        await bridge.clearLocalUserData();
+      }
+
+      localStorage.setItem(LOCAL_OWNER_KEY, user.uid);
+      hydrated = true;
+      cloudState.textContent = cloudBackup ? 'Sincronizado' : 'Preparando primera copia…';
+      if (!cloudBackup || migratedLegacy) await writeCloudBackup(user);
+    } catch (error) {
+      console.error('Firebase load error:', error);
+      hydrated = true;
+      cloudState.textContent = 'Sincronización pendiente';
+      bridge.showToast('Sesión iniciada, pero Firestore todavía no permite usar espacios compartidos.');
+    }
+  }
+
+  let googleAttemptToken'''
+          s, count = old_hydrate.subn(new_hydrate, s, count=1)
+          if count != 1:
+            raise SystemExit('No se encontró hydrateUser para reemplazar')
+
+          # Añadir API pública antes del listener de autenticación.
+          export_marker = "  onAuthStateChanged(auth, async (user) => {"
+          api = r'''
+  export { auth, db };
+
+  export function getWeddingContext() {
+    return currentContext();
+  }
+
+  export async function listUserWeddings() {
+    const user = auth.currentUser;
+    if (!user) return [];
+    const snaps = await getDocs(collection(db, 'users', user.uid, 'weddings'));
+    const items = [];
+    for (const snap of snaps.docs) {
+      const data = snap.data() || {};
+      const membership = await getWeddingMembership(snap.id, user.uid);
+      if (!membership) {
+        try { await deleteDoc(snap.ref); } catch (_) {}
+        continue;
+      }
+      const role = normalizeRole(membership.role || data.role);
+      if (role !== data.role || data.name !== membership.weddingName) {
+        try {
+          await setDoc(snap.ref, {
+            role,
+            name: membership.weddingName || data.name || 'Mi boda'
+          }, { merge: true });
+        } catch (_) {}
+      }
+      items.push({
+        id: snap.id,
+        ...data,
+        name: membership.weddingName || data.name || 'Mi boda',
+        role
+      });
+    }
+    return items.sort((a, b) => {
+      if (a.role === 'owner' && b.role !== 'owner') return -1;
+      if (a.role !== 'owner' && b.role === 'owner') return 1;
+      return String(a.name || '').localeCompare(String(b.name || ''), 'es');
+    });
+  }
+
+  export async function createWedding({ name, date = '' } = {}) {
+    const user = auth.currentUser;
+    if (!user) throw new Error('Debes iniciar sesión.');
+    const cleanName = String(name || '').trim();
+    if (!cleanName) throw new Error('Escribe un nombre para la boda.');
+    const weddingRef = doc(collection(db, 'weddings'));
+    const weddingId = weddingRef.id;
+    const batch = writeBatch(db);
+    batch.set(weddingRef, {
+      name: cleanName,
+      date: String(date || ''),
+      ownerUid: user.uid,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      version: 1
+    });
+    batch.set(doc(db, 'weddings', weddingId, 'members', user.uid), {
+      uid: user.uid,
+      email: String(user.email || '').toLowerCase(),
+      displayName: user.displayName || '',
+      role: 'owner',
+      status: 'active',
+      weddingName: cleanName,
+      joinedAt: serverTimestamp()
+    });
+    batch.set(doc(db, 'users', user.uid, 'weddings', weddingId), {
+      weddingId,
+      name: cleanName,
+      date: String(date || ''),
+      role: 'owner',
+      ownerUid: user.uid,
+      addedAt: serverTimestamp()
+    });
+    await batch.commit();
+    return { id: weddingId, name: cleanName, date: String(date || ''), role: 'owner' };
+  }
+
+  export async function switchWedding(weddingId) {
+    const user = auth.currentUser;
+    if (!user) throw new Error('Debes iniciar sesión.');
+    const targetId = String(weddingId || '');
+    if (!targetId) throw new Error('Boda no válida.');
+    if (activeWeddingId === targetId && hydrated) return currentContext();
+
+    if (activeWeddingId && hydrated && activeWeddingRole !== 'viewer') {
+      try { await writeCloudBackup(user, true); } catch (_) {}
+    }
+
+    const indexSnap = await getDoc(doc(db, 'users', user.uid, 'weddings', targetId));
+    const membership = await getWeddingMembership(targetId, user.uid);
+    if (!indexSnap.exists() || !membership) {
+      if (indexSnap.exists()) {
+        try { await deleteDoc(indexSnap.ref); } catch (_) {}
+      }
+      throw new Error('Ya no tienes acceso a esta boda.');
+    }
+
+    const data = indexSnap.data() || {};
+    hydrated = false;
+    await window.WeddingPlannerBridge?.clearLocalUserData?.();
+    setWeddingContext({
+      id: targetId,
+      name: membership.weddingName || data.name || 'Mi boda',
+      role: membership.role || data.role
+    });
+    await setDoc(doc(db, 'users', user.uid), { activeWeddingId: targetId, lastSeenAt: serverTimestamp() }, { merge: true });
+    await hydrateUser(user);
+    return currentContext();
+  }
+
+  export async function inviteWeddingMember(email, role = 'editor') {
+    const user = auth.currentUser;
+    if (!user || !activeWeddingId) throw new Error('No hay una boda activa.');
+    if (activeWeddingRole !== 'owner') throw new Error('Solo el propietario puede invitar personas.');
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    if (!normalizedEmail || !normalizedEmail.includes('@')) throw new Error('Escribe un correo válido.');
+    if (normalizedEmail === String(user.email || '').toLowerCase()) throw new Error('Ya eres propietario de esta boda.');
+    const cleanRole = role === 'viewer' ? 'viewer' : 'editor';
+    const inviteId = safeInviteId(activeWeddingId, normalizedEmail);
+    await setDoc(doc(db, 'invitations', inviteId), {
+      weddingId: activeWeddingId,
+      weddingName: activeWeddingName || 'Boda compartida',
+      email: normalizedEmail,
+      role: cleanRole,
+      status: 'pending',
+      invitedBy: user.uid,
+      invitedByEmail: String(user.email || '').toLowerCase(),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    return { id: inviteId, email: normalizedEmail, role: cleanRole };
+  }
+
+  export async function listPendingInvitations() {
+    const user = auth.currentUser;
+    if (!user?.email) return [];
+    const email = String(user.email).toLowerCase();
+    const q = query(collection(db, 'invitations'), where('email', '==', email));
+    const snaps = await getDocs(q);
+    return snaps.docs
+      .map((snap) => ({ id: snap.id, ...snap.data() }))
+      .filter((item) => item.status === 'pending');
+  }
+
+  export async function acceptWeddingInvitation(inviteId) {
+    const user = auth.currentUser;
+    if (!user?.email) throw new Error('Debes iniciar sesión.');
+    const inviteRef = doc(db, 'invitations', String(inviteId || ''));
+    const inviteSnap = await getDoc(inviteRef);
+    if (!inviteSnap.exists()) throw new Error('La invitación ya no existe.');
+    const invite = inviteSnap.data() || {};
+    if (String(invite.email || '').toLowerCase() !== String(user.email).toLowerCase()) {
+      throw new Error('Esta invitación pertenece a otra cuenta.');
+    }
+    if (invite.status !== 'pending') throw new Error('Esta invitación ya fue utilizada.');
+    const weddingId = String(invite.weddingId || '');
+    const role = invite.role === 'viewer' ? 'viewer' : 'editor';
+    const weddingName = String(invite.weddingName || 'Boda compartida');
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'weddings', weddingId, 'members', user.uid), {
+      uid: user.uid,
+      email: String(user.email).toLowerCase(),
+      displayName: user.displayName || '',
+      role,
+      status: 'active',
+      weddingName,
+      joinedAt: serverTimestamp()
+    }, { merge: true });
+    batch.set(doc(db, 'users', user.uid, 'weddings', weddingId), {
+      weddingId,
+      name: weddingName,
+      role,
+      ownerUid: invite.invitedBy || '',
+      addedAt: serverTimestamp()
+    }, { merge: true });
+    batch.set(inviteRef, {
+      status: 'accepted',
+      acceptedBy: user.uid,
+      acceptedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    await batch.commit();
+    return { id: weddingId, name: weddingName, role };
+  }
+
+  export async function listWeddingMembers() {
+    if (!activeWeddingId || !auth.currentUser) return [];
+    const snaps = await getDocs(collection(db, 'weddings', activeWeddingId, 'members'));
+    return snaps.docs
+      .map((snap) => ({ uid: snap.id, ...snap.data() }))
+      .filter((member) => member.status !== 'removed')
+      .sort((a, b) => {
+        if (a.role === 'owner') return -1;
+        if (b.role === 'owner') return 1;
+        return String(a.displayName || a.email || '').localeCompare(String(b.displayName || b.email || ''), 'es');
+      });
+  }
+
+  export async function updateWeddingMemberRole(uid, role) {
+    if (!auth.currentUser || activeWeddingRole !== 'owner') throw new Error('Solo el propietario puede cambiar permisos.');
+    const targetUid = String(uid || '');
+    if (!targetUid || targetUid === auth.currentUser.uid) throw new Error('No puedes cambiar tu rol de propietario.');
+    const cleanRole = role === 'viewer' ? 'viewer' : 'editor';
+    await setDoc(doc(db, 'weddings', activeWeddingId, 'members', targetUid), {
+      role: cleanRole,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    return cleanRole;
+  }
+
+  export async function removeWeddingMember(uid) {
+    if (!auth.currentUser || activeWeddingRole !== 'owner') throw new Error('Solo el propietario puede retirar accesos.');
+    const targetUid = String(uid || '');
+    if (!targetUid || targetUid === auth.currentUser.uid) throw new Error('No puedes retirarte como propietario.');
+    await setDoc(doc(db, 'weddings', activeWeddingId, 'members', targetUid), {
+      status: 'removed',
+      removedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  }
+
+'''
+          if 'export async function listUserWeddings()' not in s:
+            s = s.replace(export_marker, api + export_marker)
+
+          # Notificar al módulo de UI cuando se resuelve autenticación.
+          s = s.replace(
+            "      unlockPlanner(user);\n",
+            "      unlockPlanner(user);\n      window.dispatchEvent(new CustomEvent('migrandia:auth', { detail: { authenticated: true, uid: user.uid } }));\n"
+          )
+          s = s.replace(
+            "      lockPlanner();\n",
+            "      lockPlanner();\n      setWeddingContext({ id: '', name: '', role: 'viewer' });\n      window.dispatchEvent(new CustomEvent('migrandia:auth', { detail: { authenticated: false } }));\n"
+          )
+
+          p.write_text(s, encoding='utf-8', newline='')
+
+          # Enlazar CSS y módulo en applu.html.
+          h = Path('app_integral/applu.html')
+          html = h.read_text(encoding='utf-8')
+          css_line = '  <link rel="stylesheet" href="css/modules/weddings.css">\n'
+          if 'css/modules/weddings.css' not in html:
+            html = html.replace('</head>', css_line + '</head>')
+          js_line = '  <script type="module" src="js/modules/configuracion/weddings.js"></script>\n'
+          if 'js/modules/configuracion/weddings.js' not in html:
+            html = html.replace('</body>', js_line + '</body>')
+          h.write_text(html, encoding='utf-8', newline='')
+          PY
+
+      - name: Validar integración
+        shell: bash
+        run: |
+          set -e
+          node --check app_integral/js/modules/configuracion/weddings.js
+          grep -q "export async function listUserWeddings" app_integral/js/services/firebase.js
+          grep -q "weddings', activeWeddingId, 'cloudSync'" app_integral/js/services/firebase.js
+          grep -q "css/modules/weddings.css" app_integral/applu.html
+          grep -q "js/modules/configuracion/weddings.js" app_integral/applu.html
+          grep -q "readLegacyCloudBackup" app_integral/js/services/firebase.js
+          if grep -R -q "Tus datos se cargaron desde Firebase" app_integral; then
+            echo "Regresó el aviso Firebase eliminado" >&2
+            exit 1
+          fi
+
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app_integral
+          git diff --cached --quiet && exit 0
+          git commit -m "Integrar espacios de boda compartidos con Firebase"
+          git push origin HEAD:main
+
+# trigger 2026-08-13
