@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wedding-static-v3-20260814-neweditor-oldlook';
+const CACHE_NAME = 'wedding-static-v4-20260814-neweditor-oldlook2';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
