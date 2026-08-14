@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1625-legacyskin1';
+  const VERSION = '20260814-1633-legacyskin2';
   let tablesRuntime = null;
 
   function restoreLegacyTables() {
@@ -18,19 +18,21 @@
       doc.getElementById('mgdTablesModal')?.remove();
       doc.querySelector('link[data-mgd-tables-css]')?.remove();
 
-      const legacy = view.querySelector('.mgd-legacy-tables-backup');
+      const legacy = view.querySelector(':scope > .mgd-legacy-tables-backup');
       if (legacy) {
-        legacy.style.removeProperty('display');
-        legacy.style.removeProperty('visibility');
+        const fragment = doc.createDocumentFragment();
+        while (legacy.firstChild) fragment.appendChild(legacy.firstChild);
+        legacy.replaceWith(fragment);
       }
     });
   }
 
   function loadTablesRuntime() {
     if (tablesRuntime) return tablesRuntime;
-    tablesRuntime = import(new URL('tables-editor-entry.js?v=20260814-1625-legacyskin1', import.meta.url).href)
+    restoreLegacyTables();
+    tablesRuntime = import(new URL('tables-legacy-skin.js?v=20260814-1633-legacyskin2', import.meta.url).href)
       .catch((error) => {
-        console.error('No se pudo aplicar la vista de Mesas:', error);
+        console.error('No se pudo aplicar la apariencia de Mesas:', error);
         restoreLegacyTables();
         tablesRuntime = null;
         return null;
