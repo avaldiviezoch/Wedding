@@ -1,0 +1,45 @@
+name: Activar tarjeta de cuenta premium
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/activar-account-card-premium.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Actualizar versión del controlador visual
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          old = 'js/modules/configuracion/invite-direct.js?v=20260814-1047-auth3'
+          new = 'js/modules/configuracion/invite-direct.js?v=20260814-1121-account1'
+          for name in ['app_integral/applu.html', 'applu.html']:
+              p = Path(name)
+              s = p.read_text(encoding='utf-8')
+              if old not in s:
+                  raise SystemExit(f'No se encontró versión anterior en {name}')
+              p.write_text(s.replace(old, new), encoding='utf-8')
+          PY
+      - name: Validar
+        run: |
+          grep -q 'invite-direct.js?v=20260814-1121-account1' app_integral/applu.html
+          grep -q 'invite-direct.js?v=20260814-1121-account1' applu.html
+          test -f app_integral/css/modules/account-card.css
+          node --check app_integral/js/modules/configuracion/invite-direct.js
+          echo ACCOUNT_CARD_OK
+      - name: Guardar
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app_integral/applu.html applu.html
+          git commit -m 'Activar diseño premium de cuenta' || exit 0
+          git push origin HEAD:main
