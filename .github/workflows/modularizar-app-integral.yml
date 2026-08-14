@@ -55,7 +55,6 @@ jobs:
               return (' ' + ' '.join(keep)) if keep else ''
 
           def rewrite_css_urls(css):
-              # Los CSS se mueven dos niveles abajo: css/legacy/. Corrige solo URLs relativas.
               url_re = re.compile(r'url\(\s*(["\']?)([^)"\']+)\1\s*\)', re.I)
               def repl(m):
                   q = m.group(1) or ''
@@ -73,7 +72,6 @@ jobs:
               t = a.get('type','').strip().lower()
               if t and t not in ('text/javascript','application/javascript','module'):
                   return False
-              # Las importaciones absolutas de Firebase son seguras; las relativas no.
               if re.search(r'\b(?:import|export)\b[^\n]*?["\']\.{1,2}/', body):
                   return False
               if re.search(r'\bimport\s*\(\s*["\']\.{1,2}/', body):
@@ -88,15 +86,9 @@ jobs:
               stem = html_path.stem
               info = {'styles': [], 'scripts': [], 'skipped_scripts': 0}
 
-              # CSS: reemplazo por callback preserva exactamente el orden del documento.
-              style_idx = 0
-              def style_cb(m):
-                  nonlocal_style = None
-                  # workaround de contador mutable
-                  return ''
-
               parts = []
               last = 0
+              style_idx = 0
               for m in style_re.finditer(html):
                   parts.append(html[last:m.start()])
                   style_idx += 1
@@ -111,7 +103,6 @@ jobs:
               parts.append(html[last:])
               html = ''.join(parts)
 
-              # JS: conserva cada bloque y sus atributos. Firebase principal recibe nombre semántico.
               parts = []
               last = 0
               script_idx = 0
@@ -135,7 +126,6 @@ jobs:
                       js_path = JS_DIR/js_name
                       src = f'js/legacy/{js_name}'
                   js_path.write_text(body, encoding='utf-8', newline='')
-                  # El atributo src se añade sin alterar type=module u otros atributos válidos.
                   clean_attrs = attrs.rstrip()
                   parts.append(f'<script{clean_attrs} src="{src}"></script>')
                   info['scripts'].append({'file': str(js_path), 'bytes': len(body.encode('utf-8')), 'firebase': is_firebase})
@@ -148,7 +138,6 @@ jobs:
               info['after_bytes'] = len(html.encode('utf-8'))
               manifest['files'][str(html_path)] = info
 
-          # Estructura para el desarrollo futuro: archivos guía mantienen las carpetas en Git.
           guides = {
             ROOT/'js'/'core'/'README.md': '# Core\n\nInfraestructura transversal de la aplicación: arranque, estado, eventos, navegación y utilidades compartidas.\n',
             ROOT/'js'/'modules'/'README.md': '# Módulos\n\nCada funcionalidad de negocio tendrá su propia carpeta: dashboard, checklist, presupuesto, proveedores, invitados, mesas, cronograma, documentos y configuración.\n',
@@ -194,3 +183,5 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m "Modularizar app_integral en CSS y JavaScript externos"
           git push origin HEAD:main
+
+# disparo 2026-08-13
