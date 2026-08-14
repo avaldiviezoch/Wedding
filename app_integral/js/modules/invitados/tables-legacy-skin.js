@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1625-legacyskin1';
+  const VERSION = '20260814-1633-legacyskin2';
   const CSS_HREF = new URL(`css/modules/invitados-tables-legacy-skin.css?v=${VERSION}`, document.baseURI).href;
 
   function signature(el) {
@@ -34,7 +34,10 @@
 
   function ensureCss(doc) {
     let link = doc.querySelector('link[data-mgd-legacy-tables-skin]');
-    if (link) return;
+    if (link) {
+      if (!link.href.includes(VERSION)) link.href = CSS_HREF;
+      return;
+    }
     link = doc.createElement('link');
     link.rel = 'stylesheet';
     link.href = CSS_HREF;
@@ -91,8 +94,6 @@
       }
     }
 
-    /* Fallback semantico: detecta tarjetas por texto Mesa + contenido interactivo,
-       sin reconstruir ni reemplazar ningun nodo del editor original. */
     if (!view.querySelector('.mgd-legacy-table-card')) {
       const candidates = [...view.querySelectorAll('article,section,li,div')]
         .filter((el) => {
@@ -118,6 +119,21 @@
     }
   }
 
+  function bindRefresh(view) {
+    if (view.dataset.mgdLegacySkinObserver === VERSION) return;
+    view.dataset.mgdLegacySkinObserver = VERSION;
+    let scheduled = false;
+    const observer = new MutationObserver(() => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(() => {
+        scheduled = false;
+        classifyLegacyDom(view);
+      });
+    });
+    observer.observe(view, { childList: true, subtree: true });
+  }
+
   function apply(frame) {
     let doc;
     try { doc = frame.contentDocument; } catch (_) { return false; }
@@ -127,6 +143,7 @@
     restoreOriginalView(view, doc);
     ensureCss(doc);
     classifyLegacyDom(view);
+    bindRefresh(view);
     return true;
   }
 
