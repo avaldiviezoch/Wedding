@@ -47,6 +47,12 @@ jobs:
           print('INVITADOS_RSVP_BRIDGE_OK')
           PY
 
+      - name: Preparar Java 21 para Firebase
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
       - name: Compilar reglas Firestore
         run: npx --yes firebase-tools emulators:exec --only firestore --project demo-migrandia "echo FIRESTORE_RULES_OK"
 
