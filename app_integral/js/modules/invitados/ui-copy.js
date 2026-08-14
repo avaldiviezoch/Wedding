@@ -162,3 +162,12 @@
 
   if (document.readyState !== 'loading') scan();
 })();
+
+(() => {
+  if (document.querySelector('script[data-mgd-tables-editor-loader]')) return;
+  const script = document.createElement('script');
+  script.type = 'module';
+  script.src = new URL('js/modules/invitados/tables-editor.js?v=20260814-1354-tables1', document.baseURI).href;
+  script.dataset.mgdTablesEditorLoader = '1';
+  document.head.appendChild(script);
+})();
