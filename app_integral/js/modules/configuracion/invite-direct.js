@@ -3,6 +3,7 @@
   const FORM_ID = 'inviteWeddingMemberForm';
   const STATUS_ID = 'inviteWeddingStatus';
   const ACCOUNT_STYLE_VERSION = '20260814-1121-account1';
+  const INVITATIONS_PANEL_URL = new URL('panel_invitaciones.html', document.baseURI).href;
 
   // El enlace oficial y app_integral usan la misma hoja de estilo.
   if (!document.querySelector('link[data-account-card-style]')) {
@@ -42,7 +43,36 @@
     el.className = `invite-wedding-status${type ? ` is-${type}` : ''}`;
   }
 
+  function canOpenPrivateModule() {
+    if (document.body?.classList.contains('auth-hydrating')) return true;
+    const guard = window.WeddingPlannerAuthGuard;
+    return Boolean(guard?.ready && guard.authenticated);
+  }
+
+  function prepareInvitationLinks() {
+    document.querySelectorAll('a[data-module="invitaciones"]').forEach((link) => {
+      link.href = INVITATIONS_PANEL_URL;
+      link.dataset.invitationPanel = 'consolidated-v1';
+    });
+  }
+
+  prepareInvitationLinks();
+  document.addEventListener('DOMContentLoaded', prepareInvitationLinks, { once: true });
+
+  // El módulo Invitaciones del menú principal y de la navegación rápida abre
+  // el panel consolidado recuperado dentro de app_integral.
   document.addEventListener('click', (event) => {
+    const invitationTrigger = event.target instanceof Element
+      ? event.target.closest('[data-module="invitaciones"], [data-quick-module="invitaciones"]')
+      : null;
+
+    if (invitationTrigger && canOpenPrivateModule()) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      window.location.assign(INVITATIONS_PANEL_URL);
+      return;
+    }
+
     const target = event.target instanceof Element
       ? event.target.closest(`#${FORM_ID} button`)
       : null;
