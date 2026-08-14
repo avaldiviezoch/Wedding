@@ -1,0 +1,68 @@
+.active-wedding-button{
+  width:100%;margin-top:10px;padding:10px 12px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.06);color:inherit;text-align:left;cursor:pointer;display:grid;gap:2px
+}
+.active-wedding-button:hover{background:rgba(255,255,255,.1)}
+.active-wedding-caption{font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.62}
+.active-wedding-button strong{font-size:13px;line-height:1.2}
+.active-wedding-role{font-size:11px;opacity:.72}
+.share-wedding-button{margin-left:auto;align-self:center;border:1px solid rgba(255,255,255,.14);background:transparent;color:inherit;border-radius:999px;padding:8px 11px;font-size:11px;cursor:pointer}
+.share-wedding-button:hover{background:rgba(255,255,255,.08)}
+.wedding-modal-open{overflow:hidden}
+.wedding-workspace-modal{position:fixed;inset:0;z-index:10050;display:none}
+.wedding-workspace-modal.show{display:block}
+.wedding-workspace-backdrop{position:absolute;inset:0;background:rgba(9,10,12,.72);backdrop-filter:blur(8px)}
+.wedding-workspace-panel{position:absolute;top:0;right:0;width:min(760px,100%);height:100%;background:#f8f6f2;color:#1f2422;box-shadow:-24px 0 70px rgba(0,0,0,.25);display:flex;flex-direction:column;overflow:hidden}
+.wedding-workspace-header{padding:28px 30px 20px;display:flex;gap:20px;justify-content:space-between;border-bottom:1px solid #e2ddd3;background:#fff}
+.wedding-workspace-header h2{margin:4px 0 8px;font-size:28px;line-height:1.1}
+.wedding-workspace-header p{margin:0;color:#69706c;font-size:14px;max-width:560px}
+.wedding-workspace-eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#798276}
+.wedding-workspace-close{border:0;background:#f1eee8;color:#363b38;width:38px;height:38px;border-radius:50%;font-size:26px;line-height:1;cursor:pointer;flex:0 0 auto}
+.wedding-workspace-tabs{display:flex;gap:6px;padding:12px 20px;background:#fff;border-bottom:1px solid #e2ddd3;overflow:auto}
+.wedding-workspace-tabs button{border:0;background:transparent;color:#626a65;padding:10px 14px;border-radius:999px;font-size:13px;white-space:nowrap;cursor:pointer}
+.wedding-workspace-tabs button.is-active{background:#202822;color:#fff}
+.tab-count{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:4px;padding:0 4px;border-radius:999px;background:rgba(255,255,255,.18);font-size:10px}
+.wedding-workspace-content{flex:1;overflow:auto;padding:26px 30px 40px}
+.wedding-pane{display:none}
+.wedding-pane.is-active{display:block}
+.wedding-pane-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:20px}
+.wedding-pane-head h3{margin:0 0 5px;font-size:20px}
+.wedding-pane-head p{margin:0;color:#777d79;font-size:13px}
+.wedding-primary-action{border:0;background:#202822;color:#fff;border-radius:12px;padding:11px 16px;font-weight:700;cursor:pointer}
+.wedding-primary-action:disabled{opacity:.55;cursor:default}
+.wedding-list-group{margin-bottom:24px}
+.wedding-list-group h4{margin:0 0 10px;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#8b908d}
+.weddings-list{display:grid;gap:10px}
+.wedding-card,.member-card{background:#fff;border:1px solid #e6e1d8;border-radius:18px;padding:15px 16px;display:flex;align-items:center;gap:14px;box-shadow:0 6px 22px rgba(42,49,44,.035)}
+.wedding-card.is-current{border-color:#8d9a8c;background:#f3f6f1}
+.wedding-card-main{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+.wedding-card-icon{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#eff1ec;color:#556253;font-size:19px;flex:0 0 auto}
+.wedding-card-main div{min-width:0;display:grid;gap:3px}
+.wedding-card-main strong{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wedding-card-main span{font-size:12px;color:#7d837f}
+.wedding-current-pill,.member-role-pill{font-size:11px;border-radius:999px;padding:7px 10px;background:#e8eee5;color:#526250;white-space:nowrap}
+.wedding-open-button{border:1px solid #cfd5cd;background:#fff;color:#263028;border-radius:10px;padding:8px 12px;font-weight:700;cursor:pointer}
+.wedding-empty{border:1px dashed #d8d2c8;border-radius:16px;padding:26px;text-align:center;color:#818783;background:rgba(255,255,255,.45)}
+.invite-member-form{display:grid;grid-template-columns:minmax(0,1fr) 160px auto;gap:10px;align-items:end;background:#fff;border:1px solid #e6e1d8;border-radius:18px;padding:16px;margin-bottom:12px}
+.invite-member-form label,.create-wedding-card label{display:grid;gap:6px}
+.invite-member-form label span,.create-wedding-card label span{font-size:11px;font-weight:700;color:#707773}
+.invite-member-form input,.invite-member-form select,.create-wedding-card input{width:100%;box-sizing:border-box;border:1px solid #d8d4cc;background:#fff;border-radius:11px;padding:11px 12px;font:inherit;color:#202522;outline:none}
+.invite-member-form input:focus,.invite-member-form select:focus,.create-wedding-card input:focus{border-color:#7c8a79;box-shadow:0 0 0 3px rgba(124,138,121,.12)}
+.team-owner-notice{font-size:12px;color:#747b76;margin:10px 2px 16px}
+.members-list{display:grid;gap:10px}
+.member-avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#28312a;color:#fff;font-weight:800;flex:0 0 auto}
+.member-info{display:grid;gap:2px;min-width:0;flex:1}
+.member-info strong{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.member-info span{font-size:11px;color:#848985;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.member-role-select{border:1px solid #d8d4cc;background:#fff;border-radius:10px;padding:8px 9px;color:#2c332f}
+.member-remove{border:0;background:#f7e8e6;color:#95544c;border-radius:10px;padding:9px 10px;font-size:11px;font-weight:700;cursor:pointer}
+.create-wedding-sheet{position:absolute;inset:0;display:none;place-items:center;padding:24px;background:rgba(29,34,30,.45);backdrop-filter:blur(5px);z-index:3}
+.create-wedding-sheet.show{display:grid}
+.create-wedding-card{width:min(440px,100%);background:#fff;border-radius:22px;padding:24px;box-shadow:0 28px 70px rgba(0,0,0,.24);display:grid;gap:15px}
+.create-wedding-card h3{margin:0 0 4px;font-size:20px}
+.create-wedding-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:5px}
+.create-wedding-actions>button:not(.wedding-primary-action){border:1px solid #d7d3ca;background:#fff;border-radius:11px;padding:10px 14px;cursor:pointer}
+.wedding-readonly .unified-workspace{position:relative}
+.wedding-readonly .unified-workspace::before{content:'Modo solo lectura';position:fixed;right:18px;bottom:18px;z-index:9999;background:#202822;color:#fff;padding:9px 12px;border-radius:999px;font-size:11px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+@media(max-width:680px){
+  .wedding-workspace-header{padding:22px 18px 16px}.wedding-workspace-header h2{font-size:23px}.wedding-workspace-content{padding:20px 16px 34px}.wedding-workspace-tabs{padding:10px 12px}.wedding-pane-head{align-items:stretch;flex-direction:column}.wedding-primary-action{width:100%}.invite-member-form{grid-template-columns:1fr}.wedding-card,.member-card{flex-wrap:wrap}.member-info{min-width:calc(100% - 56px)}.member-role-select{flex:1}.share-wedding-button{width:100%;margin:8px 0 0}
+}
