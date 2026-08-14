@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1648-tablesstable1';
+  const VERSION = '20260814-1605-tablesstable2';
   let tablesRuntime = null;
 
   function restoreLegacyTables() {
@@ -28,7 +28,7 @@
 
   function loadTablesRuntime() {
     if (tablesRuntime) return tablesRuntime;
-    tablesRuntime = import(new URL('tables-editor-entry.js?v=20260814-1648-stable5', import.meta.url).href)
+    tablesRuntime = import(new URL('tables-editor-entry.js?v=20260814-1605-seatremove1', import.meta.url).href)
       .catch((error) => {
         console.error('No se pudo iniciar el Editor de Mesas:', error);
         restoreLegacyTables();
