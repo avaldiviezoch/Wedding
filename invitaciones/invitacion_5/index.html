@@ -34,6 +34,15 @@
         if(programacionImg){
           programacionImg.src='./programacion_5.gif?v=20260816-1';
           programacionImg.removeAttribute('srcset');
+          // Bajar solo la imagen de programación, sin alterar tamaño ni contenido
+          programacionImg.style.transform='translateY(14px)';
+        }
+
+        // Bajar solo el título "Nuestro Día" ligeramente
+        const nuestroDia=[...doc.querySelectorAll('h1,h2,h3,.section-title,.itinerary-title,.itinerario-title,.timeline-title')]
+          .find(el=>(el.textContent||'').trim().toLowerCase()==='nuestro día' || (el.textContent||'').trim().toLowerCase()==='nuestro dia');
+        if(nuestroDia){
+          nuestroDia.style.transform='translateY(14px)';
         }
 
         // Amsterdam Four + ajustes visuales propios de Invitación 5
