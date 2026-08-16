@@ -34,7 +34,6 @@
         if(programacionImg){
           programacionImg.src='./programacion_5.gif?v=20260816-1';
           programacionImg.removeAttribute('srcset');
-          // Bajar solo la imagen de programación, sin alterar tamaño ni contenido
           programacionImg.style.transform='translateY(14px)';
         }
 
@@ -67,6 +66,20 @@
             item.remove();
           }
         });
+
+        // Cierre de Invitación 5: conservar "Te esperamos", usar Brook y retirar texto/firma/fecha
+        const finalCard=doc.querySelector('.final-card');
+        if(finalCard){
+          const finalGif=finalCard.querySelector('.te-esperamos-gif');
+          if(finalGif){
+            finalGif.src='../invitacion_1/brook.gif?v=20260816-1';
+            finalGif.alt='Brook';
+            finalGif.removeAttribute('srcset');
+          }
+          finalCard.querySelector('.wait-message')?.remove();
+          finalCard.querySelector('.wait-signature')?.remove();
+          finalCard.querySelector('.wait-date')?.remove();
+        }
 
         // Amsterdam Four + ajustes visuales propios de Invitación 5
         const style=doc.createElement('style');
