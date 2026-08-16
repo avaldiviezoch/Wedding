@@ -1,21 +1,32 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260816-1617-rsvp-music-builder2';
+  const VERSION = '20260816-1630-premium-topbar1';
   let loading = null;
 
   function moduleUrl(file, version) {
     return new URL(`js/modules/invitados/${file}?v=${version}`, document.baseURI).href;
   }
 
+  function ensureSharedShellStyles() {
+    const id = 'mgdModuleTopbarPremiumCss';
+    if (document.getElementById(id)) return;
+    const link = document.createElement('link');
+    link.id = id;
+    link.rel = 'stylesheet';
+    link.href = new URL(`css/modules/module-topbar-premium.css?v=${VERSION}`, document.baseURI).href;
+    document.head.appendChild(link);
+  }
+
   function loadInvitadosRuntime() {
+    ensureSharedShellStyles();
     if (loading) return loading;
     loading = Promise.all([
       import(moduleUrl('index.js', '20260814-1242-rsvp2')),
       import(moduleUrl('ui-copy.js', '20260814-1532-uicopy3')),
       import(moduleUrl('tables-lazy-loader.js', '20260816-1545-fast-tables1')),
       import(moduleUrl('rsvp-admin-music.js', '20260816-1615-rsvp-music-builder1')),
-      import(moduleUrl('rsvp-admin-music-builder-fix.js', VERSION))
+      import(moduleUrl('rsvp-admin-music-builder-fix.js', '20260816-1617-rsvp-music-builder2'))
     ]).catch((error) => {
       console.error('No se pudo iniciar Invitados:', error);
       loading = null;
@@ -64,8 +75,11 @@
     inspectFrames();
   }
 
+  ensureSharedShellStyles();
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
+      ensureSharedShellStyles();
       bindWorkspace();
       if (location.hash.toLowerCase().includes('invitados')) loadInvitadosRuntime();
     }, { once: true });
