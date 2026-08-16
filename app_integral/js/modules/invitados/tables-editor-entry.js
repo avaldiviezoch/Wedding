@@ -29,7 +29,10 @@ await Promise.all([
   import('./tables-old-look.js?v=20260816-1545-fast-tables1')
 ]);
 
-/* Mejora no bloqueante: X contextual para quitar invitados + recuperación de cursor. */
+/* Mejoras no bloqueantes. */
 import('./tables-seat-remove.js?v=20260816-1520-seatremove3').catch((error) => {
   console.warn('No se pudo activar la acción rápida de quitar invitado:', error);
+});
+import('./tables-drag-robust.js?v=20260816-1530-dragrobust1').catch((error) => {
+  console.warn('No se pudo activar el arrastre robusto de invitados:', error);
 });
