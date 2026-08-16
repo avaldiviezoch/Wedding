@@ -1,18 +1,9 @@
-const VERSION = '20260814-1604-seatremove1';
+const VERSION = '20260816-1508-seatremove2';
 const STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 
 let activeFrame = null;
 let activeDoc = null;
-
-function esc(value = '') {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
 
 function readState() {
   try {
@@ -107,49 +98,72 @@ function unassignGuest(guestId) {
   showToast(`${guest.name || 'Invitado'} volvió a Sin mesa.`);
 }
 
+function restoreCursor(doc = activeDoc) {
+  if (!doc) return;
+  doc.documentElement?.style.removeProperty('cursor');
+  doc.body?.style.removeProperty('cursor');
+  doc.querySelectorAll('.mgd-table-card.is-drop-ready,.mgd-table-card.is-drop-over').forEach((node) => {
+    node.classList.remove('is-drop-ready', 'is-drop-over');
+  });
+  doc.querySelectorAll('.mgd-seat.is-seat-drop').forEach((node) => node.classList.remove('is-seat-drop'));
+}
+
 function ensureStyle(doc) {
-  if (doc.getElementById('mgdSeatRemoveStyle')) return;
-  const style = doc.createElement('style');
-  style.id = 'mgdSeatRemoveStyle';
+  let style = doc.getElementById('mgdSeatRemoveStyle');
+  if (!style) {
+    style = doc.createElement('style');
+    style.id = 'mgdSeatRemoveStyle';
+    doc.head.appendChild(style);
+  }
   style.textContent = `
+    #mgdTablesEditor { cursor: default !important; }
+    #mgdTablesEditor button,
+    #mgdTablesEditor .mgd-table-body,
+    #mgdTablesEditor .mgd-filter { cursor: pointer !important; }
+    #mgdTablesEditor .mgd-guest-item,
+    #mgdTablesEditor .mgd-seat.is-occupied { cursor: grab !important; }
+    #mgdTablesEditor .mgd-guest-item:active,
+    #mgdTablesEditor .mgd-seat.is-occupied:active { cursor: grabbing !important; }
+
     .mgd-seat-remove {
       position: absolute;
-      z-index: 12;
-      width: 15px;
-      height: 15px;
-      min-width: 15px;
-      min-height: 15px;
+      z-index: 14;
+      width: 14px;
+      height: 14px;
+      min-width: 14px;
+      min-height: 14px;
       padding: 0;
-      border: 1px solid rgba(92, 88, 82, .18);
+      border: 1px solid rgba(125, 77, 77, .22);
       border-radius: 50%;
-      background: rgba(255,255,255,.96);
-      color: #77736d;
+      background: rgba(255,255,255,.98);
+      color: #8a5a5a;
       display: grid;
       place-items: center;
       font: 700 10px/1 Arial, sans-serif;
-      cursor: pointer;
+      cursor: pointer !important;
       box-shadow: 0 2px 5px rgba(37,35,31,.10);
-      transform: translate(8px, -25px);
-      transition: transform .12s ease, background .12s ease, color .12s ease;
+      transform: translate(8px, -24px);
+      transition: transform .12s ease, background .12s ease, color .12s ease, opacity .12s ease;
+      opacity: .84;
     }
     .mgd-seat-remove:hover,
     .mgd-seat-remove:focus-visible {
-      background: #fff7f5;
-      color: #9a5e56;
-      transform: translate(8px, -25px) scale(1.08);
+      background: #fff5f4;
+      color: #7a3f3f;
+      opacity: 1;
+      transform: translate(8px, -24px) scale(1.08);
       outline: none;
     }
     @media (max-width: 720px) {
       .mgd-seat-remove {
-        width: 16px;
-        height: 16px;
-        min-width: 16px;
-        min-height: 16px;
+        width: 15px;
+        height: 15px;
+        min-width: 15px;
+        min-height: 15px;
         font-size: 10px;
       }
     }
   `;
-  doc.head.appendChild(style);
 }
 
 function decorate(view) {
@@ -160,7 +174,13 @@ function decorate(view) {
     visual.querySelectorAll('.mgd-seat.is-occupied[data-guest-id]').forEach((seat) => {
       const guestId = seat.dataset.guestId;
       if (!guestId) return;
-      if (visual.querySelector(`.mgd-seat-remove[data-seat-remove-guest="${CSS.escape(guestId)}"]`)) return;
+      const existing = [...visual.querySelectorAll('.mgd-seat-remove[data-seat-remove-guest]')]
+        .find((node) => String(node.dataset.seatRemoveGuest) === String(guestId));
+      if (existing) {
+        existing.style.left = seat.style.left;
+        existing.style.top = seat.style.top;
+        return;
+      }
 
       const button = activeDoc.createElement('button');
       button.type = 'button';
@@ -171,6 +191,7 @@ function decorate(view) {
       button.textContent = '×';
       button.title = 'Quitar de esta mesa';
       button.setAttribute('aria-label', `Quitar a ${seat.getAttribute('aria-label') || 'este invitado'} de la mesa`);
+      button.draggable = false;
       visual.appendChild(button);
     });
   });
@@ -189,13 +210,28 @@ function bindFrame(frame) {
   if (view.dataset.mgdSeatRemoveBound !== VERSION) {
     view.dataset.mgdSeatRemoveBound = VERSION;
 
+    view.addEventListener('pointerdown', (event) => {
+      if (!event.target.closest('.mgd-seat-remove[data-seat-remove-guest]')) return;
+      event.preventDefault();
+      event.stopPropagation();
+    }, true);
+
     view.addEventListener('click', (event) => {
       const button = event.target.closest('.mgd-seat-remove[data-seat-remove-guest]');
       if (!button) return;
       event.preventDefault();
       event.stopPropagation();
+      event.stopImmediatePropagation?.();
       unassignGuest(button.dataset.seatRemoveGuest);
+      restoreCursor(doc);
     }, true);
+
+    const cursorEvents = ['dragend', 'drop', 'pointerup', 'mouseup', 'touchend'];
+    cursorEvents.forEach((type) => view.addEventListener(type, () => restoreCursor(doc), true));
+    doc.defaultView?.addEventListener('blur', () => restoreCursor(doc));
+    doc.addEventListener('visibilitychange', () => {
+      if (doc.visibilityState === 'visible') restoreCursor(doc);
+    });
 
     let scheduled = false;
     const observer = new MutationObserver(() => {
@@ -222,12 +258,12 @@ let attempts = 0;
 const timer = setInterval(() => {
   attempts += 1;
   const frames = [...document.querySelectorAll('#unifiedWorkspace iframe, iframe')];
-  if (frames.some((frame) => bindFrame(frame)) || attempts >= 30) clearInterval(timer);
-}, 120);
+  if (frames.some((frame) => bindFrame(frame)) || attempts >= 40) clearInterval(timer);
+}, 90);
 
 window.addEventListener('migrandia:datachange', () => {
   setTimeout(() => {
     const frames = [...document.querySelectorAll('#unifiedWorkspace iframe, iframe')];
     frames.some((frame) => bindFrame(frame));
-  }, 60);
+  }, 30);
 });
