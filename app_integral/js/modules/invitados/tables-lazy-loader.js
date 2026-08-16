@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1745-no-legacy-flash';
+  const VERSION = '20260816-1510-final-style-ready';
   let tablesRuntime = null;
 
   function setReady(view, ready) {
@@ -12,26 +12,66 @@
     view.setAttribute('aria-busy', ready ? 'false' : 'true');
   }
 
+  function finalStyleLoaded(view) {
+    if (!view?.querySelector('#mgdTablesEditor')) return false;
+    const doc = view.ownerDocument;
+    const finalCss = doc?.querySelector('link[data-mgd-tables-old-look]');
+    if (!finalCss) return false;
+    try {
+      return Boolean(finalCss.sheet);
+    } catch (_) {
+      return false;
+    }
+  }
+
   function revealWhenReady(view) {
     if (!view) return;
-    if (view.querySelector('#mgdTablesEditor')) {
+    setReady(view, false);
+
+    if (finalStyleLoaded(view)) {
       setReady(view, true);
       return;
     }
-    if (view.dataset.mgdTablesReadyObserver === VERSION) return;
-    view.dataset.mgdTablesReadyObserver = VERSION;
+
+    const doc = view.ownerDocument;
+    const win = doc?.defaultView || window;
+    const token = `${VERSION}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    view.dataset.mgdTablesReadyToken = token;
+
+    let attempts = 0;
+    const check = () => {
+      if (!view.isConnected || view.dataset.mgdTablesReadyToken !== token) return;
+      if (finalStyleLoaded(view)) {
+        setReady(view, true);
+        return;
+      }
+      attempts += 1;
+      if (attempts < 180) win.setTimeout(check, 16);
+    };
+
     const observer = new MutationObserver(() => {
-      if (!view.querySelector('#mgdTablesEditor')) return;
-      observer.disconnect();
-      setReady(view, true);
+      const finalCss = doc?.querySelector('link[data-mgd-tables-old-look]');
+      if (finalCss && finalCss.dataset.mgdReadyLoadBound !== VERSION) {
+        finalCss.dataset.mgdReadyLoadBound = VERSION;
+        finalCss.addEventListener('load', () => check(), { once: true });
+      }
+      check();
+      if (finalStyleLoaded(view)) observer.disconnect();
     });
-    observer.observe(view, { childList: true, subtree: true });
+    observer.observe(doc.documentElement, { childList: true, subtree: true });
+
+    const existingCss = doc?.querySelector('link[data-mgd-tables-old-look]');
+    if (existingCss && existingCss.dataset.mgdReadyLoadBound !== VERSION) {
+      existingCss.dataset.mgdReadyLoadBound = VERSION;
+      existingCss.addEventListener('load', () => check(), { once: true });
+    }
+    check();
   }
 
   function prepare(doc) {
     const view = doc?.getElementById('tablesView');
     if (!view) return null;
-    setReady(view, Boolean(view.querySelector('#mgdTablesEditor')));
+    setReady(view, false);
     revealWhenReady(view);
     return view;
   }
@@ -60,7 +100,7 @@
 
   function loadTablesRuntime() {
     if (tablesRuntime) return tablesRuntime;
-    tablesRuntime = import(new URL('tables-editor-entry.js?v=20260814-1745-no-legacy-flash', import.meta.url).href)
+    tablesRuntime = import(new URL('tables-editor-entry.js?v=20260816-1510-final-style-ready', import.meta.url).href)
       .then((runtime) => {
         const workspace = document.getElementById('unifiedWorkspace');
         workspace?.querySelectorAll('iframe').forEach((frame) => {
