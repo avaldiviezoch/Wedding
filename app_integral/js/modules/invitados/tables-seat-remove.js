@@ -1,4 +1,4 @@
-const VERSION = '20260816-1508-seatremove2';
+const VERSION = '20260816-1520-seatremove3';
 const STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 
@@ -142,15 +142,23 @@ function ensureStyle(doc) {
       font: 700 10px/1 Arial, sans-serif;
       cursor: pointer !important;
       box-shadow: 0 2px 5px rgba(37,35,31,.10);
-      transform: translate(8px, -24px);
+      transform: translate(8px, -24px) scale(.94);
       transition: transform .12s ease, background .12s ease, color .12s ease, opacity .12s ease;
-      opacity: .84;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
     }
-    .mgd-seat-remove:hover,
+    .mgd-seat-remove.is-visible,
+    .mgd-seat-remove:focus-visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translate(8px, -24px) scale(1);
+    }
+    .mgd-seat-remove.is-visible:hover,
     .mgd-seat-remove:focus-visible {
       background: #fff5f4;
       color: #7a3f3f;
-      opacity: 1;
       transform: translate(8px, -24px) scale(1.08);
       outline: none;
     }
@@ -166,6 +174,17 @@ function ensureStyle(doc) {
   `;
 }
 
+function findRemoveButton(view, guestId) {
+  return [...view.querySelectorAll('.mgd-seat-remove[data-seat-remove-guest]')]
+    .find((node) => String(node.dataset.seatRemoveGuest) === String(guestId));
+}
+
+function hideRemoveButtons(view, except = null) {
+  view.querySelectorAll('.mgd-seat-remove.is-visible').forEach((button) => {
+    if (button !== except) button.classList.remove('is-visible');
+  });
+}
+
 function decorate(view) {
   if (!view || !activeDoc) return;
   ensureStyle(activeDoc);
@@ -174,8 +193,7 @@ function decorate(view) {
     visual.querySelectorAll('.mgd-seat.is-occupied[data-guest-id]').forEach((seat) => {
       const guestId = seat.dataset.guestId;
       if (!guestId) return;
-      const existing = [...visual.querySelectorAll('.mgd-seat-remove[data-seat-remove-guest]')]
-        .find((node) => String(node.dataset.seatRemoveGuest) === String(guestId));
+      const existing = findRemoveButton(visual, guestId);
       if (existing) {
         existing.style.left = seat.style.left;
         existing.style.top = seat.style.top;
@@ -209,6 +227,39 @@ function bindFrame(frame) {
 
   if (view.dataset.mgdSeatRemoveBound !== VERSION) {
     view.dataset.mgdSeatRemoveBound = VERSION;
+
+    view.addEventListener('pointerover', (event) => {
+      if (event.pointerType && event.pointerType !== 'mouse') return;
+      const seat = event.target.closest('.mgd-seat.is-occupied[data-guest-id]');
+      if (seat) {
+        const button = findRemoveButton(view, seat.dataset.guestId);
+        hideRemoveButtons(view, button);
+        button?.classList.add('is-visible');
+        return;
+      }
+      const button = event.target.closest('.mgd-seat-remove[data-seat-remove-guest]');
+      if (button) {
+        hideRemoveButtons(view, button);
+        button.classList.add('is-visible');
+      }
+    }, true);
+
+    view.addEventListener('pointerout', (event) => {
+      if (event.pointerType && event.pointerType !== 'mouse') return;
+      const seat = event.target.closest('.mgd-seat.is-occupied[data-guest-id]');
+      if (seat) {
+        const button = findRemoveButton(view, seat.dataset.guestId);
+        if (event.relatedTarget === button || button?.contains(event.relatedTarget)) return;
+        button?.classList.remove('is-visible');
+        return;
+      }
+      const button = event.target.closest('.mgd-seat-remove[data-seat-remove-guest]');
+      if (button) {
+        const relatedSeat = event.relatedTarget?.closest?.('.mgd-seat.is-occupied[data-guest-id]');
+        if (relatedSeat && String(relatedSeat.dataset.guestId) === String(button.dataset.seatRemoveGuest)) return;
+        button.classList.remove('is-visible');
+      }
+    }, true);
 
     view.addEventListener('pointerdown', (event) => {
       if (!event.target.closest('.mgd-seat-remove[data-seat-remove-guest]')) return;
