@@ -1,8 +1,9 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260816-1853-native1';
-  let loading = null;
+  const VERSION = '20260816-1916-invitados-fast2';
+  let baseRuntime = null;
+  let rsvpRuntime = null;
 
   function moduleUrl(file, version) {
     return new URL(`js/modules/invitados/${file}?v=${version}`, document.baseURI).href;
@@ -18,22 +19,33 @@
     document.head.appendChild(link);
   }
 
-  function loadInvitadosRuntime() {
+  function loadBaseRuntime() {
     ensureSharedShellStyles();
-    if (loading) return loading;
-    loading = Promise.all([
+    if (baseRuntime) return baseRuntime;
+    baseRuntime = Promise.all([
       import(moduleUrl('index.js', '20260816-1853-native1')),
       import(moduleUrl('ui-copy.js', '20260814-1532-uicopy3')),
-      import(moduleUrl('tables-lazy-loader.js', '20260816-1545-fast-tables1')),
-      import(moduleUrl('rsvp-admin-music.js', '20260816-1615-rsvp-music-builder1')),
-      import(moduleUrl('rsvp-admin-music-builder-fix.js', '20260816-1848-native1')),
-      import(moduleUrl('rsvp-native-admin-patch.js', '20260816-1852-native1'))
+      import(moduleUrl('tables-lazy-loader.js', '20260816-1916-idle1'))
     ]).catch((error) => {
       console.error('No se pudo iniciar Invitados:', error);
-      loading = null;
+      baseRuntime = null;
       throw error;
     });
-    return loading;
+    return baseRuntime;
+  }
+
+  function loadRsvpRuntime() {
+    if (rsvpRuntime) return rsvpRuntime;
+    rsvpRuntime = Promise.all([
+      import(moduleUrl('rsvp-admin-music.js', '20260816-1615-rsvp-music-builder1')),
+      import(moduleUrl('rsvp-admin-music-builder-fix.js', '20260816-1900-native-help1')),
+      import(moduleUrl('rsvp-native-admin-patch.js', '20260816-1900-native-help1'))
+    ]).catch((error) => {
+      console.error('No se pudo iniciar RSVP:', error);
+      rsvpRuntime = null;
+      throw error;
+    });
+    return rsvpRuntime;
   }
 
   function looksLikeInvitadosFrame(frame) {
@@ -45,47 +57,60 @@
     }
   }
 
-  function inspectFrames() {
+  function isRsvpControl(node) {
+    const control = node?.closest?.('[data-view],[data-tab],[data-rsvp-tab],#rsvpTab,#rsvpAdminTab,button,a');
+    if (!control) return false;
+    const values = [control.dataset?.view, control.dataset?.tab, control.dataset?.rsvpTab, control.id, control.textContent]
+      .map((value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase());
+    return values.some((value) => value === 'rsvp' || value.includes('rsvp') || value.includes('confirmacion'));
+  }
+
+  function bindGuestFrame(frame) {
+    if (!looksLikeInvitadosFrame(frame)) return;
+    loadBaseRuntime();
+    let doc;
+    try { doc = frame.contentDocument; } catch (_) { return; }
+    if (!doc || doc.documentElement.dataset.mgdRsvpLazyBound === VERSION) return;
+    doc.documentElement.dataset.mgdRsvpLazyBound = VERSION;
+    doc.addEventListener('click', (event) => {
+      if (isRsvpControl(event.target)) loadRsvpRuntime();
+    }, true);
+    if (doc.querySelector('.rsvp-admin-shell,[data-rsvp-pane].is-active')) loadRsvpRuntime();
+  }
+
+  function scanFrames() {
     const workspace = document.getElementById('unifiedWorkspace');
     if (!workspace) return;
     workspace.querySelectorAll('iframe').forEach((frame) => {
       if (frame.dataset.mgdInvitadosRuntimeLoad !== VERSION) {
         frame.dataset.mgdInvitadosRuntimeLoad = VERSION;
-        frame.addEventListener('load', () => {
-          if (looksLikeInvitadosFrame(frame)) loadInvitadosRuntime();
-        });
+        frame.addEventListener('load', () => bindGuestFrame(frame));
       }
-      if (looksLikeInvitadosFrame(frame)) loadInvitadosRuntime();
+      bindGuestFrame(frame);
     });
   }
 
   document.addEventListener('click', (event) => {
     const target = event.target.closest('[data-module="invitados"],[data-quick-module="invitados"]');
-    if (target) loadInvitadosRuntime();
+    if (target) loadBaseRuntime();
   }, true);
 
   window.addEventListener('hashchange', () => {
-    if (location.hash.toLowerCase().includes('invitados')) loadInvitadosRuntime();
+    if (location.hash.toLowerCase().includes('invitados')) loadBaseRuntime();
   });
 
   function bindWorkspace() {
     const workspace = document.getElementById('unifiedWorkspace');
     if (!workspace || workspace.dataset.mgdInvitadosRuntimeObserver === VERSION) return;
     workspace.dataset.mgdInvitadosRuntimeObserver = VERSION;
-    new MutationObserver(inspectFrames).observe(workspace, { childList: true, subtree: true });
-    inspectFrames();
+    new MutationObserver(scanFrames).observe(workspace, { childList: true });
+    scanFrames();
   }
 
   ensureSharedShellStyles();
-
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      ensureSharedShellStyles();
-      bindWorkspace();
-      if (location.hash.toLowerCase().includes('invitados')) loadInvitadosRuntime();
-    }, { once: true });
+    document.addEventListener('DOMContentLoaded', bindWorkspace, { once: true });
   } else {
     bindWorkspace();
-    if (location.hash.toLowerCase().includes('invitados')) loadInvitadosRuntime();
   }
 })();
