@@ -11,7 +11,7 @@
   </style>
 </head>
 <body>
-  <iframe id="inv5" src="./invitacion_5_base.html?v=20260816-1746" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
+  <iframe id="inv5" src="./invitacion_5_base.html?v=20260816-1802" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
   <script>
     const frame=document.getElementById('inv5');
     frame.addEventListener('load',()=>{
@@ -55,6 +55,75 @@
         itineraryTimes.forEach((el,i)=>{
           if(shiftedSchedule[i]) el.innerHTML=shiftedSchedule[i];
         });
+
+        // CONFIRMACIÓN DE ASISTENCIA: conserva el mensajero de Invitación 2,
+        // pero usa el RSVP público de Mi Gran Día.
+        const rsvpSection=doc.querySelector('#rsvpSection');
+        if(rsvpSection){
+          const rsvpCard=rsvpSection.querySelector('.final-card');
+          const rsvpStage=rsvpSection.querySelector('#rsvpImageStage');
+          const rsvpPanel=rsvpSection.querySelector('#rsvp-panel');
+
+          if(rsvpCard && !rsvpCard.querySelector('.inv5-rsvp-title')){
+            const title=doc.createElement('h2');
+            title.className='final-title inv5-rsvp-title';
+            title.textContent='Confirmar tu asistencia';
+            rsvpCard.insertBefore(title,rsvpCard.firstChild);
+          }
+
+          if(rsvpPanel){
+            rsvpPanel.innerHTML=`<iframe
+              class="inv5-rsvp-iframe"
+              src="https://avaldiviezoch.github.io/Wedding/rsvp.html?token=b00bca195e8e448eab17557bb6b4ffc480ad2e95c0db4c85bca52a62ff60b499"
+              title="Confirmar asistencia"
+              loading="lazy"
+              referrerpolicy="strict-origin-when-cross-origin"
+            ></iframe>`;
+          }
+
+          if(rsvpStage){
+            rsvpStage.setAttribute('aria-label','Abrir confirmación de asistencia');
+          }
+        }
+
+        // MÚSICA: conserva imagen y presentación de Invitación 2,
+        // reemplaza el formulario antiguo por la vista de música de Mi Gran Día.
+        const musicSection=doc.querySelector('#musicSection');
+        if(musicSection){
+          const musicText=musicSection.querySelector('.music-copy .final-text');
+          const musicWarning=musicSection.querySelector('.music-warning');
+          const musicPanel=musicSection.querySelector('#music-request-panel');
+
+          if(musicText){
+            musicText.textContent='¿Hay una canción que te gustaría escuchar durante la recepción o la fiesta? Déjanos tu pedido aquí para considerarlo con anticipación.';
+          }
+          if(musicWarning){
+            musicWarning.textContent='El DJ no aceptará pedidos musicales durante la celebración, así que este es tu momento para compartirnos tu canción.';
+          }
+          if(musicPanel){
+            musicPanel.innerHTML=`<iframe
+              class="inv5-music-iframe"
+              src="https://avaldiviezoch.github.io/Wedding/rsvp.html?token=b00bca195e8e448eab17557bb6b4ffc480ad2e95c0db4c85bca52a62ff60b499&view=music"
+              title="Encuesta de música para la boda"
+              loading="lazy"
+              referrerpolicy="strict-origin-when-cross-origin"
+            ></iframe>`;
+
+            const musicIframe=musicPanel.querySelector('.inv5-music-iframe');
+            if(musicIframe){
+              musicIframe.addEventListener('load',()=>{
+                try{
+                  const musicDoc=musicIframe.contentDocument||musicIframe.contentWindow.document;
+                  const nameInput=musicDoc.querySelector('#rsvpMusicGuestName');
+                  const nameField=nameInput?.closest('label.rsvp-field');
+                  if(nameField) nameField.style.display='none';
+                }catch(err){
+                  console.warn('No se pudo ocultar el nombre en música de Invitación 5',err);
+                }
+              });
+            }
+          }
+        }
 
         const faqItems=[...doc.querySelectorAll('details.faq-item')];
         faqItems.forEach(item=>{
@@ -116,6 +185,40 @@
           .gift-title,.regalo-title,[class*="gift"] h2,[class*="regalo"] h2{margin-bottom:20px !important;line-height:1.22 !important}
           .gift-hint,.regalo-hint,.tap-text,[class*="gift"] .tap-text,[class*="regalo"] .tap-text{margin-top:10px !important;line-height:1.45 !important}
 
+          #rsvpSection .inv5-rsvp-title{
+            font-family:'Amsterdam Four',cursive !important;
+            font-size:clamp(38px,8vw,58px) !important;
+            line-height:1.15 !important;
+            margin:0 auto 18px !important;
+            text-align:center !important;
+          }
+          #rsvpSection #rsvp-panel.open{
+            max-height:none !important;
+            overflow:visible !important;
+          }
+          #rsvpSection .inv5-rsvp-iframe{
+            display:block !important;
+            width:100% !important;
+            min-height:780px !important;
+            border:0 !important;
+            border-radius:24px !important;
+            overflow:hidden !important;
+            background:transparent !important;
+          }
+          #musicSection #music-request-panel.open{
+            max-height:none !important;
+            overflow:visible !important;
+          }
+          #musicSection .inv5-music-iframe{
+            display:block !important;
+            width:100% !important;
+            min-height:620px !important;
+            border:0 !important;
+            border-radius:24px !important;
+            overflow:hidden !important;
+            background:transparent !important;
+          }
+
           #esperamosSection{
             padding-top:18px !important;
           }
@@ -133,6 +236,12 @@
             object-fit:contain !important;
           }
           @media (max-width:540px){
+            #rsvpSection .inv5-rsvp-title{
+              font-size:clamp(34px,10vw,48px) !important;
+              margin-bottom:14px !important;
+            }
+            #rsvpSection .inv5-rsvp-iframe{min-height:780px !important;}
+            #musicSection .inv5-music-iframe{min-height:620px !important;}
             #esperamosSection{
               padding-top:16px !important;
             }
