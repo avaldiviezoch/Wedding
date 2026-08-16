@@ -11,7 +11,7 @@
   </style>
 </head>
 <body>
-  <iframe id="inv5" src="./invitacion_5.html" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
+  <iframe id="inv5" src="./invitacion_5.html?v=20260816-1703" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
   <script>
     const frame=document.getElementById('inv5');
 
@@ -72,8 +72,9 @@
         if(finalCard){
           const finalGif=finalCard.querySelector('.te-esperamos-gif');
           if(finalGif){
-            finalGif.src='../invitacion_1/brook.gif?v=20260816-1';
+            finalGif.src='https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/invitaciones/invitacion_1/brook.gif?v=20260816-1703';
             finalGif.alt='Brook';
+            finalGif.loading='eager';
             finalGif.removeAttribute('srcset');
           }
           finalCard.querySelector('.wait-message')?.remove();
