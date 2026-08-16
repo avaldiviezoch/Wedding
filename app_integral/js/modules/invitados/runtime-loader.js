@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260816-1605-rsvp-admin-music1';
+  const VERSION = '20260816-1615-rsvp-music-builder1';
   let loading = null;
 
   function moduleUrl(file, version) {
