@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260816-1630-premium-topbar1';
+  const VERSION = '20260816-1853-native1';
   let loading = null;
 
   function moduleUrl(file, version) {
@@ -22,11 +22,12 @@
     ensureSharedShellStyles();
     if (loading) return loading;
     loading = Promise.all([
-      import(moduleUrl('index.js', '20260814-1242-rsvp2')),
+      import(moduleUrl('index.js', '20260816-1853-native1')),
       import(moduleUrl('ui-copy.js', '20260814-1532-uicopy3')),
       import(moduleUrl('tables-lazy-loader.js', '20260816-1545-fast-tables1')),
       import(moduleUrl('rsvp-admin-music.js', '20260816-1615-rsvp-music-builder1')),
-      import(moduleUrl('rsvp-admin-music-builder-fix.js', '20260816-1617-rsvp-music-builder2'))
+      import(moduleUrl('rsvp-admin-music-builder-fix.js', '20260816-1848-native1')),
+      import(moduleUrl('rsvp-native-admin-patch.js', '20260816-1852-native1'))
     ]).catch((error) => {
       console.error('No se pudo iniciar Invitados:', error);
       loading = null;
