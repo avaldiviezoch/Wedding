@@ -111,13 +111,25 @@
 
     function muteFrame(n,value=muted){
       const frame=document.getElementById(`frame${n}`);
-      try{const doc=frame.contentDocument||frame.contentWindow.document;doc.querySelectorAll('audio,video').forEach(media=>{media.muted=value;});}catch(e){}
+      try{
+        const doc=frame.contentDocument||frame.contentWindow.document;
+        doc.querySelectorAll('audio,video').forEach(media=>{media.muted=value;});
+        doc.querySelectorAll('iframe').forEach(inner=>{
+          try{
+            const innerDoc=inner.contentDocument||inner.contentWindow.document;
+            innerDoc.querySelectorAll('audio,video').forEach(media=>{media.muted=value;});
+          }catch(e){}
+        });
+      }catch(e){}
     }
 
     function muteEverything(){
       muted=!muted;
       INVITES.forEach(({n})=>muteFrame(n,muted));
-      muteBtn.textContent=muted?'🔇 Silenciar':'🔊 Audio activo';muteBtn.classList.toggle('active',!muted);
+      setTimeout(()=>INVITES.forEach(({n})=>muteFrame(n,muted)),250);
+      setTimeout(()=>INVITES.forEach(({n})=>muteFrame(n,muted)),1000);
+      muteBtn.textContent=muted?'🔇 Silenciar':'🔊 Audio activo';
+      muteBtn.classList.toggle('active',!muted);
     }
 
     function reloadFrame(n){
@@ -128,7 +140,12 @@
 
     INVITES.forEach(({n})=>{
       const frame=document.getElementById(`frame${n}`);
-      frame.addEventListener('load',()=>{document.getElementById(`loading${n}`).classList.add('done');setTimeout(()=>muteFrame(n,muted),150);setTimeout(()=>muteFrame(n,muted),1200);});
+      frame.addEventListener('load',()=>{
+        document.getElementById(`loading${n}`).classList.add('done');
+        setTimeout(()=>muteFrame(n,muted),150);
+        setTimeout(()=>muteFrame(n,muted),600);
+        setTimeout(()=>muteFrame(n,muted),1400);
+      });
     });
     btnAll.addEventListener('click',()=>setView('all'));btn2.addEventListener('click',()=>setView(2));document.getElementById('reloadAll').addEventListener('click',reloadAll);muteBtn.addEventListener('click',muteEverything);
   </script>
