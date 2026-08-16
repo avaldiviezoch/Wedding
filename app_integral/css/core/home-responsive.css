@@ -1,207 +1,72 @@
 /* Mi Gran Día · responsive shell / portada
    Ajustes no destructivos sobre el CSS legacy. */
 
-:root{
-  --mgd-vh: 100dvh;
+:root{--mgd-vh:100dvh}
+html,body{width:100%;min-width:0;height:100%;min-height:0}
+body{min-height:100svh}
+.app{width:100%;height:100svh;height:100dvh;min-height:0!important;max-height:none}
+.hero-video{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:100%;min-height:100%;object-fit:cover!important;z-index:0!important}
+.video-shade{z-index:1!important}
+.drawer{height:100svh;height:100dvh;min-height:0;max-height:100dvh;overflow:hidden}
+.drawer-content{min-width:0;min-height:0;max-height:100%;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.drawer-title,.countdown-card,.module,.account-card{min-width:0;max-width:100%}
+.module-label>span:last-child,.module-link>span,.account-copy{min-width:0}
+.module-name,.module-description,.module-link span,.drawer-title p{overflow-wrap:anywhere}
+.countdown-head{flex-wrap:wrap}
+.countdown-date-actions{min-width:0;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
+.date-editor{flex-wrap:wrap}.date-editor input{flex:1 1 150px}.date-editor button{flex:0 0 auto}
+.auth-overlay{min-height:100svh;min-height:100dvh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;align-items:safe center}
+.auth-card{max-width:430px;max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+
+@media(max-height:760px){
+  .drawer{padding-top:max(58px,calc(env(safe-area-inset-top) + 52px))!important;padding-bottom:max(10px,env(safe-area-inset-bottom))!important}
+  .drawer-content{gap:10px!important;padding-bottom:12px!important}
+  .drawer-title{padding:12px 14px!important}.drawer-title .eyebrow{margin-bottom:5px}.drawer-title p{margin-top:5px;line-height:1.35}
+  .countdown-card{padding:10px 11px!important}.countdown-head{margin-bottom:7px}.time-box{padding:7px 3px!important}
+  .module-toggle{min-height:46px!important;padding:8px 11px!important}.module.open .module-body-inner{padding-top:5px!important}
+  .module-links{gap:5px!important;padding:0 8px 8px!important}.module-link{min-height:34px!important;padding:6px 9px!important}.copyright{margin-top:0!important}
 }
 
-html,
-body{
-  width:100%;
-  min-width:0;
-  height:100%;
-  min-height:0;
+@media(max-height:620px){
+  .drawer-title h1{font-size:clamp(18px,4.5vh,25px)!important}.drawer-title p,.module-description{font-size:8px!important}
+  .time-box strong{font-size:15px!important}.time-box span{margin-top:3px;font-size:6px!important}.module-name{font-size:11px!important}
 }
 
-body{
-  min-height:100svh;
+@media(max-width:700px){
+  .menu-button{top:max(10px,env(safe-area-inset-top))!important;right:max(10px,env(safe-area-inset-right))!important;width:42px!important;min-width:42px!important;height:42px!important}
+  .drawer{width:100%!important;max-width:none!important;padding:max(56px,calc(env(safe-area-inset-top) + 50px)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))!important}
+  .drawer-content{width:100%!important;max-width:none!important;margin:0!important;gap:10px!important;padding:0 0 max(14px,env(safe-area-inset-bottom))!important}
+  .drawer-title{padding:13px 14px 12px!important;border-radius:17px!important}.drawer-title .eyebrow{margin-bottom:5px!important;font-size:7px!important}
+  .drawer-title h1{font-size:clamp(20px,5vw,28px)!important;line-height:1.04!important;letter-spacing:.04em!important}.drawer-title p{margin-top:6px!important;font-size:10px!important;line-height:1.35!important}
+  .account-card.show{display:flex!important;min-height:48px!important;height:auto!important;overflow:visible!important;padding:7px 10px!important;border-radius:15px!important;align-items:center!important;flex-wrap:nowrap!important}
+  .account-user{flex:1 1 auto!important;min-width:0!important;min-height:34px!important}.account-avatar{width:34px!important;height:34px!important;flex:0 0 34px!important}
+  .account-copy strong{font-size:10px!important}.account-copy span,.cloud-state{font-size:7px!important}.account-logout{flex:0 0 auto!important;font-size:7px!important;padding:6px 8px!important}
+  .countdown-card{padding:10px 11px!important;border-radius:17px!important}.countdown{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px!important}
+  .time-box{min-width:0;padding:8px 3px!important;border-radius:12px!important}.time-box strong{font-size:16px!important}.time-box span{margin-top:4px!important;font-size:6px!important}
+  .modules{gap:8px!important}.module{border-radius:15px!important}.module-toggle{min-height:48px!important;padding:8px 11px!important;gap:9px}.module-label{gap:9px}
+  .module-name{font-size:11px!important}.module-description{font-size:7.5px!important}
+  .auth-overlay{padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+  .auth-card{width:100%;padding:18px 15px;border-radius:19px}
 }
 
-.app{
-  width:100%;
-  height:100svh;
-  height:100dvh;
-  min-height:0 !important;
-  max-height:none;
+@media(max-width:430px){
+  .drawer{padding-left:max(8px,env(safe-area-inset-left))!important;padding-right:max(8px,env(safe-area-inset-right))!important}.drawer-content{gap:8px!important}
+  .drawer-title,.countdown-card{border-radius:15px!important}.drawer-title{padding:11px 12px!important}.drawer-title h1{font-size:clamp(19px,6.2vw,24px)!important}
+  .countdown-card{padding:9px!important}.countdown-head{gap:5px}.countdown-head strong{font-size:10px}.countdown-date-actions{gap:4px}.countdown-date-label{font-size:8px}
+  .countdown{gap:4px!important}.time-box{padding:7px 2px!important;border-radius:10px!important}.time-box strong{font-size:14px!important}.time-box span{font-size:5.6px!important;letter-spacing:.04em}
+  .module{border-radius:14px!important}.module-toggle{min-height:46px!important;padding:8px 10px!important}.module-number{font-size:7px}.module-name{font-size:10.5px!important}.module-description{font-size:7px!important}
+  .module-link{min-height:36px!important;padding:7px 8px!important;font-size:9px}.auth-actions{grid-template-columns:1fr}.video-recovery{left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));width:auto}
 }
 
-/* El video debe permanecer dentro del stacking context de .app y nunca quedar detrás del body. */
-.hero-video{
-  width:100%;
-  height:100%;
-  min-width:100%;
-  min-height:100%;
-  z-index:0 !important;
+@media(max-height:500px) and (orientation:landscape){
+  .menu-button{top:max(6px,env(safe-area-inset-top))!important;right:max(7px,env(safe-area-inset-right))!important;width:36px!important;min-width:36px!important;height:36px!important}
+  .drawer{width:100%!important;padding:max(44px,calc(env(safe-area-inset-top) + 38px)) 8px max(7px,env(safe-area-inset-bottom))!important}.drawer-content{gap:6px!important;padding-bottom:7px!important}
+  .drawer-title{padding:8px 10px!important}.drawer-title .eyebrow,.drawer-title p,.module-description,.copyright{display:none!important}.drawer-title h1{font-size:16px!important}
+  .account-card.show{min-height:40px!important;padding:5px 8px!important}.account-avatar{width:30px!important;height:30px!important;flex-basis:30px!important}
+  .countdown-card{padding:7px!important}.countdown-head{margin-bottom:4px}.time-box{padding:4px 2px!important}
+  .module-toggle{min-height:36px!important;padding:6px 8px!important}.module.open .module-body-inner{padding-top:3px!important}.module-link{min-height:30px!important;padding:5px 7px!important}
+  .auth-overlay{place-items:start center}.auth-card{margin:auto 0;max-height:calc(100dvh - 10px);padding:13px}
 }
 
-.video-shade{
-  z-index:1 !important;
-}
-
-/* El drawer siempre debe caber dentro del viewport real. */
-.drawer{
-  height:100svh;
-  height:100dvh;
-  min-height:0;
-  max-height:100dvh;
-  overflow:hidden;
-}
-
-.drawer-content{
-  min-width:0;
-  min-height:0;
-  max-height:100%;
-  overscroll-behavior:contain;
-  -webkit-overflow-scrolling:touch;
-}
-
-.drawer-title,
-.countdown-card,
-.module,
-.account-card{
-  min-width:0;
-  max-width:100%;
-}
-
-.module-label > span:last-child,
-.module-link > span,
-.account-copy{
-  min-width:0;
-}
-
-.module-name,
-.module-description,
-.module-link span,
-.drawer-title p{
-  overflow-wrap:anywhere;
-}
-
-.countdown-head{
-  flex-wrap:wrap;
-}
-
-.countdown-date-actions{
-  min-width:0;
-  margin-left:auto;
-  flex-wrap:wrap;
-  justify-content:flex-end;
-}
-
-.date-editor{
-  flex-wrap:wrap;
-}
-
-.date-editor input{
-  flex:1 1 150px;
-}
-
-.date-editor button{
-  flex:0 0 auto;
-}
-
-.auth-overlay{
-  min-height:100svh;
-  min-height:100dvh;
-  overflow-y:auto;
-  overscroll-behavior:contain;
-  -webkit-overflow-scrolling:touch;
-  align-items:safe center;
-}
-
-.auth-card{
-  max-width:430px;
-  max-height:calc(100dvh - 24px);
-  overflow-y:auto;
-  overscroll-behavior:contain;
-  scrollbar-width:thin;
-}
-
-@media (max-height:760px){
-  .drawer{padding-top:max(66px,calc(env(safe-area-inset-top) + 58px)) !important;padding-bottom:max(12px,env(safe-area-inset-bottom)) !important;}
-  .drawer-content{gap:12px !important;padding-bottom:14px !important;}
-  .drawer-title{padding:13px 14px !important;}
-  .drawer-title .eyebrow{margin-bottom:5px;}
-  .drawer-title p{margin-top:6px;line-height:1.4;}
-  .countdown-card{padding:11px 12px !important;}
-  .countdown-head{margin-bottom:8px;}
-  .time-box{padding:8px 3px !important;}
-  .module-toggle{min-height:50px !important;padding:10px 12px !important;}
-  .module.open .module-body-inner{padding-top:6px !important;}
-  .module-links{gap:5px !important;padding:0 8px 8px !important;}
-  .module-link{min-height:36px !important;padding:7px 9px !important;}
-  .copyright{margin-top:0 !important;}
-}
-
-@media (max-height:620px){
-  .drawer-title h1{font-size:clamp(19px,4.5vh,27px) !important;}
-  .drawer-title p,.module-description{font-size:8px !important;}
-  .time-box strong{font-size:15px !important;}
-  .time-box span{margin-top:3px;font-size:6px !important;}
-  .module-name{font-size:11px !important;}
-}
-
-@media (max-width:700px){
-  .menu-button{top:max(12px,env(safe-area-inset-top)) !important;right:max(12px,env(safe-area-inset-right)) !important;width:44px;min-width:44px;height:44px;}
-  .drawer{width:100% !important;max-width:100%;padding:max(66px,calc(env(safe-area-inset-top) + 58px)) max(12px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left)) !important;}
-  .drawer-content{width:100% !important;max-width:520px !important;margin:0 auto !important;padding:2px 2px max(18px,env(safe-area-inset-bottom)) !important;}
-  .drawer-title h1{font-size:clamp(20px,7vw,29px) !important;letter-spacing:.055em;}
-  .countdown{grid-template-columns:repeat(4,minmax(0,1fr));}
-  .time-box{min-width:0;}
-  .module-toggle{gap:9px;}
-  .module-label{gap:9px;}
-  .auth-overlay{padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));}
-  .auth-card{width:100%;padding:20px 16px;border-radius:20px;}
-}
-
-@media (max-width:430px){
-  .drawer{padding-left:max(9px,env(safe-area-inset-left)) !important;padding-right:max(9px,env(safe-area-inset-right)) !important;}
-  .drawer-content{gap:10px !important;}
-  .drawer-title,.countdown-card{border-radius:16px !important;}
-  .drawer-title{padding:14px 13px !important;}
-  .countdown-card{padding:12px 10px !important;}
-  .countdown-head{gap:6px;}
-  .countdown-head strong{font-size:10px;}
-  .countdown-date-actions{gap:5px;}
-  .countdown-date-label{font-size:8px;}
-  .countdown{gap:4px !important;}
-  .time-box{padding:9px 2px !important;border-radius:11px !important;}
-  .time-box strong{font-size:14px !important;}
-  .time-box span{font-size:5.8px !important;letter-spacing:.045em;}
-  .module{border-radius:15px !important;}
-  .module-toggle{min-height:54px !important;padding:10px 11px !important;}
-  .module-number{font-size:7px;}
-  .module-name{font-size:11px !important;}
-  .module-description{font-size:8px !important;}
-  .module-link{min-height:38px !important;padding:8px 9px !important;font-size:9px;}
-  .account-card.show{align-items:flex-start;flex-wrap:wrap;}
-  .account-user{flex:1 1 190px;}
-  .account-logout{margin-left:auto;}
-  .auth-actions{grid-template-columns:1fr;}
-  .video-recovery{left:max(9px,env(safe-area-inset-left));right:max(9px,env(safe-area-inset-right));bottom:max(9px,env(safe-area-inset-bottom));width:auto;}
-}
-
-@media (max-height:500px) and (orientation:landscape){
-  .menu-button{top:max(7px,env(safe-area-inset-top)) !important;right:max(8px,env(safe-area-inset-right)) !important;width:38px;min-width:38px;height:38px;}
-  .drawer{width:min(560px,100vw) !important;padding:max(48px,calc(env(safe-area-inset-top) + 42px)) 10px max(8px,env(safe-area-inset-bottom)) !important;}
-  .drawer-content{gap:7px !important;padding-bottom:8px !important;}
-  .drawer-title{padding:9px 11px !important;}
-  .drawer-title .eyebrow,.drawer-title p,.module-description,.copyright{display:none !important;}
-  .drawer-title h1{font-size:17px !important;}
-  .countdown-card{padding:8px !important;}
-  .countdown-head{margin-bottom:5px;}
-  .time-box{padding:5px 2px !important;}
-  .module-toggle{min-height:38px !important;padding:7px 9px !important;}
-  .module.open .module-body-inner{padding-top:4px !important;}
-  .module-link{min-height:31px !important;padding:5px 8px !important;}
-  .auth-overlay{place-items:start center;}
-  .auth-card{margin:auto 0;max-height:calc(100dvh - 12px);padding:14px;}
-}
-
-body.module-view .module-quick-nav{
-  max-width:calc(100vw - max(10px, env(safe-area-inset-left)) - max(10px, env(safe-area-inset-right))) !important;
-}
-
-@media (max-width:760px){
-  body.module-view .module-quick-nav{left:max(4px,env(safe-area-inset-left)) !important;right:max(4px,env(safe-area-inset-right)) !important;}
-  .module-session-logout{right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));}
-}
+body.module-view .module-quick-nav{max-width:calc(100vw - max(10px,env(safe-area-inset-left)) - max(10px,env(safe-area-inset-right)))!important}
+@media(max-width:760px){body.module-view .module-quick-nav{left:max(4px,env(safe-area-inset-left))!important;right:max(4px,env(safe-area-inset-right))!important}.module-session-logout{right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom))}}
