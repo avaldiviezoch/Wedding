@@ -14,15 +14,59 @@
   <iframe id="inv5" src="./invitacion_5.html" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
   <script>
     const frame=document.getElementById('inv5');
+
     frame.addEventListener('load',()=>{
       try{
         const doc=frame.contentDocument||frame.contentWindow.document;
+
+        // Imagen de fecha propia de la Invitación 5
         const img=doc.querySelector('.countdown-image');
         if(img){
-          img.src='./imagen_de_fecha_5.png?v=20260816-1';
+          img.src='./imagen_de_fecha_5.png?v=20260816-2';
           img.removeAttribute('srcset');
         }
-      }catch(e){console.warn('No se pudo actualizar la imagen de fecha',e);}
+
+        // Amsterdam Four para todos los títulos principales de Invitación 5
+        const style=doc.createElement('style');
+        style.id='inv5-amsterdam-four';
+        style.textContent=`
+          @font-face{
+            font-family:'Amsterdam Four';
+            src:url('./Amsterdam%20Four_ttf%20400.ttf') format('truetype');
+            font-weight:400;
+            font-style:normal;
+            font-display:swap;
+          }
+
+          h1,
+          h2,
+          h3,
+          .section-title,
+          .photo-story-title,
+          .rsvp-title,
+          .faq-title,
+          .gift-title,
+          .music-title,
+          .dress-title,
+          .location-title,
+          .itinerary-title,
+          .confirmation-title,
+          .questions-title,
+          [class*="section-title"],
+          [class*="-title"]{
+            font-family:'Amsterdam Four', cursive !important;
+            font-weight:400 !important;
+          }
+        `;
+
+        const previous=doc.getElementById('inv5-amsterdam-four');
+        if(previous) previous.remove();
+        doc.head.appendChild(style);
+
+      }catch(e){
+        console.warn('No se pudieron aplicar los ajustes de Invitación 5',e);
+      }
+
       frame.classList.add('ready');
     });
   </script>
