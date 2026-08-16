@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260816-1510-final-style-ready';
+  const VERSION = '20260816-1545-fast-tables1';
   let tablesRuntime = null;
 
   function setReady(view, ready) {
@@ -17,22 +17,17 @@
     const doc = view.ownerDocument;
     const finalCss = doc?.querySelector('link[data-mgd-tables-old-look]');
     if (!finalCss) return false;
-    try {
-      return Boolean(finalCss.sheet);
-    } catch (_) {
-      return false;
-    }
+    try { return Boolean(finalCss.sheet); } catch (_) { return false; }
   }
 
   function revealWhenReady(view) {
     if (!view) return;
-    setReady(view, false);
-
     if (finalStyleLoaded(view)) {
       setReady(view, true);
       return;
     }
 
+    setReady(view, false);
     const doc = view.ownerDocument;
     const win = doc?.defaultView || window;
     const token = `${VERSION}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -46,32 +41,21 @@
         return;
       }
       attempts += 1;
-      if (attempts < 180) win.setTimeout(check, 16);
+      if (attempts < 90) win.setTimeout(check, 16);
     };
 
     const observer = new MutationObserver(() => {
-      const finalCss = doc?.querySelector('link[data-mgd-tables-old-look]');
-      if (finalCss && finalCss.dataset.mgdReadyLoadBound !== VERSION) {
-        finalCss.dataset.mgdReadyLoadBound = VERSION;
-        finalCss.addEventListener('load', () => check(), { once: true });
-      }
       check();
       if (finalStyleLoaded(view)) observer.disconnect();
     });
     observer.observe(doc.documentElement, { childList: true, subtree: true });
-
-    const existingCss = doc?.querySelector('link[data-mgd-tables-old-look]');
-    if (existingCss && existingCss.dataset.mgdReadyLoadBound !== VERSION) {
-      existingCss.dataset.mgdReadyLoadBound = VERSION;
-      existingCss.addEventListener('load', () => check(), { once: true });
-    }
     check();
   }
 
   function prepare(doc) {
     const view = doc?.getElementById('tablesView');
     if (!view) return null;
-    setReady(view, false);
+    if (!finalStyleLoaded(view)) setReady(view, false);
     revealWhenReady(view);
     return view;
   }
@@ -100,7 +84,7 @@
 
   function loadTablesRuntime() {
     if (tablesRuntime) return tablesRuntime;
-    tablesRuntime = import(new URL('tables-editor-entry.js?v=20260816-1510-final-style-ready', import.meta.url).href)
+    tablesRuntime = import(new URL('tables-editor-entry.js?v=20260816-1545-fast-tables1', import.meta.url).href)
       .then((runtime) => {
         const workspace = document.getElementById('unifiedWorkspace');
         workspace?.querySelectorAll('iframe').forEach((frame) => {
@@ -131,22 +115,21 @@
     let doc;
     try { doc = frame.contentDocument; } catch (_) { return false; }
     if (!doc?.body || !doc.getElementById('guestList') || !doc.getElementById('tablesView')) return false;
+
     prepare(doc);
-    if (doc.documentElement.dataset.mgdTablesLazyBound === VERSION) return true;
-    doc.documentElement.dataset.mgdTablesLazyBound = VERSION;
 
-    doc.addEventListener('click', (event) => {
-      if (!isTablesControl(event.target)) return;
-      prepare(doc);
-      loadTablesRuntime();
-    }, true);
-
-    const view = doc.getElementById('tablesView');
-    const win = doc.defaultView;
-    if (view && win) {
-      const style = win.getComputedStyle(view);
-      if (style.display !== 'none' && !view.hidden) loadTablesRuntime();
+    if (doc.documentElement.dataset.mgdTablesLazyBound !== VERSION) {
+      doc.documentElement.dataset.mgdTablesLazyBound = VERSION;
+      doc.addEventListener('click', (event) => {
+        if (!isTablesControl(event.target)) return;
+        prepare(doc);
+        loadTablesRuntime();
+      }, true);
     }
+
+    // Precarga inmediata: mientras el usuario ve Invitados, Mesas y Asientos
+    // ya se prepara en segundo plano. Al pulsar la pestaña debe estar listo.
+    loadTablesRuntime();
     return true;
   }
 
