@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1645-stable1';
+  const VERSION = '20260816-1440-stable-name1';
   let timer = 0;
   let attempts = 0;
 
@@ -23,8 +23,58 @@
         .mgd-table-card{min-height:390px!important;border-radius:22px!important;padding-top:10px!important;background:rgba(255,255,255,.82)!important}
         .mgd-table-visual{transform:scale(1.16);transform-origin:center center;margin:32px auto 28px!important}
         .mgd-table-meta{padding:8px 20px 20px!important}
-        .mgd-table-body strong{font-size:14px!important}
-        .mgd-table-body span{font-size:13px!important}
+
+        /* Nombre de mesa: se acomoda dentro de cualquier tipo de mesa */
+        .mgd-table-body{gap:0!important;padding:9px 7px!important;overflow:hidden!important}
+        .mgd-table-body strong{
+          display:-webkit-box!important;
+          width:88%!important;
+          max-width:88%!important;
+          max-height:2.2em!important;
+          overflow:hidden!important;
+          text-overflow:ellipsis!important;
+          white-space:normal!important;
+          overflow-wrap:anywhere!important;
+          word-break:break-word!important;
+          -webkit-box-orient:vertical!important;
+          -webkit-line-clamp:2!important;
+          line-height:1.05!important;
+          text-align:center!important;
+          font-size:10px!important;
+        }
+        .mgd-table-body.round strong,
+        .mgd-table-body.square strong{
+          width:78%!important;
+          max-width:78%!important;
+          font-size:9px!important;
+        }
+        .mgd-table-body.rectangular strong{
+          width:92%!important;
+          max-width:92%!important;
+          font-size:10.5px!important;
+        }
+        .mgd-table-body span{
+          display:block!important;
+          margin-top:7px!important;
+          font-size:8px!important;
+          line-height:1!important;
+          color:#786f66!important;
+          white-space:nowrap!important;
+        }
+
+        /* Guardar cambios: texto negro y fondo claro para máxima legibilidad */
+        #mgdSaveTable,
+        #mgdSaveTable.mgd-btn.primary{
+          color:#111!important;
+          background:#f3eee4!important;
+          border-color:rgba(47,52,45,.20)!important;
+          text-shadow:none!important;
+        }
+        #mgdSaveTable:hover{
+          color:#000!important;
+          background:#e8dfd2!important;
+        }
+
         .mgd-seat{width:34px!important;height:34px!important;margin:-17px 0 0 -17px!important;font-size:11px!important}
         .mgd-table-edit{width:40px!important;height:40px!important;top:12px!important;right:12px!important;font-size:18px!important}
         .mgd-guests-panel{border-radius:22px!important}
