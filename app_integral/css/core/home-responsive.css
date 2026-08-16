@@ -8,7 +8,7 @@ body{min-height:100svh}
 .hero-video{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:100%;min-height:100%;object-fit:cover!important;z-index:0!important}
 .video-shade{z-index:1!important}
 .drawer{height:100svh;height:100dvh;min-height:0;max-height:100dvh;overflow:hidden}
-.drawer-content{min-width:0;min-height:0;max-height:100%;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.drawer-content{min-width:0;min-height:0;max-height:100%;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .drawer-title,.countdown-card,.module,.account-card{min-width:0;max-width:100%}
 .module-label>span:last-child,.module-link>span,.account-copy{min-width:0}
 .module-name,.module-description,.module-link span,.drawer-title p{overflow-wrap:anywhere}
@@ -17,6 +17,12 @@ body{min-height:100svh}
 .date-editor{flex-wrap:wrap}.date-editor input{flex:1 1 150px}.date-editor button{flex:0 0 auto}
 .auth-overlay{min-height:100svh;min-height:100dvh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;align-items:safe center}
 .auth-card{max-width:430px;max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+
+/* Garantía: los módulos nunca deben desaparecer por responsive. */
+.modules{display:grid!important;visibility:visible!important;opacity:1!important;min-height:max-content!important}
+.module{display:block!important;visibility:visible!important;opacity:1!important;height:auto!important;min-height:0!important}
+.module-toggle{display:flex!important;visibility:visible!important;opacity:1!important}
+.module-body{display:grid!important;visibility:visible!important;opacity:1!important}
 
 @media(max-height:760px){
   .drawer{padding-top:max(58px,calc(env(safe-area-inset-top) + 52px))!important;padding-bottom:max(10px,env(safe-area-inset-bottom))!important}
@@ -35,7 +41,7 @@ body{min-height:100svh}
 @media(max-width:700px){
   .menu-button{top:max(10px,env(safe-area-inset-top))!important;right:max(10px,env(safe-area-inset-right))!important;width:42px!important;min-width:42px!important;height:42px!important}
   .drawer{width:100%!important;max-width:none!important;padding:max(56px,calc(env(safe-area-inset-top) + 50px)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))!important}
-  .drawer-content{width:100%!important;max-width:none!important;margin:0!important;gap:10px!important;padding:0 0 max(14px,env(safe-area-inset-bottom))!important}
+  .drawer-content{width:100%!important;max-width:none!important;margin:0!important;gap:10px!important;padding:0 0 max(20px,env(safe-area-inset-bottom))!important}
   .drawer-title{padding:13px 14px 12px!important;border-radius:17px!important}.drawer-title .eyebrow{margin-bottom:5px!important;font-size:7px!important}
   .drawer-title h1{font-size:clamp(20px,5vw,28px)!important;line-height:1.04!important;letter-spacing:.04em!important}.drawer-title p{margin-top:6px!important;font-size:10px!important;line-height:1.35!important}
   .account-card.show{display:flex!important;min-height:48px!important;height:auto!important;overflow:visible!important;padding:7px 10px!important;border-radius:15px!important;align-items:center!important;flex-wrap:nowrap!important}
