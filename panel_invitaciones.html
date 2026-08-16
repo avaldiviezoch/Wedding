@@ -26,15 +26,20 @@
     button:hover,.action-link:hover{transform:translateY(-1px);border-color:#b9b09f;box-shadow:0 5px 14px rgba(48,42,34,.09)}
     button.primary{background:var(--olive);color:#fff;border-color:var(--olive)}button.primary:hover{background:var(--olive-dark)}button.active{background:var(--ink);color:#fff;border-color:var(--ink)}
     .status{display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 16px 0;color:var(--muted);font-size:12px;text-align:center}.dot{width:8px;height:8px;border-radius:50%;background:#6e845e;box-shadow:0 0 0 4px rgba(110,132,94,.12)}
-    .grid{display:grid;grid-template-columns:repeat(4,minmax(270px,1fr));gap:14px;padding:14px;max-width:1920px;margin:0 auto}.grid.two{grid-template-columns:repeat(2,minmax(320px,1fr));max-width:1180px}
+    .grid{display:grid;grid-template-columns:repeat(5,minmax(240px,1fr));gap:14px;padding:14px;max-width:1920px;margin:0 auto}.grid.two{grid-template-columns:repeat(2,minmax(320px,1fr));max-width:1180px}
     .card{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+    .card.principal{border:2px solid var(--olive);box-shadow:0 14px 34px rgba(63,73,56,.22)}
+    .card.principal .card-head{background:linear-gradient(135deg,#f7f8f4,#eef2ea)}
     .card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 11px;border-bottom:1px solid var(--line);background:#fff}.card-title{display:flex;align-items:center;gap:9px;min-width:0}.num{display:grid;place-items:center;width:29px;height:29px;flex:0 0 29px;border-radius:50%;background:#edf0e9;color:var(--olive-dark);font-weight:900;font-size:13px}.card-title strong{font-size:13px}.card-title small{display:block;color:var(--muted);font-size:10px;margin-top:1px}
+    .principal-badge{display:inline-flex;align-items:center;margin-left:7px;padding:3px 7px;border-radius:999px;background:var(--olive);color:#fff;font-size:9px;font-weight:900;letter-spacing:.45px;text-transform:uppercase;vertical-align:1px}
     .mini-actions{display:flex;gap:5px}.mini-actions button,.mini-actions a{display:grid;place-items:center;width:31px;height:31px;padding:0;border-radius:9px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;text-decoration:none;font-size:15px}
     .phone-shell{position:relative;background:#262626;width:100%;height:min(76vh,820px);min-height:560px;overflow:hidden}iframe{display:block;width:100%;height:100%;border:0;background:#eee}
     .loading{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(145deg,#f7f2eb,#ece5db);z-index:1;color:#6e716a;font-size:12px;letter-spacing:.2px;pointer-events:none;transition:opacity .25s ease}.loading.done{opacity:0}
     .card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 11px;color:var(--muted);font-size:10px;background:#faf9f7;border-top:1px solid var(--line)}
+    .card.principal .card-foot{color:var(--olive-dark);font-weight:800;background:#f4f6f1}
     .focus-mode .card{display:none}.focus-mode .card.focused{display:block;max-width:520px;width:100%;margin:0 auto}.focus-mode{grid-template-columns:1fr;max-width:760px}.focus-mode .phone-shell{height:calc(100vh - 178px);min-height:620px}
-    @media (max-width:1450px){.grid{grid-template-columns:repeat(2,minmax(300px,1fr));max-width:1100px}.phone-shell{height:72vh}}
+    @media (max-width:1650px){.grid{grid-template-columns:repeat(3,minmax(280px,1fr));max-width:1350px}}
+    @media (max-width:1100px){.grid{grid-template-columns:repeat(2,minmax(300px,1fr));max-width:1100px}.phone-shell{height:72vh}}
     @media (max-width:760px){.topbar{position:relative;align-items:flex-start;flex-direction:column;padding:13px}.actions{justify-content:flex-start}.grid,.grid.two{grid-template-columns:1fr;padding:10px;gap:12px}.phone-shell{height:76vh;min-height:540px}.brand p{font-size:12px}button,.action-link{font-size:12px;padding:8px 11px}}
   </style>
 </head>
@@ -42,22 +47,23 @@
   <header class="topbar">
     <div class="brand">
       <h1>Antonio & Lucero · Invitaciones</h1>
-      <p>Panel de trabajo integrado a App LU · 4 modelos consolidados</p>
+      <p>Panel de trabajo integrado a App LU · 5 modelos consolidados · Invitación 5 principal</p>
     </div>
     <div class="actions">
       <a class="action-link" href="./applu.html">← Volver a App LU</a>
-      <button id="view4" class="active" type="button">4 en paralelo</button>
-      <button id="view2" type="button">2 × 2</button>
+      <button id="viewAll" class="active" type="button">5 en paralelo</button>
+      <button id="view2" type="button">2 columnas</button>
       <button id="muteAll" type="button">🔇 Silenciar</button>
       <button id="reloadAll" class="primary" type="button">↻ Recargar todas</button>
     </div>
   </header>
 
-  <div class="status"><span class="dot"></span> Las cuatro vistas usan las carpetas consolidadas dentro de <strong>invitaciones/</strong>.</div>
+  <div class="status"><span class="dot"></span> La <strong>Invitación 5</strong> es la principal. Las cinco vistas usan las carpetas consolidadas dentro de <strong>invitaciones/</strong>.</div>
   <main class="grid" id="grid"></main>
 
   <script>
     const INVITES = [
+      {n:5,principal:true,url:'https://avaldiviezoch.github.io/Wedding/invitaciones/invitacion_5/'},
       {n:1,url:'https://avaldiviezoch.github.io/Wedding/invitaciones/invitacion_1/'},
       {n:2,url:'https://avaldiviezoch.github.io/Wedding/invitaciones/invitacion_2/'},
       {n:3,url:'https://avaldiviezoch.github.io/Wedding/invitaciones/invitacion_3/'},
@@ -65,10 +71,10 @@
     ];
 
     const grid = document.getElementById('grid');
-    grid.innerHTML = INVITES.map(({n,url}) => `
-      <article class="card" data-index="${n}">
+    grid.innerHTML = INVITES.map(({n,url,principal}) => `
+      <article class="card ${principal ? 'principal' : ''}" data-index="${n}">
         <div class="card-head">
-          <div class="card-title"><span class="num">${n}</span><div><strong>Invitación ${n}</strong><small>invitaciones/invitacion_${n}/</small></div></div>
+          <div class="card-title"><span class="num">${n}</span><div><strong>Invitación ${n}${principal ? '<span class="principal-badge">Principal</span>' : ''}</strong><small>invitaciones/invitacion_${n}/</small></div></div>
           <div class="mini-actions">
             <button type="button" title="Recargar" onclick="reloadFrame(${n})">↻</button>
             <a href="${url}" target="_blank" rel="noopener" title="Abrir invitación completa">↗</a>
@@ -76,10 +82,10 @@
           </div>
         </div>
         <div class="phone-shell"><div class="loading" id="loading${n}">Cargando invitación ${n}…</div><iframe id="frame${n}" src="${url}" title="Invitación ${n}" allow="autoplay; fullscreen"></iframe></div>
-        <div class="card-foot"><span>Modelo ${n}</span><span>↗ abre el enlace publicado</span></div>
+        <div class="card-foot"><span>${principal ? 'Invitación principal' : `Modelo ${n}`}</span><span>↗ abre el enlace publicado</span></div>
       </article>`).join('');
 
-    const btn4 = document.getElementById('view4');
+    const btnAll = document.getElementById('viewAll');
     const btn2 = document.getElementById('view2');
     const muteBtn = document.getElementById('muteAll');
     let muted = true;
@@ -87,7 +93,7 @@
     function setView(mode){
       grid.classList.remove('two','focus-mode');
       document.querySelectorAll('.card').forEach(c => c.classList.remove('focused'));
-      btn4.classList.toggle('active', mode === 4);
+      btnAll.classList.toggle('active', mode === 'all');
       btn2.classList.toggle('active', mode === 2);
       if(mode === 2) grid.classList.add('two');
       window.scrollTo({top:0,behavior:'smooth'});
@@ -96,11 +102,11 @@
     function focusCard(n){
       const card = document.querySelector(`.card[data-index="${n}"]`);
       const already = grid.classList.contains('focus-mode') && card.classList.contains('focused');
-      if(already){setView(4);return;}
+      if(already){setView('all');return;}
       grid.classList.remove('two');
       grid.classList.add('focus-mode');
       document.querySelectorAll('.card').forEach(c => c.classList.toggle('focused', c === card));
-      btn4.classList.remove('active');btn2.classList.remove('active');window.scrollTo({top:0,behavior:'smooth'});
+      btnAll.classList.remove('active');btn2.classList.remove('active');window.scrollTo({top:0,behavior:'smooth'});
     }
 
     function muteFrame(n,value=muted){
@@ -109,7 +115,8 @@
     }
 
     function muteEverything(){
-      muted=!muted;for(let i=1;i<=4;i++)muteFrame(i,muted);
+      muted=!muted;
+      INVITES.forEach(({n})=>muteFrame(n,muted));
       muteBtn.textContent=muted?'🔇 Silenciar':'🔊 Audio activo';muteBtn.classList.toggle('active',!muted);
     }
 
@@ -117,13 +124,13 @@
       const frame=document.getElementById(`frame${n}`);const loading=document.getElementById(`loading${n}`);loading.classList.remove('done');
       try{frame.contentWindow.location.reload();}catch(e){frame.src=frame.src;}
     }
-    function reloadAll(){for(let i=1;i<=4;i++)reloadFrame(i);}
+    function reloadAll(){INVITES.forEach(({n})=>reloadFrame(n));}
 
-    for(let i=1;i<=4;i++){
-      const frame=document.getElementById(`frame${i}`);
-      frame.addEventListener('load',()=>{document.getElementById(`loading${i}`).classList.add('done');setTimeout(()=>muteFrame(i,muted),150);setTimeout(()=>muteFrame(i,muted),1200);});
-    }
-    btn4.addEventListener('click',()=>setView(4));btn2.addEventListener('click',()=>setView(2));document.getElementById('reloadAll').addEventListener('click',reloadAll);muteBtn.addEventListener('click',muteEverything);
+    INVITES.forEach(({n})=>{
+      const frame=document.getElementById(`frame${n}`);
+      frame.addEventListener('load',()=>{document.getElementById(`loading${n}`).classList.add('done');setTimeout(()=>muteFrame(n,muted),150);setTimeout(()=>muteFrame(n,muted),1200);});
+    });
+    btnAll.addEventListener('click',()=>setView('all'));btn2.addEventListener('click',()=>setView(2));document.getElementById('reloadAll').addEventListener('click',reloadAll);muteBtn.addEventListener('click',muteEverything);
   </script>
 </body>
 </html>
