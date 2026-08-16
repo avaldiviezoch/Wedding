@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260816-1535-oldlook4';
+  const VERSION = '20260816-1545-fast-tables1';
   const CSS_HREF = new URL(`css/modules/invitados-tables-old-look.css?v=${VERSION}`, document.baseURI).href;
   let timer = 0;
   let attempts = 0;
@@ -14,7 +14,6 @@
       doc.head.appendChild(style);
     }
     style.textContent = `
-      /* Regla final: nombre de mesa adaptable y sin puntos suspensivos */
       #mgdTablesEditor[data-old-table-look="1"] .mgd-table-body strong{
         display:-webkit-box!important;
         width:88%!important;
@@ -33,30 +32,11 @@
         font-size:10px!important;
         text-align:center!important;
       }
-      #mgdTablesEditor[data-old-table-look="1"] .mgd-table-body.round strong{
-        width:76%!important;
-        max-width:76%!important;
-        font-size:8.8px!important;
-      }
-      #mgdTablesEditor[data-old-table-look="1"] .mgd-table-body.square strong{
-        width:82%!important;
-        max-width:82%!important;
-        font-size:9.2px!important;
-      }
-      #mgdTablesEditor[data-old-table-look="1"] .mgd-table-body.rectangular strong{
-        width:93%!important;
-        max-width:93%!important;
-        font-size:9.8px!important;
-      }
-      #mgdTablesEditor[data-old-table-look="1"] .mgd-table-body span{
-        display:block!important;
-        margin-top:8px!important;
-        font-size:7.8px!important;
-        line-height:1!important;
-        white-space:nowrap!important;
-      }
+      #mgdTablesEditor[data-old-table-look="1"] .mgd-table-body.round strong{width:76%!important;max-width:76%!important;font-size:8.8px!important}
+      #mgdTablesEditor[data-old-table-look="1"] .mgd-table-body.square strong{width:82%!important;max-width:82%!important;font-size:9.2px!important}
+      #mgdTablesEditor[data-old-table-look="1"] .mgd-table-body.rectangular strong{width:93%!important;max-width:93%!important;font-size:9.8px!important}
+      #mgdTablesEditor[data-old-table-look="1"] .mgd-table-body span{display:block!important;margin-top:8px!important;font-size:7.8px!important;line-height:1!important;white-space:nowrap!important}
 
-      /* El modal vive fuera de #mgdTablesEditor: selector global obligatorio */
       #mgdSaveTable,
       #mgdTablesModal #mgdSaveTable,
       .mgd-modal-actions #mgdSaveTable.mgd-btn.primary{
@@ -67,10 +47,7 @@
         opacity:1!important;
       }
       #mgdSaveTable:hover,
-      #mgdTablesModal #mgdSaveTable:hover{
-        color:#000!important;
-        background:#dfd4c5!important;
-      }
+      #mgdTablesModal #mgdSaveTable:hover{color:#000!important;background:#dfd4c5!important}
     `;
   }
 
@@ -97,21 +74,17 @@
   function decorate(doc) {
     const editor = doc.getElementById('mgdTablesEditor');
     if (!editor) return false;
-
     ensureCss(doc);
     editor.dataset.oldTableLook = '1';
     editor.dataset.oldTableLookVersion = VERSION;
-
     editor.querySelectorAll('.mgd-table-edit').forEach((button) => {
       button.dataset.oldLookEdit = VERSION;
       button.textContent = '✎';
       button.setAttribute('title', 'Editar mesa');
     });
-
     editor.querySelectorAll('.mgd-seat').forEach((seat) => {
       seat.dataset.seatLabel = shortSeatLabel(seat);
     });
-
     return true;
   }
 
@@ -119,7 +92,6 @@
     const host = doc.body;
     if (!host || doc.documentElement.dataset.mgdOldLookObserver === VERSION) return;
     doc.documentElement.dataset.mgdOldLookObserver = VERSION;
-
     let scheduled = false;
     new MutationObserver(() => {
       if (scheduled) return;
@@ -128,10 +100,7 @@
         scheduled = false;
         decorate(doc);
       });
-    }).observe(host, {
-      childList: true,
-      subtree: true
-    });
+    }).observe(host, { childList:true, subtree:true });
   }
 
   function apply(frame) {
@@ -146,23 +115,21 @@
     attempts += 1;
     const workspace = document.getElementById('unifiedWorkspace');
     let found = false;
-
     if (workspace) {
       workspace.querySelectorAll('iframe').forEach((frame) => {
         if (frame.dataset.mgdOldLookLoadBound !== VERSION) {
           frame.dataset.mgdOldLookLoadBound = VERSION;
-          frame.addEventListener('load', () => setTimeout(() => apply(frame), 80));
+          frame.addEventListener('load', () => setTimeout(() => apply(frame), 40));
         }
         if (apply(frame)) found = true;
       });
     }
-
-    if (found || attempts >= 40) {
+    if (found || attempts >= 20) {
       if (timer) clearInterval(timer);
       timer = 0;
     }
   }
 
   scan();
-  if (!timer) timer = setInterval(scan, 120);
+  if (!timer) timer = setInterval(scan, 80);
 })();
