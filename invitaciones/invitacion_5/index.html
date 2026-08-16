@@ -45,6 +45,29 @@
           nuestroDia.style.transform='translateY(14px)';
         }
 
+        // Preguntas frecuentes propias de la Invitación 5
+        const faqItems=[...doc.querySelectorAll('details.faq-item')];
+        faqItems.forEach(item=>{
+          const summary=item.querySelector('summary');
+          const answer=item.querySelector('.faq-answer');
+          if(!summary) return;
+          const question=(summary.textContent||'').trim().toLowerCase();
+
+          if(question.includes('hasta cuándo puedo confirmar mi asistencia') || question.includes('hasta cuando puedo confirmar mi asistencia')){
+            summary.textContent='¿Hasta qué fecha puedo confirmar mi asistencia?';
+            if(answer) answer.textContent='Por favor, confirma tu asistencia hasta el 15 de octubre.';
+          }
+
+          if(question.includes('podemos llevar un regalo') || question.includes('puedo dejar un regalo')){
+            summary.textContent='¿Puedo informar de alguna alergia o restricción alimentaria?';
+            if(answer) answer.textContent='Sí, es muy importante por la comida que se repartirá y los bocaditos.';
+          }
+
+          if(question.includes('solicitar canciones') || question.includes('música') || question.includes('musica') || question.includes('dj')){
+            item.remove();
+          }
+        });
+
         // Amsterdam Four + ajustes visuales propios de Invitación 5
         const style=doc.createElement('style');
         style.id='inv5-amsterdam-four';
