@@ -26,5 +26,5 @@ preloadFinalStyle();
 await import('./tables-editor.js?v=20260816-1545-fast-tables1');
 await Promise.all([
   import('./tables-stable-polish.js?v=20260816-1440-stable-name1'),
-  import('./tables-old-look.js?v=20260816-1535-oldlook4')
+  import('./tables-old-look.js?v=20260816-1545-fast-tables1')
 ]);
