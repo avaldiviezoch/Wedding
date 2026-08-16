@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260816-1916-invitados-fast2';
+  const VERSION = '20260816-1921-invitados-fast3';
   let baseRuntime = null;
   let rsvpRuntime = null;
 
@@ -38,8 +38,8 @@
     if (rsvpRuntime) return rsvpRuntime;
     rsvpRuntime = Promise.all([
       import(moduleUrl('rsvp-admin-music.js', '20260816-1615-rsvp-music-builder1')),
-      import(moduleUrl('rsvp-admin-music-builder-fix.js', '20260816-1900-native-help1')),
-      import(moduleUrl('rsvp-native-admin-patch.js', '20260816-1900-native-help1'))
+      import(moduleUrl('rsvp-admin-music-builder-fix.js', '20260816-1920-music-fast1')),
+      import(moduleUrl('rsvp-native-admin-patch.js', '20260816-1918-native-fast1'))
     ]).catch((error) => {
       console.error('No se pudo iniciar RSVP:', error);
       rsvpRuntime = null;
@@ -108,9 +108,6 @@
   }
 
   ensureSharedShellStyles();
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindWorkspace, { once: true });
-  } else {
-    bindWorkspace();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindWorkspace, { once: true });
+  else bindWorkspace();
 })();
