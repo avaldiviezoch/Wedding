@@ -9,74 +9,105 @@
   <title>Antonio & Lucero</title>
   <style>
     html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f1e5da}
-    #inv5{display:block;width:100%;height:100%;border:0;background:#f1e5da;opacity:0;transition:opacity .15s ease}
-    #inv5.ready{opacity:1}
+    #inv5{display:block;width:100%;height:100%;border:0;background:#f1e5da}
   </style>
 </head>
 <body>
-  <iframe id="inv5" src="../invitacion_5/invitacion_5_base.html?v=20260816-1712-new" title="Invitación 5 nueva" allow="autoplay; fullscreen"></iframe>
+  <iframe id="inv5" src="../invitacion_5/invitacion_5_base.html?v=20260816-1715-final" title="Invitación 5 nueva" allow="autoplay; fullscreen"></iframe>
   <script>
-    const frame=document.getElementById('inv5');
-    frame.addEventListener('load',()=>{
-      try{
-        const doc=frame.contentDocument||frame.contentWindow.document;
+    const frame = document.getElementById('inv5');
+    let attempts = 0;
 
-        const img=doc.querySelector('.countdown-image');
-        if(img){
-          img.src='../invitacion_5/imagen_de_fecha_5.png?v=20260816-1712';
-          img.removeAttribute('srcset');
+    function applyChanges(){
+      attempts++;
+      try{
+        const doc = frame.contentDocument || frame.contentWindow.document;
+        if(!doc || !doc.body) return false;
+
+        const dateImg = doc.querySelector('.countdown-image');
+        if(dateImg){
+          dateImg.src = '../invitacion_5/imagen_de_fecha_5.png?v=20260816-1715';
+          dateImg.removeAttribute('srcset');
         }
 
-        const programacionImg=[...doc.querySelectorAll('img')].find(el=>{
-          const src=decodeURIComponent(el.getAttribute('src')||'');
-          return src.includes('itinerario_2.png');
+        const programacionImg = [...doc.querySelectorAll('img')].find(el => {
+          const src = decodeURIComponent(el.getAttribute('src') || '');
+          return src.includes('itinerario_2.png') || src.includes('programacion_5.gif');
         });
         if(programacionImg){
-          programacionImg.src='../invitacion_5/programacion_5.gif?v=20260816-1712';
+          programacionImg.src = '../invitacion_5/programacion_5.gif?v=20260816-1715';
           programacionImg.removeAttribute('srcset');
-          programacionImg.style.transform='translateY(14px)';
+          programacionImg.style.transform = 'translateY(14px)';
         }
 
-        const finalCard=doc.querySelector('.final-card');
+        const nuestroDia = [...doc.querySelectorAll('h1,h2,h3,.section-title,.itinerary-title,.itinerario-title,.timeline-title')]
+          .find(el => ['nuestro día','nuestro dia'].includes((el.textContent || '').trim().toLowerCase()));
+        if(nuestroDia) nuestroDia.style.transform = 'translateY(14px)';
+
+        const finalCard = doc.querySelector('.final-card');
         if(finalCard){
-          const finalGif=finalCard.querySelector('.te-esperamos-gif');
+          const finalGif = finalCard.querySelector('.te-esperamos-gif');
           if(finalGif){
-            finalGif.src='https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/invitaciones/invitacion_1/brook.gif?v=20260816-1712';
-            finalGif.alt='Brook';
+            finalGif.src = 'https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/invitaciones/invitacion_1/brook.gif?v=20260816-1715';
+            finalGif.alt = 'Brook';
             finalGif.removeAttribute('srcset');
-            finalGif.loading='eager';
+            finalGif.loading = 'eager';
           }
-          finalCard.querySelector('.wait-message')?.remove();
-          finalCard.querySelector('.wait-signature')?.remove();
-          finalCard.querySelector('.wait-date')?.remove();
+          finalCard.querySelectorAll('.wait-message,.wait-signature,.wait-date').forEach(el => el.remove());
         }
 
-        const faqItems=[...doc.querySelectorAll('details.faq-item')];
-        faqItems.forEach(item=>{
-          const summary=item.querySelector('summary');
-          const answer=item.querySelector('.faq-answer');
+        // Refuerzo por contenido, por si el HTML vuelve a regenerar el bloque.
+        [...doc.querySelectorAll('p,div')].forEach(el => {
+          const t = (el.textContent || '').trim();
+          if(t.startsWith('Será una alegría inmensa compartir este día con las personas que forman parte de nuestra historia')) el.remove();
+          if(t === 'Antonio & Lucero') el.remove();
+          if(t === '16 · 01 · 2027') el.remove();
+        });
+
+        const faqItems = [...doc.querySelectorAll('details.faq-item')];
+        faqItems.forEach(item => {
+          const summary = item.querySelector('summary');
+          const answer = item.querySelector('.faq-answer');
           if(!summary) return;
-          const question=(summary.textContent||'').trim().toLowerCase();
+          const question = (summary.textContent || '').trim().toLowerCase();
           if(question.includes('hasta cuándo puedo confirmar mi asistencia') || question.includes('hasta cuando puedo confirmar mi asistencia')){
-            summary.textContent='¿Hasta qué fecha puedo confirmar mi asistencia?';
-            if(answer) answer.textContent='Por favor, confirma tu asistencia hasta el 15 de octubre.';
+            summary.textContent = '¿Hasta qué fecha puedo confirmar mi asistencia?';
+            if(answer) answer.textContent = 'Por favor, confirma tu asistencia hasta el 15 de octubre.';
           }
           if(question.includes('podemos llevar un regalo') || question.includes('puedo dejar un regalo')){
-            summary.textContent='¿Puedo informar de alguna alergia o restricción alimentaria?';
-            if(answer) answer.textContent='Sí, es muy importante por la comida que se repartirá y los bocaditos.';
+            summary.textContent = '¿Puedo informar de alguna alergia o restricción alimentaria?';
+            if(answer) answer.textContent = 'Sí, es muy importante por la comida que se repartirá y los bocaditos.';
           }
           if(question.includes('solicitar canciones') || question.includes('música') || question.includes('musica') || question.includes('dj')) item.remove();
         });
 
-        const style=doc.createElement('style');
-        style.textContent=`
-          @font-face{font-family:'Amsterdam Four';src:url('../invitacion_5/Amsterdam%20Four_ttf%20400.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
-          h1,h2,h3,.section-title,.photo-story-title,.rsvp-title,.faq-title,.gift-title,.music-title,.dress-title,.location-title,.itinerary-title,.confirmation-title,.questions-title,[class*="section-title"],[class*="-title"]{font-family:'Amsterdam Four',cursive !important;font-weight:400 !important}
-        `;
-        doc.head.appendChild(style);
-      }catch(e){console.warn(e)}
-      frame.classList.add('ready');
-    });
+        if(!doc.getElementById('inv5-amsterdam-four')){
+          const style = doc.createElement('style');
+          style.id = 'inv5-amsterdam-four';
+          style.textContent = `
+            @font-face{font-family:'Amsterdam Four';src:url('../invitacion_5/Amsterdam%20Four_ttf%20400.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+            h1,h2,h3,.section-title,.photo-story-title,.rsvp-title,.faq-title,.gift-title,.music-title,.dress-title,.location-title,.itinerary-title,.confirmation-title,.questions-title,[class*="section-title"],[class*="-title"]{font-family:'Amsterdam Four',cursive !important;font-weight:400 !important}
+          `;
+          doc.head.appendChild(style);
+        }
+
+        return !!finalCard;
+      }catch(e){
+        console.warn('Invitación 5: reintentando ajustes', e);
+        return false;
+      }
+    }
+
+    function startApplying(){
+      applyChanges();
+      const timer = setInterval(() => {
+        applyChanges();
+        if(attempts >= 40) clearInterval(timer);
+      }, 250);
+    }
+
+    frame.addEventListener('load', startApplying);
+    setTimeout(startApplying, 50);
   </script>
 </body>
 </html>
