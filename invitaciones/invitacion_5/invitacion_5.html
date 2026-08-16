@@ -11,81 +11,95 @@
   </style>
 </head>
 <body>
-  <iframe id="inv5" src="./invitacion_5_base.html?v=20260816-1829" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
+  <iframe id="inv5" src="./invitacion_5_base.html?v=20260816-1838" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
   <script>
     const frame=document.getElementById('inv5');
-
-    function skinEmbeddedForm(iframe,{music=false}={}){
-      const apply=()=>{
-        try{
-          const d=iframe.contentDocument||iframe.contentWindow.document;
-          if(!d || !d.head) return;
-          const h=Math.max(d.documentElement.scrollHeight,d.body?.scrollHeight||0);
-          if(h>80) iframe.style.height=(h+8)+'px';
-        }catch(e){console.warn('No se pudo ajustar la altura del formulario',e);}
-      };
-      iframe.addEventListener('load',()=>{apply();setTimeout(apply,250);setTimeout(apply,900);});
-    }
-
     frame.addEventListener('load',()=>{
       try{
         const doc=frame.contentDocument||frame.contentWindow.document;
-        const img=doc.querySelector('.countdown-image');
-        if(img){img.src='./imagen_de_fecha_5.png?v=20260816-2';img.removeAttribute('srcset');}
-        const programacionImg=[...doc.querySelectorAll('img')].find(el=>decodeURIComponent(el.getAttribute('src')||'').includes('itinerario_2.png'));
-        if(programacionImg){programacionImg.src='./programacion_5.gif?v=20260816-1';programacionImg.removeAttribute('srcset');programacionImg.style.transform='translateY(14px)';}
-        const nuestroDia=[...doc.querySelectorAll('h1,h2,h3,.section-title,.itinerary-title,.itinerario-title,.timeline-title')].find(el=>['nuestro día','nuestro dia'].includes((el.textContent||'').trim().toLowerCase()));
-        if(nuestroDia) nuestroDia.style.transform='translateY(14px)';
-        const shiftedSchedule=['02:00 PM –<br>03:00 PM','03:00 PM –<br>04:00 PM','04:00 PM –<br>05:00 PM','05:00 PM –<br>05:30 PM','05:30 PM –<br>06:30 PM','06:30 PM –<br>07:00 PM','07:00 PM<br>en adelante'];
-        [...doc.querySelectorAll('.itinerary-time')].forEach((el,i)=>{if(shiftedSchedule[i]) el.innerHTML=shiftedSchedule[i];});
 
+        const img=doc.querySelector('.countdown-image');
+        if(img){
+          img.src='./imagen_de_fecha_5.png?v=20260816-2';
+          img.removeAttribute('srcset');
+        }
+
+        const programacionImg=[...doc.querySelectorAll('img')].find(el=>{
+          const src=decodeURIComponent(el.getAttribute('src')||'');
+          return src.includes('itinerario_2.png');
+        });
+        if(programacionImg){
+          programacionImg.src='./programacion_5.gif?v=20260816-1';
+          programacionImg.removeAttribute('srcset');
+          programacionImg.style.transform='translateY(14px)';
+        }
+
+        const nuestroDia=[...doc.querySelectorAll('h1,h2,h3,.section-title,.itinerary-title,.itinerario-title,.timeline-title')]
+          .find(el=>{
+            const t=(el.textContent||'').trim().toLowerCase();
+            return t==='nuestro día'||t==='nuestro dia';
+          });
+        if(nuestroDia) nuestroDia.style.transform='translateY(14px)';
+
+        const shiftedSchedule=[
+          '02:00 PM –<br>03:00 PM',
+          '03:00 PM –<br>04:00 PM',
+          '04:00 PM –<br>05:00 PM',
+          '05:00 PM –<br>05:30 PM',
+          '05:30 PM –<br>06:30 PM',
+          '06:30 PM –<br>07:00 PM',
+          '07:00 PM<br>en adelante'
+        ];
+        [...doc.querySelectorAll('.itinerary-time')].forEach((el,i)=>{
+          if(shiftedSchedule[i]) el.innerHTML=shiftedSchedule[i];
+        });
+
+        // CONFIRMACIÓN: usar el panel nativo de Invitación 2, sin iframes.
         const rsvpSection=doc.querySelector('#rsvpSection');
         if(rsvpSection){
           const rsvpCard=rsvpSection.querySelector('.final-card');
-          const rsvpStage=rsvpSection.querySelector('#rsvpImageStage');
-          const rsvpPanel=rsvpSection.querySelector('#rsvp-panel');
           if(rsvpCard&&!rsvpCard.querySelector('.inv5-rsvp-title')){
             const title=doc.createElement('h2');
             title.className='final-title inv5-rsvp-title';
             title.textContent='Confirmar tu asistencia';
             rsvpCard.insertBefore(title,rsvpCard.firstChild);
           }
-          if(rsvpPanel){
-            rsvpPanel.innerHTML=`<div class="inv5-embedded-shell"><iframe class="inv5-rsvp-iframe" src="https://avaldiviezoch.github.io/Wedding/rsvp.html?token=b00bca195e8e448eab17557bb6b4ffc480ad2e95c0db4c85bca52a62ff60b499&embed=1" title="Confirmar asistencia" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>`;
-            const f=rsvpPanel.querySelector('.inv5-rsvp-iframe');
-            if(f) skinEmbeddedForm(f);
-          }
-          if(rsvpStage) rsvpStage.setAttribute('aria-label','Abrir confirmación de asistencia');
         }
 
+        // MÚSICA: conservar panel/formulario nativo de Invitación 2.
         const musicSection=doc.querySelector('#musicSection');
         if(musicSection){
           const musicText=musicSection.querySelector('.music-copy .final-text');
           const musicWarning=musicSection.querySelector('.music-warning');
-          const musicPanel=musicSection.querySelector('#music-request-panel');
-          if(musicText) musicText.textContent='¿Hay una canción que te gustaría escuchar durante la recepción o la fiesta? Déjanos tu pedido aquí para considerarlo con anticipación.';
-          if(musicWarning) musicWarning.textContent='El DJ no aceptará pedidos musicales durante la celebración, así que este es tu momento para compartirnos tu canción.';
-          if(musicPanel){
-            musicPanel.innerHTML=`<div class="inv5-embedded-shell"><iframe class="inv5-music-iframe" src="https://avaldiviezoch.github.io/Wedding/rsvp.html?token=b00bca195e8e448eab17557bb6b4ffc480ad2e95c0db4c85bca52a62ff60b499&view=music&embed=1" title="Encuesta de música para la boda" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>`;
-            const f=musicPanel.querySelector('.inv5-music-iframe');
-            if(f) skinEmbeddedForm(f,{music:true});
+          if(musicText){
+            musicText.textContent='¿Hay una canción que te gustaría escuchar durante la recepción o la fiesta? Déjanos tu pedido aquí para considerarlo con anticipación.';
           }
+          if(musicWarning){
+            musicWarning.textContent='El DJ no aceptará pedidos musicales durante la celebración, así que este es tu momento para compartirnos tu canción.';
+          }
+          const musicName=musicSection.querySelector('#musicGuestName');
+          const musicNameWrap=musicName?.closest('label,.music-field-wrap,.field-wrap,.form-group');
+          if(musicNameWrap) musicNameWrap.remove();
+          else if(musicName) musicName.remove();
         }
 
-        [...doc.querySelectorAll('details.faq-item')].forEach(item=>{
+        const faqItems=[...doc.querySelectorAll('details.faq-item')];
+        faqItems.forEach(item=>{
           const summary=item.querySelector('summary');
           const answer=item.querySelector('.faq-answer');
-          if(!summary)return;
-          const q=(summary.textContent||'').trim().toLowerCase();
-          if(q.includes('hasta cuándo puedo confirmar mi asistencia')||q.includes('hasta cuando puedo confirmar mi asistencia')){
+          if(!summary) return;
+          const question=(summary.textContent||'').trim().toLowerCase();
+          if(question.includes('hasta cuándo puedo confirmar mi asistencia') || question.includes('hasta cuando puedo confirmar mi asistencia')){
             summary.textContent='¿Hasta qué fecha puedo confirmar mi asistencia?';
-            if(answer)answer.textContent='Por favor, confirma tu asistencia hasta el 15 de octubre.';
+            if(answer) answer.textContent='Por favor, confirma tu asistencia hasta el 15 de octubre.';
           }
-          if(q.includes('podemos llevar un regalo')||q.includes('puedo dejar un regalo')){
+          if(question.includes('podemos llevar un regalo') || question.includes('puedo dejar un regalo')){
             summary.textContent='¿Puedo informar de alguna alergia o restricción alimentaria?';
-            if(answer)answer.textContent='Sí, es muy importante por la comida que se repartirá y los bocaditos.';
+            if(answer) answer.textContent='Sí, es muy importante por la comida que se repartirá y los bocaditos.';
           }
-          if(q.includes('solicitar canciones')||q.includes('música')||q.includes('musica')||q.includes('dj'))item.remove();
+          if(question.includes('solicitar canciones') || question.includes('música') || question.includes('musica') || question.includes('dj')){
+            item.remove();
+          }
         });
 
         const finalCard=doc.querySelector('#esperamosSection .final-card');
@@ -101,29 +115,86 @@
           brook.alt='Brook';
           brook.loading='eager';
           brook.decoding='async';
-          if(title)title.insertAdjacentElement('afterend',brook);else finalCard.appendChild(brook);
+          if(title) title.insertAdjacentElement('afterend',brook);
+          else finalCard.appendChild(brook);
         }
 
         const style=doc.createElement('style');
         style.id='inv5-amsterdam-four';
         style.textContent=`
-          @font-face{font-family:'Amsterdam Four';src:url('./Amsterdam%20Four_ttf%20400.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
-          h1,h2,h3,.section-title,.photo-story-title,.rsvp-title,.faq-title,.gift-title,.music-title,.dress-title,.location-title,.itinerary-title,.confirmation-title,.questions-title,[class*="section-title"],[class*="-title"]{font-family:'Amsterdam Four',cursive!important;font-weight:400!important}
-          .photo-story-kicker{margin-bottom:14px!important}.photo-story-title{margin-top:4px!important;margin-bottom:20px!important;line-height:1.18!important}.photo-story-subtitle{margin-top:8px!important;line-height:1.5!important}
-          .itinerary-title,.itinerario-title,.timeline-title,[class*="itinerario"] h2,[class*="itinerary"] h2{margin-bottom:24px!important;line-height:1.18!important}.timeline-wrap,.itinerario-wrap,.itinerary-wrap,.timeline-content{margin-top:10px!important}
-          .gift-title,.regalo-title,[class*="gift"] h2,[class*="regalo"] h2{margin-bottom:20px!important;line-height:1.22!important}.gift-hint,.regalo-hint,.tap-text,[class*="gift"] .tap-text,[class*="regalo"] .tap-text{margin-top:10px!important;line-height:1.45!important}
-          #itinerarySection,.itinerary-section,[class*="itinerary-section"],[class*="itinerario-section"]{padding-bottom:54px!important;margin-bottom:26px!important;overflow:visible!important}
-          #dressCodeSection,.dress-code-section,[class*="dress-code"]{margin-top:34px!important;position:relative!important;z-index:1!important}
-          #rsvpSection .inv5-rsvp-title{font-family:'Amsterdam Four',cursive!important;font-size:clamp(38px,8vw,58px)!important;line-height:1.15!important;margin:0 auto 18px!important;text-align:center!important}
-          #rsvpSection #rsvp-panel.open,#musicSection #music-request-panel.open{max-height:none!important;overflow:visible!important}
-          .inv5-embedded-shell{width:min(94%,520px)!important;margin:14px auto 4px!important;padding:16px 14px!important;border:1px solid rgba(109,117,89,.13)!important;border-radius:22px!important;background:rgba(255,255,255,.08)!important;box-shadow:0 10px 24px rgba(83,78,61,.035)!important}
-          .inv5-rsvp-iframe,.inv5-music-iframe{display:block!important;width:100%!important;height:520px;border:0!important;border-radius:0!important;overflow:hidden!important;background:transparent!important;transition:height .2s ease!important}
-          #esperamosSection{padding-top:18px!important}#esperamosSection .final-card{min-height:235px!important;padding:24px 18px 22px!important;border-radius:24% 24% 22px 22px / 9% 9% 22px 22px!important}#esperamosSection .brook-final-gif{display:block!important;width:min(31%,140px)!important;max-width:140px!important;height:auto!important;margin:12px auto 0!important;object-fit:contain!important}
-          @media(max-width:540px){#itinerarySection,.itinerary-section,[class*="itinerary-section"],[class*="itinerario-section"]{padding-bottom:62px!important;margin-bottom:34px!important}#dressCodeSection,.dress-code-section,[class*="dress-code"]{margin-top:40px!important}#rsvpSection .inv5-rsvp-title{font-size:clamp(34px,10vw,48px)!important;margin-bottom:14px!important}.inv5-embedded-shell{width:94%!important;padding:12px 10px!important;border-radius:19px!important}#esperamosSection{padding-top:16px!important}#esperamosSection .final-card{min-height:215px!important;padding:22px 16px 20px!important;border-radius:20% 20% 20px 20px / 8% 8% 20px 20px!important}#esperamosSection .brook-final-gif{width:min(31%,112px)!important;max-width:112px!important;margin-top:10px!important}}
+          @font-face{
+            font-family:'Amsterdam Four';
+            src:url('./Amsterdam%20Four_ttf%20400.ttf') format('truetype');
+            font-weight:400;
+            font-style:normal;
+            font-display:swap;
+          }
+          h1,h2,h3,.section-title,.photo-story-title,.rsvp-title,.faq-title,.gift-title,.music-title,.dress-title,.location-title,.itinerary-title,.confirmation-title,.questions-title,[class*="section-title"],[class*="-title"]{
+            font-family:'Amsterdam Four',cursive !important;
+            font-weight:400 !important;
+          }
+          .photo-story-kicker{margin-bottom:14px !important}
+          .photo-story-title{margin-top:4px !important;margin-bottom:20px !important;line-height:1.18 !important}
+          .photo-story-subtitle{margin-top:8px !important;line-height:1.5 !important}
+          .itinerary-title,.itinerario-title,.timeline-title,[class*="itinerario"] h2,[class*="itinerary"] h2{margin-bottom:24px !important;line-height:1.18 !important}
+          .timeline-wrap,.itinerario-wrap,.itinerary-wrap,.timeline-content{margin-top:10px !important}
+          .gift-title,.regalo-title,[class*="gift"] h2,[class*="regalo"] h2{margin-bottom:20px !important;line-height:1.22 !important}
+          .gift-hint,.regalo-hint,.tap-text,[class*="gift"] .tap-text,[class*="regalo"] .tap-text{margin-top:10px !important;line-height:1.45 !important}
+
+          #itinerarySection,.itinerary-section,[class*="itinerary-section"],[class*="itinerario-section"]{
+            padding-bottom:62px !important;
+            margin-bottom:34px !important;
+            overflow:visible !important;
+          }
+          #dressCodeSection,.dress-code-section,[class*="dress-code"]{
+            margin-top:40px !important;
+            position:relative !important;
+            z-index:1 !important;
+          }
+
+          #rsvpSection .inv5-rsvp-title{
+            font-family:'Amsterdam Four',cursive !important;
+            font-size:clamp(38px,8vw,58px) !important;
+            line-height:1.15 !important;
+            margin:0 auto 18px !important;
+            text-align:center !important;
+          }
+
+          #esperamosSection{padding-top:18px !important}
+          #esperamosSection .final-card{
+            min-height:235px !important;
+            padding:24px 18px 22px !important;
+            border-radius:24% 24% 22px 22px / 9% 9% 22px 22px !important;
+          }
+          #esperamosSection .brook-final-gif{
+            display:block !important;
+            width:min(31%,140px) !important;
+            max-width:140px !important;
+            height:auto !important;
+            margin:12px auto 0 !important;
+            object-fit:contain !important;
+          }
+          @media(max-width:540px){
+            #itinerarySection,.itinerary-section,[class*="itinerary-section"],[class*="itinerario-section"]{
+              padding-bottom:70px !important;
+              margin-bottom:42px !important;
+            }
+            #dressCodeSection,.dress-code-section,[class*="dress-code"]{margin-top:48px !important}
+            #rsvpSection .inv5-rsvp-title{font-size:clamp(34px,10vw,48px) !important;margin-bottom:14px !important}
+            #esperamosSection{padding-top:16px !important}
+            #esperamosSection .final-card{
+              min-height:215px !important;
+              padding:22px 16px 20px !important;
+              border-radius:20% 20% 20px 20px / 8% 8% 20px 20px !important;
+            }
+            #esperamosSection .brook-final-gif{width:min(31%,112px) !important;max-width:112px !important;margin-top:10px !important}
+          }
         `;
         doc.getElementById('inv5-amsterdam-four')?.remove();
         doc.head.appendChild(style);
-      }catch(e){console.warn('No se pudieron aplicar los ajustes de Invitación 5',e);}
+      }catch(e){
+        console.warn('No se pudieron aplicar los ajustes de Invitación 5',e);
+      }
       frame.classList.add('ready');
     });
   </script>
