@@ -26,7 +26,7 @@
           img.removeAttribute('srcset');
         }
 
-        // Amsterdam Four para todos los títulos principales de Invitación 5
+        // Amsterdam Four + ajustes visuales propios de Invitación 5
         const style=doc.createElement('style');
         style.id='inv5-amsterdam-four';
         style.textContent=`
@@ -56,6 +56,53 @@
           [class*="-title"]{
             font-family:'Amsterdam Four', cursive !important;
             font-weight:400 !important;
+          }
+
+          /* Más aire en "Nuestra historia" */
+          .photo-story-kicker{
+            margin-bottom:14px !important;
+          }
+          .photo-story-title{
+            margin-top:4px !important;
+            margin-bottom:20px !important;
+            line-height:1.18 !important;
+          }
+          .photo-story-subtitle{
+            margin-top:8px !important;
+            line-height:1.5 !important;
+          }
+
+          /* Más espacio entre "Nuestro Día" y el itinerario */
+          .itinerary-title,
+          .itinerario-title,
+          .timeline-title,
+          [class*="itinerario"] h2,
+          [class*="itinerary"] h2{
+            margin-bottom:24px !important;
+            line-height:1.18 !important;
+          }
+          .timeline-wrap,
+          .itinerario-wrap,
+          .itinerary-wrap,
+          .timeline-content{
+            margin-top:10px !important;
+          }
+
+          /* Más espacio entre "Quiero dejarles un detalle" y su indicación */
+          .gift-title,
+          .regalo-title,
+          [class*="gift"] h2,
+          [class*="regalo"] h2{
+            margin-bottom:20px !important;
+            line-height:1.22 !important;
+          }
+          .gift-hint,
+          .regalo-hint,
+          .tap-text,
+          [class*="gift"] .tap-text,
+          [class*="regalo"] .tap-text{
+            margin-top:10px !important;
+            line-height:1.45 !important;
           }
         `;
 
