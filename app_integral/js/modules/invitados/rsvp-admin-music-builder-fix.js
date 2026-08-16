@@ -6,8 +6,9 @@ import {
   writeBatch
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
-const VERSION = '20260816-1617-rsvp-music-builder2';
+const VERSION = '20260816-1848-native1';
 const PUBLIC_RSVP_BASE = 'https://avaldiviezoch.github.io/Wedding/rsvp.html';
+const NATIVE_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260816-1845-native1';
 const done = new WeakSet();
 
 const DEFAULTS = {
@@ -34,7 +35,10 @@ function config(value = {}) {
 }
 function esc(value='') { return String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;'); }
 function musicUrl(token) { return token ? `${PUBLIC_RSVP_BASE}?token=${encodeURIComponent(token)}&view=music` : ''; }
-function embed(token) { const url=musicUrl(token); return url ? `<iframe\n  src="${url}"\n  title="Encuesta de música para la boda"\n  style="width:100%;min-height:620px;border:0;border-radius:24px;overflow:hidden;"\n  loading="lazy"\n  referrerpolicy="strict-origin-when-cross-origin"\n></iframe>` : ''; }
+function embed(token) {
+  const cleanToken=clean(token,180); if(!cleanToken)return '';
+  return `<div\n  data-mgd-music-token="${cleanToken}"\n  style="--mgd-accent:#6d7559;--mgd-surface:rgba(255,255,255,.12);--mgd-border:rgba(109,117,89,.24);"\n></div>\n<script type="module" src="${NATIVE_WIDGET_URL}"></script>`;
+}
 
 function readUi(doc) {
   return config({
@@ -61,7 +65,7 @@ function fill(doc, c) {
 }
 function integration(doc, token) {
   const u=doc.getElementById('mgdMusicPublicUrl');if(u)u.value=musicUrl(token);
-  const e=doc.getElementById('mgdMusicEmbedCode');if(e)e.value=embed(token);
+  const e=doc.getElementById('mgdMusicEmbedCode');if(e){e.value=embed(token);e.placeholder='Aquí aparecerá el código nativo para integrar';const label=e.closest('.mgd-music-integrate-box')?.querySelector('label');if(label)label.textContent='Código nativo Mi Gran Día </>';}
   ['mgdCopyMusicUrl','mgdOpenMusicUrl','mgdCopyMusicEmbed'].forEach(id=>{const b=doc.getElementById(id);if(b)b.disabled=!token;});
 }
 async function load(doc) {
