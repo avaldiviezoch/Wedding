@@ -11,7 +11,7 @@
   </style>
 </head>
 <body>
-  <iframe id="inv5" src="./invitacion_5_base.html?v=20260816-1730" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
+  <iframe id="inv5" src="./invitacion_5_base.html?v=20260816-1742" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
   <script>
     const frame=document.getElementById('inv5');
     frame.addEventListener('load',()=>{
@@ -40,6 +40,21 @@
             return t==='nuestro día'||t==='nuestro dia';
           });
         if(nuestroDia) nuestroDia.style.transform='translateY(14px)';
+
+        // Invitación 5: programación corrida exactamente una hora hacia adelante.
+        const shiftedSchedule=[
+          '04:00 PM –<br>05:00 PM',
+          '05:00 PM –<br>06:00 PM',
+          '06:00 PM –<br>07:00 PM',
+          '07:00 PM –<br>07:30 PM',
+          '07:30 PM –<br>08:30 PM',
+          '08:30 PM –<br>09:00 PM',
+          '09:00 PM<br>en adelante'
+        ];
+        const itineraryTimes=[...doc.querySelectorAll('.itinerary-time')];
+        itineraryTimes.forEach((el,i)=>{
+          if(shiftedSchedule[i]) el.innerHTML=shiftedSchedule[i];
+        });
 
         const faqItems=[...doc.querySelectorAll('details.faq-item')];
         faqItems.forEach(item=>{
