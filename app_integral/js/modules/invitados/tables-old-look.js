@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1712-oldlook2';
+  const VERSION = '20260816-1435-oldlook3';
   const CSS_HREF = new URL(`css/modules/invitados-tables-old-look.css?v=${VERSION}`, document.baseURI).href;
   let timer = 0;
   let attempts = 0;
