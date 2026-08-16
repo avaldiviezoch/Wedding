@@ -28,3 +28,8 @@ await Promise.all([
   import('./tables-stable-polish.js?v=20260816-1440-stable-name1'),
   import('./tables-old-look.js?v=20260816-1545-fast-tables1')
 ]);
+
+/* Mejora no bloqueante: X pequeña para quitar invitados de la mesa + recuperación de cursor. */
+import('./tables-seat-remove.js?v=20260816-1508-seatremove2').catch((error) => {
+  console.warn('No se pudo activar la acción rápida de quitar invitado:', error);
+});
