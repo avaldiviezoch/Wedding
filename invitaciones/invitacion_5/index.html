@@ -26,6 +26,16 @@
           img.removeAttribute('srcset');
         }
 
+        // Fondo animado de la programación propio de la Invitación 5
+        const programacionImg=[...doc.querySelectorAll('img')].find(el=>{
+          const src=decodeURIComponent(el.getAttribute('src')||'');
+          return src.includes('itinerario_2.png');
+        });
+        if(programacionImg){
+          programacionImg.src='./programacion_5.gif?v=20260816-1';
+          programacionImg.removeAttribute('srcset');
+        }
+
         // Amsterdam Four + ajustes visuales propios de Invitación 5
         const style=doc.createElement('style');
         style.id='inv5-amsterdam-four';
