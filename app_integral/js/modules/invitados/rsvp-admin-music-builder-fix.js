@@ -6,7 +6,7 @@ import {
   writeBatch
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
-const VERSION = '20260816-1848-native1';
+const VERSION = '20260816-1900-native-help1';
 const PUBLIC_RSVP_BASE = 'https://avaldiviezoch.github.io/Wedding/rsvp.html';
 const NATIVE_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260816-1845-native1';
 const done = new WeakSet();
@@ -39,6 +39,21 @@ function embed(token) {
   const cleanToken=clean(token,180); if(!cleanToken)return '';
   return `<div\n  data-mgd-music-token="${cleanToken}"\n  style="--mgd-accent:#6d7559;--mgd-surface:rgba(255,255,255,.12);--mgd-border:rgba(109,117,89,.24);"\n></div>\n<script type="module" src="${NATIVE_WIDGET_URL}"></script>`;
 }
+function helpMarkup(){return `
+  <div class="mgd-music-native-help" data-mgd-native-help="music">
+    <strong>Cómo agregar Música a tu invitación</strong>
+    <ol>
+      <li>Copia el bloque de <b>Código nativo Mi Gran Día</b>.</li>
+      <li>Pégalo en el lugar exacto del HTML donde quieras que aparezca la encuesta musical.</li>
+      <li>No cambies <code>data-mgd-music-token</code> ni la URL del <code>&lt;script&gt;</code>; son los datos que conectan la invitación con la boda.</li>
+      <li>Puedes modificar colores, fondo, bordes y tipografía desde el CSS de tu invitación sin tocar la lógica de guardado.</li>
+    </ol>
+    <p><b>Para que aparezca al tocar una imagen o GIF:</b> deja el widget dentro de un contenedor oculto y ábrelo con el clic de la imagen.</p>
+    <pre>&lt;img src="musica.gif" onclick="document.getElementById('miMusica').hidden=false"&gt;\n&lt;div id="miMusica" hidden&gt;\n  [PEGA AQUÍ EL CÓDIGO NATIVO DE MÚSICA]\n&lt;/div&gt;</pre>
+    <p class="mgd-music-help-note">Las canciones quedan asociadas al mismo token de la boda y se verán en el apartado Música de Mi Gran Día.</p>
+  </div>`;}
+function ensureHelpStyles(doc){if(doc.getElementById('mgdMusicNativeHelpStyles'))return;const st=doc.createElement('style');st.id='mgdMusicNativeHelpStyles';st.textContent=`.mgd-music-native-help{margin-top:12px;padding:14px 15px;border:1px solid #e1dfd7;border-radius:14px;background:#faf9f6;color:#62695d;font-size:11px;line-height:1.55}.mgd-music-native-help strong{display:block;margin-bottom:7px;color:#343b31;font-size:12px}.mgd-music-native-help ol{margin:0 0 10px 18px;padding:0}.mgd-music-native-help li{margin:3px 0}.mgd-music-native-help p{margin:8px 0 0}.mgd-music-native-help code{padding:1px 4px;border-radius:5px;background:#eef0e6;color:#59634f}.mgd-music-native-help pre{margin:9px 0 0;padding:10px;overflow:auto;border-radius:10px;background:#282c27;color:#f7f5ee;font-size:10px;line-height:1.45;white-space:pre-wrap}.mgd-music-help-note{color:#777e73}`;doc.head.appendChild(st);}
+function ensureHelp(doc,area){const box=area.closest('.mgd-music-integrate-box');if(!box)return;ensureHelpStyles(doc);if(!box.querySelector('[data-mgd-native-help="music"]'))box.insertAdjacentHTML('beforeend',helpMarkup());}
 
 function readUi(doc) {
   return config({
@@ -65,7 +80,7 @@ function fill(doc, c) {
 }
 function integration(doc, token) {
   const u=doc.getElementById('mgdMusicPublicUrl');if(u)u.value=musicUrl(token);
-  const e=doc.getElementById('mgdMusicEmbedCode');if(e){e.value=embed(token);e.placeholder='Aquí aparecerá el código nativo para integrar';const label=e.closest('.mgd-music-integrate-box')?.querySelector('label');if(label)label.textContent='Código nativo Mi Gran Día </>';}
+  const e=doc.getElementById('mgdMusicEmbedCode');if(e){e.value=embed(token);e.placeholder='Aquí aparecerá el código nativo para integrar';const label=e.closest('.mgd-music-integrate-box')?.querySelector('label');if(label)label.textContent='Código nativo Mi Gran Día </>';ensureHelp(doc,e);}
   ['mgdCopyMusicUrl','mgdOpenMusicUrl','mgdCopyMusicEmbed'].forEach(id=>{const b=doc.getElementById(id);if(b)b.disabled=!token;});
 }
 async function load(doc) {
