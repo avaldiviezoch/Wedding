@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260816-1545-fast-tables1';
+  const VERSION = '20260816-1605-rsvp-admin-music1';
   let loading = null;
 
   function moduleUrl(file, version) {
@@ -13,7 +13,8 @@
     loading = Promise.all([
       import(moduleUrl('index.js', '20260814-1242-rsvp2')),
       import(moduleUrl('ui-copy.js', '20260814-1532-uicopy3')),
-      import(moduleUrl('tables-lazy-loader.js', VERSION))
+      import(moduleUrl('tables-lazy-loader.js', '20260816-1545-fast-tables1')),
+      import(moduleUrl('rsvp-admin-music.js', VERSION))
     ]).catch((error) => {
       console.error('No se pudo iniciar Invitados:', error);
       loading = null;
