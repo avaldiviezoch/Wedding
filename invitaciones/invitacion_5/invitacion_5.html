@@ -70,7 +70,7 @@
           const title=finalCard.querySelector('.final-title');
           const brook=doc.createElement('img');
           brook.className='te-esperamos-gif brook-final-gif';
-          brook.src='https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/invitaciones/invitacion_1/brook.gif?v=20260816-1730';
+          brook.src='https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/invitaciones/invitacion_1/brook.gif?v=20260816-1728';
           brook.alt='Brook';
           brook.loading='eager';
           brook.decoding='async';
@@ -100,12 +100,37 @@
           .timeline-wrap,.itinerario-wrap,.itinerary-wrap,.timeline-content{margin-top:10px !important}
           .gift-title,.regalo-title,[class*="gift"] h2,[class*="regalo"] h2{margin-bottom:20px !important;line-height:1.22 !important}
           .gift-hint,.regalo-hint,.tap-text,[class*="gift"] .tap-text,[class*="regalo"] .tap-text{margin-top:10px !important;line-height:1.45 !important}
+
+          #esperamosSection{
+            padding-top:18px !important;
+          }
+          #esperamosSection .final-card{
+            min-height:235px !important;
+            padding:24px 18px 22px !important;
+            border-radius:24% 24% 22px 22px / 9% 9% 22px 22px !important;
+          }
           #esperamosSection .brook-final-gif{
             display:block !important;
-            width:min(92%,430px) !important;
+            width:min(31%,140px) !important;
+            max-width:140px !important;
             height:auto !important;
-            margin:18px auto 0 !important;
+            margin:12px auto 0 !important;
             object-fit:contain !important;
+          }
+          @media (max-width:540px){
+            #esperamosSection{
+              padding-top:16px !important;
+            }
+            #esperamosSection .final-card{
+              min-height:215px !important;
+              padding:22px 16px 20px !important;
+              border-radius:20% 20% 20px 20px / 8% 8% 20px 20px !important;
+            }
+            #esperamosSection .brook-final-gif{
+              width:min(31%,112px) !important;
+              max-width:112px !important;
+              margin-top:10px !important;
+            }
           }
         `;
         doc.getElementById('inv5-amsterdam-four')?.remove();
