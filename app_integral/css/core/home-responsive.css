@@ -10,6 +10,7 @@ body{min-height:100svh}
 .drawer{height:100svh;height:100dvh;min-height:0;max-height:100dvh;overflow:hidden}
 .drawer-content{min-width:0;min-height:0;max-height:100%;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .drawer-title,.countdown-card,.module,.account-card{min-width:0;max-width:100%}
+.drawer-title,.countdown-card,.account-card,.modules{flex-shrink:0!important}
 .module-label>span:last-child,.module-link>span,.account-copy{min-width:0}
 .module-name,.module-description,.module-link span,.drawer-title p{overflow-wrap:anywhere}
 .countdown-head{flex-wrap:wrap}
@@ -20,9 +21,39 @@ body{min-height:100svh}
 
 /* Garantía: los módulos nunca deben desaparecer por responsive. */
 .modules{display:grid!important;visibility:visible!important;opacity:1!important;min-height:max-content!important}
-.module{display:block!important;visibility:visible!important;opacity:1!important;height:auto!important;min-height:0!important}
+.module{display:block!important;visibility:visible!important;opacity:1!important;height:auto!important;min-height:0!important;flex-shrink:0!important}
 .module-toggle{display:flex!important;visibility:visible!important;opacity:1!important}
 .module-body{display:grid!important;visibility:visible!important;opacity:1!important}
+
+/* La cuenta y sus acciones no deben comprimirse al abrir módulos. */
+.account-card.show{
+  flex:0 0 auto!important;
+  height:auto!important;
+  max-height:none!important;
+  overflow:visible!important;
+  position:sticky!important;
+  top:0!important;
+  z-index:25!important;
+  isolation:isolate;
+}
+.account-card.show::before{
+  content:"";
+  position:absolute;
+  inset:-4px -2px;
+  z-index:-1;
+  border-radius:inherit;
+  background:rgba(15,15,15,.88);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  pointer-events:none;
+}
+.account-user{min-width:0!important;flex:1 1 auto!important}
+.account-copy{min-width:0!important;flex:1 1 auto!important}
+.account-card button,
+.account-card a{
+  flex:0 0 auto!important;
+  white-space:nowrap!important;
+}
 
 @media(max-height:760px){
   .drawer{padding-top:max(58px,calc(env(safe-area-inset-top) + 52px))!important;padding-bottom:max(10px,env(safe-area-inset-bottom))!important}
@@ -44,9 +75,11 @@ body{min-height:100svh}
   .drawer-content{width:100%!important;max-width:none!important;margin:0!important;gap:10px!important;padding:0 0 max(20px,env(safe-area-inset-bottom))!important}
   .drawer-title{padding:13px 14px 12px!important;border-radius:17px!important}.drawer-title .eyebrow{margin-bottom:5px!important;font-size:7px!important}
   .drawer-title h1{font-size:clamp(20px,5vw,28px)!important;line-height:1.04!important;letter-spacing:.04em!important}.drawer-title p{margin-top:6px!important;font-size:10px!important;line-height:1.35!important}
-  .account-card.show{display:flex!important;min-height:48px!important;height:auto!important;overflow:visible!important;padding:7px 10px!important;border-radius:15px!important;align-items:center!important;flex-wrap:nowrap!important}
-  .account-user{flex:1 1 auto!important;min-width:0!important;min-height:34px!important}.account-avatar{width:34px!important;height:34px!important;flex:0 0 34px!important}
-  .account-copy strong{font-size:10px!important}.account-copy span,.cloud-state{font-size:7px!important}.account-logout{flex:0 0 auto!important;font-size:7px!important;padding:6px 8px!important}
+  .account-card.show{display:flex!important;min-height:52px!important;height:auto!important;overflow:visible!important;padding:7px 10px!important;border-radius:15px!important;align-items:center!important;flex-wrap:wrap!important;gap:7px!important}
+  .account-user{flex:1 1 220px!important;min-width:0!important;min-height:34px!important}.account-avatar{width:34px!important;height:34px!important;flex:0 0 34px!important}
+  .account-copy strong{font-size:10px!important}.account-copy span,.cloud-state{font-size:7px!important}
+  .account-card button,.account-card a{min-height:30px!important;padding:6px 9px!important;font-size:7px!important}
+  .account-logout{margin-left:auto!important}
   .countdown-card{padding:10px 11px!important;border-radius:17px!important}.countdown{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px!important}
   .time-box{min-width:0;padding:8px 3px!important;border-radius:12px!important}.time-box strong{font-size:16px!important}.time-box span{margin-top:4px!important;font-size:6px!important}
   .modules{gap:8px!important}.module{border-radius:15px!important}.module-toggle{min-height:48px!important;padding:8px 11px!important;gap:9px}.module-label{gap:9px}
@@ -62,13 +95,16 @@ body{min-height:100svh}
   .countdown{gap:4px!important}.time-box{padding:7px 2px!important;border-radius:10px!important}.time-box strong{font-size:14px!important}.time-box span{font-size:5.6px!important;letter-spacing:.04em}
   .module{border-radius:14px!important}.module-toggle{min-height:46px!important;padding:8px 10px!important}.module-number{font-size:7px}.module-name{font-size:10.5px!important}.module-description{font-size:7px!important}
   .module-link{min-height:36px!important;padding:7px 8px!important;font-size:9px}.auth-actions{grid-template-columns:1fr}.video-recovery{left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));width:auto}
+  .account-card.show{align-items:center!important}
+  .account-user{flex:1 1 100%!important}
+  .account-card button,.account-card a{flex:1 1 auto!important;min-width:0!important;text-align:center!important}
 }
 
 @media(max-height:500px) and (orientation:landscape){
   .menu-button{top:max(6px,env(safe-area-inset-top))!important;right:max(7px,env(safe-area-inset-right))!important;width:36px!important;min-width:36px!important;height:36px!important}
   .drawer{width:100%!important;padding:max(44px,calc(env(safe-area-inset-top) + 38px)) 8px max(7px,env(safe-area-inset-bottom))!important}.drawer-content{gap:6px!important;padding-bottom:7px!important}
   .drawer-title{padding:8px 10px!important}.drawer-title .eyebrow,.drawer-title p,.module-description,.copyright{display:none!important}.drawer-title h1{font-size:16px!important}
-  .account-card.show{min-height:40px!important;padding:5px 8px!important}.account-avatar{width:30px!important;height:30px!important;flex-basis:30px!important}
+  .account-card.show{min-height:44px!important;padding:5px 8px!important;position:sticky!important;top:0!important}.account-avatar{width:30px!important;height:30px!important;flex-basis:30px!important}
   .countdown-card{padding:7px!important}.countdown-head{margin-bottom:4px}.time-box{padding:4px 2px!important}
   .module-toggle{min-height:36px!important;padding:6px 8px!important}.module.open .module-body-inner{padding-top:3px!important}.module-link{min-height:30px!important;padding:5px 7px!important}
   .auth-overlay{place-items:start center}.auth-card{margin:auto 0;max-height:calc(100dvh - 10px);padding:13px}
