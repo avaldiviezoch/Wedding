@@ -1,10 +1,78 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260816-1435-oldlook3';
+  const VERSION = '20260816-1535-oldlook4';
   const CSS_HREF = new URL(`css/modules/invitados-tables-old-look.css?v=${VERSION}`, document.baseURI).href;
   let timer = 0;
   let attempts = 0;
+
+  function ensureFinalFix(doc) {
+    let style = doc.getElementById('mgdTablesFinalFix');
+    if (!style) {
+      style = doc.createElement('style');
+      style.id = 'mgdTablesFinalFix';
+      doc.head.appendChild(style);
+    }
+    style.textContent = `
+      /* Regla final: nombre de mesa adaptable y sin puntos suspensivos */
+      #mgdTablesEditor[data-old-table-look="1"] .mgd-table-body strong{
+        display:-webkit-box!important;
+        width:88%!important;
+        max-width:88%!important;
+        min-width:0!important;
+        max-height:2.45em!important;
+        overflow:hidden!important;
+        text-overflow:clip!important;
+        white-space:normal!important;
+        overflow-wrap:anywhere!important;
+        word-break:break-word!important;
+        -webkit-box-orient:vertical!important;
+        -webkit-line-clamp:2!important;
+        line-clamp:2!important;
+        line-height:1.08!important;
+        font-size:10px!important;
+        text-align:center!important;
+      }
+      #mgdTablesEditor[data-old-table-look="1"] .mgd-table-body.round strong{
+        width:76%!important;
+        max-width:76%!important;
+        font-size:8.8px!important;
+      }
+      #mgdTablesEditor[data-old-table-look="1"] .mgd-table-body.square strong{
+        width:82%!important;
+        max-width:82%!important;
+        font-size:9.2px!important;
+      }
+      #mgdTablesEditor[data-old-table-look="1"] .mgd-table-body.rectangular strong{
+        width:93%!important;
+        max-width:93%!important;
+        font-size:9.8px!important;
+      }
+      #mgdTablesEditor[data-old-table-look="1"] .mgd-table-body span{
+        display:block!important;
+        margin-top:8px!important;
+        font-size:7.8px!important;
+        line-height:1!important;
+        white-space:nowrap!important;
+      }
+
+      /* El modal vive fuera de #mgdTablesEditor: selector global obligatorio */
+      #mgdSaveTable,
+      #mgdTablesModal #mgdSaveTable,
+      .mgd-modal-actions #mgdSaveTable.mgd-btn.primary{
+        color:#111!important;
+        background:#eee7dc!important;
+        border-color:rgba(47,52,45,.22)!important;
+        text-shadow:none!important;
+        opacity:1!important;
+      }
+      #mgdSaveTable:hover,
+      #mgdTablesModal #mgdSaveTable:hover{
+        color:#000!important;
+        background:#dfd4c5!important;
+      }
+    `;
+  }
 
   function ensureCss(doc) {
     let link = doc.querySelector('link[data-mgd-tables-old-look]');
@@ -15,6 +83,7 @@
       doc.head.appendChild(link);
     }
     if (link.href !== CSS_HREF) link.href = CSS_HREF;
+    ensureFinalFix(doc);
   }
 
   function shortSeatLabel(seat) {
@@ -47,7 +116,7 @@
   }
 
   function ensureObserver(doc) {
-    const host = doc.getElementById('tablesView') || doc.body;
+    const host = doc.body;
     if (!host || doc.documentElement.dataset.mgdOldLookObserver === VERSION) return;
     doc.documentElement.dataset.mgdOldLookObserver = VERSION;
 
