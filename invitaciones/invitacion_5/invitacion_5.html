@@ -11,7 +11,7 @@
   </style>
 </head>
 <body>
-  <iframe id="inv5" src="./invitacion_5_base.html?v=20260816-1710" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
+  <iframe id="inv5" src="./invitacion_5_base.html?v=20260816-1730" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
   <script>
     const frame=document.getElementById('inv5');
     frame.addEventListener('load',()=>{
@@ -60,18 +60,23 @@
           }
         });
 
-        const finalCard=doc.querySelector('.final-card');
+        const finalCard=doc.querySelector('#esperamosSection .final-card');
         if(finalCard){
-          const finalGif=finalCard.querySelector('.te-esperamos-gif');
-          if(finalGif){
-            finalGif.src='https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/invitaciones/invitacion_1/brook.gif?v=20260816-1710';
-            finalGif.alt='Brook';
-            finalGif.removeAttribute('srcset');
-            finalGif.loading='eager';
-          }
+          finalCard.querySelector('.te-esperamos-gif')?.remove();
           finalCard.querySelector('.wait-message')?.remove();
           finalCard.querySelector('.wait-signature')?.remove();
           finalCard.querySelector('.wait-date')?.remove();
+
+          const title=finalCard.querySelector('.final-title');
+          const brook=doc.createElement('img');
+          brook.className='te-esperamos-gif brook-final-gif';
+          brook.src='https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/invitaciones/invitacion_1/brook.gif?v=20260816-1730';
+          brook.alt='Brook';
+          brook.loading='eager';
+          brook.decoding='async';
+
+          if(title) title.insertAdjacentElement('afterend',brook);
+          else finalCard.appendChild(brook);
         }
 
         const style=doc.createElement('style');
@@ -95,6 +100,13 @@
           .timeline-wrap,.itinerario-wrap,.itinerary-wrap,.timeline-content{margin-top:10px !important}
           .gift-title,.regalo-title,[class*="gift"] h2,[class*="regalo"] h2{margin-bottom:20px !important;line-height:1.22 !important}
           .gift-hint,.regalo-hint,.tap-text,[class*="gift"] .tap-text,[class*="regalo"] .tap-text{margin-top:10px !important;line-height:1.45 !important}
+          #esperamosSection .brook-final-gif{
+            display:block !important;
+            width:min(92%,430px) !important;
+            height:auto !important;
+            margin:18px auto 0 !important;
+            object-fit:contain !important;
+          }
         `;
         doc.getElementById('inv5-amsterdam-four')?.remove();
         doc.head.appendChild(style);
