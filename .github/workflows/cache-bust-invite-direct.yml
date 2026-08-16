@@ -1,0 +1,41 @@
+name: Cache bust Invitaciones integradas
+
+on:
+  push:
+    paths:
+      - '.github/triggers/cache-bust-invite-direct.txt'
+      - 'app_integral/js/modules/configuracion/invite-direct.js'
+
+permissions:
+  contents: write
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Actualizar version de invite-direct
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re, time
+          version = time.strftime('%Y%m%d%H%M%S')
+          for name in ('applu.html', 'app_integral/applu.html'):
+              p = Path(name)
+              if not p.exists():
+                  continue
+              text = p.read_text(encoding='utf-8')
+              text, n = re.subn(r'js/modules/configuracion/invite-direct\.js\?v=[^"\']+', f'js/modules/configuracion/invite-direct.js?v={version}', text)
+              if n:
+                  p.write_text(text, encoding='utf-8')
+          PY
+      - name: Publicar cambio
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add applu.html app_integral/applu.html
+          git commit -m "Actualizar version del modulo Invitaciones"
+          git push
