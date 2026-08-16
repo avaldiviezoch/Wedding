@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260816-1328-responsive-home1';
+  const VERSION = '20260816-1342-responsive-home2';
   let passthrough = false;
   let queuedClick = false;
   let authPoll = 0;
@@ -13,6 +13,67 @@
     link.href = new URL(`css/core/home-responsive.css?v=${VERSION}`, document.baseURI).href;
     link.dataset.mgdHomeResponsive = VERSION;
     document.head.appendChild(link);
+  }
+
+  function initHeroVideo() {
+    const video = document.getElementById('heroVideo');
+    if (!video || video.dataset.mgdHeroVideo === VERSION) return;
+    video.dataset.mgdHeroVideo = VERSION;
+
+    const localUrl = new URL('anillo_loop_planifcador.mp4', document.baseURI).href;
+    const fallbackUrl = 'https://avaldiviezoch.github.io/Wedding/anillo_loop_planifcador.mp4';
+    let fallbackTried = false;
+
+    video.muted = true;
+    video.defaultMuted = true;
+    video.autoplay = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.setAttribute('muted', '');
+    video.setAttribute('autoplay', '');
+    video.setAttribute('loop', '');
+    video.setAttribute('playsinline', '');
+    video.preload = 'auto';
+
+    const tryPlay = () => {
+      if (!video.paused && !video.ended) return;
+      const promise = video.play();
+      if (promise?.catch) promise.catch(() => {});
+    };
+
+    const loadLocal = () => {
+      if (video.currentSrc === localUrl || video.src === localUrl) return;
+      video.src = localUrl;
+      video.load();
+    };
+
+    video.addEventListener('loadedmetadata', tryPlay);
+    video.addEventListener('loadeddata', tryPlay);
+    video.addEventListener('canplay', tryPlay);
+    video.addEventListener('playing', () => {
+      document.getElementById('videoRecovery')?.classList.remove('show');
+    });
+    video.addEventListener('error', () => {
+      if (fallbackTried) {
+        document.getElementById('videoRecovery')?.classList.add('show');
+        return;
+      }
+      fallbackTried = true;
+      video.src = fallbackUrl;
+      video.load();
+      tryPlay();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) tryPlay();
+    });
+    window.addEventListener('pageshow', tryPlay);
+    window.addEventListener('focus', tryPlay);
+    document.addEventListener('pointerdown', tryPlay, { once: true, passive: true });
+    document.addEventListener('touchstart', tryPlay, { once: true, passive: true });
+
+    loadLocal();
+    tryPlay();
   }
 
   loadResponsiveCss();
@@ -32,8 +93,6 @@
   }
 
   function authState() {
-    // auth-hydrating solo se activa después de que Firebase ya identificó
-    // una sesión válida. El contenido privado sigue protegido por auth-guard.css.
     if (document.body?.classList.contains('auth-hydrating')) {
       return { ready: true, authenticated: true, hydrating: true };
     }
@@ -96,6 +155,7 @@
     if (!button || !backdrop || button.dataset.mgdFastMenu === VERSION) return false;
 
     button.dataset.mgdFastMenu = VERSION;
+    initHeroVideo();
 
     new MutationObserver(() => {
       keepHydratingMenuResponsive();
@@ -138,5 +198,10 @@
     return true;
   }
 
-  if (!bind()) document.addEventListener('DOMContentLoaded', bind, { once: true });
+  if (!bind()) {
+    document.addEventListener('DOMContentLoaded', () => {
+      initHeroVideo();
+      bind();
+    }, { once: true });
+  }
 })();
