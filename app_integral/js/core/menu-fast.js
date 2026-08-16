@@ -1,10 +1,21 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1622-menufast4';
+  const VERSION = '20260816-1328-responsive-home1';
   let passthrough = false;
   let queuedClick = false;
   let authPoll = 0;
+
+  function loadResponsiveCss() {
+    if (document.querySelector('link[data-mgd-home-responsive]')) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = new URL(`css/core/home-responsive.css?v=${VERSION}`, document.baseURI).href;
+    link.dataset.mgdHomeResponsive = VERSION;
+    document.head.appendChild(link);
+  }
+
+  loadResponsiveCss();
 
   function setMenu(open) {
     const body = document.body;
