@@ -14,6 +14,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
 const PUBLIC_RSVP_BASE = 'https://avaldiviezoch.github.io/Wedding/rsvp.html';
+const NATIVE_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260816-1845-native1';
 const EDITABLE_ROLES = new Set(['owner', 'admin', 'editor']);
 
 export const RSVP_ATTENDANCE = {
@@ -146,11 +147,10 @@ export function publicRsvpUrl(token) {
   return cleanToken ? `${PUBLIC_RSVP_BASE}?token=${encodeURIComponent(cleanToken)}` : '';
 }
 
-export function rsvpEmbedCode(token, height = 780) {
-  const url = publicRsvpUrl(token);
-  if (!url) return '';
-  const safeHeight = Math.max(500, Math.min(1400, Math.floor(Number(height) || 780)));
-  return `<iframe\n  src="${url}"\n  title="Confirmar asistencia"\n  style="width:100%;min-height:${safeHeight}px;border:0;border-radius:24px;overflow:hidden;"\n  loading="lazy"\n  referrerpolicy="strict-origin-when-cross-origin"\n></iframe>`;
+export function rsvpEmbedCode(token) {
+  const cleanToken = cleanText(token, 160);
+  if (!cleanToken) return '';
+  return `<div\n  data-mgd-rsvp-token="${cleanToken}"\n  style="--mgd-accent:#6d7559;--mgd-surface:rgba(255,255,255,.12);--mgd-border:rgba(109,117,89,.24);"\n></div>\n<script type="module" src="${NATIVE_WIDGET_URL}"></script>`;
 }
 
 export async function loadRsvpConfig() {
@@ -227,15 +227,19 @@ function responseFromSnap(snap) {
   };
 }
 
+function isMusicOnlyResponse(item) {
+  return item?.source === 'music-widget' && !item?.attendance && !String(item?.name || '').trim();
+}
+
 export async function listRsvpResponses(token) {
   requireWedding();
   if (!token) return [];
   try {
     const snaps = await getDocs(query(responseCollection(token), orderBy('submittedAt', 'desc')));
-    return snaps.docs.map(responseFromSnap);
+    return snaps.docs.map(responseFromSnap).filter((item) => !isMusicOnlyResponse(item));
   } catch (_) {
     const snaps = await getDocs(responseCollection(token));
-    return snaps.docs.map(responseFromSnap).sort((a, b) => {
+    return snaps.docs.map(responseFromSnap).filter((item) => !isMusicOnlyResponse(item)).sort((a, b) => {
       const ta = a.submittedAtDate?.getTime?.() || 0;
       const tb = b.submittedAtDate?.getTime?.() || 0;
       return tb - ta;
@@ -251,7 +255,7 @@ export function subscribeRsvpResponses(token, onData, onError = console.error) {
   }
   const q = query(responseCollection(token), orderBy('submittedAt', 'desc'));
   return onSnapshot(q, (snaps) => {
-    onData?.(snaps.docs.map(responseFromSnap));
+    onData?.(snaps.docs.map(responseFromSnap).filter((item) => !isMusicOnlyResponse(item)));
   }, onError);
 }
 
