@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-module-navigation-guard-v4-reopen';
+  const VERSION = '20260817-module-navigation-guard-v5-stale-hash';
   let reconciling = false;
 
   function normalize(value) {
@@ -69,12 +69,17 @@
     requestAnimationFrame(() => {
       if (workspaceHasContent(id)) return;
 
-      // Algunos renderizadores heredados se activan únicamente con hashchange.
-      // Si el hash ya era el mismo, el navegador no emite el evento; lo reemitimos
-      // solo cuando el workspace quedó vacío para permitir una reapertura real.
-      if (hashModule() === id) {
-        window.dispatchEvent(new HashChangeEvent('hashchange'));
+      // Si un handler heredado abrió/limpió el workspace pero dejó un hash viejo
+      // (caso observado al salir de Invitaciones), corregimos primero la URL.
+      // El cambio real de hash vuelve a disparar los renderizadores que dependan de él.
+      if (hashModule() !== id) {
+        location.hash = id;
+        return;
       }
+
+      // Si el hash ya coincide, el navegador no genera hashchange otra vez.
+      // Reemitimos el evento únicamente cuando la vista está vacía.
+      window.dispatchEvent(new Event('hashchange'));
     });
   }
 
@@ -125,7 +130,7 @@
     openModule(id);
   }, true);
 
-  window.addEventListener('hashchange', () => syncActive(hashModule() || currentModule()));
+  window.addEventListener('hashchange', () => syncActive(currentModule()));
   window.addEventListener('pageshow', () => syncActive(currentModule()));
 
   const nav = document.getElementById('moduleQuickNav');
