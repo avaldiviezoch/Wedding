@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-1316-autosave-ui';
+  const VERSION = '20260817-1348-nav-sequence-fix';
   let passthrough = false;
   let queuedClick = false;
   let authPoll = 0;
