@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Mi Gran Día — Design System</title>
+  <style>
+    :root{
+      --ink:#0b0b0b;
+      --white:#ffffff;
+      --olive:#7f8962;
+      --olive-light:#a3ad83;
+      --beige:#ddd3c2;
+      --rose:#b17782;
+      --text:#2f302b;
+      --muted:#74716d;
+      --line:#e5dfdc;
+      --surface:#ffffff;
+      --surface-soft:#faf9f8;
+      --shadow:0 12px 30px rgba(63,48,51,.07);
+      --radius-sm:11px;
+      --radius-md:16px;
+      --radius-lg:22px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;font-family:Inter,"Segoe UI",Arial,sans-serif;background:#f4f1ee;color:var(--text)}
+    button,input{font:inherit}
+    a{color:inherit}
+    .hero{min-height:360px;padding:72px 24px 48px;background:linear-gradient(180deg,rgba(11,11,11,.94),rgba(11,11,11,.86));color:#fff;display:grid;place-items:center;text-align:center}
+    .hero-inner{width:min(900px,100%)}
+    .eyebrow{display:inline-block;margin-bottom:14px;color:var(--olive-light);font-size:11px;font-weight:900;letter-spacing:.2em;text-transform:uppercase}
+    h1{margin:0;font-size:clamp(38px,7vw,78px);line-height:.98;letter-spacing:-.03em}
+    .hero p{max-width:680px;margin:22px auto 0;color:rgba(255,255,255,.68);font-size:15px;line-height:1.65}
+    .hero-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:28px}
+    .btn{min-height:44px;padding:11px 16px;border-radius:12px;border:1px solid transparent;cursor:pointer;font-weight:800;transition:.18s ease}
+    .btn:focus-visible,.chip:focus-visible,.nav-tab:focus-visible,input:focus-visible{outline:3px solid rgba(177,119,130,.32);outline-offset:2px}
+    .btn-primary{background:var(--olive);color:#fff}.btn-primary:hover{background:#707957;transform:translateY(-1px)}
+    .btn-secondary{background:#fff;color:var(--text);border-color:var(--line)}.btn-secondary:hover{background:var(--beige)}
+    .btn-rose{background:var(--rose);color:#fff}.btn-rose:hover{filter:brightness(.94)}
+    .page{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:34px 0 64px}
+    .section{margin-top:30px}
+    .section-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:14px}
+    .section-head h2{margin:0;font:600 clamp(25px,4vw,38px)/1.05 Georgia,"Times New Roman",serif}
+    .section-head p{max-width:520px;margin:0;color:var(--muted);font-size:13px;line-height:1.5}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+    .card{grid-column:span 4;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);box-shadow:var(--shadow);padding:18px}
+    .card.wide{grid-column:span 8}.card.full{grid-column:1/-1}
+    .card h3{margin:0 0 8px;font-size:14px}.card p{margin:0;color:var(--muted);font-size:12px;line-height:1.55}
+    .palette{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:14px}
+    .swatch{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#fff}
+    .swatch-color{height:82px}.swatch-meta{padding:10px}.swatch-meta strong,.swatch-meta span{display:block}.swatch-meta strong{font-size:10px}.swatch-meta span{margin-top:3px;color:var(--muted);font-size:9px}
+    .sample-title{margin:0 0 8px;font:600 34px/1.05 Georgia,"Times New Roman",serif}.sample-body{font-size:14px;line-height:1.6}
+    .controls{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+    .chip{min-height:36px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer;font-size:11px;font-weight:800}.chip.active{background:var(--olive);color:#fff;border-color:var(--olive)}
+    .field{margin-top:14px}.field label{display:block;margin-bottom:6px;font-size:10px;font-weight:850}.field input{width:100%;min-height:46px;border:1px solid var(--line);border-radius:12px;padding:0 13px;background:#fff;color:var(--text);font-size:16px}.field input:focus{border-color:var(--olive)}
+    .nav-demo{display:flex;gap:8px;overflow:auto;padding:10px;background:#fff;border:1px solid var(--line);border-radius:14px}.nav-tab{flex:0 0 auto;min-height:40px;padding:9px 13px;border:0;border-radius:10px;background:#f3f0ee;color:#55514e;font-size:11px;font-weight:850;cursor:pointer}.nav-tab.active{background:var(--olive);color:#fff}
+    .status-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.status{padding:12px;border-radius:12px;background:var(--surface-soft);border:1px solid var(--line);font-size:11px}.status strong{display:block;margin-bottom:4px}.status.success strong{color:#5f6d43}.status.error strong{color:#a34c4c}.status.loading strong{color:var(--rose)}
+    .dark-demo{position:relative;overflow:hidden;background:#111;color:#fff}.dark-demo::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(127,137,98,.23),transparent 48%,rgba(177,119,130,.12));pointer-events:none}.dark-demo>*{position:relative}.dark-panel{margin-top:16px;padding:14px;border:1px solid rgba(255,255,255,.14);border-radius:15px;background:rgba(255,255,255,.045);backdrop-filter:blur(12px)}
+    .dark-panel .muted{color:rgba(255,255,255,.66);font-size:11px}
+    .motion{display:inline-flex;align-items:center;gap:8px}.dot{width:10px;height:10px;border-radius:50%;background:var(--olive);animation:pulse 1.8s ease-in-out infinite}
+    @keyframes pulse{50%{transform:scale(1.35);opacity:.55}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.001ms!important}}
+    .rules{display:grid;gap:8px;margin:14px 0 0;padding:0;list-style:none}.rules li{padding:11px 12px;border-left:3px solid var(--olive);border-radius:0 10px 10px 0;background:var(--surface-soft);font-size:11px;line-height:1.45}
+    footer{text-align:center;color:var(--muted);font-size:10px;padding:24px 14px 40px}
+    @media(max-width:900px){.card,.card.wide{grid-column:span 6}.palette{grid-template-columns:repeat(3,1fr)}.status-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:600px){.hero{padding:58px 18px 40px}.page{width:calc(100% - 18px);padding-top:20px}.section-head{align-items:flex-start;flex-direction:column}.card,.card.wide{grid-column:1/-1}.palette{grid-template-columns:repeat(2,1fr)}.status-grid{grid-template-columns:1fr}.btn{flex:1 1 140px}.hero-actions{width:100%}}
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <span class="eyebrow">Mi Gran Día · Visual System</span>
+      <h1>Elegante, cálido y consistente.</h1>
+      <p>Esta página es la referencia visual del aplicativo. No redefine Mi Gran Día: ordena su lenguaje existente para que cada módulo futuro se sienta parte del mismo producto.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary">Acción principal</button>
+        <button class="btn btn-secondary">Acción secundaria</button>
+        <button class="btn btn-rose">Acento romántico</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="section">
+      <div class="section-head"><h2>Paleta maestra</h2><p>El oliva mantiene la identidad global. El rosa queda como acento emocional/contextual, especialmente útil en Invitaciones.</p></div>
+      <div class="card full">
+        <div class="palette">
+          <div class="swatch"><div class="swatch-color" style="background:#0b0b0b"></div><div class="swatch-meta"><strong>Ink</strong><span>#0b0b0b</span></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#7f8962"></div><div class="swatch-meta"><strong>Olive</strong><span>#7f8962</span></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#a3ad83"></div><div class="swatch-meta"><strong>Olive Light</strong><span>#a3ad83</span></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#ddd3c2"></div><div class="swatch-meta"><strong>Beige</strong><span>#ddd3c2</span></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#b17782"></div><div class="swatch-meta"><strong>Rose</strong><span>#b17782</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h2>Componentes base</h2><p>Mismo propósito visual = mismo componente. No se inventa un botón, tarjeta o input diferente por módulo.</p></div>
+      <div class="grid">
+        <article class="card"><h3>Botones</h3><p>Acciones claras, sin excesos decorativos.</p><div class="controls"><button class="btn btn-primary">Guardar cambios</button><button class="btn btn-secondary">Cancelar</button></div></article>
+        <article class="card"><h3>Estados activos</h3><p>Solo un módulo activo a la vez.</p><div class="controls"><button class="chip active">Invitados</button><button class="chip">Cronograma</button><button class="chip">Música</button></div></article>
+        <article class="card"><h3>Formulario</h3><p>Inputs claros, foco visible y 16px en móvil.</p><div class="field"><label>Nombre del invitado</label><input value="Lucía Fernández" /></div></article>
+        <article class="card wide"><h3>Navegación superior</h3><p>Los futuros módulos heredan el patrón usando <code>data-quick-module</code>.</p><div class="nav-demo" style="margin-top:14px"><button class="nav-tab">Checklist</button><button class="nav-tab">Presupuesto</button><button class="nav-tab active">Invitaciones</button><button class="nav-tab">Cronograma</button><button class="nav-tab">Música</button><button class="nav-tab">Documentos</button></div></article>
+        <article class="card"><h3>Microinteracción</h3><p>Suave y funcional, con reduced motion.</p><div class="controls"><span class="motion"><span class="dot"></span><strong>Todo guardado</strong></span></div></article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h2>Jerarquía editorial</h2><p>La aplicación usa sans-serif para función. La serif aparece cuando suma elegancia y narrativa, sin invadir controles.</p></div>
+      <div class="grid">
+        <article class="card wide"><span class="eyebrow" style="color:var(--rose)">Invitaciones</span><h3 class="sample-title">Tu celebración, organizada con intención.</h3><p class="sample-body">Un título emocional puede convivir con una interfaz clara. La ornamentación pertenece al contenido; la interacción sigue siendo simple.</p></article>
+        <article class="card dark-demo"><span class="eyebrow">Panel premium</span><h3 style="font-size:22px;margin:0">Gestión integral</h3><div class="dark-panel"><strong>Cuenta regresiva</strong><div class="muted" style="margin-top:6px">Un patrón heredado directamente del lenguaje visual actual de Mi Gran Día.</div></div></article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h2>Estados obligatorios</h2><p>Diseñar solo el estado “bonito” no es suficiente. Los módulos deben seguir funcionando cuando cargan, están vacíos o fallan.</p></div>
+      <div class="card full"><div class="status-grid"><div class="status success"><strong>Success</strong>Guardado correctamente.</div><div class="status loading"><strong>Loading</strong>Cargando contenido…</div><div class="status"><strong>Empty</strong>Aún no hay elementos.</div><div class="status error"><strong>Error</strong>No se pudo completar la acción.</div></div></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h2>Reglas que no se negocian</h2><p>Tomamos de UI/UX Pro Max la disciplina de anti-patrones y checklist, pero la adaptamos a la identidad real del producto.</p></div>
+      <div class="card full"><ul class="rules"><li>No rediseñar por defecto: NORMAL es el modo inicial.</li><li>No superponer una nueva interfaz sobre la anterior para “arreglarla”.</li><li>No usar degradados morado/rosa tipo IA como estética genérica del producto.</li><li>No depender del color únicamente para estados importantes.</li><li>No cortar texto, badges o chips en 360–430px.</li><li>No bloquear scroll con overflow global para esconder problemas.</li><li>Revisar 360, 390–430, 768, 1024 y 1440 antes de cerrar cambios visuales.</li></ul></div>
+    </section>
+  </main>
+
+  <footer>Mi Gran Día · Design System MASTER · Referencia visual viva</footer>
+
+  <script>
+    document.querySelectorAll('.nav-tab').forEach(tab=>tab.addEventListener('click',()=>{
+      document.querySelectorAll('.nav-tab').forEach(item=>item.classList.remove('active'));
+      tab.classList.add('active');
+    }));
+    document.querySelectorAll('.chip').forEach(chip=>chip.addEventListener('click',()=>{
+      document.querySelectorAll('.chip').forEach(item=>item.classList.remove('active'));
+      chip.classList.add('active');
+    }));
+  </script>
+</body>
+</html>
