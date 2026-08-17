@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260816-2119-responsive-modules2';
+  const VERSION = '20260817-1138-responsive-modules3-cronograma-refine';
   let passthrough = false;
   let queuedClick = false;
   let authPoll = 0;
@@ -19,6 +19,14 @@
       const script = document.createElement('script');
       script.src = new URL(`js/core/module-responsive.js?v=${VERSION}`, document.baseURI).href;
       script.dataset.mgdModuleResponsive = VERSION;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+
+    if (!document.querySelector('script[data-mgd-cronograma-refine]')) {
+      const script = document.createElement('script');
+      script.src = new URL(`js/modules/cronograma/refine-runtime.js?v=${VERSION}`, document.baseURI).href;
+      script.dataset.mgdCronogramaRefine = VERSION;
       script.defer = true;
       document.head.appendChild(script);
     }
