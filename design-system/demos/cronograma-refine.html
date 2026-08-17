@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mi Gran Día · Cronograma REFINE</title>
+<style>
+:root{
+  --ink:#0b0b0b;--white:#fff;--olive:#7f8962;--olive-light:#a3ad83;--beige:#ddd3c2;
+  --rose:#b17782;--text:#2f302b;--muted:#74716d;--line:#e5dfdc;--surface:#fff;--soft:#faf9f8;
+  --shadow:0 12px 30px rgba(63,48,51,.07);
+}
+*{box-sizing:border-box}
+html{background:#f6f4f1}
+body{margin:0;font-family:Inter,"Segoe UI",Arial,sans-serif;color:var(--text);background:linear-gradient(180deg,#f6f4f1,#fbfaf8 45%,#f4f1ec);min-height:100vh}
+button{font:inherit;cursor:pointer}
+.shell{max-width:1260px;margin:auto;padding:22px clamp(14px,3vw,34px) 56px}
+.topbar{position:sticky;top:0;z-index:10;margin:0 -8px 24px;padding:8px;background:rgba(246,244,241,.88);backdrop-filter:blur(16px)}
+.nav{display:flex;gap:8px;overflow:auto;padding:7px;border:1px solid rgba(127,137,98,.16);border-radius:16px;background:rgba(255,255,255,.82);box-shadow:0 8px 26px rgba(0,0,0,.045);scrollbar-width:none}.nav::-webkit-scrollbar{display:none}
+.nav button{white-space:nowrap;border:0;border-radius:11px;padding:10px 14px;background:transparent;color:#65625f;font-size:12px;font-weight:800}.nav button.active{background:var(--olive);color:#fff}.nav .home{margin-right:auto;color:var(--text);background:#f3f0eb}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:end;margin-bottom:22px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--olive);font-size:10px;font-weight:900;letter-spacing:.16em;text-transform:uppercase}.eyebrow:before{content:"";width:24px;height:1px;background:var(--olive)}
+h1{margin:10px 0 8px;font-family:Georgia,"Times New Roman",serif;font-size:clamp(34px,5vw,62px);font-weight:500;line-height:.98;letter-spacing:-.035em}
+.hero p{max-width:660px;margin:0;color:var(--muted);font-size:14px;line-height:1.6}
+.hero-actions{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}.btn{min-height:44px;border:1px solid var(--line);border-radius:12px;padding:0 16px;background:#fff;color:var(--text);font-weight:850}.btn.primary{background:var(--olive);border-color:var(--olive);color:#fff}.btn:hover{transform:translateY(-1px)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.kpi{padding:16px 17px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.9);box-shadow:var(--shadow)}.kpi span{display:block;color:var(--muted);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.kpi strong{display:block;margin-top:7px;font-size:27px;letter-spacing:-.04em}.kpi small{display:block;margin-top:3px;color:var(--olive);font-size:10px;font-weight:800}
+.layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(290px,.8fr);gap:18px}.card{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.92);box-shadow:var(--shadow)}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid #eee9e6}.card-head h2{margin:0;font-size:15px}.seg{display:flex;gap:5px;padding:4px;border-radius:10px;background:#f3f0ed}.seg button{border:0;border-radius:8px;padding:7px 10px;background:transparent;color:#77716d;font-size:9px;font-weight:900}.seg button.active{background:#fff;color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.timeline{padding:8px 20px 20px}.day{padding:18px 0 6px;display:flex;align-items:center;justify-content:space-between;gap:14px}.day strong{font-family:Georgia,"Times New Roman",serif;font-size:21px;font-weight:500}.day span{font-size:10px;color:var(--muted);font-weight:800}.item{position:relative;display:grid;grid-template-columns:84px 18px minmax(0,1fr) auto;gap:11px;align-items:center;padding:13px 0}.item:not(:last-child):after{content:"";position:absolute;left:92px;top:35px;bottom:-13px;width:1px;background:#e8e3de}.time{font-size:11px;font-weight:900;color:#57544f}.dot{position:relative;z-index:1;width:12px;height:12px;border:3px solid #fff;border-radius:50%;background:var(--olive);box-shadow:0 0 0 1px rgba(127,137,98,.32)}.item.pending .dot{background:#d0cbc4}.item.highlight .dot{background:var(--rose)}.event h3{margin:0 0 4px;font-size:13px}.event p{margin:0;color:var(--muted);font-size:10px;line-height:1.45}.badge{display:inline-flex;align-items:center;min-height:26px;padding:0 9px;border-radius:999px;background:#eef0e8;color:#697151;font-size:8px;font-weight:900}.badge.rose{background:#f2e7e9;color:#9d5e6a}.badge.gray{background:#f1efec;color:#807b76}
+.side{display:grid;gap:18px;align-content:start}.mini{padding:18px}.mini h3{margin:0 0 12px;font-size:13px}.progress{height:8px;border-radius:99px;background:#eeeae5;overflow:hidden}.progress i{display:block;width:72%;height:100%;background:var(--olive);border-radius:99px}.progress-copy{display:flex;justify-content:space-between;margin-top:8px;color:var(--muted);font-size:9px;font-weight:800}.note{padding:14px;border-radius:13px;background:#f8f4f0;border:1px solid #eee4dc}.note strong{display:block;font-size:11px;margin-bottom:4px}.note p{margin:0;color:var(--muted);font-size:9px;line-height:1.5}.quick{display:grid;grid-template-columns:1fr 1fr;gap:9px}.quick button{min-height:48px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--text);font-size:9px;font-weight:900}.quick button:first-child{background:var(--olive);border-color:var(--olive);color:#fff}
+.legend{display:grid;gap:10px}.legend div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #f0ece8}.legend div:last-child{border:0}.legend span{font-size:10px;color:var(--muted)}.legend b{font-size:10px}
+@media(max-width:900px){.hero{grid-template-columns:1fr}.hero-actions{justify-content:flex-start}.kpis{grid-template-columns:1fr 1fr}.layout{grid-template-columns:1fr}.side{grid-template-columns:1fr 1fr}.side .card:last-child{grid-column:1/-1}}
+@media(max-width:560px){.shell{padding:10px 10px 36px}.topbar{margin:0 -2px 14px}.nav{border-radius:13px}.nav button{min-height:42px;padding:9px 12px}.hero{gap:14px;margin-bottom:16px}h1{font-size:42px}.hero p{font-size:13px}.hero-actions{display:grid;grid-template-columns:1fr 1fr}.btn{width:100%}.kpis{grid-template-columns:1fr 1fr;gap:8px}.kpi{padding:13px}.kpi strong{font-size:23px}.layout{gap:12px}.card{border-radius:15px}.card-head{padding:14px;align-items:flex-start;flex-direction:column}.timeline{padding:4px 14px 16px}.item{grid-template-columns:58px 16px minmax(0,1fr);gap:8px;align-items:start}.item:not(:last-child):after{left:65px;top:32px}.item .badge{grid-column:3;margin-top:3px;justify-self:start}.time{font-size:10px}.event h3{font-size:12px}.side{grid-template-columns:1fr}.side .card:last-child{grid-column:auto}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar"><nav class="nav" aria-label="Navegación rápida"><button class="home">← Menú</button><button>Checklist</button><button>Presupuesto</button><button>Proveedores</button><button>Invitados</button><button>Distribución</button><button class="active">Cronograma</button><button>Invitaciones</button><button>Música</button></nav></div>
+
+  <section class="hero">
+    <div><span class="eyebrow">Organización del gran día</span><h1>Cronograma</h1><p>Una vista clara de lo que falta antes de la boda y de cómo se desarrollará el día, sin convertir el módulo en un dashboard genérico.</p></div>
+    <div class="hero-actions"><button class="btn">Importar</button><button class="btn primary">+ Nueva actividad</button></div>
+  </section>
+
+  <section class="kpis">
+    <article class="kpi"><span>Actividades</span><strong>18</strong><small>13 completadas</small></article>
+    <article class="kpi"><span>Pendientes</span><strong>5</strong><small>2 esta semana</small></article>
+    <article class="kpi"><span>Próximo hito</span><strong>12 d</strong><small>Prueba final</small></article>
+    <article class="kpi"><span>Día de boda</span><strong>9</strong><small>momentos clave</small></article>
+  </section>
+
+  <main class="layout">
+    <section class="card">
+      <header class="card-head"><h2>Programa del día</h2><div class="seg"><button>Previo</button><button class="active">16 ene.</button><button>Después</button></div></header>
+      <div class="timeline">
+        <div class="day"><strong>Viernes, 16 de enero</strong><span>Casa Acapulco</span></div>
+        <article class="item"><time class="time">11:00</time><span class="dot"></span><div class="event"><h3>Preparación</h3><p>Ingreso de proveedores, decoración final y validación de montaje.</p></div><span class="badge">Listo</span></article>
+        <article class="item"><time class="time">15:30</time><span class="dot"></span><div class="event"><h3>Llegada de invitados</h3><p>Recepción, bienvenida y ubicación inicial.</p></div><span class="badge">Confirmado</span></article>
+        <article class="item highlight"><time class="time">16:30</time><span class="dot"></span><div class="event"><h3>Ceremonia</h3><p>Inicio formal de la ceremonia y entrada de los novios.</p></div><span class="badge rose">Momento clave</span></article>
+        <article class="item"><time class="time">18:00</time><span class="dot"></span><div class="event"><h3>Fotos y cóctel</h3><p>Sesión breve de fotos mientras inicia el cóctel.</p></div><span class="badge">Coordinado</span></article>
+        <article class="item"><time class="time">19:30</time><span class="dot"></span><div class="event"><h3>Recepción y cena</h3><p>Ingreso al salón, brindis y servicio principal.</p></div><span class="badge">Listo</span></article>
+        <article class="item pending"><time class="time">21:30</time><span class="dot"></span><div class="event"><h3>Fiesta</h3><p>Apertura de pista, DJ y bloque de celebración.</p></div><span class="badge gray">Por cerrar</span></article>
+      </div>
+    </section>
+
+    <aside class="side">
+      <section class="card mini"><h3>Avance general</h3><div class="progress"><i></i></div><div class="progress-copy"><span>13 de 18 actividades</span><b>72%</b></div></section>
+      <section class="card mini"><h3>Próximo pendiente</h3><div class="note"><strong>Confirmar hora del DJ</strong><p>Falta cerrar la hora de prueba de sonido y montaje.</p></div><div class="quick" style="margin-top:10px"><button>Resolver</button><button>Editar</button></div></section>
+      <section class="card mini"><h3>Resumen</h3><div class="legend"><div><span>Completadas</span><b>13</b></div><div><span>En coordinación</span><b>3</b></div><div><span>Pendientes</span><b>2</b></div></div></section>
+    </aside>
+  </main>
+</div>
+</body>
+</html>
