@@ -11,7 +11,7 @@
   </style>
 </head>
 <body>
-  <iframe id="inv5" src="./invitacion_5_base.html?v=20260816-1929" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
+  <iframe id="inv5" src="./invitacion_5_base.html?v=20260816-1932" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
   <script>
     const frame=document.getElementById('inv5');
     frame.addEventListener('load',()=>{
@@ -174,7 +174,7 @@
 
           #dressCodeSection.inv5-dress-section{
             margin:46px auto 8px !important;
-            padding:0 4px 28px !important;
+            padding:0 !important;
             position:relative !important;
             z-index:1 !important;
             background:transparent !important;
@@ -183,11 +183,13 @@
           }
           .inv5-dress-card{
             position:relative;
-            width:min(98%,640px);
+            width:106%;
+            max-width:none;
             aspect-ratio:911 / 1727;
             min-height:0;
-            margin:0 auto;
-            background:url('./fondo_dress_code_5.png?v=20260816-1929') center/100% 100% no-repeat;
+            margin-left:-3%;
+            margin-right:-3%;
+            background:url('./fondo_dress_code_5.png?v=20260816-1932') center/100% 100% no-repeat;
             display:flex;
             align-items:flex-start;
             justify-content:center;
@@ -290,8 +292,8 @@
               padding-bottom:70px !important;
               margin-bottom:42px !important;
             }
-            #dressCodeSection.inv5-dress-section{margin-top:48px !important;padding-left:2px !important;padding-right:2px !important}
-            .inv5-dress-card{width:99%;max-width:none}
+            #dressCodeSection.inv5-dress-section{margin-top:48px !important;padding:0 !important;overflow:visible !important}
+            .inv5-dress-card{width:108%;max-width:none;margin-left:-4%;margin-right:-4%}
             .inv5-dress-content{width:72%;padding:23% 4px 9%}
             .inv5-dress-code{font-size:31px !important}
             .inv5-dress-formal{font-size:34px !important}
