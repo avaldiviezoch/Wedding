@@ -4,7 +4,7 @@
 window.MiGranDiaModules = window.MiGranDiaModules || {};
 window.MiGranDiaModules.invitaciones = { id: 'invitaciones' };
 
-const VERSION = '20260817-device-preview-scroll-v3-nav';
+const VERSION = '20260817-device-preview-scroll-v4-preserve-workspace';
 const STORAGE_KEY = 'migrandia_invitacion_activa_v1';
 const DEVICE_KEY = 'migrandia_invitacion_dispositivo_v1';
 const INVITATIONS = Object.freeze([
@@ -43,6 +43,8 @@ function syncQuickNav(moduleId) {
   document.querySelectorAll('[data-quick-module]').forEach(button => {
     const buttonModule = String(button.dataset.quickModule || '').trim().toLowerCase();
     button.classList.toggle('active', Boolean(normalized) && normalized !== 'home' && normalized !== 'logout' && buttonModule === normalized);
+    button.classList.toggle('is-active', Boolean(normalized) && normalized !== 'home' && normalized !== 'logout' && buttonModule === normalized);
+    button.setAttribute('aria-current', buttonModule === normalized ? 'page' : 'false');
   });
 }
 function stopInvitationFrame(root) {
@@ -61,6 +63,12 @@ function purgeInvitationUi() {
   });
   document.getElementById('mgdInvitationMobilePanelStyles')?.remove();
   document.getElementById('mgdNativeInvitationsStyles')?.remove();
+}
+function hideLegacyWorkspaceChildren(workspace) {
+  Array.from(workspace.children).forEach(child => {
+    if (child.matches?.('.mgd-inv-panel,[data-invitations-layout="mobile-preview"],[data-owner-module="invitaciones"]')) return;
+    child.hidden = true;
+  });
 }
 function ensureCleanupObserver() {
   const workspace = document.getElementById('unifiedWorkspace');
@@ -103,23 +111,19 @@ function enableScrollablePreview(frame) {
     try {
       const doc = frame.contentDocument || frame.contentWindow?.document;
       if (!doc) return;
-      const html = doc.documentElement;
-      const body = doc.body;
-      [html, body].forEach(node => {
+      [doc.documentElement, doc.body].forEach(node => {
         if (!node) return;
         node.style.setProperty('overflow-x', 'hidden', 'important');
         node.style.setProperty('overflow-y', 'auto', 'important');
         node.style.setProperty('-webkit-overflow-scrolling', 'touch', 'important');
         node.style.setProperty('touch-action', 'pan-y', 'important');
       });
-
       const nested = doc.querySelector('iframe');
       if (!nested) return;
       nested.setAttribute('scrolling', 'no');
       nested.style.width = '100%';
       nested.style.display = 'block';
       nested.style.border = '0';
-
       const resizeNested = () => {
         try {
           const nestedDoc = nested.contentDocument || nested.contentWindow?.document;
@@ -138,7 +142,6 @@ function enableScrollablePreview(frame) {
           if (height > 0) nested.style.height = `${height}px`;
         } catch (_) {}
       };
-
       nested.addEventListener('load', resizeNested, { once: true });
       resizeNested();
       setTimeout(resizeNested, 250);
@@ -157,20 +160,25 @@ function render() {
   if (!workspace) return false;
   activeModule = 'invitaciones';
   purgeInvitationUi();
+  hideLegacyWorkspaceChildren(workspace);
   ensureStyles();
   ensureCleanupObserver();
 
   const current = INVITATIONS.find(item => item.id === activeId()) || INVITATIONS[4];
   const currentDevice = activeDevice();
-  workspace.innerHTML = `<section class="mgd-inv-panel" data-owner-module="invitaciones" data-invitations-layout="mobile-preview" data-version="${VERSION}"><aside class="mgd-inv-selector"><div class="mgd-inv-selector-head"><span class="mgd-inv-eyebrow">Modelos disponibles</span><h2>Selecciona una invitación</h2><p>Pulsa un modelo para verlo. Cada opción abre directamente la versión publicada de esa invitación.</p></div><div class="mgd-inv-list">${INVITATIONS.map(item => optionMarkup(item, item.id === current.id)).join('')}</div></aside><section class="mgd-inv-preview-card"><div class="mgd-inv-toolbar"><div class="mgd-inv-toolbar-title"><span>Vista previa móvil</span><strong id="mgdInvTitle">${current.name}</strong><em id="mgdInvOfficial">${current.official ? 'Invitación oficial' : ''}</em></div><div class="mgd-inv-actions"><button type="button" id="mgdInvReload">Recargar</button><button type="button" id="mgdInvCopy">Copiar enlace</button><a class="mgd-inv-open" id="mgdInvOpen" href="${current.url}" target="_blank" rel="noopener">Abrir aparte</a></div></div><div class="mgd-device-bar"><span class="mgd-device-label">Simular tamaño real</span><div class="mgd-device-options">${DEVICES.map(device => deviceMarkup(device, device.id === currentDevice.id)).join('')}</div></div><div class="mgd-inv-stage"><div class="mgd-phone" id="mgdPhone" style="--device-width:${currentDevice.width}px;--device-height:${currentDevice.height}px"><div class="mgd-phone-screen"><div class="mgd-inv-loading" id="mgdInvLoading">Cargando ${current.name}…</div><iframe id="mgdInvFrame" scrolling="yes" src="${current.url}" title="${current.name}" allow="autoplay; fullscreen"></iframe></div></div></div><p class="mgd-mobile-note">Desliza dentro de la pantalla del teléfono para recorrer toda la invitación. “Abrir aparte” sigue disponible para probarla en el viewport real.</p></section></section>`;
+  const host = document.createElement('div');
+  host.innerHTML = `<section class="mgd-inv-panel" data-owner-module="invitaciones" data-invitations-layout="mobile-preview" data-version="${VERSION}"><aside class="mgd-inv-selector"><div class="mgd-inv-selector-head"><span class="mgd-inv-eyebrow">Modelos disponibles</span><h2>Selecciona una invitación</h2><p>Pulsa un modelo para verlo. Cada opción abre directamente la versión publicada de esa invitación.</p></div><div class="mgd-inv-list">${INVITATIONS.map(item => optionMarkup(item, item.id === current.id)).join('')}</div></aside><section class="mgd-inv-preview-card"><div class="mgd-inv-toolbar"><div class="mgd-inv-toolbar-title"><span>Vista previa móvil</span><strong id="mgdInvTitle">${current.name}</strong><em id="mgdInvOfficial">${current.official ? 'Invitación oficial' : ''}</em></div><div class="mgd-inv-actions"><button type="button" id="mgdInvReload">Recargar</button><button type="button" id="mgdInvCopy">Copiar enlace</button><a class="mgd-inv-open" id="mgdInvOpen" href="${current.url}" target="_blank" rel="noopener">Abrir aparte</a></div></div><div class="mgd-device-bar"><span class="mgd-device-label">Simular tamaño real</span><div class="mgd-device-options">${DEVICES.map(device => deviceMarkup(device, device.id === currentDevice.id)).join('')}</div></div><div class="mgd-inv-stage"><div class="mgd-phone" id="mgdPhone" style="--device-width:${currentDevice.width}px;--device-height:${currentDevice.height}px"><div class="mgd-phone-screen"><div class="mgd-inv-loading" id="mgdInvLoading">Cargando ${current.name}…</div><iframe id="mgdInvFrame" scrolling="yes" src="${current.url}" title="${current.name}" allow="autoplay; fullscreen"></iframe></div></div></div><p class="mgd-mobile-note">Desliza dentro de la pantalla del teléfono para recorrer toda la invitación. “Abrir aparte” sigue disponible para probarla en el viewport real.</p></section></section>`;
+  const panel = host.firstElementChild;
+  if (!panel) return false;
+  workspace.appendChild(panel);
 
-  const frame = document.getElementById('mgdInvFrame');
-  const loading = document.getElementById('mgdInvLoading');
-  const title = document.getElementById('mgdInvTitle');
-  const official = document.getElementById('mgdInvOfficial');
-  const open = document.getElementById('mgdInvOpen');
-  const copy = document.getElementById('mgdInvCopy');
-  const phone = document.getElementById('mgdPhone');
+  const frame = panel.querySelector('#mgdInvFrame');
+  const loading = panel.querySelector('#mgdInvLoading');
+  const title = panel.querySelector('#mgdInvTitle');
+  const official = panel.querySelector('#mgdInvOfficial');
+  const open = panel.querySelector('#mgdInvOpen');
+  const copy = panel.querySelector('#mgdInvCopy');
+  const phone = panel.querySelector('#mgdPhone');
   let currentItem = current;
 
   function select(id) {
@@ -178,7 +186,7 @@ function render() {
     if (!item) return;
     currentItem = item;
     localStorage.setItem(STORAGE_KEY, String(item.id));
-    workspace.querySelectorAll('[data-invite-id]').forEach(button => button.classList.toggle('is-active', Number(button.dataset.inviteId) === item.id));
+    panel.querySelectorAll('[data-invite-id]').forEach(button => button.classList.toggle('is-active', Number(button.dataset.inviteId) === item.id));
     title.textContent = item.name;
     official.textContent = item.official ? 'Invitación oficial' : '';
     open.href = item.url;
@@ -193,16 +201,16 @@ function render() {
     localStorage.setItem(DEVICE_KEY, device.id);
     phone.style.setProperty('--device-width', `${device.width}px`);
     phone.style.setProperty('--device-height', `${device.height}px`);
-    workspace.querySelectorAll('[data-device-id]').forEach(button => button.classList.toggle('is-active', button.dataset.deviceId === device.id));
+    panel.querySelectorAll('[data-device-id]').forEach(button => button.classList.toggle('is-active', button.dataset.deviceId === device.id));
   }
 
-  workspace.querySelectorAll('[data-invite-id]').forEach(button => button.addEventListener('click', () => select(button.dataset.inviteId)));
-  workspace.querySelectorAll('[data-device-id]').forEach(button => button.addEventListener('click', () => setDevice(button.dataset.deviceId)));
+  panel.querySelectorAll('[data-invite-id]').forEach(button => button.addEventListener('click', () => select(button.dataset.inviteId)));
+  panel.querySelectorAll('[data-device-id]').forEach(button => button.addEventListener('click', () => setDevice(button.dataset.deviceId)));
   frame.addEventListener('load', () => {
     loading.classList.add('is-hidden');
     enableScrollablePreview(frame);
   });
-  document.getElementById('mgdInvReload')?.addEventListener('click', () => {
+  panel.querySelector('#mgdInvReload')?.addEventListener('click', () => {
     loading.classList.remove('is-hidden');
     try { frame.contentWindow.location.reload(); } catch (_) { frame.src = currentItem.url; }
   });
