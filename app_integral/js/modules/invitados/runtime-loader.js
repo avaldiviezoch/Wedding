@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260816-1921-invitados-fast3';
+  const VERSION = '20260817-1605-distribucion-native1';
   let baseRuntime = null;
   let rsvpRuntime = null;
 
@@ -11,6 +11,9 @@
 
   import(new URL('js/modules/distribucion/index.js?v=20260817-1535-link2', document.baseURI).href)
     .catch((error) => console.warn('No se pudo iniciar el vínculo Invitados ↔ Distribución:', error));
+
+  import(new URL('js/modules/distribucion/ui.js?v=20260817-1605-native-ui2', document.baseURI).href)
+    .catch((error) => console.warn('No se pudo iniciar la interfaz nativa de Distribución:', error));
 
   function ensureSharedShellStyles() {
     const id = 'mgdModuleTopbarPremiumCss';
