@@ -1,4 +1,4 @@
-const VERSION = '20260817-1602-native-ui1';
+const VERSION = '20260817-1605-native-ui2';
 const STYLE_ID = 'mgdDistribucionNativeCss';
 const BOUND = 'mgdDistribucionNativeUi';
 const frameState = new WeakMap();
@@ -207,7 +207,12 @@ function markRegions(doc) {
     doc.getElementById('bulkGuests')
   ].filter(Boolean);
   const guestManager = commonAncestor(duplicateGuestNodes);
-  if (guestManager && guestManager !== doc.body && !guestManager.contains(seatEditor)) {
+  if (
+    guestManager &&
+    guestManager !== doc.body &&
+    !guestManager.contains(seatEditor) &&
+    !guestManager.contains(planner)
+  ) {
     guestManager.classList.add('mgd-dist-duplicate-guests');
   }
 
@@ -235,7 +240,8 @@ function markRegions(doc) {
 }
 
 function compactLegacyChrome(doc) {
-  const headerCandidates = [...doc.querySelectorAll('body > header, body > .header, body > .topbar, body > .app-header')];
+  const headerCandidates = [...doc.querySelectorAll('body > header, body > .header, body > .topbar, body > .app-header')]
+    .filter((node) => !node.classList.contains('mgd-dist-native-header'));
   headerCandidates.forEach((node) => node.classList.add('mgd-dist-old-chrome'));
 
   const headings = [...doc.querySelectorAll('h1,h2')];
