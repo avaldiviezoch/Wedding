@@ -1,9 +1,10 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-master-theme-runtime-v2';
+  const VERSION = '20260817-master-theme-runtime-v3-checklist';
   const WORKSPACE_ID = 'unifiedWorkspace';
   const STYLE_ID = 'mgdMasterThemeStyles';
+  const CHECKLIST_STYLE_ID = 'mgdChecklistRefineStyles';
   const MODULES = new Set([
     'checklist','presupuesto','proveedores','invitados',
     'distribucion','cronograma','invitaciones','musica',
@@ -16,6 +17,10 @@
 
   function frameThemeHref() {
     return new URL(`css/core/master-frame-theme.css?v=${VERSION}`, document.baseURI).href;
+  }
+
+  function checklistThemeHref() {
+    return new URL(`css/modules/checklist-refine.css?v=${VERSION}`, document.baseURI).href;
   }
 
   function classifyActions(doc) {
@@ -42,6 +47,57 @@
     });
   }
 
+  function decorateChecklist(doc) {
+    if (!doc?.body) return;
+
+    doc.documentElement.classList.add('mgd-checklist-refine');
+    doc.body.classList.add('mgd-checklist-refine');
+
+    let link = doc.getElementById(CHECKLIST_STYLE_ID);
+    if (!link) {
+      link = doc.createElement('link');
+      link.id = CHECKLIST_STYLE_ID;
+      link.rel = 'stylesheet';
+      link.href = checklistThemeHref();
+      doc.head?.appendChild(link);
+    }
+
+    doc.querySelectorAll('h1,h2,.page-title,.module-title,.workspace-title').forEach(title => {
+      const text = String(title.textContent || '').trim().toLowerCase();
+      if (/checklist|tareas|pendientes/.test(text)) title.classList.add('mgd-checklist-title');
+    });
+
+    doc.querySelectorAll('input[type="checkbox"]').forEach(box => {
+      const row = box.closest('li,tr,[class*="task"],[class*="item"],[class*="row"],[class*="card"]');
+      if (!row || row === doc.body || row === doc.documentElement) return;
+      row.classList.add('mgd-checklist-task');
+      row.classList.toggle('mgd-checklist-done', Boolean(box.checked));
+      if (box.dataset.mgdChecklistBound !== VERSION) {
+        box.dataset.mgdChecklistBound = VERSION;
+        box.addEventListener('change', () => {
+          row.classList.toggle('mgd-checklist-done', Boolean(box.checked));
+        }, { passive:true });
+      }
+    });
+
+    doc.querySelectorAll('[class*="summary"],[class*="progress-card"],[class*="stats"]').forEach(node => {
+      node.classList.add('mgd-checklist-summary');
+    });
+
+    doc.querySelectorAll('[class*="filter"],[class*="tabs"],[class*="segmented"],select,input[type="search"]').forEach(node => {
+      const holder = node.matches('select,input[type="search"]')
+        ? node.closest('[class*="filter"],[class*="toolbar"],[class*="controls"]')
+        : node;
+      if (holder) holder.classList.add('mgd-checklist-filter');
+    });
+  }
+
+  function clearChecklistDecor(doc) {
+    if (!doc?.body) return;
+    doc.documentElement.classList.remove('mgd-checklist-refine');
+    doc.body.classList.remove('mgd-checklist-refine');
+  }
+
   function patchDocument(doc, moduleId) {
     if (!doc?.documentElement || !doc.body) return false;
 
@@ -61,6 +117,10 @@
 
     classifyActions(doc);
     annotateStatus(doc);
+
+    if (moduleId === 'checklist') decorateChecklist(doc);
+    else clearChecklistDecor(doc);
+
     return true;
   }
 
@@ -85,6 +145,7 @@
     const active = MODULES.has(moduleId) || Boolean(moduleId);
 
     document.body.classList.toggle('mgd-master-host-active', active && document.body.classList.contains('module-view'));
+    document.body.classList.toggle('mgd-checklist-host-active', moduleId === 'checklist' && document.body.classList.contains('module-view'));
     workspace.dataset.mgdMasterTheme = VERSION;
     workspace.dataset.mgdModule = moduleId || '';
 
