@@ -22,6 +22,8 @@ Mejorar Mi Gran Día sin romper funcionalidades, sin perder datos y sin acumular
 - Preferir extender código actual o usar APIs nativas antes de añadir dependencias.
 - Revisar `app_integral/ARCHITECTURE.md` y respetar su estructura.
 - Si el cambio toca Firebase/Firestore/auth/storage, identificar primero la ruta de lectura y escritura.
+- Si el cambio es visual, leer `agent/skills/visual-system/SKILL.md`.
+- Si queda una solución temporal o deuda conocida, registrarla en `agent/DEBT.md` siguiendo `agent/skills/debt/SKILL.md`.
 
 ## Arquitectura obligatoria
 
@@ -40,6 +42,20 @@ Cuando una UI, función, listener o flujo sea reemplazado:
 3. migrar consumidores si es necesario;
 4. retirar el código obsoleto cuando sea seguro;
 5. comprobar que no queden flashes visuales, dobles listeners, elementos duplicados ni estilos en conflicto.
+
+## Sistema visual
+
+Mismo propósito visual = mismo patrón visual.
+
+Antes de crear un botón, tarjeta, modal, input, badge, toolbar, navegación, loader o estado visual, buscar un equivalente existente y reutilizarlo cuando sea adecuado.
+
+Para trabajo visual usar tres niveles:
+
+- **NORMAL**: modo por defecto; corregir o ajustar sin rediseñar la pantalla.
+- **REFINE**: mejorar jerarquía, espaciado, consistencia y pulido sin cambiar identidad.
+- **REDESIGN**: solo cuando el usuario pida explícitamente replantear la pantalla o flujo.
+
+Nunca interpretar una corrección puntual como permiso para crear otra versión completa de la interfaz. Simplificar código no significa volver genérica la experiencia.
 
 ## Datos y seguridad
 
@@ -65,6 +81,14 @@ Evitar anchos fijos innecesarios, overlays que bloqueen scroll, `overflow:hidden
 - No cargar librerías para algo que HTML/CSS/JS nativo ya resuelve bien.
 - No duplicar assets pesados si el mismo recurso ya existe.
 
+## Deuda técnica
+
+No esconder workarounds ni soluciones temporales.
+
+Si una tarea termina con una decisión deliberadamente provisional, registrar una entrada `MGD-DEBT-###` en `agent/DEBT.md` con área, estado, prioridad, riesgo, solución recomendada y archivos relacionados.
+
+La deuda no justifica dejar pérdida de datos, vulnerabilidades o regresiones graves.
+
 ## Finalización de una tarea
 
 Antes de dar por terminado un cambio:
@@ -74,6 +98,7 @@ Antes de dar por terminado un cambio:
 - comprobar desktop y móvil;
 - comprobar persistencia si el módulo guarda datos;
 - buscar código viejo, CSS superpuesto y listeners duplicados;
+- revisar si quedó deuda técnica que deba documentarse;
 - resumir archivos modificados, riesgo y pruebas realizadas.
 
 ## Regla de prudencia
