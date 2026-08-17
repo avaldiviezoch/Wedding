@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-master-theme-runtime-v1';
+  const VERSION = '20260817-master-theme-runtime-v2';
   const WORKSPACE_ID = 'unifiedWorkspace';
   const STYLE_ID = 'mgdMasterThemeStyles';
   const MODULES = new Set([
@@ -14,8 +14,8 @@
     return location.hash.replace(/^#/, '').trim().toLowerCase();
   }
 
-  function themeHref() {
-    return new URL(`css/core/master-theme.css?v=${VERSION}`, document.baseURI).href;
+  function frameThemeHref() {
+    return new URL(`css/core/master-frame-theme.css?v=${VERSION}`, document.baseURI).href;
   }
 
   function classifyActions(doc) {
@@ -55,7 +55,7 @@
       link = doc.createElement('link');
       link.id = STYLE_ID;
       link.rel = 'stylesheet';
-      link.href = themeHref();
+      link.href = frameThemeHref();
       doc.head?.appendChild(link);
     }
 
@@ -90,7 +90,6 @@
 
     workspace.querySelectorAll('iframe').forEach(frame => patchFrame(frame, moduleId));
 
-    // También cubre módulos que se renderizan directamente en el workspace.
     classifyActions(workspace);
     annotateStatus(workspace);
   }
