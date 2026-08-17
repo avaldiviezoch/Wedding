@@ -1,9 +1,8 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-module-navigation-guard-v2-single-active';
+  const VERSION = '20260817-module-navigation-guard-v3-direct';
   let reconciling = false;
-  let scheduled = 0;
 
   function normalize(value) {
     return String(value || '').trim().toLowerCase();
@@ -30,27 +29,25 @@
     reconciling = false;
   }
 
-  function scheduleSync(moduleId) {
-    const id = normalize(moduleId || currentModule());
-    syncActive(id);
-
-    if (scheduled) cancelAnimationFrame(scheduled);
-    scheduled = requestAnimationFrame(() => {
-      scheduled = 0;
-      syncActive(currentModule() || id);
-    });
-
-    setTimeout(() => syncActive(currentModule() || id), 0);
+  function sourceFor(moduleId) {
+    const id = normalize(moduleId);
+    if (!id) return null;
+    return document.querySelector(`[data-module="${CSS.escape(id)}"]`);
   }
 
-  function activateFallback(moduleId) {
+  function openModule(moduleId) {
     const id = normalize(moduleId);
-    if (!id || currentModule() === id) return;
-    const source = document.querySelector(`[data-module="${CSS.escape(id)}"]`);
+    if (!id) return;
+
+    syncActive(id);
+    if (currentModule() === id) return;
+
+    const source = sourceFor(id);
     if (source instanceof HTMLElement) {
       source.click();
       return;
     }
+
     location.hash = id;
   }
 
@@ -60,32 +57,38 @@
     return trigger ? normalize(trigger.dataset.quickModule) : '';
   }
 
-  document.addEventListener('pointerdown', event => {
+  // Captura en window para ejecutarse antes que los handlers heredados de document.
+  // El botón superior no espera timers ni una segunda ruta de navegación: se traduce
+  // inmediatamente al acceso original data-module, que conserva toda la lógica existente.
+  window.addEventListener('pointerdown', event => {
     const id = requestedModule(event.target);
     if (id) syncActive(id);
   }, true);
 
-  document.addEventListener('click', event => {
+  window.addEventListener('click', event => {
     const id = requestedModule(event.target);
     if (!id) return;
-    scheduleSync(id);
-    requestAnimationFrame(() => {
-      if (currentModule() !== id) activateFallback(id);
-      scheduleSync(id);
-    });
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    openModule(id);
   }, true);
 
-  window.addEventListener('hashchange', () => scheduleSync(currentModule()));
-  window.addEventListener('pageshow', () => scheduleSync(currentModule()));
+  window.addEventListener('hashchange', () => syncActive(currentModule()));
+  window.addEventListener('pageshow', () => syncActive(currentModule()));
 
   const nav = document.getElementById('moduleQuickNav');
   if (nav) {
     new MutationObserver(() => {
-      if (!reconciling) scheduleSync(currentModule());
+      if (!reconciling) syncActive(currentModule());
     }).observe(nav, { childList: true, subtree: true });
   }
 
-  scheduleSync(currentModule());
+  syncActive(currentModule());
 
-  window.MGDModuleNavigationGuard = Object.freeze({ version: VERSION, sync: syncActive });
+  window.MGDModuleNavigationGuard = Object.freeze({
+    version: VERSION,
+    sync: syncActive,
+    open: openModule
+  });
 })();
