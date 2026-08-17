@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-master-theme-runtime-v4-navfix';
+  const VERSION = '20260817-master-theme-runtime-v5-single-active';
   const WORKSPACE_ID = 'unifiedWorkspace';
   const STYLE_ID = 'mgdMasterThemeStyles';
   const CHECKLIST_STYLE_ID = 'mgdChecklistRefineStyles';
