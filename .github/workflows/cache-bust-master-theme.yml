@@ -1,0 +1,43 @@
+name: Cache bust Master Theme
+
+on:
+  push:
+    paths:
+      - 'app_integral/js/core/menu-fast.js'
+      - 'app_integral/js/core/master-theme-runtime.js'
+      - 'app_integral/css/core/master-theme.css'
+      - 'app_integral/css/core/master-frame-theme.css'
+      - '.github/workflows/cache-bust-master-theme.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Actualizar versiones del tema master
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re, time
+          version = time.strftime('%Y%m%d%H%M%S')
+          for name in ('applu.html','app_integral/applu.html'):
+              p = Path(name)
+              if not p.exists():
+                  continue
+              text = p.read_text(encoding='utf-8')
+              text = re.sub(r'js/core/menu-fast\.js\?v=[^"\']+', f'js/core/menu-fast.js?v={version}-master', text)
+              p.write_text(text, encoding='utf-8')
+          PY
+      - name: Publicar cambio
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add applu.html app_integral/applu.html
+          git commit -m "Actualizar version del tema master [skip ci]"
+          git push

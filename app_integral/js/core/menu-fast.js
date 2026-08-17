@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-1138-responsive-modules3-cronograma-refine';
+  const VERSION = '20260817-1206-master-theme-full-app';
   let passthrough = false;
   let queuedClick = false;
   let authPoll = 0;
@@ -19,6 +19,14 @@
       const script = document.createElement('script');
       script.src = new URL(`js/core/module-responsive.js?v=${VERSION}`, document.baseURI).href;
       script.dataset.mgdModuleResponsive = VERSION;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+
+    if (!document.querySelector('script[data-mgd-master-theme-runtime]')) {
+      const script = document.createElement('script');
+      script.src = new URL(`js/core/master-theme-runtime.js?v=${VERSION}`, document.baseURI).href;
+      script.dataset.mgdMasterThemeRuntime = VERSION;
       script.defer = true;
       document.head.appendChild(script);
     }
