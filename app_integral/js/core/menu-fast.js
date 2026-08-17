@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-1422-auth-direct-recovery';
+  const VERSION = '20260817-1455-cronograma-clean';
   let passthrough = false;
   let queuedClick = false;
   let authPoll = 0;
@@ -35,14 +35,6 @@
       const script = document.createElement('script');
       script.src = new URL(`js/core/autosave-ui.js?v=${VERSION}`, document.baseURI).href;
       script.dataset.mgdAutosaveUi = VERSION;
-      script.defer = true;
-      document.head.appendChild(script);
-    }
-
-    if (!document.querySelector('script[data-mgd-cronograma-refine]')) {
-      const script = document.createElement('script');
-      script.src = new URL(`js/modules/cronograma/refine-runtime.js?v=${VERSION}`, document.baseURI).href;
-      script.dataset.mgdCronogramaRefine = VERSION;
       script.defer = true;
       document.head.appendChild(script);
     }
