@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-1249-nav-single-active';
+  const VERSION = '20260817-1307-direct-module-nav';
   let passthrough = false;
   let queuedClick = false;
   let authPoll = 0;
