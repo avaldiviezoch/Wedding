@@ -44,6 +44,24 @@ function nextE(s){return Math.max(Number(s.uid)||1,...(s.elements||[]).map(e=>Nu
 function newLegacy(t,s,i){const n=cap(t.capacity||10),eid=nextE(s),e={id:eid,type:'table',label:t.name||`Mesa ${i+1}`,x:720+(i%4)*220,y:360+Math.floor(i/4)*220,widthM:3.4,heightM:3.4,rotation:Number(t.rotation)||0,capacity:n,color:'#d9b978',shape:'table',locked:false,seats:Array(n).fill(null),sharedTableId:String(t.id),sharedTableType:t.type||'round'};(s.elements||(s.elements=[])).push(e);s.uid=Math.max(Number(s.uid)||1,eid+1);return e}
 function newCanon(e,d){const hi=(e.seats||[]).reduce((m,v,i)=>v!==null&&v!==''&&v!==undefined?Math.max(m,i+1):m,0),n=cap(e.capacity||e.seats?.length||10,hi);let name=String(e.label||'').trim();if(!name||/^mesa\s+\d+\s+personas$/i.test(name)){let i=1,u=new Set(d.tables.map(t=>txt(t.name)));while(u.has(txt(`Mesa ${i}`)))i++;name=`Mesa ${i}`}return{id:id('table'),name,type:'round',capacity:n,seats:seats([],n),rotation:Number(e.rotation)||0,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()}}
 function mapTables(d,s,p,mode='union'){
+ if(mode!=='union'){
+  Object.entries({...p.tables}).forEach(([c,e])=>{
+   const hasC=d.tables.some(t=>String(t.id)===String(c));
+   const hasL=lt(s).some(x=>String(x.id)===String(e));
+   if(hasC&&hasL)return;
+   if(hasC&&!hasL&&mode==='pull'){
+    d.guests.forEach(g=>{if(String(g.tableId||'')===String(c)){g.tableId='';g.seatId='';g.seatNumber=null}});
+    d.tables=d.tables.filter(t=>String(t.id)!==String(c));
+   }else if(!hasC&&hasL&&mode==='push'){
+    s.elements=(s.elements||[]).filter(x=>!(x.type==='table'&&String(x.id)===String(e)));
+   }else if(!hasC&&hasL&&mode==='pull'){
+    /* La mesa sigue en Distribución: se recreará abajo como mesa canónica nueva. */
+   }else if(hasC&&!hasL&&mode==='push'){
+    /* La mesa sigue en Invitados: se recreará abajo en el plano. */
+   }
+   delete p.tables[c];
+  });
+ }
  const cb=new Map(d.tables.map(t=>[String(t.id),t])), lb=new Map(lt(s).map(e=>[String(e.id),e])), uc=new Set(),ul=new Set();
  Object.entries({...p.tables}).forEach(([c,e])=>{if(cb.has(c)&&lb.has(String(e))&&!uc.has(c)&&!ul.has(String(e))){uc.add(c);ul.add(String(e))}else delete p.tables[c]});
  lt(s).forEach(e=>{const c=e.sharedTableId?String(e.sharedTableId):'';if(c&&cb.has(c)&&!uc.has(c)&&!ul.has(String(e.id))){p.tables[c]=Number(e.id);uc.add(c);ul.add(String(e.id))}});
@@ -51,8 +69,6 @@ function mapTables(d,s,p,mode='union'){
  const ca=d.tables.filter(t=>!uc.has(String(t.id))), la=lt(s).filter(e=>!ul.has(String(e.id)));for(let i=0;i<Math.min(ca.length,la.length);i++){p.tables[String(ca[i].id)]=Number(la[i].id);uc.add(String(ca[i].id));ul.add(String(la[i].id))}
  if(mode==='pull'||mode==='union')lt(s).forEach(e=>{if(ul.has(String(e.id)))return;const t=newCanon(e,d);d.tables.push(t);p.tables[String(t.id)]=Number(e.id);ul.add(String(e.id))});
  if(mode==='push'||mode==='union')d.tables.forEach((t,i)=>{if(Object.prototype.hasOwnProperty.call(p.tables,String(t.id)))return;const e=newLegacy(t,s,i);p.tables[String(t.id)]=Number(e.id)});
- if(mode==='pull')Object.entries({...p.tables}).forEach(([c,e])=>{if(lt(s).some(x=>String(x.id)===String(e)))return;d.guests.forEach(g=>{if(String(g.tableId||'')===c){g.tableId='';g.seatId='';g.seatNumber=null}});d.tables=d.tables.filter(t=>String(t.id)!==c);delete p.tables[c]});
- if(mode==='push')Object.entries({...p.tables}).forEach(([c,e])=>{if(d.tables.some(t=>String(t.id)===c))return;s.elements=(s.elements||[]).filter(x=>!(x.type==='table'&&String(x.id)===String(e)));delete p.tables[c]});
  return p;
 }
 function pullSnap(s,x,l,pid,initial=false){
