@@ -37,9 +37,13 @@
     el.className = `invite-wedding-status${type ? ` is-${type}` : ''}`;
   }
 
-  // El módulo Invitaciones ahora es nativo. No clonamos elementos, no observamos
-  // el workspace y no reescribimos su DOM desde este archivo.
-  import(new URL(`../invitaciones/index.js?v=${INVITATIONS_MODULE_VERSION}`, import.meta?.url || document.baseURI).href)
+  // Invitaciones se renderiza desde su módulo real. Este archivo ya no modifica
+  // ni clona elementos del selector de invitaciones.
+  const nativeInvitationsUrl = new URL(
+    `js/modules/invitaciones/index.js?v=${INVITATIONS_MODULE_VERSION}`,
+    document.baseURI
+  ).href;
+  import(nativeInvitationsUrl)
     .catch((error) => console.error('No se pudo cargar el módulo nativo de Invitaciones:', error));
 
   document.addEventListener('click', (event) => {
