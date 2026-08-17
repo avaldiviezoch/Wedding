@@ -1,8 +1,8 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-module-navigation-guard-v6-deterministic';
-  const RETRY_DELAYS = [0, 80, 220];
+  const VERSION = '20260817-module-navigation-guard-v7-free-return';
+  const RETRY_DELAYS = [70, 180, 420];
   let reconciling = false;
   let navigationToken = 0;
 
@@ -51,77 +51,150 @@
     return document.querySelector(`[data-module="${CSS.escape(id)}"]`);
   }
 
-  function belongsTo(moduleId) {
+  function isInvitationContent(root = workspace()) {
+    return Boolean(root?.querySelector?.(
+      '[data-owner-module="invitaciones"], [data-invitations-layout], .mgd-inv-panel'
+    ));
+  }
+
+  function fingerprint(root = workspace()) {
+    if (!root?.firstElementChild) return '';
+    const first = root.firstElementChild;
+    const frame = first.matches?.('iframe') ? first : first.querySelector?.('iframe');
+    return [
+      root.childElementCount,
+      first.tagName || '',
+      first.id || '',
+      typeof first.className === 'string' ? first.className : '',
+      frame?.getAttribute?.('src') || ''
+    ].join('|');
+  }
+
+  function rendered(moduleId, before) {
     const id = normalize(moduleId);
     const root = workspace();
     if (!root || !root.childElementCount) return false;
 
+    if (id === 'invitaciones') return isInvitationContent(root);
+    if (isInvitationContent(root)) return false;
+
     const owner = normalize(root.dataset.activeModule);
-    if (owner && owner !== id) return false;
+    if (owner === id) return true;
 
-    if (id === 'invitaciones') {
-      return Boolean(root.querySelector('[data-owner-module="invitaciones"], [data-invitations-layout], .mgd-inv-panel'));
-    }
+    if (before.previousId === id && root.childElementCount) return true;
+    if (root.firstElementChild !== before.firstElement) return true;
+    if (fingerprint(root) !== before.fingerprint) return true;
 
-    return true;
+    return false;
   }
 
-  function cleanForNavigation(moduleId) {
+  function markRendered(moduleId) {
     const id = normalize(moduleId);
     const root = workspace();
-    if (!root) return;
+    if (!root || !root.childElementCount) return false;
 
-    // Cada navegación arranca desde un estado conocido. No dejamos que el contenido
-    // del módulo anterior determine si el siguiente puede abrir o reabrirse.
-    root.replaceChildren();
     root.dataset.activeModule = id;
-    root.removeAttribute('data-mgd-invitations-fast');
+    document.body.dataset.mgdActiveModule = id;
+    document.body.classList.add('module-view');
+    syncActive(id);
+
+    const wanted = `#${id}`;
+    if (location.hash !== wanted) {
+      history.replaceState({ module: id }, '', `${location.pathname}${location.search}${wanted}`);
+    }
 
     if (id !== 'invitaciones') {
       document.getElementById('mgdNativeInvitationsStyles')?.remove();
       document.getElementById('mgdInvitationMobilePanelStyles')?.remove();
     }
 
-    document.body.dataset.mgdActiveModule = id;
-    document.body.classList.add('module-view');
-  }
-
-  function alignHash(moduleId) {
-    const id = normalize(moduleId);
-    const wanted = `#${id}`;
-    if (location.hash === wanted) return false;
-    history.replaceState({ module: id }, '', `${location.pathname}${location.search}${wanted}`);
     return true;
   }
 
-  function triggerOriginal(moduleId) {
-    const id = normalize(moduleId);
-    const source = sourceFor(id);
+  function prepareAttempt() {
+    const root = workspace();
+    if (!root) return;
 
-    if (source instanceof HTMLElement) {
-      source.click();
-      return true;
-    }
-
-    window.dispatchEvent(new Event('hashchange'));
-    return false;
+    // MUY IMPORTANTE: liberamos únicamente la marca de estado anterior.
+    // No borramos el contenido antes del click. El renderizador del módulo debe
+    // poder ejecutarse primero; borrar y marcar antes fue la causa del fallo al volver.
+    root.removeAttribute('data-active-module');
+    delete root.dataset.activeModule;
+    document.body.removeAttribute('data-mgd-active-module');
+    delete document.body.dataset.mgdActiveModule;
   }
 
-  function verifyAndRetry(moduleId, token, attempt = 0) {
+  function triggerOriginal(moduleId) {
+    const source = sourceFor(moduleId);
+    if (!(source instanceof HTMLElement)) return false;
+    source.click();
+    return true;
+  }
+
+  function triggerHashRoute(moduleId) {
     const id = normalize(moduleId);
-    if (token !== navigationToken || belongsTo(id)) return;
-    if (attempt >= RETRY_DELAYS.length) return;
+    const wanted = `#${id}`;
+    if (location.hash !== wanted) {
+      location.hash = id;
+    } else {
+      window.dispatchEvent(new Event('hashchange'));
+    }
+  }
+
+  function hardRetry(moduleId, token) {
+    if (token !== navigationToken) return;
+    const id = normalize(moduleId);
+    const root = workspace();
+    if (!root) return;
+
+    // Solo después de haber intentado la navegación normal permitimos limpiar.
+    // Así nunca bloqueamos al router original por adelantarle un activeModule falso.
+    root.replaceChildren();
+    prepareAttempt();
+
+    const before = {
+      previousId: '',
+      firstElement: null,
+      fingerprint: ''
+    };
+
+    triggerOriginal(id);
+    triggerHashRoute(id);
 
     window.setTimeout(() => {
-      if (token !== navigationToken || belongsTo(id)) return;
+      if (token !== navigationToken) return;
+      if (rendered(id, before)) markRendered(id);
+    }, 80);
+  }
 
-      // Repetimos el ciclo de activación, no solo el cambio visual del botón.
-      // Esto cubre renderizadores que escuchan click y otros que escuchan hashchange.
-      const source = sourceFor(id);
-      if (source instanceof HTMLElement) source.click();
-      window.dispatchEvent(new Event('hashchange'));
+  function verify(moduleId, token, before, attempt = 0) {
+    const id = normalize(moduleId);
+    if (token !== navigationToken) return;
 
-      verifyAndRetry(id, token, attempt + 1);
+    if (rendered(id, before)) {
+      markRendered(id);
+      return;
+    }
+
+    if (attempt >= RETRY_DELAYS.length) {
+      hardRetry(id, token);
+      return;
+    }
+
+    window.setTimeout(() => {
+      if (token !== navigationToken) return;
+
+      if (rendered(id, before)) {
+        markRendered(id);
+        return;
+      }
+
+      // Cubrimos ambos tipos de router existentes: los que escuchan el enlace
+      // original y los que reaccionan al hash. Seguimos sin marcar el módulo antes.
+      prepareAttempt();
+      triggerOriginal(id);
+      triggerHashRoute(id);
+      verify(id, token, before, attempt + 1);
     }, RETRY_DELAYS[attempt]);
   }
 
@@ -129,16 +202,32 @@
     const id = normalize(moduleId);
     if (!id) return;
 
+    const root = workspace();
+    const previousId = currentModule();
     const token = ++navigationToken;
-    syncActive(id);
-    cleanForNavigation(id);
-    alignHash(id);
+    const before = {
+      previousId,
+      firstElement: root?.firstElementChild || null,
+      fingerprint: fingerprint(root)
+    };
 
-    // Siempre ejecutamos la entrada original, incluso si se vuelve al mismo módulo
-    // o si ya se visitó anteriormente durante la sesión.
+    syncActive(id);
+    prepareAttempt();
+
+    // Siempre ejecutamos la entrada original. Se puede ir, volver y repetir cualquier
+    // módulo sin depender de la secuencia previa ni de que el hash ya coincida.
     triggerOriginal(id);
-    window.dispatchEvent(new Event('hashchange'));
-    verifyAndRetry(id, token, 0);
+
+    requestAnimationFrame(() => {
+      if (token !== navigationToken) return;
+      if (rendered(id, before)) {
+        markRendered(id);
+        return;
+      }
+
+      triggerHashRoute(id);
+      verify(id, token, before, 0);
+    });
   }
 
   function requestedModule(target) {
