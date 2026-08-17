@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-1634-distribucion-native2';
+  const VERSION = '20260817-1648-distribucion-stable';
   let baseRuntime = null;
   let rsvpRuntime = null;
 
@@ -9,11 +9,10 @@
     return new URL(`js/modules/invitados/${file}?v=${version}`, document.baseURI).href;
   }
 
-  import(new URL('js/modules/distribucion/index.js?v=20260817-1535-link2', document.baseURI).href)
+  // Distribución: solo se carga el vínculo de datos. La capa visual dinámica queda
+  // fuera del flujo activo para evitar que una interfaz se pinte sobre otra.
+  import(new URL('js/modules/distribucion/index.js?v=20260817-1648-link3', document.baseURI).href)
     .catch((error) => console.warn('No se pudo iniciar el vínculo Invitados ↔ Distribución:', error));
-
-  import(new URL('js/modules/distribucion/ui.js?v=20260817-1634-native-ui3', document.baseURI).href)
-    .catch((error) => console.warn('No se pudo iniciar la interfaz nativa de Distribución:', error));
 
   function ensureSharedShellStyles() {
     const id = 'mgdModuleTopbarPremiumCss';
@@ -66,7 +65,7 @@
   function isRsvpControl(node) {
     const control = node?.closest?.('[data-view],[data-tab],[data-rsvp-tab],#rsvpTab,#rsvpAdminTab,button,a');
     if (!control) return false;
-    const values = [control.dataset?.view, control.dataset?.tab, control.dataset?.rsvpTab, control.id, control.textContent]
+    const values = [control.dataset?.view, control.dataset?.tab, control.id, control.textContent]
       .map((value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase());
     return values.some((value) => value === 'rsvp' || value.includes('rsvp') || value.includes('confirmacion'));
   }
