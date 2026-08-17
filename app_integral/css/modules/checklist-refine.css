@@ -1,0 +1,238 @@
+/* Mi Gran Día · Checklist REFINE
+   Capa visual específica. No modifica datos, eventos ni persistencia.
+*/
+
+html.mgd-checklist-refine,
+body.mgd-checklist-refine{
+  --ck-ink:#2f302b;
+  --ck-muted:#77736e;
+  --ck-olive:#7f8962;
+  --ck-olive-dark:#68724e;
+  --ck-olive-soft:#eef0e8;
+  --ck-beige:#f4efe8;
+  --ck-rose:#b17782;
+  --ck-line:#e6dfda;
+  --ck-page:#f7f4ef;
+  --ck-surface:#fff;
+  --ck-shadow:0 14px 36px rgba(65,53,54,.075);
+  --ck-shadow-hover:0 18px 42px rgba(65,53,54,.105);
+  background:
+    radial-gradient(circle at 8% 0%,rgba(127,137,98,.07),transparent 30%),
+    linear-gradient(180deg,#f7f4ef 0%,#fbfaf8 100%) !important;
+  color:var(--ck-ink) !important;
+}
+
+body.mgd-checklist-refine{
+  min-height:100%;
+}
+
+/* El contenido respira como el Cronograma REFINE */
+body.mgd-checklist-refine :where(main,.main,.content,.page,.container,.workspace,.dashboard){
+  max-width:1440px;
+  margin-inline:auto;
+}
+
+body.mgd-checklist-refine :where(h1,.mgd-checklist-title){
+  color:var(--ck-ink) !important;
+  font-family:Georgia,'Times New Roman',serif !important;
+  font-weight:500 !important;
+  letter-spacing:-.035em !important;
+  line-height:1.05 !important;
+}
+
+body.mgd-checklist-refine :where(h2,h3){
+  color:#3b3b35;
+  letter-spacing:-.015em;
+}
+
+body.mgd-checklist-refine :where(.subtitle,.description,.muted,.helper,.hint,small){
+  color:var(--ck-muted);
+}
+
+/* Cabecera / resumen */
+body.mgd-checklist-refine :where(.header,.page-header,.toolbar,.topbar,[class*='header']){
+  border-color:var(--ck-line);
+}
+
+body.mgd-checklist-refine .mgd-checklist-summary,
+body.mgd-checklist-refine :where([class*='summary'],[class*='progress-card'],[class*='stats']){
+  border:1px solid var(--ck-line) !important;
+  border-radius:18px !important;
+  background:rgba(255,255,255,.94) !important;
+  box-shadow:var(--ck-shadow) !important;
+}
+
+/* KPIs: compactos, editoriales y sin exagerar color */
+body.mgd-checklist-refine :where([class*='stat'],[class*='metric'],[class*='kpi']){
+  border-color:var(--ck-line) !important;
+  border-radius:15px !important;
+  background:#fff !important;
+}
+body.mgd-checklist-refine :where([class*='stat'],[class*='metric'],[class*='kpi']) strong{
+  color:var(--ck-ink);
+}
+
+/* Barra de progreso */
+body.mgd-checklist-refine :where(progress,[class*='progress']){
+  accent-color:var(--ck-olive);
+}
+body.mgd-checklist-refine progress{
+  overflow:hidden;
+  height:9px;
+  border:0;
+  border-radius:999px;
+  background:#ece8e2;
+}
+body.mgd-checklist-refine progress::-webkit-progress-bar{
+  border-radius:999px;
+  background:#ece8e2;
+}
+body.mgd-checklist-refine progress::-webkit-progress-value{
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--ck-olive),#9aa47b);
+}
+
+/* Filtros */
+body.mgd-checklist-refine .mgd-checklist-filter,
+body.mgd-checklist-refine :where([class*='filter'],[class*='tabs'],[class*='segmented']){
+  border-color:var(--ck-line) !important;
+}
+body.mgd-checklist-refine :where(input[type='search'],input[type='text'],select){
+  min-height:42px;
+  color:var(--ck-ink) !important;
+  border:1px solid var(--ck-line) !important;
+  border-radius:12px !important;
+  background:#fff !important;
+  box-shadow:none !important;
+}
+body.mgd-checklist-refine :where(input[type='search'],input[type='text'],select):focus{
+  border-color:rgba(127,137,98,.72) !important;
+  outline:3px solid rgba(127,137,98,.12) !important;
+}
+
+/* Tareas */
+body.mgd-checklist-refine .mgd-checklist-task{
+  position:relative;
+  border:1px solid var(--ck-line) !important;
+  border-radius:15px !important;
+  background:rgba(255,255,255,.96) !important;
+  box-shadow:0 8px 22px rgba(60,49,50,.045) !important;
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease !important;
+}
+body.mgd-checklist-refine .mgd-checklist-task:hover{
+  transform:translateY(-1px);
+  border-color:rgba(127,137,98,.30) !important;
+  box-shadow:var(--ck-shadow-hover) !important;
+}
+body.mgd-checklist-refine .mgd-checklist-task.mgd-checklist-done{
+  border-color:rgba(127,137,98,.22) !important;
+  background:linear-gradient(135deg,#f7f8f3,#fff) !important;
+}
+body.mgd-checklist-refine .mgd-checklist-task.mgd-checklist-done::before{
+  content:'';
+  position:absolute;
+  left:-1px;
+  top:12px;
+  bottom:12px;
+  width:3px;
+  border-radius:0 4px 4px 0;
+  background:var(--ck-olive);
+}
+
+/* Checkbox más claro y táctil */
+body.mgd-checklist-refine input[type='checkbox']{
+  width:19px;
+  height:19px;
+  flex:0 0 19px;
+  accent-color:var(--ck-olive) !important;
+  cursor:pointer;
+}
+
+/* Estados */
+body.mgd-checklist-refine :where(.badge,.chip,.pill,[class*='status'],[class*='badge']){
+  border-radius:999px !important;
+  box-shadow:none !important;
+}
+body.mgd-checklist-refine [data-mgd-status='success']{
+  color:#68704f !important;
+  border-color:#dfe4d3 !important;
+  background:var(--ck-olive-soft) !important;
+}
+body.mgd-checklist-refine [data-mgd-status='progress']{
+  color:#776a50 !important;
+  border-color:#eadfc8 !important;
+  background:#f7f1e5 !important;
+}
+body.mgd-checklist-refine [data-mgd-status='pending']{
+  color:#77716d !important;
+  border-color:#e8e2de !important;
+  background:#f3f0ed !important;
+}
+
+/* Botones */
+body.mgd-checklist-refine .mgd-master-primary{
+  color:#fff !important;
+  border:1px solid var(--ck-olive) !important;
+  border-radius:12px !important;
+  background:var(--ck-olive) !important;
+  box-shadow:none !important;
+}
+body.mgd-checklist-refine .mgd-master-primary:hover{
+  border-color:var(--ck-olive-dark) !important;
+  background:var(--ck-olive-dark) !important;
+}
+body.mgd-checklist-refine .mgd-master-danger{
+  color:#95616b !important;
+  border-color:rgba(177,119,130,.25) !important;
+  background:#fff !important;
+}
+body.mgd-checklist-refine .mgd-master-danger:hover{
+  color:#fff !important;
+  border-color:var(--ck-rose) !important;
+  background:var(--ck-rose) !important;
+}
+
+/* Menús y tarjetas existentes */
+body.mgd-checklist-refine :where([class*='card'],[class*='panel']):not(.mgd-checklist-task){
+  border-color:var(--ck-line) !important;
+}
+
+/* Responsive: nada de scroll horizontal accidental */
+@media(max-width:760px){
+  html.mgd-checklist-refine,
+  body.mgd-checklist-refine{
+    overflow-x:hidden !important;
+  }
+  body.mgd-checklist-refine :where(main,.main,.content,.page,.container,.workspace,.dashboard){
+    width:100% !important;
+    max-width:100% !important;
+  }
+  body.mgd-checklist-refine :where(.mgd-checklist-task,[class*='card'],[class*='panel']){
+    max-width:100%;
+  }
+  body.mgd-checklist-refine :where(button,[role='button']){
+    min-height:42px;
+  }
+  body.mgd-checklist-refine :where(input,select,textarea){
+    font-size:16px !important;
+  }
+}
+
+@media(max-width:430px){
+  body.mgd-checklist-refine :where(h1,.mgd-checklist-title){
+    font-size:clamp(30px,9vw,40px) !important;
+  }
+  body.mgd-checklist-refine .mgd-checklist-task{
+    border-radius:13px !important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  body.mgd-checklist-refine *,
+  body.mgd-checklist-refine *::before,
+  body.mgd-checklist-refine *::after{
+    transition:none !important;
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+  }
+}
