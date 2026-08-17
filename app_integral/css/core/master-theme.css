@@ -1,0 +1,313 @@
+/* Mi Gran Día · MASTER THEME v1
+   Fuente visual: design-system/MASTER.md
+   Objetivo: unificar todos los módulos sin modificar datos ni lógica.
+*/
+
+:root{
+  --mgd-ink:#0b0b0b;
+  --mgd-white:#ffffff;
+  --mgd-olive:#7f8962;
+  --mgd-olive-dark:#6f7856;
+  --mgd-olive-light:#a3ad83;
+  --mgd-beige:#ddd3c2;
+  --mgd-rose:#b17782;
+  --mgd-text:#2f302b;
+  --mgd-muted:#74716d;
+  --mgd-line:#e5dfdc;
+  --mgd-surface:#ffffff;
+  --mgd-soft:#faf9f8;
+  --mgd-page:#f6f4f1;
+  --mgd-shadow:0 12px 30px rgba(63,48,51,.07);
+  --mgd-shadow-float:0 18px 42px rgba(63,48,51,.10);
+  --mgd-radius-sm:11px;
+  --mgd-radius:16px;
+  --mgd-radius-lg:20px;
+}
+
+/* =========================================================
+   VISTA DE MÓDULOS · NUEVA IDENTIDAD OFICIAL
+   ========================================================= */
+body.module-view{
+  color:var(--mgd-text) !important;
+  background:
+    linear-gradient(180deg,#f6f4f1 0%,#fbfaf8 46%,#f4f1ec 100%) !important;
+}
+
+body.module-view .unified-workspace{
+  color:var(--mgd-text) !important;
+  background:
+    linear-gradient(180deg,#f6f4f1 0%,#fbfaf8 46%,#f4f1ec 100%) !important;
+}
+
+body.module-view .unified-loader{
+  color:var(--mgd-text) !important;
+  background:rgba(246,244,241,.92) !important;
+}
+
+body.module-view .unified-loader-card{
+  border:1px solid var(--mgd-line) !important;
+  border-radius:18px !important;
+  background:#fff !important;
+  box-shadow:var(--mgd-shadow-float) !important;
+}
+
+body.module-view .unified-loader-spinner{
+  border-color:rgba(127,137,98,.18) !important;
+  border-top-color:var(--mgd-olive) !important;
+}
+
+/* Navegación superior: mismo lenguaje que Cronograma REFINE. */
+body.module-view .module-quick-nav{
+  border:1px solid rgba(127,137,98,.16) !important;
+  border-radius:16px !important;
+  background:rgba(255,255,255,.88) !important;
+  box-shadow:0 8px 26px rgba(0,0,0,.045) !important;
+  backdrop-filter:blur(16px) saturate(1.08) !important;
+  -webkit-backdrop-filter:blur(16px) saturate(1.08) !important;
+}
+
+body.module-view .module-quick-home,
+body.module-view .module-quick-tab{
+  border-radius:11px !important;
+  color:#65625f !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  font-weight:800 !important;
+}
+
+body.module-view .module-quick-home{
+  color:var(--mgd-text) !important;
+  background:#f3f0eb !important;
+}
+
+body.module-view .module-quick-home:hover,
+body.module-view .module-quick-tab:hover{
+  color:var(--mgd-text) !important;
+  background:#fff !important;
+  border-color:rgba(127,137,98,.16) !important;
+  box-shadow:0 8px 18px rgba(59,65,56,.08) !important;
+}
+
+body.module-view .module-quick-tab.active,
+body.module-view .module-quick-tab.is-active,
+body.module-view .module-quick-tab[aria-current='page']{
+  color:#fff !important;
+  border-color:var(--mgd-olive) !important;
+  background:var(--mgd-olive) !important;
+  box-shadow:0 8px 18px rgba(111,120,86,.20) !important;
+}
+
+body.module-view .module-session-logout{
+  color:#875d66 !important;
+  border-color:rgba(177,119,130,.22) !important;
+  background:rgba(255,255,255,.92) !important;
+  box-shadow:0 10px 25px rgba(75,55,60,.08) !important;
+}
+body.module-view .module-session-logout:hover{
+  color:#fff !important;
+  border-color:var(--mgd-rose) !important;
+  background:var(--mgd-rose) !important;
+}
+
+/* =========================================================
+   SUPERFICIES COMUNES EN TODOS LOS MÓDULOS
+   ========================================================= */
+body.module-view .unified-workspace :where(
+  [class*='card'],
+  [class*='panel'],
+  [class*='box'],
+  [class*='summary'],
+  [class*='widget']
+):not(.mgd-phone):not(.mgd-phone-screen):not(.canvas-wrap):not(.planner-canvas){
+  border-color:var(--mgd-line);
+}
+
+body.module-view .unified-workspace :where(
+  [class*='card'],
+  [class*='panel']
+):not(.mgd-phone):not(.mgd-phone-screen):not(.canvas-wrap):not(.planner-canvas):not([class*='modal']){
+  border-radius:var(--mgd-radius);
+}
+
+/* Encabezados editoriales de módulos. No altera títulos dentro de invitaciones. */
+body.module-view .unified-workspace :where(h1,.page-title,.module-title,.workspace-title){
+  color:var(--mgd-text);
+  letter-spacing:-.025em;
+}
+body.module-view .unified-workspace :where(.page-title,.module-title,.workspace-title){
+  font-family:Georgia,'Times New Roman',serif;
+  font-weight:500;
+}
+body.module-view .unified-workspace :where(.eyebrow,.overline,.kicker){
+  color:var(--mgd-olive);
+  font-weight:900;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+
+body.module-view .unified-workspace :where(p,.subtitle,.description,.muted,.helper-text){
+  color:var(--mgd-muted);
+}
+
+/* =========================================================
+   BOTONES
+   ========================================================= */
+body.module-view .unified-workspace button,
+body.module-view .unified-workspace [role='button']{
+  font-family:Inter,'Segoe UI',Arial,sans-serif;
+}
+
+body.module-view .unified-workspace :where(
+  .btn-primary,
+  .primary,
+  [data-variant='primary'],
+  [class*='primary-action'],
+  [class*='save-button'],
+  [class*='add-button']
+){
+  color:#fff;
+  border-color:var(--mgd-olive);
+  background:var(--mgd-olive);
+  border-radius:12px;
+  box-shadow:none;
+}
+
+body.module-view .unified-workspace :where(
+  .btn-primary,
+  .primary,
+  [data-variant='primary'],
+  [class*='primary-action'],
+  [class*='save-button'],
+  [class*='add-button']
+):hover{
+  background:var(--mgd-olive-dark);
+  border-color:var(--mgd-olive-dark);
+}
+
+body.module-view .unified-workspace :where(button,a,[role='button']):focus-visible,
+body.module-view :where(.module-quick-tab,.module-quick-home,.module-session-logout):focus-visible{
+  outline:3px solid rgba(127,137,98,.30) !important;
+  outline-offset:2px !important;
+}
+
+/* =========================================================
+   FORMULARIOS
+   ========================================================= */
+body.module-view .unified-workspace :where(input,select,textarea){
+  color:var(--mgd-text);
+  border-color:var(--mgd-line);
+  border-radius:11px;
+  background:#fff;
+  box-shadow:none;
+}
+body.module-view .unified-workspace :where(input,select,textarea):focus{
+  border-color:rgba(127,137,98,.72);
+  outline:3px solid rgba(127,137,98,.12);
+  outline-offset:0;
+}
+body.module-view .unified-workspace :where(label,.field-label){
+  color:#57544f;
+  font-weight:750;
+}
+
+/* =========================================================
+   TABLAS Y LISTAS
+   ========================================================= */
+body.module-view .unified-workspace table{
+  border-color:var(--mgd-line);
+  background:#fff;
+}
+body.module-view .unified-workspace :where(th,[class*='table-head']){
+  color:#65625f;
+  background:#f7f4f0;
+}
+body.module-view .unified-workspace :where(td,th){
+  border-color:#eee9e6;
+}
+body.module-view .unified-workspace tbody tr:hover{
+  background:#fbfaf8;
+}
+
+/* =========================================================
+   CHIPS / BADGES / ESTADOS
+   ========================================================= */
+body.module-view .unified-workspace :where(.badge,.chip,.pill,[class*='badge'],[class*='chip']){
+  border-radius:999px;
+}
+body.module-view .unified-workspace :where(.success,[data-status='success'],[data-status='done']){
+  color:#697151;
+  background:#eef0e8;
+}
+body.module-view .unified-workspace :where(.pending,[data-status='pending']){
+  color:#807b76;
+  background:#f1efec;
+}
+
+/* =========================================================
+   INVITACIONES · RESPETA EL PREVIEW, SOLO ORDENA EL CONTENEDOR
+   ========================================================= */
+body.module-view .mgd-inv-panel{
+  color:var(--mgd-text) !important;
+  background:transparent !important;
+}
+body.module-view .mgd-inv-panel :where(.mgd-inv-selector,.mgd-inv-preview){
+  border-color:var(--mgd-line) !important;
+  background:rgba(255,255,255,.94) !important;
+  box-shadow:var(--mgd-shadow) !important;
+}
+body.module-view .mgd-inv-panel .mgd-inv-option.is-active,
+body.module-view .mgd-inv-panel .mgd-inv-option[aria-pressed='true']{
+  border-color:var(--mgd-olive) !important;
+  background:#f3f4ee !important;
+}
+
+/* =========================================================
+   EDITORES VISUALES · NO ALTERAR GEOMETRÍA NI CANVAS
+   ========================================================= */
+body.module-view :where(#planner,.canvas-wrap,[class*='canvas'],[class*='stage'],svg){
+  --mgd-theme-preserve-geometry:1;
+}
+
+/* =========================================================
+   MODALES
+   ========================================================= */
+body.module-view .unified-workspace :where([role='dialog'],[class*='modal'],[class*='sheet']){
+  border-color:var(--mgd-line);
+}
+body.module-view .unified-workspace :where([class*='modal-content'],[class*='dialog-content'],[class*='sheet-content']){
+  color:var(--mgd-text);
+  border-radius:var(--mgd-radius-lg);
+  background:#fff;
+  box-shadow:0 24px 70px rgba(50,43,44,.16);
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@media(max-width:760px){
+  body.module-view .unified-workspace :where(input,select,textarea){font-size:16px;}
+  body.module-view .unified-workspace :where(button,[role='button']){min-height:40px;}
+}
+
+@media(max-width:430px){
+  body.module-view .unified-workspace{
+    background:#f8f6f2 !important;
+  }
+  body.module-view .unified-workspace :where(
+    [class*='card'],
+    [class*='panel']
+  ):not(.mgd-phone):not(.mgd-phone-screen){
+    border-radius:14px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  body.module-view *,
+  body.module-view *::before,
+  body.module-view *::after{
+    scroll-behavior:auto !important;
+    transition:none !important;
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+  }
+}
