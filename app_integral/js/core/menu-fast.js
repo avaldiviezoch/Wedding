@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-1348-nav-sequence-fix';
+  const VERSION = '20260817-1402-free-return-cache';
   let passthrough = false;
   let queuedClick = false;
   let authPoll = 0;
