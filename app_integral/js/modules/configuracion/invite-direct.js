@@ -4,7 +4,7 @@
   const FORM_ID = 'inviteWeddingMemberForm';
   const STATUS_ID = 'inviteWeddingStatus';
   const ACCOUNT_STYLE_VERSION = '20260814-1121-account1';
-  const VERSION = '20260816-1915-invites-fast1';
+  const VERSION = '20260816-1958-invites-direct5';
   const URLS = Object.freeze({
     1: 'https://avaldiviezoch.github.io/Wedding/invitaciones/invitacion_1/',
     2: 'https://avaldiviezoch.github.io/Wedding/invitaciones/invitacion_2/',
@@ -55,8 +55,8 @@
     return control?.closest?.('[data-invitation],[data-invitacion],li,article,.invitation-item,.invite-item,.invitation-option,.invite-option,.template-card,.model-card') || control;
   }
 
-  function controls(doc) {
-    return Array.from(doc.querySelectorAll('[data-invitation],[data-invitacion],button,a,[role="button"]'))
+  function controls(root) {
+    return Array.from(root.querySelectorAll('[data-invitation],[data-invitacion],button,a,[role="button"]'))
       .filter((el) => {
         const n = numberOf(el);
         return n >= 1 && n <= 5;
@@ -74,9 +74,10 @@
 
     const all = [clone, ...clone.querySelectorAll('*')];
     all.forEach((el) => {
-      if (el.nodeType !== 1) return;
       Array.from(el.childNodes).forEach((node) => {
-        if (node.nodeType === Node.TEXT_NODE) node.nodeValue = String(node.nodeValue || '').replace(/Invitaci[oó]n\s*4/gi, 'Invitación 5');
+        if (node.nodeType === Node.TEXT_NODE) {
+          node.nodeValue = String(node.nodeValue || '').replace(/Invitaci[oó]n\s*4/gi, 'Invitación 5');
+        }
       });
       Array.from(el.attributes || []).forEach((attr) => {
         const next = String(attr.value).replace(/invitacion_4/gi, 'invitacion_5');
@@ -99,16 +100,18 @@
     target.appendChild(badge);
   }
 
-  function preview(doc) {
-    return Array.from(doc.querySelectorAll('iframe')).find((frame) => {
+  function preview(root) {
+    return Array.from(root.querySelectorAll('iframe')).find((frame) => {
       const rect = frame.getBoundingClientRect();
       return rect.width > 260 && rect.height > 260;
     }) || null;
   }
 
-  function enhance(doc) {
-    if (!doc?.body || doc.body.dataset.mgdInvitationsFast === VERSION) return false;
-    const found = controls(doc);
+  function enhanceRoot(root, doc) {
+    if (!root || !doc) return false;
+    if (root.dataset?.mgdInvitationsFast === VERSION) return true;
+
+    const found = controls(root);
     if (found.length < 2) return false;
 
     const items = new Map();
@@ -116,10 +119,13 @@
       const n = numberOf(control);
       if (n && !items.has(n)) items.set(n, itemFor(control));
     });
+
+    if (items.size < 2) return false;
     cloneFive(doc, items);
 
     const ordered = [1, 2, 3, 4, 5].map((n) => items.get(n)).filter(Boolean);
-    const frame = preview(doc);
+    const frame = preview(root);
+
     ordered.forEach((item, index) => {
       const n = Number(item.dataset.mgdInvitationNumber) || numberOf(item) || index + 1;
       item.dataset.mgdInvitationNumber = String(n);
@@ -138,21 +144,23 @@
         });
         item.classList.add('active');
         item.setAttribute('aria-current', 'true');
-        const next = URLS[n];
-        if (frame.src !== next) frame.src = next;
+        if (frame.src !== URLS[n]) frame.src = URLS[n];
       }, true);
     });
 
     badge(doc, items.get(5));
-    doc.body.dataset.mgdInvitationsFast = VERSION;
-    return true;
+    if (root.dataset) root.dataset.mgdInvitationsFast = VERSION;
+    return items.has(5);
   }
 
   function bindFrame(frame) {
     if (!frame || frame.dataset.mgdInvitationsFrame === VERSION) return;
     frame.dataset.mgdInvitationsFrame = VERSION;
     const run = () => {
-      try { enhance(frame.contentDocument); } catch (_) {}
+      try {
+        const doc = frame.contentDocument;
+        if (doc?.body) enhanceRoot(doc.body, doc);
+      } catch (_) {}
     };
     frame.addEventListener('load', run);
     run();
@@ -161,6 +169,12 @@
   function scanWorkspace() {
     const workspace = document.getElementById('unifiedWorkspace');
     if (!workspace) return;
+
+    // El módulo histórico puede montarse directamente dentro del workspace.
+    // Este era el caso que el parche anterior no cubría.
+    enhanceRoot(workspace, document);
+
+    // Compatibilidad con módulos históricos que todavía usan iframe.
     workspace.querySelectorAll('iframe').forEach(bindFrame);
   }
 
@@ -176,6 +190,7 @@
   document.addEventListener('click', (event) => {
     if (event.target instanceof Element && event.target.closest('[data-module="invitaciones"],[data-quick-module="invitaciones"]')) {
       requestAnimationFrame(scanWorkspace);
+      setTimeout(scanWorkspace, 120);
     }
   }, true);
 
