@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-1307-direct-module-nav';
+  const VERSION = '20260817-1316-autosave-ui';
   let passthrough = false;
   let queuedClick = false;
   let authPoll = 0;
@@ -27,6 +27,14 @@
       const script = document.createElement('script');
       script.src = new URL(`js/core/master-theme-runtime.js?v=${VERSION}`, document.baseURI).href;
       script.dataset.mgdMasterThemeRuntime = VERSION;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+
+    if (!document.querySelector('script[data-mgd-autosave-ui]')) {
+      const script = document.createElement('script');
+      script.src = new URL(`js/core/autosave-ui.js?v=${VERSION}`, document.baseURI).href;
+      script.dataset.mgdAutosaveUi = VERSION;
       script.defer = true;
       document.head.appendChild(script);
     }

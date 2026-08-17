@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-cronograma-refine-production-1';
+  const VERSION = '20260817-cronograma-refine-production-2-autosave';
   const MODULE_ID = 'cronograma';
   const STYLE_ID = 'mgdCronogramaRefineStyles';
   const BODY_CLASS = 'mgd-cronograma-refine';
@@ -19,8 +19,9 @@
     doc.querySelectorAll('button,.btn,.button,[role="button"]').forEach(control => {
       const text = String(control.textContent || control.getAttribute('aria-label') || '').trim().toLowerCase();
       if (!text) return;
+      control.classList.remove('mgd-primary','mgd-danger');
       if (/eliminar|borrar|restablecer/.test(text)) control.classList.add('mgd-danger');
-      if (/agregar|añadir|nuevo|nueva|guardar|crear/.test(text) && !/guardar como/.test(text)) control.classList.add('mgd-primary');
+      if (/agregar|añadir|nuevo|nueva|crear|confirmar|aplicar|actualizar/.test(text)) control.classList.add('mgd-primary');
     });
   }
 
@@ -78,8 +79,6 @@
     workspace.dataset.mgdCronogramaRefine = VERSION;
     workspace.querySelectorAll('iframe').forEach(patchFrame);
 
-    // El cronograma heredado puede reconstruir tarjetas, modales o filtros en caliente.
-    // Reanotamos únicamente clases visuales; no interceptamos datos, eventos ni persistencia.
     workspace.querySelectorAll('iframe').forEach(frame => {
       try {
         const doc = frame.contentDocument;
