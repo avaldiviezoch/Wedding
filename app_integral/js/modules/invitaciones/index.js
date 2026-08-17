@@ -1,6 +1,9 @@
-export const moduleId = 'invitaciones';
+(() => {
+'use strict';
+window.MiGranDiaModules = window.MiGranDiaModules || {};
+window.MiGranDiaModules.invitaciones = { id: 'invitaciones' };
 
-const VERSION = '20260817-native-invitaciones-1';
+const VERSION = '20260817-native-invitaciones-2';
 const STORAGE_KEY = 'migrandia_invitacion_activa_v1';
 const INVITATIONS = Object.freeze([
   { id: 1, name: 'Invitación 1', url: 'https://avaldiviezoch.github.io/Wedding/invitaciones/invitacion_1/' },
@@ -15,7 +18,7 @@ function activeId() {
   return INVITATIONS.some(item => item.id === value) ? value : 5;
 }
 
-function styles() {
+function ensureStyles() {
   if (document.getElementById('mgdNativeInvitationsStyles')) return;
   const style = document.createElement('style');
   style.id = 'mgdNativeInvitationsStyles';
@@ -47,7 +50,7 @@ function itemMarkup(item, selected) {
 function render() {
   const workspace = document.getElementById('unifiedWorkspace');
   if (!workspace) return false;
-  styles();
+  ensureStyles();
   const selected = activeId();
   const current = INVITATIONS.find(item => item.id === selected) || INVITATIONS[4];
   workspace.innerHTML = `<section class="mgd-invites" data-native-invitations="${VERSION}">
@@ -102,3 +105,4 @@ window.addEventListener('hashchange', () => {
 });
 
 if (location.hash.toLowerCase() === '#invitaciones') queueMicrotask(render);
+})();
