@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-1402-free-return-cache';
+  const VERSION = '20260817-1422-auth-direct-recovery';
   let passthrough = false;
   let queuedClick = false;
   let authPoll = 0;
@@ -134,6 +134,16 @@
     return { ready: true, authenticated: Boolean(guard.authenticated), hydrating: false };
   }
 
+  function requestAuthNow(button) {
+    const requestAuth = window.WeddingPlannerRequestAuth;
+    if (typeof requestAuth !== 'function') return false;
+
+    queuedClick = false;
+    button?.removeAttribute('aria-busy');
+    requestAuth();
+    return true;
+  }
+
   function keepHydratingMenuResponsive() {
     const button = document.getElementById('menuButton');
     if (!button) return;
@@ -145,17 +155,24 @@
 
   function releaseQueuedClick() {
     if (!queuedClick) return;
+
+    const button = document.getElementById('menuButton');
     const state = authState();
+
+    // El formulario de acceso no necesita esperar a que onAuthStateChanged termine.
+    // En cuanto Firebase expone WeddingPlannerRequestAuth lo abrimos directamente.
+    if (!state.ready && requestAuthNow(button)) return;
     if (!state.ready) return;
 
     queuedClick = false;
-    const button = document.getElementById('menuButton');
     button?.removeAttribute('aria-busy');
 
     if (state.authenticated) {
       setMenu(true);
       return;
     }
+
+    if (requestAuthNow(button)) return;
 
     if (button) {
       passthrough = true;
@@ -174,12 +191,21 @@
         authPoll = 0;
       }
     }, 60);
+
     window.setTimeout(() => {
       if (authPoll) {
         clearInterval(authPoll);
         authPoll = 0;
       }
-    }, 10000);
+
+      // Nunca dejamos el botón principal eternamente en aria-busy.
+      if (queuedClick) {
+        queuedClick = false;
+        const button = document.getElementById('menuButton');
+        button?.removeAttribute('aria-busy');
+        requestAuthNow(button);
+      }
+    }, 4000);
   }
 
   function bind() {
@@ -202,13 +228,27 @@
       if (!state.ready) {
         event.preventDefault();
         event.stopImmediatePropagation();
+
+        // Si Firebase ya publicó la función de acceso, abrimos el modal ahora mismo.
+        if (requestAuthNow(button)) return;
+
         queuedClick = true;
         button.setAttribute('aria-busy', 'true');
         startAuthPoll();
         return;
       }
 
-      if (!state.authenticated) return;
+      if (!state.authenticated) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (requestAuthNow(button)) return;
+
+        // Fallback: permitimos que el listener legado gestione el acceso.
+        passthrough = true;
+        button.click();
+        passthrough = false;
+        return;
+      }
 
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -227,6 +267,7 @@
     });
 
     window.addEventListener('migrandia:wedding-context', releaseQueuedClick);
+    window.addEventListener('migrandia:auth', releaseQueuedClick);
     keepHydratingMenuResponsive();
     return true;
   }
