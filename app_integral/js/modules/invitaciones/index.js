@@ -4,7 +4,7 @@
 window.MiGranDiaModules = window.MiGranDiaModules || {};
 window.MiGranDiaModules.invitaciones = { id: 'invitaciones' };
 
-const VERSION = '20260817-device-preview-scroll-v2';
+const VERSION = '20260817-device-preview-scroll-v3-nav';
 const STORAGE_KEY = 'migrandia_invitacion_activa_v1';
 const DEVICE_KEY = 'migrandia_invitacion_dispositivo_v1';
 const INVITATIONS = Object.freeze([
@@ -37,6 +37,13 @@ function moduleFromTarget(target) {
   if (target.closest('#moduleSessionLogout,#logoutButton,.module-session-logout,.account-logout')) return 'logout';
   const trigger = target.closest('[data-module],[data-quick-module]');
   return trigger ? String(trigger.dataset.module || trigger.dataset.quickModule || '').trim().toLowerCase() : '';
+}
+function syncQuickNav(moduleId) {
+  const normalized = String(moduleId || '').trim().toLowerCase();
+  document.querySelectorAll('[data-quick-module]').forEach(button => {
+    const buttonModule = String(button.dataset.quickModule || '').trim().toLowerCase();
+    button.classList.toggle('active', Boolean(normalized) && normalized !== 'home' && normalized !== 'logout' && buttonModule === normalized);
+  });
 }
 function stopInvitationFrame(root) {
   const frame = root?.querySelector?.('#mgdInvFrame, iframe');
@@ -209,7 +216,7 @@ function render() {
   });
 
   document.body.classList.add('module-view');
-  document.querySelectorAll('[data-quick-module]').forEach(button => button.classList.toggle('active', button.dataset.quickModule === 'invitaciones'));
+  syncQuickNav('invitaciones');
   return true;
 }
 
@@ -220,6 +227,7 @@ document.addEventListener('click', event => {
   const nextModule = moduleFromTarget(event.target);
   if (!nextModule) return;
   activeModule = nextModule;
+  syncQuickNav(nextModule);
   if (nextModule !== 'invitaciones') purgeInvitationUi();
 }, true);
 document.addEventListener('click', event => {
@@ -229,6 +237,7 @@ document.addEventListener('click', event => {
   event.preventDefault();
   event.stopImmediatePropagation();
   activeModule = 'invitaciones';
+  syncQuickNav('invitaciones');
   document.body.classList.remove('menu-open');
   document.getElementById('mainDrawer')?.setAttribute('aria-hidden', 'true');
   document.getElementById('backdrop')?.setAttribute('aria-hidden', 'true');
@@ -237,10 +246,12 @@ document.addEventListener('click', event => {
 }, true);
 window.addEventListener('hashchange', () => {
   activeModule = location.hash.replace(/^#/, '').toLowerCase();
+  syncQuickNav(activeModule);
   if (activeModule === 'invitaciones' && window.WeddingPlannerAuthGuard?.authenticated) return void render();
   if (activeModule !== 'invitaciones') purgeInvitationUi();
 });
 
+syncQuickNav(activeModule);
 ensureCleanupObserver();
 if (location.hash.toLowerCase() === '#invitaciones') queueMicrotask(render);
 else purgeInvitationUi();
