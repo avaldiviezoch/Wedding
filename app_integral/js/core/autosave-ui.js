@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-autosave-ui-v1';
+  const VERSION = '20260817-autosave-ui-v2-iframes';
   const WORKSPACE_ID = 'unifiedWorkspace';
   const MODULES = new Set([
     'checklist','presupuesto','proveedores','invitados',
@@ -48,14 +48,13 @@
   }
 
   function isPersistenceOnly(control, text) {
-    const id = identity(control);
-    const signal = `${id} ${text}`;
+    const signal = `${identity(control)} ${text}`;
     return /guardar (?:en )?la nube|guardar nube|guardar respaldo|guardar backup|backup|cloud.?save|save.?cloud|sync.?now|sincronizar ahora|guardar datos en nube|guardar todo en nube/.test(signal);
   }
 
   function isRealCopyAction(control) {
     const context = `${identity(control)} ${nearbyText(control)}`;
-    return /plantilla|versi[oó]n|copia|duplic|escenario|modelo|alternativa|nuevo nombre|guardar como/.test(context);
+    return /plantilla|versi[oó]n|copia|duplic|escenario|modelo|alternativa|nuevo nombre|save.?as/.test(context);
   }
 
   function semanticLabel(control, moduleId) {
@@ -71,17 +70,7 @@
     if (/m[uú]sica|playlist|canci[oó]n|song|dj/.test(context)) return 'Aplicar cambios';
     if (/invitaci[oó]n/.test(context)) return 'Aplicar cambios';
 
-    switch (moduleId) {
-      case 'checklist': return 'Aplicar cambios';
-      case 'presupuesto': return 'Aplicar cambios';
-      case 'proveedores': return 'Aplicar cambios';
-      case 'invitados': return 'Aplicar cambios';
-      case 'distribucion': return 'Aplicar cambios';
-      case 'cronograma': return 'Aplicar cambios';
-      case 'invitaciones': return 'Aplicar cambios';
-      case 'musica': return 'Aplicar cambios';
-      default: return 'Aplicar cambios';
-    }
+    return MODULES.has(moduleId) ? 'Aplicar cambios' : 'Aplicar cambios';
   }
 
   function replaceLabel(control, label) {
@@ -90,14 +79,16 @@
       control.dataset.mgdAutosaveOriginalLabel = String(control.textContent || control.value || '').trim();
     }
 
-    if (control instanceof HTMLInputElement && /^(button|submit)$/i.test(control.type)) {
+    const tagName = String(control.tagName || '').toLowerCase();
+    const type = normalize(control.getAttribute?.('type'));
+    if (tagName === 'input' && /^(button|submit)$/.test(type)) {
       control.value = label;
     } else {
-      const textNodes = Array.from(control.childNodes).filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+      const textNodes = Array.from(control.childNodes || []).filter(node => node.nodeType === 3 && node.textContent.trim());
       if (textNodes.length === 1) textNodes[0].textContent = label;
-      else if (!control.querySelector('svg,img,use,path')) control.textContent = label;
+      else if (!control.querySelector?.('svg,img,use,path')) control.textContent = label;
       else {
-        const labelNode = Array.from(control.children).find(child => !child.matches('svg,img'));
+        const labelNode = Array.from(control.children || []).find(child => !child.matches?.('svg,img'));
         if (labelNode) labelNode.textContent = label;
         else control.setAttribute('aria-label', label);
       }
@@ -114,7 +105,7 @@
   }
 
   function processControl(control, moduleId) {
-    if (!(control instanceof Element)) return;
+    if (!control || control.nodeType !== 1) return;
     const text = controlText(control);
     if (!text) return;
 
