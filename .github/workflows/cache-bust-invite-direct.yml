@@ -7,7 +7,6 @@ on:
       - '.github/triggers/cache-bust-invite-direct.txt'
       - 'app_integral/js/modules/configuracion/invite-direct.js'
       - 'app_integral/js/modules/invitaciones/index.js'
-      - 'app_integral/applu.html'
 
 permissions:
   contents: write
@@ -19,14 +18,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Sincronizar carga nativa de Invitaciones
+      - name: Sincronizar carga aislada de Invitaciones
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re, time
+          import os, re, time
 
-          invite_version = '20260817-native-invitaciones-3'
-          direct_version = time.strftime('%Y%m%d%H%M%S')
+          # La versión se deriva del commit que disparó el workflow. Así cada cambio
+          # real del controlador obtiene una URL nueva y no reaparece código cacheado.
+          sha = os.environ.get('GITHUB_SHA', '')[:8] or 'manual'
+          stamp = time.strftime('%Y%m%d%H%M%S')
+          invite_version = f'{stamp}-{sha}-invitaciones'
+          direct_version = f'{stamp}-{sha}-direct'
           native_tag = f'  <script src="js/modules/invitaciones/index.js?v={invite_version}"></script>\n'
           legacy_pattern = r'(\s*<script src="js/legacy/applu-script-01\.js\?v=[^"\']+"></script>)'
 
@@ -36,19 +39,18 @@ jobs:
                   continue
               text = p.read_text(encoding='utf-8')
 
-              # Eliminar cualquier carga vieja/duplicada del modulo nativo.
-              text = re.sub(r'\s*<script src="js/modules/invitaciones/index\.js\?v=[^"\']+"></script>\s*', '\n', text)
-
-              # Cargar Invitaciones antes del router legado para que su controlador
-              # sea el propietario real del clic del modulo.
+              # Eliminar cualquier carga vieja o duplicada del módulo antes de
+              # insertar exactamente una carga, siempre antes del router legado.
+              text = re.sub(
+                  r'\s*<script src="js/modules/invitaciones/index\.js\?v=[^"\']+"></script>\s*',
+                  '\n',
+                  text
+              )
               text, n = re.subn(legacy_pattern, '\n' + native_tag + r'\1', text, count=1)
               if not n:
-                  raise SystemExit(f'No se encontro router legado en {name}')
+                  raise SystemExit(f'No se encontró router legado en {name}')
 
-              # Mantener el texto del menu consistente con los cinco modelos.
               text = text.replace('Gestión de los cuatro modelos', 'Gestión de 5 invitaciones')
-
-              # Cache bust del controlador auxiliar de cuenta/configuracion.
               text = re.sub(
                   r'js/modules/configuracion/invite-direct\.js\?v=[^"\']+',
                   f'js/modules/configuracion/invite-direct.js?v={direct_version}',
@@ -56,11 +58,11 @@ jobs:
               )
               p.write_text(text, encoding='utf-8')
           PY
-      - name: Publicar sincronizacion
+      - name: Publicar sincronización
         run: |
           if git diff --quiet; then exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add applu.html app_integral/applu.html
-          git commit -m "Sincronizar Invitaciones nativas en App LU"
+          git commit -m "Sincronizar Invitaciones en App LU [skip ci]"
           git push
