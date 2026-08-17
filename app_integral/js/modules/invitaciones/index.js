@@ -4,7 +4,7 @@
 window.MiGranDiaModules = window.MiGranDiaModules || {};
 window.MiGranDiaModules.invitaciones = { id: 'invitaciones' };
 
-const VERSION = '20260817-panel-movil-invitaciones-2-isolated';
+const VERSION = '20260817-panel-movil-invitaciones-3-isolated';
 const STORAGE_KEY = 'migrandia_invitacion_activa_v1';
 const INVITATIONS = Object.freeze([
   { id: 1, name: 'Invitación 1', url: 'https://avaldiviezoch.github.io/Wedding/invitaciones/invitacion_1/' },
@@ -24,6 +24,8 @@ function activeId() {
 
 function moduleFromTarget(target) {
   if (!(target instanceof Element)) return '';
+  if (target.closest('#moduleQuickHome,#unifiedHomeButton,.module-quick-home,.unified-home-button')) return 'home';
+  if (target.closest('#moduleSessionLogout,#logoutButton,.module-session-logout,.account-logout')) return 'logout';
   const trigger = target.closest('[data-module],[data-quick-module]');
   if (!trigger) return '';
   return String(trigger.dataset.module || trigger.dataset.quickModule || '').trim().toLowerCase();
@@ -51,7 +53,6 @@ function purgeInvitationUi() {
     root.remove();
   });
 
-  // Respaldo contra cualquier nodo suelto de una versión anterior del módulo.
   [
     '#mgdInvTitle', '#mgdInvOfficial', '#mgdInvReload', '#mgdInvCopy', '#mgdInvOpen',
     '#mgdInvLoading', '#mgdInvFrame'
@@ -70,7 +71,7 @@ function ensureCleanupObserver() {
   const workspace = document.getElementById('unifiedWorkspace');
   if (!workspace || cleanupObserver) return;
   cleanupObserver = new MutationObserver(() => {
-    if (activeModule && activeModule !== 'invitaciones') purgeInvitationUi();
+    if (activeModule !== 'invitaciones') purgeInvitationUi();
   });
   cleanupObserver.observe(workspace, { childList: true, subtree: true });
 }
@@ -303,8 +304,6 @@ function isTrigger(target) {
   return target instanceof Element && Boolean(target.closest('[data-module="invitaciones"],[data-quick-module="invitaciones"]'));
 }
 
-// Este listener corre antes del router legado. Al cambiar de módulo limpia por completo
-// el DOM y estilos que pertenecen únicamente a Invitaciones, sin tocar el nuevo módulo.
 document.addEventListener('click', (event) => {
   const nextModule = moduleFromTarget(event.target);
   if (!nextModule) return;
@@ -333,7 +332,7 @@ window.addEventListener('hashchange', () => {
     render();
     return;
   }
-  if (activeModule && activeModule !== 'invitaciones') purgeInvitationUi();
+  if (activeModule !== 'invitaciones') purgeInvitationUi();
 });
 
 ensureCleanupObserver();
