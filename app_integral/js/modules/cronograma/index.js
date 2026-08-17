@@ -2,8 +2,8 @@
 'use strict';
 
 const MODULE_ID='cronograma';
-const VERSION='20260817-cronograma-redesign-1';
-const STORAGE_KEY='migrandia_cronograma_v2';
+const VERSION='20260817-cronograma-redesign-2';
+const STORAGE_KEY='planificador_bodas_cronograma_v2';
 const WEDDING_DATE='2027-01-16';
 const DEFAULTS=[
 {id:'prep',phase:'day',time:'11:00',title:'Preparación',description:'Ingreso de proveedores, decoración final y validación de montaje.',status:'done',highlight:false},
@@ -25,17 +25,16 @@ function esc(value=''){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;',
 function uid(){return window.crypto?.randomUUID?.()||`cron-${Date.now()}-${Math.random().toString(16).slice(2)}`;}
 function normalizeItem(item={}){return {id:String(item.id||uid()),phase:['before','day','after'].includes(item.phase)?item.phase:'day',time:/^\d{2}:\d{2}$/.test(String(item.time||''))?String(item.time):'12:00',title:String(item.title||item.name||'Actividad').trim(),description:String(item.description||item.notes||'').trim(),status:['done','coordination','pending'].includes(item.status)?item.status:'pending',highlight:Boolean(item.highlight)};}
 function migrateLegacy(){
-  const keys=['migrandia_cronograma_v1','cronogramaData','weddingTimeline'];
+  const keys=['planificador_bodas_cronograma_v1','migrandia_cronograma_v2','migrandia_cronograma_v1','cronogramaData','weddingTimeline'];
   for(const key of keys){try{const parsed=JSON.parse(localStorage.getItem(key)||'null');const list=Array.isArray(parsed)?parsed:Array.isArray(parsed?.items)?parsed.items:null;if(list?.length)return list.map(normalizeItem);}catch(_){} }
   return null;
 }
 function loadState(){try{const parsed=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');if(parsed&&Array.isArray(parsed.items))return {version:2,items:parsed.items.map(normalizeItem),updatedAt:parsed.updatedAt||null};}catch(_){} const migrated=migrateLegacy();return {version:2,items:migrated||DEFAULTS.map(normalizeItem),updatedAt:null};}
-function persist(){state.updatedAt=new Date().toISOString();localStorage.setItem(STORAGE_KEY,JSON.stringify(state));window.dispatchEvent(new CustomEvent('migrandia:planner-change',{detail:{module:MODULE_ID,key:STORAGE_KEY}}));}
+function persist(){state.updatedAt=new Date().toISOString();localStorage.setItem(STORAGE_KEY,JSON.stringify(state));window.dispatchEvent(new CustomEvent('migrandia:datachange',{detail:{module:MODULE_ID,key:STORAGE_KEY}}));}
 function daysUntilWedding(){const now=new Date();const target=new Date(`${WEDDING_DATE}T12:00:00`);return Math.max(0,Math.ceil((target-now)/86400000));}
 function counts(){const total=state.items.length,done=state.items.filter(x=>x.status==='done').length,coordination=state.items.filter(x=>x.status==='coordination').length,pending=state.items.filter(x=>x.status==='pending').length;return {total,done,coordination,pending,percent:total?Math.round(done/total*100):0};}
 function phaseItems(){return state.items.filter(x=>x.phase===activePhase).sort((a,b)=>a.time.localeCompare(b.time));}
 function statusLabel(item){if(item.highlight)return 'Momento clave';return STATUS[item.status]?.label||'Pendiente';}
-function phaseLabel(){return activePhase==='before'?'Previo':activePhase==='after'?'Después':'16 ene.';}
 function dayHeading(){return activePhase==='before'?'Antes del gran día':activePhase==='after'?'Después de la boda':'Viernes, 16 de enero';}
 function locationLabel(){return activePhase==='day'?'Casa Acapulco':'Planificación';}
 function syncQuickNav(){document.querySelectorAll('[data-quick-module]').forEach(btn=>btn.classList.toggle('active',String(btn.dataset.quickModule||'').toLowerCase()===MODULE_ID));}
