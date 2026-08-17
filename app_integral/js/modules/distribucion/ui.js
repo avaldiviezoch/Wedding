@@ -1,6 +1,6 @@
-const VERSION = '20260817-1605-native-ui2';
+const VERSION = '20260817-1634-native-ui3';
 const STYLE_ID = 'mgdDistribucionNativeCss';
-const BOUND = 'mgdDistribucionNativeUi';
+const HEADER_ID = 'mgdDistributionNativeHeader';
 const frameState = new WeakMap();
 let workspaceObserver = null;
 
@@ -8,6 +8,7 @@ function isDistributionDoc(doc) {
   return Boolean(
     doc?.getElementById('planner') &&
     doc?.getElementById('itemsLayer') &&
+    doc?.getElementById('selectionForm') &&
     doc?.getElementById('seatEditor') &&
     doc?.getElementById('proposalModal')
   );
@@ -23,60 +24,42 @@ function normalize(value = '') {
 }
 
 function ensureStyles(doc) {
-  if (!doc?.head || doc.getElementById(STYLE_ID)) return;
-  const link = doc.createElement('link');
-  link.id = STYLE_ID;
-  link.rel = 'stylesheet';
-  link.href = new URL(`css/modules/distribucion.css?v=${VERSION}`, document.baseURI).href;
-  doc.head.appendChild(link);
-}
-
-function nearestPanel(node, stopAt = null) {
-  let current = node?.parentElement || null;
-  while (current && current !== stopAt && current !== current.ownerDocument.body) {
-    const rect = current.getBoundingClientRect?.();
-    const tag = current.tagName?.toLowerCase();
-    if (
-      ['aside', 'section'].includes(tag) ||
-      /panel|sidebar|inspector|controls|tools|card|column/i.test(current.className || '') ||
-      ((rect?.width || 0) > 180 && (rect?.height || 0) > 220)
-    ) return current;
-    current = current.parentElement;
+  if (!doc?.head) return;
+  let link = doc.getElementById(STYLE_ID);
+  const href = new URL(`css/modules/distribucion.css?v=${VERSION}`, document.baseURI).href;
+  if (!link) {
+    link = doc.createElement('link');
+    link.id = STYLE_ID;
+    link.rel = 'stylesheet';
+    doc.head.appendChild(link);
   }
-  return node?.parentElement || null;
+  if (link.href !== href) link.href = href;
 }
 
-function commonAncestor(nodes = []) {
-  const valid = nodes.filter(Boolean);
-  if (!valid.length) return null;
-  let current = valid[0];
-  while (current && current !== current.ownerDocument.body) {
-    if (valid.every((node) => current.contains(node))) return current;
-    current = current.parentElement;
+function findClickable(doc, ids = [], patterns = []) {
+  for (const id of ids) {
+    const node = doc.getElementById(id);
+    if (node) return node;
   }
-  return null;
-}
-
-function findClickableByText(doc, patterns, exclude = new Set()) {
-  const nodes = [...doc.querySelectorAll('button,a,[role="button"],label')];
+  const nodes = [...doc.querySelectorAll('button,a,[role="button"]')];
   return nodes.find((node) => {
-    if (exclude.has(node) || node.closest('.mgd-dist-native-header')) return false;
+    if (node.closest(`#${HEADER_ID}`)) return false;
     const text = normalize(node.textContent || node.getAttribute('aria-label') || node.title || '');
     return patterns.some((pattern) => pattern.test(text));
   }) || null;
 }
 
-function clickExisting(doc, patterns, fallbackId = '') {
-  const target = (fallbackId && doc.getElementById(fallbackId)) || findClickableByText(doc, patterns);
+function clickExisting(doc, ids, patterns) {
+  const target = findClickable(doc, ids, patterns);
   if (!target) return false;
   target.click();
   return true;
 }
 
-function actionButton(doc, { label, icon, action, title = label, className = '' }) {
+function actionButton(doc, { label, icon, action, title = label, primary = false }) {
   const button = doc.createElement('button');
   button.type = 'button';
-  button.className = `mgd-dist-action ${className}`.trim();
+  button.className = `mgd-dist-action${primary ? ' is-primary' : ''}`;
   button.title = title;
   button.setAttribute('aria-label', title);
   button.innerHTML = `<span class="mgd-dist-action-icon" aria-hidden="true">${icon}</span><span>${label}</span>`;
@@ -84,145 +67,164 @@ function actionButton(doc, { label, icon, action, title = label, className = '' 
   return button;
 }
 
+function buildElementMenu(doc) {
+  const wrap = doc.createElement('div');
+  wrap.className = 'mgd-dist-element-wrap';
+
+  const menu = doc.createElement('div');
+  menu.className = 'mgd-dist-element-menu';
+  menu.hidden = true;
+
+  const opener = actionButton(doc, {
+    label: 'Elemento',
+    icon: '＋',
+    action: () => {
+      menu.hidden = !menu.hidden;
+      opener.setAttribute('aria-expanded', menu.hidden ? 'false' : 'true');
+    }
+  });
+  opener.setAttribute('aria-haspopup', 'menu');
+  opener.setAttribute('aria-expanded', 'false');
+
+  [
+    ['Pista de baile', ['btnAddDance', 'addDance'], [/pista de baile/, /^pista$/]],
+    ['Mesa de novios', ['btnAddCouple', 'addCouple'], [/mesa de novios/]],
+    ['DJ / sonido', ['btnAddDj', 'addDj'], [/^dj/, /sonido/]],
+    ['Barra', ['btnAddBar', 'addBar'], [/^barra$/]],
+    ['Altar', ['btnAddAltar', 'addAltar'], [/^altar$/]],
+    ['Mesa de torta', ['btnAddCake', 'addCake'], [/mesa de torta/, /^torta$/]],
+    ['Photobooth', ['btnAddPhoto', 'addPhoto'], [/photobooth/, /fotocabina/]],
+    ['Espejo', ['btnAddMirror', 'addMirror'], [/^espejo$/]]
+  ].forEach(([label, ids, patterns]) => {
+    const item = doc.createElement('button');
+    item.type = 'button';
+    item.className = 'mgd-dist-element-item';
+    item.textContent = label;
+    item.addEventListener('click', () => {
+      clickExisting(doc, ids, patterns);
+      menu.hidden = true;
+      opener.setAttribute('aria-expanded', 'false');
+    });
+    menu.appendChild(item);
+  });
+
+  wrap.append(opener, menu);
+  doc.addEventListener('pointerdown', (event) => {
+    if (!wrap.contains(event.target)) {
+      menu.hidden = true;
+      opener.setAttribute('aria-expanded', 'false');
+    }
+  }, true);
+  return wrap;
+}
+
 function buildHeader(doc) {
+  const existing = doc.getElementById(HEADER_ID);
+  if (existing) return existing;
+
   const header = doc.createElement('header');
+  header.id = HEADER_ID;
   header.className = 'mgd-dist-native-header';
   header.innerHTML = `
     <div class="mgd-dist-heading">
       <span class="mgd-dist-eyebrow">ESPACIO DE LA BODA</span>
       <h1>Distribución del espacio</h1>
       <p>Diseña el salón, organiza las mesas y asigna a tus invitados.</p>
-    </div>
-    <div class="mgd-dist-header-meta">
-      <span class="mgd-dist-save-dot" aria-hidden="true"></span>
-      <span class="mgd-dist-save-copy">Todo guardado</span>
+      <div class="mgd-dist-header-meta" aria-live="polite">
+        <span class="mgd-dist-save-dot" aria-hidden="true"></span>
+        <span class="mgd-dist-save-copy">Todo guardado</span>
+      </div>
     </div>`;
 
-  const bar = doc.createElement('div');
-  bar.className = 'mgd-dist-native-toolbar';
-
-  const mesa = actionButton(doc, {
-    label: 'Mesa',
-    icon: '+',
-    className: 'is-primary',
-    action: () => clickExisting(doc, [/^mesa$/, /^agregar mesa$/, /^nueva mesa$/, /mesa 10 personas/])
-  });
-
-  const elementWrap = doc.createElement('div');
-  elementWrap.className = 'mgd-dist-element-wrap';
-  const elementMenu = doc.createElement('div');
-  elementMenu.className = 'mgd-dist-element-menu';
-  elementMenu.hidden = true;
-
-  const element = actionButton(doc, {
-    label: 'Elemento',
-    icon: '+',
-    action: () => {
-      elementMenu.hidden = !elementMenu.hidden;
-      element.setAttribute('aria-expanded', elementMenu.hidden ? 'false' : 'true');
-    }
-  });
-  element.setAttribute('aria-haspopup', 'menu');
-  element.setAttribute('aria-expanded', 'false');
-
-  [
-    ['Pista de baile', [/pista de baile/, /^pista$/]],
-    ['Mesa de novios', [/mesa de novios/]],
-    ['DJ / sonido', [/^dj/, /sonido/]],
-    ['Barra', [/^barra$/]],
-    ['Altar', [/^altar$/]],
-    ['Mesa de torta', [/torta/]],
-    ['Photobooth', [/photo/, /fotocabina/]],
-    ['Espejo', [/^espejo$/]]
-  ].forEach(([label, patterns]) => {
-    const item = doc.createElement('button');
-    item.type = 'button';
-    item.className = 'mgd-dist-element-item';
-    item.textContent = label;
-    item.addEventListener('click', () => {
-      clickExisting(doc, patterns);
-      elementMenu.hidden = true;
-      element.setAttribute('aria-expanded', 'false');
-    });
-    elementMenu.appendChild(item);
-  });
-  elementWrap.append(element, elementMenu);
-
-  const undo = actionButton(doc, {
-    label: 'Deshacer', icon: '↶', title: 'Deshacer',
-    action: () => doc.getElementById('btnUndo')?.click()
-  });
-  const redo = actionButton(doc, {
-    label: 'Rehacer', icon: '↷', title: 'Rehacer',
-    action: () => doc.getElementById('btnRedo')?.click()
-  });
-  const measure = actionButton(doc, {
-    label: 'Medir', icon: '⌁', title: 'Medir distancias',
-    action: () => doc.getElementById('btnMeasure')?.click()
-  });
-  const designs = actionButton(doc, {
-    label: 'Mis diseños', icon: '▱',
-    action: () => clickExisting(doc, [/mis disenos/, /propuestas/, /abrir diseno/, /disenos guardados/])
-  });
+  const toolbar = doc.createElement('div');
+  toolbar.className = 'mgd-dist-native-toolbar';
+  toolbar.append(
+    actionButton(doc, {
+      label: 'Mesa', icon: '＋', primary: true,
+      action: () => clickExisting(doc, ['btnAddTable', 'addTable'], [/^mesa$/, /^agregar mesa$/, /^nueva mesa$/, /mesa 10 personas/])
+    }),
+    buildElementMenu(doc),
+    actionButton(doc, {
+      label: 'Deshacer', icon: '↶',
+      action: () => doc.getElementById('btnUndo')?.click()
+    }),
+    actionButton(doc, {
+      label: 'Rehacer', icon: '↷',
+      action: () => doc.getElementById('btnRedo')?.click()
+    }),
+    actionButton(doc, {
+      label: 'Medir', icon: '⌁', title: 'Medir distancias',
+      action: () => doc.getElementById('btnMeasure')?.click()
+    })
+  );
 
   const spacer = doc.createElement('span');
   spacer.className = 'mgd-dist-toolbar-spacer';
-  bar.append(mesa, elementWrap, undo, redo, measure, spacer, designs);
-  header.appendChild(bar);
+  toolbar.appendChild(spacer);
+  toolbar.appendChild(actionButton(doc, {
+    label: 'Mis diseños', icon: '▱',
+    action: () => clickExisting(
+      doc,
+      ['btnProposals', 'btnProposal', 'openProposalModal'],
+      [/mis disenos/, /propuestas/, /abrir diseno/, /disenos guardados/]
+    )
+  }));
 
-  doc.addEventListener('pointerdown', (event) => {
-    if (!elementWrap.contains(event.target)) {
-      elementMenu.hidden = true;
-      element.setAttribute('aria-expanded', 'false');
-    }
-  }, true);
-
+  header.appendChild(toolbar);
+  doc.body.insertBefore(header, doc.body.firstChild);
   return header;
+}
+
+function regionFrom(node, preferredSelectors = []) {
+  if (!node) return null;
+  for (const selector of preferredSelectors) {
+    const found = node.closest(selector);
+    if (found && found !== node.ownerDocument.body) return found;
+  }
+
+  let current = node.parentElement;
+  while (current && current !== node.ownerDocument.body) {
+    const rect = current.getBoundingClientRect?.();
+    if ((rect?.width || 0) >= 210 && (rect?.height || 0) >= 220) return current;
+    current = current.parentElement;
+  }
+  return node.parentElement;
+}
+
+function commonAncestor(nodes = []) {
+  const valid = nodes.filter(Boolean);
+  if (!valid.length) return null;
+  let current = valid[0].parentElement;
+  while (current && current !== current.ownerDocument.body) {
+    if (valid.every((node) => current.contains(node))) return current;
+    current = current.parentElement;
+  }
+  return null;
 }
 
 function markRegions(doc) {
   const planner = doc.getElementById('planner');
   const selection = doc.getElementById('selectionForm');
-  const seatEditor = doc.getElementById('seatEditorWrap');
+  const seats = doc.getElementById('seatEditorWrap') || doc.getElementById('seatEditor');
   const drawTent = doc.getElementById('btnDrawTent');
+  const layers = doc.getElementById('layerList');
 
-  const canvasPanel = nearestPanel(planner);
-  canvasPanel?.classList.add('mgd-dist-canvas-region');
+  const canvas = regionFrom(planner, [
+    '.canvas-panel', '.canvas-wrap', '.stage', '.workspace-center', '.editor-center', '.plan-wrap', '.planner-wrap'
+  ]);
+  canvas?.classList.add('mgd-dist-canvas-region');
 
-  const inspectorCommon = commonAncestor([selection, seatEditor]);
-  const inspectorPanel = inspectorCommon && inspectorCommon !== doc.body
-    ? nearestPanel(inspectorCommon)
-    : nearestPanel(selection || seatEditor);
-  inspectorPanel?.classList.add('mgd-dist-inspector-region');
+  let inspector = commonAncestor([selection, seats]) || regionFrom(selection || seats, [
+    '.inspector', '.properties', '.right-panel', '.right-sidebar', 'aside', '.sidebar', '.panel'
+  ]);
+  if (inspector?.contains(planner)) inspector = (selection || seats)?.parentElement;
+  inspector?.classList.add('mgd-dist-inspector-region');
 
-  const toolsPanel = nearestPanel(drawTent);
-  if (toolsPanel && toolsPanel !== canvasPanel && toolsPanel !== inspectorPanel) {
-    toolsPanel.classList.add('mgd-dist-tools-region');
-  }
-
-  const duplicateGuestNodes = [
-    doc.getElementById('guestList'),
-    doc.getElementById('guestSearch'),
-    doc.getElementById('newGuestName'),
-    doc.getElementById('bulkGuests')
-  ].filter(Boolean);
-  const guestManager = commonAncestor(duplicateGuestNodes);
-  if (
-    guestManager &&
-    guestManager !== doc.body &&
-    !guestManager.contains(seatEditor) &&
-    !guestManager.contains(planner)
-  ) {
-    guestManager.classList.add('mgd-dist-duplicate-guests');
-  }
-
-  [...doc.querySelectorAll('nav,[role="tablist"],.tabs,.tabbar,.tab-bar,.nav-tabs')].forEach((node) => {
-    if (node.closest('.mgd-dist-native-header')) return;
-    const text = normalize(node.textContent);
-    const hits = ['objeto', 'mesa', 'invitado', 'capa', 'medicion', 'configuracion']
-      .filter((word) => text.includes(word)).length;
-    if (hits >= 2) node.classList.add('mgd-dist-internal-tabs');
-  });
+  let tools = regionFrom(drawTent || layers, [
+    '.toolbox', '.tools', '.left-panel', '.left-sidebar', 'aside', '.sidebar', '.panel'
+  ]);
+  if (tools?.contains(planner) || tools === inspector) tools = (drawTent || layers)?.parentElement;
+  tools?.classList.add('mgd-dist-tools-region');
 
   [
     ['selectionForm', 'Propiedades'],
@@ -239,48 +241,81 @@ function markRegions(doc) {
   });
 }
 
-function compactLegacyChrome(doc) {
-  const headerCandidates = [...doc.querySelectorAll('body > header, body > .header, body > .topbar, body > .app-header')]
-    .filter((node) => !node.classList.contains('mgd-dist-native-header'));
-  headerCandidates.forEach((node) => node.classList.add('mgd-dist-old-chrome'));
+function hideDuplicateGuests(doc) {
+  const guestList = doc.getElementById('guestList');
+  const guestSearch = doc.getElementById('guestSearch');
+  const seatEditor = doc.getElementById('seatEditor');
+  const planner = doc.getElementById('planner');
+  if (!guestList || !guestSearch) return;
 
-  const headings = [...doc.querySelectorAll('h1,h2')];
-  headings.forEach((node) => {
+  let current = guestList.parentElement;
+  let candidate = null;
+  for (let depth = 0; current && depth < 7; depth += 1, current = current.parentElement) {
+    if (current.contains(guestSearch)) candidate = current;
+    if (seatEditor && current.contains(seatEditor)) break;
+  }
+
+  if (candidate && candidate !== doc.body && !candidate.contains(seatEditor) && !candidate.contains(planner)) {
+    candidate.classList.add('mgd-dist-duplicate-guests');
+  }
+}
+
+function hideInternalTabs(doc) {
+  doc.querySelectorAll('[role="tablist"],.tabs,.tab-list,.tabbar,.tab-bar,.nav-tabs,.editor-tabs,.tool-tabs').forEach((node) => {
+    if (node.closest(`#${HEADER_ID},#proposalModal`)) return;
+    const controls = node.querySelectorAll('button,a,[role="tab"]');
     const text = normalize(node.textContent);
-    if ((text.includes('distribucion') || text.includes('planificador') || text.includes('diseno del evento')) && !node.closest('.mgd-dist-native-header')) {
-      const parent = node.parentElement;
-      if (parent && !parent.contains(doc.getElementById('planner'))) parent.classList.add('mgd-dist-old-chrome');
-    }
+    const hits = ['objeto', 'mesa', 'invitado', 'capa', 'medicion', 'configuracion', 'herramienta']
+      .filter((word) => text.includes(word)).length;
+    if (controls.length >= 2 && hits >= 2) node.classList.add('mgd-dist-internal-tabs');
   });
 }
 
-function mirrorStatus(doc, state) {
-  const copy = doc.querySelector('.mgd-dist-save-copy');
-  const dot = doc.querySelector('.mgd-dist-save-dot');
+function hideLegacyChrome(doc) {
+  [...doc.querySelectorAll('body > header, body > .header, body > .topbar, body > .app-header')]
+    .filter((node) => node.id !== HEADER_ID)
+    .forEach((node) => node.classList.add('mgd-dist-old-chrome'));
+
+  [...doc.querySelectorAll('h1,h2')].forEach((node) => {
+    if (node.closest(`#${HEADER_ID}`)) return;
+    const text = normalize(node.textContent);
+    if (!/(distribucion|planificador|diseno del evento|editor del evento)/.test(text)) return;
+    const parent = node.parentElement;
+    if (parent && !parent.contains(doc.getElementById('planner'))) parent.classList.add('mgd-dist-old-chrome');
+  });
+}
+
+function mirrorSaveStatus(doc, state) {
+  const copy = doc.querySelector(`#${HEADER_ID} .mgd-dist-save-copy`);
+  const dot = doc.querySelector(`#${HEADER_ID} .mgd-dist-save-dot`);
   const status = doc.getElementById('autosaveStatus');
   const title = doc.getElementById('autosaveTitle');
   const subtitle = doc.getElementById('autosaveSubtitle');
 
   const update = () => {
-    if (!copy) return;
     const raw = normalize([title?.textContent, subtitle?.textContent, status?.textContent].filter(Boolean).join(' '));
-    if (raw.includes('guardando')) {
+    if (!copy || !dot) return;
+    if (/guardando|saving/.test(raw)) {
       copy.textContent = 'Guardando…';
-      dot?.classList.add('is-saving');
-    } else if (raw.includes('error') || raw.includes('problema')) {
+      dot.classList.add('is-saving');
+      dot.classList.remove('is-error');
+    } else if (/error|fallo|problema/.test(raw)) {
       copy.textContent = 'Revisar guardado';
-      dot?.classList.add('is-error');
-      dot?.classList.remove('is-saving');
+      dot.classList.add('is-error');
+      dot.classList.remove('is-saving');
     } else {
       copy.textContent = 'Todo guardado';
-      dot?.classList.remove('is-saving', 'is-error');
+      dot.classList.remove('is-saving', 'is-error');
     }
   };
 
   state.statusObserver?.disconnect();
   state.statusObserver = new MutationObserver(update);
   [status, title, subtitle].filter(Boolean).forEach((node) => state.statusObserver.observe(node, {
-    childList: true, subtree: true, characterData: true, attributes: true
+    childList: true,
+    subtree: true,
+    characterData: true,
+    attributes: true
   }));
   update();
 }
@@ -292,29 +327,37 @@ function applyNativeUi(frame) {
 
   let state = frameState.get(frame);
   if (!state) {
-    state = { statusObserver: null };
+    state = { statusObserver: null, domObserver: null, doc: null };
     frameState.set(frame, state);
   }
 
   ensureStyles(doc);
-  doc.documentElement.dataset[BOUND] = VERSION;
   doc.body.classList.add('mgd-distribucion-native');
-
-  let header = doc.querySelector('.mgd-dist-native-header');
-  if (!header) {
-    header = buildHeader(doc);
-    doc.body.insertBefore(header, doc.body.firstChild);
-  }
-
+  doc.documentElement.dataset.mgdDistribucionNativeUi = VERSION;
+  buildHeader(doc);
   markRegions(doc);
-  compactLegacyChrome(doc);
-  mirrorStatus(doc, state);
+  hideDuplicateGuests(doc);
+  hideInternalTabs(doc);
+  hideLegacyChrome(doc);
+  mirrorSaveStatus(doc, state);
+
+  if (state.doc !== doc) {
+    state.domObserver?.disconnect();
+    state.doc = doc;
+    state.domObserver = new MutationObserver(() => {
+      markRegions(doc);
+      hideDuplicateGuests(doc);
+      hideInternalTabs(doc);
+      hideLegacyChrome(doc);
+    });
+    state.domObserver.observe(doc.body, { childList: true, subtree: true });
+  }
   return true;
 }
 
 function bindFrame(frame) {
   if (!(frame instanceof HTMLIFrameElement)) return;
-  const apply = () => window.setTimeout(() => applyNativeUi(frame), 30);
+  const apply = () => window.setTimeout(() => applyNativeUi(frame), 35);
   if (frame.dataset.mgdDistributionUiLoad !== VERSION) {
     frame.dataset.mgdDistributionUiLoad = VERSION;
     frame.addEventListener('load', apply);
