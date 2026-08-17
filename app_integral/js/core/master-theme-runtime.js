@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-master-theme-runtime-v6-direct-nav';
+  const VERSION = '20260817-master-theme-runtime-v7-autosave';
   const WORKSPACE_ID = 'unifiedWorkspace';
   const STYLE_ID = 'mgdMasterThemeStyles';
   const CHECKLIST_STYLE_ID = 'mgdChecklistRefineStyles';
@@ -41,7 +41,7 @@
         control.classList.add('mgd-master-danger');
         return;
       }
-      if (/agregar|añadir|nuevo|nueva|guardar|crear|confirmar|resolver/.test(text) && !/guardar como/.test(text)) {
+      if (/agregar|añadir|nuevo|nueva|crear|confirmar|resolver|aplicar|actualizar/.test(text)) {
         control.classList.add('mgd-master-primary');
       }
     });
