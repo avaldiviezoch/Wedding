@@ -4,7 +4,7 @@
 window.MiGranDiaModules = window.MiGranDiaModules || {};
 window.MiGranDiaModules.invitaciones = { id: 'invitaciones' };
 
-const VERSION = '20260817-panel-movil-invitaciones-1';
+const VERSION = '20260817-panel-movil-invitaciones-2-isolated';
 const STORAGE_KEY = 'migrandia_invitacion_activa_v1';
 const INVITATIONS = Object.freeze([
   { id: 1, name: 'Invitación 1', url: 'https://avaldiviezoch.github.io/Wedding/invitaciones/invitacion_1/' },
@@ -14,9 +14,65 @@ const INVITATIONS = Object.freeze([
   { id: 5, name: 'Invitación 5', url: 'https://avaldiviezoch.github.io/Wedding/invitaciones/invitacion_5/', official: true }
 ]);
 
+let activeModule = location.hash.replace(/^#/, '').toLowerCase() || '';
+let cleanupObserver = null;
+
 function activeId() {
   const value = Number(localStorage.getItem(STORAGE_KEY) || 5);
   return INVITATIONS.some(item => item.id === value) ? value : 5;
+}
+
+function moduleFromTarget(target) {
+  if (!(target instanceof Element)) return '';
+  const trigger = target.closest('[data-module],[data-quick-module]');
+  if (!trigger) return '';
+  return String(trigger.dataset.module || trigger.dataset.quickModule || '').trim().toLowerCase();
+}
+
+function stopInvitationFrame(root) {
+  const frame = root?.querySelector?.('#mgdInvFrame, iframe');
+  if (!frame) return;
+  try {
+    const doc = frame.contentDocument;
+    doc?.querySelectorAll('audio,video').forEach(media => {
+      media.pause?.();
+      media.muted = true;
+    });
+  } catch (_) {}
+  try { frame.src = 'about:blank'; } catch (_) {}
+}
+
+function purgeInvitationUi() {
+  const roots = Array.from(document.querySelectorAll(
+    '.mgd-inv-panel,[data-invitations-layout="mobile-preview"],[data-owner-module="invitaciones"]'
+  ));
+  roots.forEach(root => {
+    stopInvitationFrame(root);
+    root.remove();
+  });
+
+  // Respaldo contra cualquier nodo suelto de una versión anterior del módulo.
+  [
+    '#mgdInvTitle', '#mgdInvOfficial', '#mgdInvReload', '#mgdInvCopy', '#mgdInvOpen',
+    '#mgdInvLoading', '#mgdInvFrame'
+  ].forEach(selector => {
+    const node = document.querySelector(selector);
+    if (!node) return;
+    const owner = node.closest('.mgd-inv-panel,[data-owner-module="invitaciones"]');
+    if (!owner) node.remove();
+  });
+
+  document.getElementById('mgdInvitationMobilePanelStyles')?.remove();
+  document.getElementById('mgdNativeInvitationsStyles')?.remove();
+}
+
+function ensureCleanupObserver() {
+  const workspace = document.getElementById('unifiedWorkspace');
+  if (!workspace || cleanupObserver) return;
+  cleanupObserver = new MutationObserver(() => {
+    if (activeModule && activeModule !== 'invitaciones') purgeInvitationUi();
+  });
+  cleanupObserver.observe(workspace, { childList: true, subtree: true });
 }
 
 function ensureStyles() {
@@ -139,13 +195,16 @@ function render() {
   const workspace = document.getElementById('unifiedWorkspace');
   if (!workspace) return false;
 
+  activeModule = 'invitaciones';
+  purgeInvitationUi();
   ensureStyles();
+  ensureCleanupObserver();
 
   const selected = activeId();
   const current = INVITATIONS.find(item => item.id === selected) || INVITATIONS[4];
 
   workspace.innerHTML = `
-    <section class="mgd-inv-panel" data-invitations-layout="mobile-preview" data-version="${VERSION}">
+    <section class="mgd-inv-panel" data-owner-module="invitaciones" data-invitations-layout="mobile-preview" data-version="${VERSION}">
       <aside class="mgd-inv-selector">
         <div class="mgd-inv-selector-head">
           <span class="mgd-inv-eyebrow">Modelos disponibles</span>
@@ -244,6 +303,15 @@ function isTrigger(target) {
   return target instanceof Element && Boolean(target.closest('[data-module="invitaciones"],[data-quick-module="invitaciones"]'));
 }
 
+// Este listener corre antes del router legado. Al cambiar de módulo limpia por completo
+// el DOM y estilos que pertenecen únicamente a Invitaciones, sin tocar el nuevo módulo.
+document.addEventListener('click', (event) => {
+  const nextModule = moduleFromTarget(event.target);
+  if (!nextModule) return;
+  activeModule = nextModule;
+  if (nextModule !== 'invitaciones') purgeInvitationUi();
+}, true);
+
 document.addEventListener('click', (event) => {
   if (!isTrigger(event.target)) return;
   const guard = window.WeddingPlannerAuthGuard;
@@ -251,6 +319,7 @@ document.addEventListener('click', (event) => {
 
   event.preventDefault();
   event.stopImmediatePropagation();
+  activeModule = 'invitaciones';
   document.body.classList.remove('menu-open');
   document.getElementById('mainDrawer')?.setAttribute('aria-hidden', 'true');
   document.getElementById('backdrop')?.setAttribute('aria-hidden', 'true');
@@ -259,8 +328,15 @@ document.addEventListener('click', (event) => {
 }, true);
 
 window.addEventListener('hashchange', () => {
-  if (location.hash.toLowerCase() === '#invitaciones' && window.WeddingPlannerAuthGuard?.authenticated) render();
+  activeModule = location.hash.replace(/^#/, '').toLowerCase();
+  if (activeModule === 'invitaciones' && window.WeddingPlannerAuthGuard?.authenticated) {
+    render();
+    return;
+  }
+  if (activeModule && activeModule !== 'invitaciones') purgeInvitationUi();
 });
 
+ensureCleanupObserver();
 if (location.hash.toLowerCase() === '#invitaciones') queueMicrotask(render);
+else purgeInvitationUi();
 })();
