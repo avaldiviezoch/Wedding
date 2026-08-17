@@ -1,15 +1,25 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-module-navigation-guard-v3-direct';
+  const VERSION = '20260817-module-navigation-guard-v4-reopen';
   let reconciling = false;
 
   function normalize(value) {
     return String(value || '').trim().toLowerCase();
   }
 
-  function currentModule() {
+  function hashModule() {
     return normalize(location.hash.replace(/^#/, ''));
+  }
+
+  function workspaceModule() {
+    const workspace = document.getElementById('unifiedWorkspace');
+    if (!document.body?.classList.contains('module-view')) return '';
+    return normalize(workspace?.dataset?.activeModule);
+  }
+
+  function currentModule() {
+    return workspaceModule() || hashModule();
   }
 
   function syncActive(moduleId) {
@@ -35,20 +45,61 @@
     return document.querySelector(`[data-module="${CSS.escape(id)}"]`);
   }
 
+  function workspaceHasContent(moduleId) {
+    const id = normalize(moduleId);
+    const workspace = document.getElementById('unifiedWorkspace');
+    if (!workspace || !workspace.childElementCount) return false;
+
+    const owner = normalize(workspace.dataset.activeModule);
+    if (owner && owner !== id) return false;
+
+    if (id === 'invitaciones') {
+      return Boolean(
+        workspace.querySelector('[data-owner-module="invitaciones"], [data-invitations-layout], .mgd-inv-panel')
+      );
+    }
+
+    return true;
+  }
+
+  function recoverEmptyWorkspace(moduleId) {
+    const id = normalize(moduleId);
+    if (!id) return;
+
+    requestAnimationFrame(() => {
+      if (workspaceHasContent(id)) return;
+
+      // Algunos renderizadores heredados se activan únicamente con hashchange.
+      // Si el hash ya era el mismo, el navegador no emite el evento; lo reemitimos
+      // solo cuando el workspace quedó vacío para permitir una reapertura real.
+      if (hashModule() === id) {
+        window.dispatchEvent(new HashChangeEvent('hashchange'));
+      }
+    });
+  }
+
   function openModule(moduleId) {
     const id = normalize(moduleId);
     if (!id) return;
 
     syncActive(id);
-    if (currentModule() === id) return;
 
+    // Nunca retornamos solo porque el hash coincida. Invitaciones y algunos módulos
+    // pueden limpiar/reemplazar el workspace sin cambiar el hash; en ese escenario
+    // el botón superior debe poder abrir nuevamente el módulo.
     const source = sourceFor(id);
     if (source instanceof HTMLElement) {
       source.click();
+      recoverEmptyWorkspace(id);
       return;
     }
 
-    location.hash = id;
+    if (hashModule() !== id) {
+      location.hash = id;
+      return;
+    }
+
+    recoverEmptyWorkspace(id);
   }
 
   function requestedModule(target) {
@@ -58,8 +109,8 @@
   }
 
   // Captura en window para ejecutarse antes que los handlers heredados de document.
-  // El botón superior no espera timers ni una segunda ruta de navegación: se traduce
-  // inmediatamente al acceso original data-module, que conserva toda la lógica existente.
+  // El botón superior se traduce inmediatamente al acceso original data-module,
+  // conservando la lógica propia de cada módulo y permitiendo reabrirlo si hiciera falta.
   window.addEventListener('pointerdown', event => {
     const id = requestedModule(event.target);
     if (id) syncActive(id);
@@ -74,7 +125,7 @@
     openModule(id);
   }, true);
 
-  window.addEventListener('hashchange', () => syncActive(currentModule()));
+  window.addEventListener('hashchange', () => syncActive(hashModule() || currentModule()));
   window.addEventListener('pageshow', () => syncActive(currentModule()));
 
   const nav = document.getElementById('moduleQuickNav');
