@@ -5,8 +5,8 @@ on:
     paths:
       - 'app_integral/js/core/menu-fast.js'
       - 'app_integral/js/core/master-theme-runtime.js'
-      - 'app_integral/js/core/module-navigation-guard.js'
       - 'app_integral/js/core/accordion-fast.js'
+      - 'app_integral/js/modules/invitaciones/index.js'
       - 'app_integral/js/services/firebase.js'
       - 'app_integral/js/legacy/applu-script-01.js'
       - 'app_integral/css/core/master-theme.css'
@@ -36,6 +36,7 @@ jobs:
               text = p.read_text(encoding='utf-8')
               text = re.sub(r'js/core/menu-fast\.js\?v=[^"\']+', f'js/core/menu-fast.js?v={version}-master', text)
               text = re.sub(r'js/core/accordion-fast\.js\?v=[^"\']+', f'js/core/accordion-fast.js?v={version}-nav', text)
+              text = re.sub(r'js/modules/invitaciones/index\.js\?v=[^"\']+', f'js/modules/invitaciones/index.js?v={version}-invitaciones', text)
               text = re.sub(r'js/services/firebase\.js\?v=[^"\']+', f'js/services/firebase.js?v={version}-auth', text)
               text = re.sub(r'js/legacy/applu-script-01\.js\?v=[^"\']+', f'js/legacy/applu-script-01.js?v={version}-legacy', text)
               p.write_text(text, encoding='utf-8')
@@ -46,5 +47,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add applu.html app_integral/applu.html
-          git commit -m "Actualizar versiones de autenticación y navegación [skip ci]"
+          git commit -m "Actualizar versiones de navegación [skip ci]"
           git push
