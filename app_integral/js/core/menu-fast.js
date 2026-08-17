@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-1206-master-theme-full-app';
+  const VERSION = '20260817-1249-nav-single-active';
   let passthrough = false;
   let queuedClick = false;
   let authPoll = 0;
