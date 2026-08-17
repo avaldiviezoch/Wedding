@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-master-theme-runtime-v9-free-return';
+  const VERSION = '20260817-master-theme-runtime-v10-native-navigation';
   const WORKSPACE_ID = 'unifiedWorkspace';
   const STYLE_ID = 'mgdMasterThemeStyles';
   const CHECKLIST_STYLE_ID = 'mgdChecklistRefineStyles';
@@ -10,15 +10,6 @@
     'distribucion','cronograma','invitaciones','musica',
     'documentos','configuracion'
   ]);
-
-  function loadNavigationGuard() {
-    if (document.querySelector('script[data-mgd-module-navigation-guard]')) return;
-    const script = document.createElement('script');
-    script.src = new URL(`js/core/module-navigation-guard.js?v=${VERSION}`, document.baseURI).href;
-    script.defer = true;
-    script.dataset.mgdModuleNavigationGuard = VERSION;
-    document.head.appendChild(script);
-  }
 
   function currentModule() {
     return location.hash.replace(/^#/, '').trim().toLowerCase();
@@ -150,7 +141,6 @@
   function bind() {
     const workspace = document.getElementById(WORKSPACE_ID);
     if (!workspace) return;
-    loadNavigationGuard();
 
     const observer = new MutationObserver(() => requestAnimationFrame(patchWorkspace));
     observer.observe(workspace, { childList:true, subtree:true });
