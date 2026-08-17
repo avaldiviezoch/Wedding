@@ -11,7 +11,7 @@
   </style>
 </head>
 <body>
-  <iframe id="inv5" src="./invitacion_5_base.html?v=20260816-1932" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
+  <iframe id="inv5" src="./invitacion_5_base.html?v=20260816-1935" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
   <script>
     const frame=document.getElementById('inv5');
     frame.addEventListener('load',()=>{
@@ -19,48 +19,33 @@
         const doc=frame.contentDocument||frame.contentWindow.document;
 
         const img=doc.querySelector('.countdown-image');
-        if(img){
-          img.src='./imagen_de_fecha_5.png?v=20260816-2';
-          img.removeAttribute('srcset');
-        }
+        if(img){img.src='./imagen_de_fecha_5.png?v=20260816-2';img.removeAttribute('srcset')}
 
-        const programacionImg=[...doc.querySelectorAll('img')].find(el=>{
-          const src=decodeURIComponent(el.getAttribute('src')||'');
-          return src.includes('itinerario_2.png');
-        });
+        const programacionImg=[...doc.querySelectorAll('img')].find(el=>decodeURIComponent(el.getAttribute('src')||'').includes('itinerario_2.png'));
         if(programacionImg){
           programacionImg.src='./programacion_5.gif?v=20260816-1';
           programacionImg.removeAttribute('srcset');
           programacionImg.style.transform='translateY(14px)';
         }
 
-        const nuestroDia=[...doc.querySelectorAll('h1,h2,h3,.section-title,.itinerary-title,.itinerario-title,.timeline-title')]
-          .find(el=>{
-            const t=(el.textContent||'').trim().toLowerCase();
-            return t==='nuestro día'||t==='nuestro dia';
-          });
+        const nuestroDia=[...doc.querySelectorAll('h1,h2,h3,.section-title,.itinerary-title,.itinerario-title,.timeline-title')].find(el=>{
+          const t=(el.textContent||'').trim().toLowerCase();
+          return t==='nuestro día'||t==='nuestro dia';
+        });
         if(nuestroDia) nuestroDia.style.transform='translateY(14px)';
 
         const shiftedSchedule=[
-          '02:00 PM –<br>03:00 PM',
-          '03:00 PM –<br>04:00 PM',
-          '04:00 PM –<br>05:00 PM',
-          '05:00 PM –<br>05:30 PM',
-          '05:30 PM –<br>06:30 PM',
-          '06:30 PM –<br>07:00 PM',
-          '07:00 PM<br>en adelante'
+          '02:00 PM –<br>03:00 PM','03:00 PM –<br>04:00 PM','04:00 PM –<br>05:00 PM',
+          '05:00 PM –<br>05:30 PM','05:30 PM –<br>06:30 PM','06:30 PM –<br>07:00 PM','07:00 PM<br>en adelante'
         ];
-        [...doc.querySelectorAll('.itinerary-time')].forEach((el,i)=>{
-          if(shiftedSchedule[i]) el.innerHTML=shiftedSchedule[i];
-        });
+        [...doc.querySelectorAll('.itinerary-time')].forEach((el,i)=>{if(shiftedSchedule[i])el.innerHTML=shiftedSchedule[i]});
 
         // DRESS CODE INVITACIÓN 5
         const dressSection=[...doc.querySelectorAll('section')].find(section=>{
           const t=(section.textContent||'').toLowerCase();
-          return t.includes('dress code') || t.includes('elegante') || t.includes('formal');
+          return t.includes('dress code')||t.includes('elegante')||t.includes('formal');
         });
         if(dressSection){
-          // Colores exactos usados en la Invitación 1.
           const colors=['#f3e3e4','#f3acad','#ed9b8c','#e7b181','#f2e4ab','#d5c1da','#c7dbfa','#bfc7be','#acb580'];
           dressSection.id='dressCodeSection';
           dressSection.className='inv5-dress-section';
@@ -99,32 +84,27 @@
         if(musicSection){
           const musicText=musicSection.querySelector('.music-copy .final-text');
           const musicWarning=musicSection.querySelector('.music-warning');
-          if(musicText){
-            musicText.textContent='¿Hay una canción que te gustaría escuchar durante la recepción o la fiesta? Déjanos tu pedido aquí para considerarlo con anticipación.';
-          }
-          if(musicWarning){
-            musicWarning.textContent='El DJ no aceptará pedidos musicales durante la celebración, así que este es tu momento para compartirnos tu canción.';
-          }
+          if(musicText) musicText.textContent='¿Hay una canción que te gustaría escuchar durante la recepción o la fiesta? Déjanos tu pedido aquí para considerarlo con anticipación.';
+          if(musicWarning) musicWarning.textContent='El DJ no aceptará pedidos musicales durante la celebración, así que este es tu momento para compartirnos tu canción.';
           const musicName=musicSection.querySelector('#musicGuestName');
           const musicNameWrap=musicName?.closest('label,.music-field-wrap,.field-wrap,.form-group');
-          if(musicNameWrap) musicNameWrap.remove();
-          else if(musicName) musicName.remove();
+          if(musicNameWrap) musicNameWrap.remove(); else if(musicName) musicName.remove();
         }
 
         [...doc.querySelectorAll('details.faq-item')].forEach(item=>{
           const summary=item.querySelector('summary');
           const answer=item.querySelector('.faq-answer');
-          if(!summary) return;
+          if(!summary)return;
           const question=(summary.textContent||'').trim().toLowerCase();
-          if(question.includes('hasta cuándo puedo confirmar mi asistencia') || question.includes('hasta cuando puedo confirmar mi asistencia')){
+          if(question.includes('hasta cuándo puedo confirmar mi asistencia')||question.includes('hasta cuando puedo confirmar mi asistencia')){
             summary.textContent='¿Hasta qué fecha puedo confirmar mi asistencia?';
-            if(answer) answer.textContent='Por favor, confirma tu asistencia hasta el 15 de octubre.';
+            if(answer)answer.textContent='Por favor, confirma tu asistencia hasta el 15 de octubre.';
           }
-          if(question.includes('podemos llevar un regalo') || question.includes('puedo dejar un regalo')){
+          if(question.includes('podemos llevar un regalo')||question.includes('puedo dejar un regalo')){
             summary.textContent='¿Puedo informar de alguna alergia o restricción alimentaria?';
-            if(answer) answer.textContent='Sí, es muy importante por la comida que se repartirá y los bocaditos.';
+            if(answer)answer.textContent='Sí, es muy importante por la comida que se repartirá y los bocaditos.';
           }
-          if(question.includes('solicitar canciones') || question.includes('música') || question.includes('musica') || question.includes('dj')) item.remove();
+          if(question.includes('solicitar canciones')||question.includes('música')||question.includes('musica')||question.includes('dj'))item.remove();
         });
 
         const finalCard=doc.querySelector('#esperamosSection .final-card');
@@ -137,27 +117,15 @@
           const brook=doc.createElement('img');
           brook.className='te-esperamos-gif brook-final-gif';
           brook.src='https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/invitaciones/invitacion_1/brook.gif?v=20260816-1728';
-          brook.alt='Brook';
-          brook.loading='eager';
-          brook.decoding='async';
-          if(title) title.insertAdjacentElement('afterend',brook);
-          else finalCard.appendChild(brook);
+          brook.alt='Brook';brook.loading='eager';brook.decoding='async';
+          if(title)title.insertAdjacentElement('afterend',brook);else finalCard.appendChild(brook);
         }
 
         const style=doc.createElement('style');
         style.id='inv5-amsterdam-four';
         style.textContent=`
-          @font-face{
-            font-family:'Amsterdam Four';
-            src:url('./Amsterdam%20Four_ttf%20400.ttf') format('truetype');
-            font-weight:400;
-            font-style:normal;
-            font-display:swap;
-          }
-          h1,h2,h3,.section-title,.photo-story-title,.rsvp-title,.faq-title,.gift-title,.music-title,.dress-title,.location-title,.itinerary-title,.confirmation-title,.questions-title,[class*="section-title"],[class*="-title"]{
-            font-family:'Amsterdam Four',cursive !important;
-            font-weight:400 !important;
-          }
+          @font-face{font-family:'Amsterdam Four';src:url('./Amsterdam%20Four_ttf%20400.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+          h1,h2,h3,.section-title,.photo-story-title,.rsvp-title,.faq-title,.gift-title,.music-title,.dress-title,.location-title,.itinerary-title,.confirmation-title,.questions-title,[class*="section-title"],[class*="-title"]{font-family:'Amsterdam Four',cursive !important;font-weight:400 !important}
           .photo-story-kicker{margin-bottom:14px !important}
           .photo-story-title{margin-top:4px !important;margin-bottom:20px !important;line-height:1.18 !important}
           .photo-story-subtitle{margin-top:8px !important;line-height:1.5 !important}
@@ -166,135 +134,32 @@
           .gift-title,.regalo-title,[class*="gift"] h2,[class*="regalo"] h2{margin-bottom:20px !important;line-height:1.22 !important}
           .gift-hint,.regalo-hint,.tap-text,[class*="gift"] .tap-text,[class*="regalo"] .tap-text{margin-top:10px !important;line-height:1.45 !important}
 
-          #itinerarySection,.itinerary-section,[class*="itinerary-section"],[class*="itinerario-section"]{
-            padding-bottom:62px !important;
-            margin-bottom:34px !important;
-            overflow:visible !important;
-          }
+          #itinerarySection,.itinerary-section,[class*="itinerary-section"],[class*="itinerario-section"]{padding-bottom:62px !important;margin-bottom:34px !important;overflow:visible !important}
 
-          #dressCodeSection.inv5-dress-section{
-            margin:46px auto 8px !important;
-            padding:0 !important;
-            position:relative !important;
-            z-index:1 !important;
-            background:transparent !important;
-            overflow:visible !important;
-            width:100% !important;
-          }
-          .inv5-dress-card{
-            position:relative;
-            width:106%;
-            max-width:none;
-            aspect-ratio:911 / 1727;
-            min-height:0;
-            margin-left:-3%;
-            margin-right:-3%;
-            background:url('./fondo_dress_code_5.png?v=20260816-1932') center/100% 100% no-repeat;
-            display:flex;
-            align-items:flex-start;
-            justify-content:center;
-          }
-          .inv5-dress-content{
-            width:70%;
-            margin:0 auto;
-            padding:22% 6px 10%;
-            text-align:center;
-            color:#5f6652;
-          }
+          #dressCodeSection.inv5-dress-section{margin:46px auto 8px !important;padding:0 !important;position:relative !important;z-index:1 !important;background:transparent !important;overflow:visible !important;width:100% !important}
+          .inv5-dress-card{position:relative;width:120%;max-width:none;aspect-ratio:911/1727;min-height:0;margin-left:-10%;margin-right:-10%;background:url('./fondo_dress_code_5.png?v=20260816-1935') center/100% 100% no-repeat;display:flex;align-items:flex-start;justify-content:center}
+          .inv5-dress-content{width:62%;margin:0 auto;padding:22% 6px 10%;text-align:center;color:#5f6652}
           .inv5-dress-heading{margin:0 0 10px;line-height:1}
-          .inv5-dress-code{
-            display:block;
-            font-family:'Amsterdam Four',cursive !important;
-            font-weight:400 !important;
-            font-size:clamp(25px,5.3vw,41px) !important;
-            line-height:1 !important;
-            color:#5f6652 !important;
-          }
-          .inv5-dress-formal{
-            display:block;
-            margin-top:2px;
-            font-family:Georgia,'Times New Roman',serif !important;
-            font-size:clamp(30px,5.8vw,46px) !important;
-            font-weight:400 !important;
-            font-style:italic !important;
-            line-height:1 !important;
-            letter-spacing:.01em;
-            color:#595548 !important;
-          }
-          .inv5-dress-subtitle{
-            margin:0 0 13px;
-            font-family:Georgia,'Times New Roman',serif;
-            font-size:clamp(13px,2.5vw,17px);
-            line-height:1.3;
-            color:#66695a;
-          }
-          .inv5-dress-palette{
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            gap:12px;
-            flex-wrap:wrap;
-            margin:0 auto 16px;
-            max-width:520px;
-          }
-          .inv5-dress-dot{
-            width:42px;
-            height:26px;
-            border-radius:7px;
-            border:1px solid rgba(48,56,39,.08);
-            box-shadow:0 4px 10px rgba(48,56,39,.08);
-            flex:0 0 auto;
-            transform:rotate(-3deg);
-          }
+          .inv5-dress-code{display:block;font-family:'Amsterdam Four',cursive !important;font-weight:400 !important;font-size:clamp(25px,5.3vw,41px) !important;line-height:1 !important;color:#5f6652 !important}
+          .inv5-dress-formal{display:block;margin-top:2px;font-family:Georgia,'Times New Roman',serif !important;font-size:clamp(30px,5.8vw,46px) !important;font-weight:400 !important;font-style:italic !important;line-height:1 !important;letter-spacing:.01em;color:#595548 !important}
+          .inv5-dress-subtitle{margin:0 0 13px;font-family:Georgia,'Times New Roman',serif;font-size:clamp(13px,2.5vw,17px);line-height:1.3;color:#66695a}
+          .inv5-dress-palette{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;margin:0 auto 16px;max-width:520px}
+          .inv5-dress-dot{width:42px;height:26px;border-radius:7px;border:1px solid rgba(48,56,39,.08);box-shadow:0 4px 10px rgba(48,56,39,.08);flex:0 0 auto;transform:rotate(-3deg)}
           .inv5-dress-dot:nth-child(even){transform:rotate(3deg)}
-          .inv5-dress-white{
-            max-width:270px;
-            margin:0 auto 14px;
-            font-size:clamp(13px,2.4vw,16px);
-            line-height:1.35;
-            font-weight:600;
-            color:#5f6652;
-          }
-          .inv5-dress-text{
-            max-width:280px;
-            margin:0 auto 10px;
-            font-family:Georgia,'Times New Roman',serif;
-            font-size:clamp(12px,2.2vw,15px);
-            line-height:1.42;
-            color:#626757;
-          }
+          .inv5-dress-white{max-width:270px;margin:0 auto 14px;font-size:clamp(13px,2.4vw,16px);line-height:1.35;font-weight:600;color:#5f6652}
+          .inv5-dress-text{max-width:280px;margin:0 auto 10px;font-family:Georgia,'Times New Roman',serif;font-size:clamp(12px,2.2vw,15px);line-height:1.42;color:#626757}
           .inv5-dress-last{margin-bottom:0}
 
-          #rsvpSection .inv5-rsvp-title{
-            font-family:'Amsterdam Four',cursive !important;
-            font-size:clamp(38px,8vw,58px) !important;
-            line-height:1.15 !important;
-            margin:0 auto 18px !important;
-            text-align:center !important;
-          }
-
+          #rsvpSection .inv5-rsvp-title{font-family:'Amsterdam Four',cursive !important;font-size:clamp(38px,8vw,58px) !important;line-height:1.15 !important;margin:0 auto 18px !important;text-align:center !important}
           #esperamosSection{padding-top:18px !important}
-          #esperamosSection .final-card{
-            min-height:235px !important;
-            padding:24px 18px 22px !important;
-            border-radius:24% 24% 22px 22px / 9% 9% 22px 22px !important;
-          }
-          #esperamosSection .brook-final-gif{
-            display:block !important;
-            width:min(31%,140px) !important;
-            max-width:140px !important;
-            height:auto !important;
-            margin:12px auto 0 !important;
-            object-fit:contain !important;
-          }
+          #esperamosSection .final-card{min-height:235px !important;padding:24px 18px 22px !important;border-radius:24% 24% 22px 22px / 9% 9% 22px 22px !important}
+          #esperamosSection .brook-final-gif{display:block !important;width:min(31%,140px) !important;max-width:140px !important;height:auto !important;margin:12px auto 0 !important;object-fit:contain !important}
+
           @media(max-width:540px){
-            #itinerarySection,.itinerary-section,[class*="itinerary-section"],[class*="itinerario-section"]{
-              padding-bottom:70px !important;
-              margin-bottom:42px !important;
-            }
+            #itinerarySection,.itinerary-section,[class*="itinerary-section"],[class*="itinerario-section"]{padding-bottom:70px !important;margin-bottom:42px !important}
             #dressCodeSection.inv5-dress-section{margin-top:48px !important;padding:0 !important;overflow:visible !important}
-            .inv5-dress-card{width:108%;max-width:none;margin-left:-4%;margin-right:-4%}
-            .inv5-dress-content{width:72%;padding:23% 4px 9%}
+            .inv5-dress-card{width:124%;max-width:none;margin-left:-12%;margin-right:-12%}
+            .inv5-dress-content{width:60%;padding:23% 4px 9%}
             .inv5-dress-code{font-size:31px !important}
             .inv5-dress-formal{font-size:34px !important}
             .inv5-dress-subtitle{font-size:13px;margin-bottom:11px}
@@ -304,19 +169,13 @@
             .inv5-dress-text{font-size:12px;line-height:1.38;max-width:250px;margin-bottom:9px}
             #rsvpSection .inv5-rsvp-title{font-size:clamp(34px,10vw,48px) !important;margin-bottom:14px !important}
             #esperamosSection{padding-top:16px !important}
-            #esperamosSection .final-card{
-              min-height:215px !important;
-              padding:22px 16px 20px !important;
-              border-radius:20% 20% 20px 20px / 8% 8% 20px 20px !important;
-            }
+            #esperamosSection .final-card{min-height:215px !important;padding:22px 16px 20px !important;border-radius:20% 20% 20px 20px / 8% 8% 20px 20px !important}
             #esperamosSection .brook-final-gif{width:min(31%,112px) !important;max-width:112px !important;margin-top:10px !important}
           }
         `;
         doc.getElementById('inv5-amsterdam-four')?.remove();
         doc.head.appendChild(style);
-      }catch(e){
-        console.warn('No se pudieron aplicar los ajustes de Invitación 5',e);
-      }
+      }catch(e){console.warn('No se pudieron aplicar los ajustes de Invitación 5',e)}
       frame.classList.add('ready');
     });
   </script>
