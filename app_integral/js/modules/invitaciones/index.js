@@ -4,14 +4,20 @@
 window.MiGranDiaModules = window.MiGranDiaModules || {};
 window.MiGranDiaModules.invitaciones = { id: 'invitaciones' };
 
-const VERSION = '20260817-panel-movil-invitaciones-3-isolated';
+const VERSION = '20260817-device-preview-v1';
 const STORAGE_KEY = 'migrandia_invitacion_activa_v1';
+const DEVICE_KEY = 'migrandia_invitacion_dispositivo_v1';
 const INVITATIONS = Object.freeze([
   { id: 1, name: 'Invitación 1', url: 'https://avaldiviezoch.github.io/Wedding/invitaciones/invitacion_1/' },
   { id: 2, name: 'Invitación 2', url: 'https://avaldiviezoch.github.io/Wedding/invitaciones/invitacion_2/' },
   { id: 3, name: 'Invitación 3', url: 'https://avaldiviezoch.github.io/Wedding/invitaciones/invitacion_3/' },
   { id: 4, name: 'Invitación 4', url: 'https://avaldiviezoch.github.io/Wedding/invitaciones/invitacion_4/' },
   { id: 5, name: 'Invitación 5', url: 'https://avaldiviezoch.github.io/Wedding/invitaciones/invitacion_5/', official: true }
+]);
+const DEVICES = Object.freeze([
+  { id: 'compact', label: 'Compacto', width: 360, height: 800 },
+  { id: 'standard', label: 'Estándar', width: 390, height: 844 },
+  { id: 'large', label: 'Grande', width: 430, height: 932 }
 ]);
 
 let activeModule = location.hash.replace(/^#/, '').toLowerCase() || '';
@@ -20,6 +26,11 @@ let cleanupObserver = null;
 function activeId() {
   const value = Number(localStorage.getItem(STORAGE_KEY) || 5);
   return INVITATIONS.some(item => item.id === value) ? value : 5;
+}
+
+function activeDevice() {
+  const id = localStorage.getItem(DEVICE_KEY) || 'standard';
+  return DEVICES.find(device => device.id === id) || DEVICES[1];
 }
 
 function moduleFromTarget(target) {
@@ -121,7 +132,6 @@ function ensureStyles() {
     .mgd-inv-option-copy{min-width:0;flex:1}
     .mgd-inv-option-copy strong{display:block;font-size:11px;font-weight:850}
     .mgd-inv-option-copy small{display:block;margin-top:2px;font-size:8px;opacity:.72}
-    .mgd-inv-pencil{font-size:13px;opacity:.72}
     .mgd-inv-official{
       display:inline-flex;align-items:center;margin-top:5px;padding:3px 7px;
       border-radius:999px;background:#f0e2e5;color:#9d5e6a;font-size:7px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;
@@ -131,7 +141,7 @@ function ensureStyles() {
     .mgd-inv-preview-card{padding:13px;background:#fff}
     .mgd-inv-toolbar{
       min-height:55px;display:flex;align-items:center;justify-content:space-between;gap:14px;
-      padding:9px 11px;margin-bottom:12px;border:1px solid #e5dfdc;border-radius:13px;background:#fff;
+      padding:9px 11px;margin-bottom:10px;border:1px solid #e5dfdc;border-radius:13px;background:#fff;
     }
     .mgd-inv-toolbar-title span{display:block;margin-bottom:3px;color:#92908d;font-size:7px;font-weight:850;letter-spacing:.06em;text-transform:uppercase}
     .mgd-inv-toolbar-title strong{display:block;font-size:11px;color:#3c3b38}
@@ -143,37 +153,56 @@ function ensureStyles() {
     }
     .mgd-inv-actions .mgd-inv-open{background:#b17782;border-color:#b17782;color:#fff}
 
+    .mgd-device-bar{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      padding:9px 11px;margin-bottom:10px;border:1px solid #e5dfdc;border-radius:13px;background:#faf9f8;
+    }
+    .mgd-device-label{font-size:9px;font-weight:850;color:#6f6b68;text-transform:uppercase;letter-spacing:.05em}
+    .mgd-device-options{display:flex;gap:6px;flex-wrap:wrap}
+    .mgd-device-option{
+      border:1px solid #ddd7d4;border-radius:999px;background:#fff;color:#55514e;
+      padding:7px 10px;font-size:8px;font-weight:850;cursor:pointer;white-space:nowrap;
+    }
+    .mgd-device-option.is-active{background:#343434;border-color:#343434;color:#fff}
+
     .mgd-inv-stage{
-      position:relative;min-height:690px;display:flex;align-items:flex-start;justify-content:center;
-      padding:18px 18px 0;border:1px solid #dddfe1;border-radius:14px;background:#f0f1f3;overflow:hidden;
+      position:relative;min-height:760px;display:flex;align-items:flex-start;justify-content:center;
+      padding:18px;border:1px solid #dddfe1;border-radius:14px;background:#f0f1f3;
+      overflow:auto;overscroll-behavior:contain;
     }
     .mgd-phone{
-      position:relative;width:366px;height:720px;padding:9px;
-      border-radius:45px;background:#252629;box-shadow:0 16px 38px rgba(0,0,0,.18);
+      --device-width:390px;
+      --device-height:844px;
+      position:relative;width:calc(var(--device-width) + 18px);height:calc(var(--device-height) + 18px);padding:9px;
+      flex:0 0 auto;border-radius:45px;background:#252629;box-shadow:0 16px 38px rgba(0,0,0,.18);
     }
     .mgd-phone::before{
       content:"";position:absolute;z-index:4;top:9px;left:50%;transform:translateX(-50%);
       width:108px;height:25px;border-radius:0 0 17px 17px;background:#252629;
     }
-    .mgd-phone-screen{position:relative;width:100%;height:100%;border-radius:37px;overflow:hidden;background:#fff}
+    .mgd-phone-screen{position:relative;width:var(--device-width);height:var(--device-height);border-radius:37px;overflow:hidden;background:#fff}
     .mgd-phone-screen iframe{display:block;width:100%;height:100%;border:0;background:#fff}
     .mgd-inv-loading{
       position:absolute;inset:0;z-index:3;display:grid;place-items:center;padding:30px;text-align:center;
       background:#fff;color:#85807d;font-size:10px;transition:opacity .2s ease;
     }
     .mgd-inv-loading.is-hidden{opacity:0;pointer-events:none}
+    .mgd-mobile-note{display:none;margin:10px 2px 0;color:#77716d;font-size:9px;line-height:1.5}
 
     @media(max-width:900px){
       .mgd-inv-panel{grid-template-columns:1fr;width:min(760px,calc(100% - 20px));margin-top:12px}
       .mgd-inv-selector-head{padding:17px 15px 12px}.mgd-inv-selector h2{font-size:22px}
       .mgd-inv-list{display:flex;overflow-x:auto;padding:10px}.mgd-inv-option{min-width:155px}
-      .mgd-inv-stage{min-height:640px;padding:12px 8px 0}.mgd-phone{width:min(366px,94vw);height:650px}
+      .mgd-inv-stage{min-height:520px;justify-content:flex-start;padding:12px}
+      .mgd-mobile-note{display:block}
     }
     @media(max-width:560px){
       .mgd-inv-panel{width:calc(100% - 12px);gap:10px}
       .mgd-inv-preview-card{padding:7px}.mgd-inv-toolbar{align-items:flex-start;flex-direction:column}
       .mgd-inv-actions{width:100%;justify-content:flex-start}.mgd-inv-actions button,.mgd-inv-actions a{padding:7px 9px}
-      .mgd-phone{height:620px;border-radius:38px}.mgd-phone-screen{border-radius:30px}.mgd-phone::before{width:94px;height:22px}
+      .mgd-device-bar{align-items:flex-start;flex-direction:column}
+      .mgd-inv-stage{min-height:460px;padding:8px}
+      .mgd-phone{border-radius:38px}.mgd-phone-screen{border-radius:30px}.mgd-phone::before{width:94px;height:22px}
     }
   `;
   document.head.appendChild(style);
@@ -185,11 +214,14 @@ function optionMarkup(item, selected) {
       <span class="mgd-inv-number">${item.id}</span>
       <span class="mgd-inv-option-copy">
         <strong>${item.name}</strong>
-        <small>Lista</small>
+        <small>Vista publicada</small>
         ${item.official ? '<span class="mgd-inv-official">Invitación oficial</span>' : ''}
       </span>
-      <span class="mgd-inv-pencil" aria-hidden="true">⌁</span>
     </button>`;
+}
+
+function deviceMarkup(device, selected) {
+  return `<button class="mgd-device-option${selected ? ' is-active' : ''}" type="button" data-device-id="${device.id}">${device.label} · ${device.width}×${device.height}</button>`;
 }
 
 function render() {
@@ -203,6 +235,7 @@ function render() {
 
   const selected = activeId();
   const current = INVITATIONS.find(item => item.id === selected) || INVITATIONS[4];
+  const currentDevice = activeDevice();
 
   workspace.innerHTML = `
     <section class="mgd-inv-panel" data-owner-module="invitaciones" data-invitations-layout="mobile-preview" data-version="${VERSION}">
@@ -210,7 +243,7 @@ function render() {
         <div class="mgd-inv-selector-head">
           <span class="mgd-inv-eyebrow">Modelos disponibles</span>
           <h2>Selecciona una invitación</h2>
-          <p>Pulsa un modelo para mostrarlo al costado. Usa el lápiz para editar su enlace.</p>
+          <p>Pulsa un modelo para verlo. Cada opción abre directamente la versión publicada de esa invitación.</p>
         </div>
         <div class="mgd-inv-list">
           ${INVITATIONS.map(item => optionMarkup(item, item.id === current.id)).join('')}
@@ -231,14 +264,22 @@ function render() {
           </div>
         </div>
 
+        <div class="mgd-device-bar">
+          <span class="mgd-device-label">Simular tamaño real</span>
+          <div class="mgd-device-options">
+            ${DEVICES.map(device => deviceMarkup(device, device.id === currentDevice.id)).join('')}
+          </div>
+        </div>
+
         <div class="mgd-inv-stage">
-          <div class="mgd-phone">
+          <div class="mgd-phone" id="mgdPhone" style="--device-width:${currentDevice.width}px;--device-height:${currentDevice.height}px">
             <div class="mgd-phone-screen">
               <div class="mgd-inv-loading" id="mgdInvLoading">Cargando ${current.name}…</div>
               <iframe id="mgdInvFrame" src="${current.url}" title="${current.name}" allow="autoplay; fullscreen"></iframe>
             </div>
           </div>
         </div>
+        <p class="mgd-mobile-note">En un celular real, usa “Abrir aparte” para comprobar la invitación ocupando el viewport completo del dispositivo.</p>
       </section>
     </section>`;
 
@@ -248,6 +289,7 @@ function render() {
   const official = document.getElementById('mgdInvOfficial');
   const open = document.getElementById('mgdInvOpen');
   const copy = document.getElementById('mgdInvCopy');
+  const phone = document.getElementById('mgdPhone');
   let currentItem = current;
 
   function select(id) {
@@ -269,8 +311,22 @@ function render() {
     frame.src = item.url;
   }
 
+  function setDevice(id) {
+    const device = DEVICES.find(item => item.id === id);
+    if (!device || !phone) return;
+    localStorage.setItem(DEVICE_KEY, device.id);
+    phone.style.setProperty('--device-width', `${device.width}px`);
+    phone.style.setProperty('--device-height', `${device.height}px`);
+    workspace.querySelectorAll('[data-device-id]').forEach(button => {
+      button.classList.toggle('is-active', button.dataset.deviceId === device.id);
+    });
+  }
+
   workspace.querySelectorAll('[data-invite-id]').forEach(button => {
     button.addEventListener('click', () => select(button.dataset.inviteId));
+  });
+  workspace.querySelectorAll('[data-device-id]').forEach(button => {
+    button.addEventListener('click', () => setDevice(button.dataset.deviceId));
   });
 
   frame.addEventListener('load', () => loading.classList.add('is-hidden'));
