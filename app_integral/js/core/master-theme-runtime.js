@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-master-theme-runtime-v3-checklist';
+  const VERSION = '20260817-master-theme-runtime-v4-navfix';
   const WORKSPACE_ID = 'unifiedWorkspace';
   const STYLE_ID = 'mgdMasterThemeStyles';
   const CHECKLIST_STYLE_ID = 'mgdChecklistRefineStyles';
@@ -10,6 +10,15 @@
     'distribucion','cronograma','invitaciones','musica',
     'documentos','configuracion'
   ]);
+
+  function loadNavigationGuard() {
+    if (document.querySelector('script[data-mgd-module-navigation-guard]')) return;
+    const script = document.createElement('script');
+    script.src = new URL(`js/core/module-navigation-guard.js?v=${VERSION}`, document.baseURI).href;
+    script.defer = true;
+    script.dataset.mgdModuleNavigationGuard = VERSION;
+    document.head.appendChild(script);
+  }
 
   function currentModule() {
     return location.hash.replace(/^#/, '').trim().toLowerCase();
@@ -49,7 +58,6 @@
 
   function decorateChecklist(doc) {
     if (!doc?.body) return;
-
     doc.documentElement.classList.add('mgd-checklist-refine');
     doc.body.classList.add('mgd-checklist-refine');
 
@@ -74,20 +82,13 @@
       row.classList.toggle('mgd-checklist-done', Boolean(box.checked));
       if (box.dataset.mgdChecklistBound !== VERSION) {
         box.dataset.mgdChecklistBound = VERSION;
-        box.addEventListener('change', () => {
-          row.classList.toggle('mgd-checklist-done', Boolean(box.checked));
-        }, { passive:true });
+        box.addEventListener('change', () => row.classList.toggle('mgd-checklist-done', Boolean(box.checked)));
       }
     });
 
-    doc.querySelectorAll('[class*="summary"],[class*="progress-card"],[class*="stats"]').forEach(node => {
-      node.classList.add('mgd-checklist-summary');
-    });
-
+    doc.querySelectorAll('[class*="summary"],[class*="progress-card"],[class*="stats"]').forEach(node => node.classList.add('mgd-checklist-summary'));
     doc.querySelectorAll('[class*="filter"],[class*="tabs"],[class*="segmented"],select,input[type="search"]').forEach(node => {
-      const holder = node.matches('select,input[type="search"]')
-        ? node.closest('[class*="filter"],[class*="toolbar"],[class*="controls"]')
-        : node;
+      const holder = node.matches('select,input[type="search"]') ? node.closest('[class*="filter"],[class*="toolbar"],[class*="controls"]') : node;
       if (holder) holder.classList.add('mgd-checklist-filter');
     });
   }
@@ -100,7 +101,6 @@
 
   function patchDocument(doc, moduleId) {
     if (!doc?.documentElement || !doc.body) return false;
-
     doc.documentElement.classList.add('mgd-master-theme');
     doc.body.classList.add('mgd-master-theme');
     doc.documentElement.dataset.mgdModule = moduleId || 'unknown';
@@ -117,40 +117,32 @@
 
     classifyActions(doc);
     annotateStatus(doc);
-
     if (moduleId === 'checklist') decorateChecklist(doc);
     else clearChecklistDecor(doc);
-
     return true;
   }
 
   function patchFrame(frame, moduleId) {
     if (!(frame instanceof HTMLIFrameElement)) return;
-
     if (frame.dataset.mgdMasterThemeBound !== VERSION) {
       frame.dataset.mgdMasterThemeBound = VERSION;
       frame.addEventListener('load', () => {
         try { patchDocument(frame.contentDocument, currentModule()); } catch (_) {}
       });
     }
-
     try { patchDocument(frame.contentDocument, moduleId); } catch (_) {}
   }
 
   function patchWorkspace() {
     const workspace = document.getElementById(WORKSPACE_ID);
     if (!workspace) return;
-
     const moduleId = currentModule();
     const active = MODULES.has(moduleId) || Boolean(moduleId);
-
     document.body.classList.toggle('mgd-master-host-active', active && document.body.classList.contains('module-view'));
     document.body.classList.toggle('mgd-checklist-host-active', moduleId === 'checklist' && document.body.classList.contains('module-view'));
     workspace.dataset.mgdMasterTheme = VERSION;
     workspace.dataset.mgdModule = moduleId || '';
-
     workspace.querySelectorAll('iframe').forEach(frame => patchFrame(frame, moduleId));
-
     classifyActions(workspace);
     annotateStatus(workspace);
   }
@@ -158,17 +150,14 @@
   function bind() {
     const workspace = document.getElementById(WORKSPACE_ID);
     if (!workspace) return;
+    loadNavigationGuard();
 
     const observer = new MutationObserver(() => requestAnimationFrame(patchWorkspace));
     observer.observe(workspace, { childList:true, subtree:true });
-
-    new MutationObserver(() => requestAnimationFrame(patchWorkspace))
-      .observe(document.body, { attributes:true, attributeFilter:['class'] });
+    new MutationObserver(() => requestAnimationFrame(patchWorkspace)).observe(document.body, { attributes:true, attributeFilter:['class'] });
 
     document.addEventListener('click', event => {
-      const trigger = event.target instanceof Element
-        ? event.target.closest('[data-module],[data-quick-module]')
-        : null;
+      const trigger = event.target instanceof Element ? event.target.closest('[data-module],[data-quick-module]') : null;
       if (!trigger) return;
       setTimeout(patchWorkspace, 0);
     }, true);
