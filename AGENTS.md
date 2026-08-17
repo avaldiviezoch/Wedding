@@ -22,7 +22,8 @@ Mejorar Mi Gran Día sin romper funcionalidades, sin perder datos y sin acumular
 - Preferir extender código actual o usar APIs nativas antes de añadir dependencias.
 - Revisar `app_integral/ARCHITECTURE.md` y respetar su estructura.
 - Si el cambio toca Firebase/Firestore/auth/storage, identificar primero la ruta de lectura y escritura.
-- Si el cambio es visual, leer `agent/skills/visual-system/SKILL.md`.
+- Si el cambio es visual, leer `agent/skills/visual-system/SKILL.md` y `design-system/MASTER.md`.
+- Si el módulo tiene una excepción visual documentada, revisar `design-system/modules/<modulo>.md`.
 - Si queda una solución temporal o deuda conocida, registrarla en `agent/DEBT.md` siguiendo `agent/skills/debt/SKILL.md`.
 
 ## Arquitectura obligatoria
@@ -44,6 +45,8 @@ Cuando una UI, función, listener o flujo sea reemplazado:
 5. comprobar que no queden flashes visuales, dobles listeners, elementos duplicados ni estilos en conflicto.
 
 ## Sistema visual
+
+`design-system/MASTER.md` es la fuente visual de verdad del producto. La vista de referencia puede abrirse en `design-system/preview.html`.
 
 Mismo propósito visual = mismo patrón visual.
 
@@ -69,8 +72,9 @@ Nunca interpretar una corrección puntual como permiso para crear otra versión 
 Todo cambio visual debe revisarse al menos en:
 - móvil estrecho (~360 px),
 - móvil común (~390–430 px),
-- tablet,
-- escritorio.
+- tablet (~768 px),
+- escritorio (~1024 px),
+- escritorio amplio (~1440 px).
 
 Evitar anchos fijos innecesarios, overlays que bloqueen scroll, `overflow:hidden` global sin justificación y controles fuera del viewport.
 
@@ -99,6 +103,7 @@ Antes de dar por terminado un cambio:
 - comprobar persistencia si el módulo guarda datos;
 - buscar código viejo, CSS superpuesto y listeners duplicados;
 - revisar si quedó deuda técnica que deba documentarse;
+- comprobar coherencia con `design-system/MASTER.md` si hubo cambios visuales;
 - resumir archivos modificados, riesgo y pruebas realizadas.
 
 ## Regla de prudencia
