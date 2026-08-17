@@ -9,6 +9,9 @@
     return new URL(`js/modules/invitados/${file}?v=${version}`, document.baseURI).href;
   }
 
+  import(new URL('js/modules/distribucion/index.js?v=20260817-1535-link2', document.baseURI).href)
+    .catch((error) => console.warn('No se pudo iniciar el vínculo Invitados ↔ Distribución:', error));
+
   function ensureSharedShellStyles() {
     const id = 'mgdModuleTopbarPremiumCss';
     if (document.getElementById(id)) return;
