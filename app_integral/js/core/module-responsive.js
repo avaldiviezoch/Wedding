@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260816-2115-modules-responsive1';
+  const VERSION = '20260816-2115-modules-responsive2-invscroll';
   const MOBILE = '(max-width: 760px)';
 
   function isMobile() {
@@ -33,6 +33,7 @@
       input,select,textarea,button{max-width:100%;min-width:0}
 
       @media(max-width:760px){
+        html,body{min-height:100%!important;height:auto!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important}
         body{font-size:14px!important}
         main,.app,.page,.page-shell,.shell,.wrapper,.container,.content,.main,.main-content,.workspace,.dashboard,.dashboard-content,.module-shell,.module-content{
           width:100%!important;max-width:100%!important;min-width:0!important;margin-left:0!important;margin-right:0!important
@@ -58,6 +59,64 @@
     doc.head.appendChild(style);
   }
 
+  function ensureParentResponsiveCss() {
+    if (document.getElementById('mgdParentModuleResponsiveCss')) return;
+    const style = document.createElement('style');
+    style.id = 'mgdParentModuleResponsiveCss';
+    style.textContent = `
+      @media(max-width:760px){
+        body.module-view #unifiedWorkspace{
+          position:fixed!important;
+          inset:64px 0 0!important;
+          width:100%!important;
+          max-width:100vw!important;
+          height:calc(100dvh - 64px)!important;
+          min-height:0!important;
+          overflow-x:hidden!important;
+          overflow-y:auto!important;
+          -webkit-overflow-scrolling:touch!important;
+          overscroll-behavior-y:contain!important;
+          touch-action:pan-y!important;
+        }
+        body.module-view #unifiedWorkspace .mgd-inv-panel{
+          min-height:max-content!important;
+          height:auto!important;
+          padding-bottom:calc(24px + env(safe-area-inset-bottom))!important;
+          touch-action:pan-y!important;
+        }
+        body.module-view #unifiedWorkspace .mgd-inv-preview-card{
+          overflow:visible!important;
+        }
+        body.module-view #unifiedWorkspace .mgd-inv-stage{
+          overflow:visible!important;
+          min-height:0!important;
+          height:auto!important;
+          padding-bottom:16px!important;
+          touch-action:pan-y!important;
+        }
+        body.module-view #unifiedWorkspace .mgd-phone{
+          height:min(650px,calc(100dvh - 190px))!important;
+          min-height:500px!important;
+        }
+        body.module-view #unifiedWorkspace .mgd-phone-screen{
+          overflow:auto!important;
+          -webkit-overflow-scrolling:touch!important;
+          overscroll-behavior:contain!important;
+          touch-action:pan-y!important;
+        }
+        body.module-view #unifiedWorkspace .mgd-phone-screen iframe{
+          display:block!important;
+          width:100%!important;
+          height:100%!important;
+          min-height:100%!important;
+          pointer-events:auto!important;
+          touch-action:pan-y!important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   function fixFrame(frame) {
     if (!(frame instanceof HTMLIFrameElement)) return;
     const apply = () => {
@@ -78,6 +137,7 @@
   }
 
   function normalizeWorkspace() {
+    ensureParentResponsiveCss();
     const workspace = document.getElementById('unifiedWorkspace');
     if (!workspace) return;
     workspace.querySelectorAll('iframe').forEach(fixFrame);
@@ -86,15 +146,20 @@
       workspace.style.maxWidth = '100vw';
       workspace.style.minWidth = '0';
       workspace.style.overflowX = 'hidden';
+      workspace.style.overflowY = 'auto';
+      workspace.style.webkitOverflowScrolling = 'touch';
     } else {
       workspace.style.removeProperty('width');
       workspace.style.removeProperty('max-width');
       workspace.style.removeProperty('min-width');
       workspace.style.removeProperty('overflow-x');
+      workspace.style.removeProperty('overflow-y');
+      workspace.style.removeProperty('-webkit-overflow-scrolling');
     }
   }
 
   function bind() {
+    ensureParentResponsiveCss();
     const workspace = document.getElementById('unifiedWorkspace');
     if (!workspace || workspace.dataset.mgdResponsiveObserver === VERSION) return;
     workspace.dataset.mgdResponsiveObserver = VERSION;
