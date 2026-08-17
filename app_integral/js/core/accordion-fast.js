@@ -1,7 +1,53 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260816-1908-accordion1';
+  const VERSION = '20260816-2108-accordion-isolation1';
+
+  function moduleFromTarget(target) {
+    if (!(target instanceof Element)) return '';
+    const control = target.closest('[data-quick-module],[data-module]');
+    if (!control) return '';
+    return String(control.dataset.quickModule || control.dataset.module || '').trim().toLowerCase();
+  }
+
+  function resetWorkspaceFor(nextModule) {
+    const workspace = document.getElementById('unifiedWorkspace');
+    if (!workspace || !nextModule) return;
+
+    const previousModule = String(workspace.dataset.activeModule || '').toLowerCase();
+    if (previousModule === nextModule && workspace.childElementCount) return;
+
+    // Cada módulo debe arrancar con un workspace limpio. El legacy todavía
+    // conserva algunos renderizadores que agregan contenido en vez de sustituirlo;
+    // sin esta limpieza quedaban restos de Invitados/Invitaciones sobre Cronograma,
+    // Distribución y otros módulos.
+    workspace.replaceChildren();
+    workspace.dataset.activeModule = nextModule;
+    workspace.removeAttribute('data-mgd-invitations-fast');
+    workspace.removeAttribute('data-mgd-invitados-runtime-observer');
+
+    // Estilos que pertenecen exclusivamente al panel nativo de Invitaciones.
+    // Se eliminan al salir para que no afecten el siguiente módulo.
+    if (nextModule !== 'invitaciones') {
+      document.getElementById('mgdNativeInvitationsStyles')?.remove();
+      document.getElementById('mgdInvitationMobilePanelStyles')?.remove();
+    }
+
+    document.body.dataset.mgdActiveModule = nextModule;
+  }
+
+  // Se registra inmediatamente, antes de los routers de Invitados, Invitaciones
+  // y del legacy. Así la limpieza ocurre ANTES de que el siguiente módulo pinte.
+  document.addEventListener('click', (event) => {
+    const nextModule = moduleFromTarget(event.target);
+    if (!nextModule) return;
+    resetWorkspaceFor(nextModule);
+  }, true);
+
+  window.addEventListener('hashchange', () => {
+    const nextModule = location.hash.replace(/^#/, '').trim().toLowerCase();
+    if (nextModule) resetWorkspaceFor(nextModule);
+  });
 
   function setOpen(module, open) {
     if (!module) return;
