@@ -48,3 +48,5 @@ body.auth-hydrating .menu-button {
   opacity: .82;
   cursor: pointer;
 }
+
+/* v2: módulos visibles mientras se restaura la sesión autenticada. */
