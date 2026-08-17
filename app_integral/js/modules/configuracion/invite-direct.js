@@ -4,7 +4,6 @@
   const FORM_ID = 'inviteWeddingMemberForm';
   const STATUS_ID = 'inviteWeddingStatus';
   const ACCOUNT_STYLE_VERSION = '20260814-1121-account1';
-  const INVITATIONS_MODULE_VERSION = '20260817-native-invitaciones-1';
 
   if (!document.querySelector('link[data-account-card-style]')) {
     const link = document.createElement('link');
@@ -37,15 +36,8 @@
     el.className = `invite-wedding-status${type ? ` is-${type}` : ''}`;
   }
 
-  // Invitaciones se renderiza desde su módulo real. Este archivo ya no modifica
-  // ni clona elementos del selector de invitaciones.
-  const nativeInvitationsUrl = new URL(
-    `js/modules/invitaciones/index.js?v=${INVITATIONS_MODULE_VERSION}`,
-    document.baseURI
-  ).href;
-  import(nativeInvitationsUrl)
-    .catch((error) => console.error('No se pudo cargar el módulo nativo de Invitaciones:', error));
-
+  // Este controlador ya no interviene en el módulo Invitaciones.
+  // Invitaciones se carga de forma nativa desde applu.html.
   document.addEventListener('click', (event) => {
     const target = event.target instanceof Element ? event.target.closest(`#${FORM_ID} button`) : null;
     if (!target || target.dataset.inviteController === 'stable-v2') return;
