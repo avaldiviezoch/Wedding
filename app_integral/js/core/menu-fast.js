@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260816-2117-responsive-modules1';
+  const VERSION = '20260816-2119-responsive-modules2';
   let passthrough = false;
   let queuedClick = false;
   let authPoll = 0;
