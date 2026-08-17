@@ -4,8 +4,6 @@
   const FORM_ID = 'inviteWeddingMemberForm';
   const STATUS_ID = 'inviteWeddingStatus';
   const ACCOUNT_STYLE_VERSION = '20260814-1121-account1';
-  const INVITATIONS_MODULE_VERSION = '20260817-native-invitaciones-2';
-  let invitationsModulePromise = null;
 
   if (!document.querySelector('link[data-account-card-style]')) {
     const link = document.createElement('link');
@@ -38,44 +36,8 @@
     el.className = `invite-wedding-status${type ? ` is-${type}` : ''}`;
   }
 
-  function loadInvitationsModule() {
-    if (!invitationsModulePromise) {
-      const url = new URL(`js/modules/invitaciones/index.js?v=${INVITATIONS_MODULE_VERSION}`, document.baseURI).href;
-      invitationsModulePromise = import(url).catch((error) => {
-        invitationsModulePromise = null;
-        console.error('No se pudo cargar Invitaciones:', error);
-        throw error;
-      });
-    }
-    return invitationsModulePromise;
-  }
-
-  // Ruta nativa de Invitaciones. Se captura en window antes del router histórico.
-  window.addEventListener('click', (event) => {
-    const trigger = event.target instanceof Element
-      ? event.target.closest('[data-module="invitaciones"],[data-quick-module="invitaciones"]')
-      : null;
-    if (!trigger) return;
-
-    const guard = window.WeddingPlannerAuthGuard;
-    if (guard?.ready && !guard.authenticated) return;
-
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
-
-    loadInvitationsModule().then(() => {
-      // El módulo escucha #invitaciones y también expone su UI al cargarse.
-      history.replaceState({ module: 'invitaciones' }, '', `${location.pathname}${location.search}#invitaciones`);
-      window.dispatchEvent(new HashChangeEvent('hashchange'));
-    }).catch(() => {});
-  }, true);
-
-  // Precalentamos el módulo cuando el navegador esté libre para que el primer clic sea inmediato.
-  const warm = () => loadInvitationsModule().catch(() => {});
-  if ('requestIdleCallback' in window) requestIdleCallback(warm, { timeout: 1800 });
-  else setTimeout(warm, 700);
-
+  // Este archivo ya no carga, intercepta ni modifica el módulo Invitaciones.
+  // Invitaciones se carga de forma nativa desde applu.html antes del router legado.
   document.addEventListener('click', (event) => {
     const target = event.target instanceof Element ? event.target.closest(`#${FORM_ID} button`) : null;
     if (!target || target.dataset.inviteController === 'stable-v2') return;
