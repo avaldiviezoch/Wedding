@@ -28,6 +28,23 @@
     const style=doc.createElement('style');
     style.id='inv5-layout-polish-style';
     style.textContent=`
+      /*
+       * Dress Code: acercar el bloque completo al cronograma.
+       * Se mueve la sección como unidad, sin tocar título, ilustración ni contenido interno.
+       */
+      #dressCodeSection,
+      .inv5-dress-section{
+        margin-top:-56px !important;
+      }
+
+      /* En pantallas muy estrechas reducimos un poco el solape visual. */
+      @media(max-width:360px){
+        #dressCodeSection,
+        .inv5-dress-section{
+          margin-top:-44px !important;
+        }
+      }
+
       /* Música: separar el texto introductorio del título sin tocar el título. */
       #musicSection .music-copy .final-text.inv5-music-copy-spaced{
         margin-top:22px !important;
