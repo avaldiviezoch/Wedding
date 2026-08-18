@@ -28,6 +28,92 @@
     const style=doc.createElement('style');
     style.id='inv5-layout-polish-style';
     style.textContent=`
+      /* Cuenta regresiva: la imagen conserva solo el contenido editorial de Invitación 1. */
+      .countdown-image-wrap{
+        position:relative !important;
+        overflow:visible !important;
+        margin-bottom:0 !important;
+      }
+      .inv5-countdown-image-copy{
+        position:absolute !important;
+        left:50% !important;
+        top:55% !important;
+        transform:translate(-50%,-50%) !important;
+        width:min(72%,420px) !important;
+        text-align:center !important;
+        z-index:3 !important;
+        color:#5f6652 !important;
+        pointer-events:none !important;
+      }
+      .inv5-countdown-kicker{
+        font-family:Georgia,'Times New Roman',serif !important;
+        font-size:clamp(10px,2.5vw,14px) !important;
+        letter-spacing:.28em !important;
+        text-transform:uppercase !important;
+        margin:0 0 8px !important;
+        color:#747a63 !important;
+      }
+      .inv5-countdown-title{
+        font-family:'Amsterdam Four',cursive !important;
+        font-size:clamp(30px,7.4vw,50px) !important;
+        line-height:1.08 !important;
+        font-weight:400 !important;
+        margin:0 auto 8px !important;
+        color:#5d6854 !important;
+      }
+      .inv5-countdown-date{
+        font-family:Georgia,'Times New Roman',serif !important;
+        font-size:clamp(19px,4vw,28px) !important;
+        font-style:italic !important;
+        line-height:1.15 !important;
+        margin:0 0 10px !important;
+        color:#66705b !important;
+      }
+      .inv5-countdown-copy{
+        max-width:320px !important;
+        margin:0 auto !important;
+        font-family:Georgia,'Times New Roman',serif !important;
+        font-size:clamp(12px,2.8vw,16px) !important;
+        line-height:1.5 !important;
+        color:#646957 !important;
+      }
+      .countdown-overlay.inv5-countdown-below{
+        position:relative !important;
+        left:auto !important;
+        right:auto !important;
+        top:auto !important;
+        bottom:auto !important;
+        transform:none !important;
+        width:min(92%,560px) !important;
+        margin:10px auto 42px !important;
+        padding:0 10px !important;
+        text-align:center !important;
+      }
+      .countdown-overlay.inv5-countdown-below .faltan{
+        margin-top:0 !important;
+        margin-bottom:16px !important;
+      }
+
+      @media(max-width:420px){
+        .inv5-countdown-image-copy{
+          top:54% !important;
+          width:70% !important;
+        }
+        .inv5-countdown-title{
+          font-size:clamp(27px,7.2vw,38px) !important;
+        }
+        .inv5-countdown-copy{
+          font-size:clamp(11px,2.7vw,14px) !important;
+          line-height:1.42 !important;
+        }
+        .countdown-overlay.inv5-countdown-below{
+          width:94% !important;
+          margin-top:4px !important;
+          margin-bottom:36px !important;
+          padding:0 6px !important;
+        }
+      }
+
       #dressCodeSection,
       .inv5-dress-section{
         margin-top:clamp(-84px,-10vh,-68px) !important;
@@ -147,6 +233,30 @@
     doc.head.appendChild(style);
   }
 
+  function arrangeCountdown(doc){
+    const imageWrap=doc.querySelector('.countdown-image-wrap');
+    const overlay=doc.querySelector('.countdown-overlay');
+    if(!imageWrap||!overlay) return;
+
+    let copy=imageWrap.querySelector('.inv5-countdown-image-copy');
+    if(!copy){
+      copy=doc.createElement('div');
+      copy.className='inv5-countdown-image-copy';
+      copy.innerHTML=`
+        <div class="inv5-countdown-kicker">CUENTA REGRESIVA</div>
+        <div class="inv5-countdown-title">Cada día falta menos</div>
+        <div class="inv5-countdown-date">16 de enero</div>
+        <p class="inv5-countdown-copy">Estamos contando los días para compartir este momento tan especial contigo.</p>
+      `;
+      imageWrap.appendChild(copy);
+    }
+
+    overlay.classList.add('inv5-countdown-below');
+    if(imageWrap.nextElementSibling!==overlay){
+      imageWrap.insertAdjacentElement('afterend',overlay);
+    }
+  }
+
   function updateGiftPhysicalNote(doc){
     const note=doc.querySelector('.gift-physical-note');
     if(!note) return;
@@ -254,6 +364,7 @@
     const doc=findBaseDocument();
     if(!doc) return false;
     installLayoutStyle(doc);
+    arrangeCountdown(doc);
     updateGiftPhysicalNote(doc);
     updateGiftRevealText(doc);
     removeMusicKicker(doc);
