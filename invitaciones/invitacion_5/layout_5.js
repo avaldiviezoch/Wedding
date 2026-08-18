@@ -76,23 +76,12 @@
       }
 
       /*
-       * Notas de interacción uniformes:
-       * Confirmación / Regalo / Música.
-       * Reducidas aproximadamente a la mitad del tamaño anterior.
+       * Confirmación / Regalo / Música toman exactamente la tipografía
+       * de la nota del DJ. La nota del DJ no se modifica.
        */
       .inv5-action-note-unified{
-        font-size:clamp(8px,1.9vw,9px) !important;
-        line-height:1.42 !important;
         font-style:italic !important;
-        font-weight:500 !important;
-        letter-spacing:.01em !important;
         text-align:center !important;
-      }
-
-      @media(max-width:360px){
-        .inv5-action-note-unified{
-          font-size:clamp(8px,2vw,9px) !important;
-        }
       }
     `;
     doc.head.appendChild(style);
@@ -130,11 +119,26 @@
     return matches[0]||null;
   }
 
+  function findDjReferenceNote(doc){
+    const matches=[...doc.querySelectorAll('p,span,small,div,strong,em')]
+      .filter(el=>{
+        const text=norm(el.textContent);
+        return text.length>0&&text.length<220&&
+          text.includes('el dj no aceptar')&&
+          text.includes('pedidos musicales')&&
+          text.includes('compartirnos tu canci');
+      })
+      .sort((a,b)=>norm(a.textContent).length-norm(b.textContent).length);
+
+    return matches[0]||null;
+  }
+
   function copyNoteTypography(source,target){
     if(!source||!target) return;
     const cs=source.ownerDocument.defaultView.getComputedStyle(source);
     [
-      'fontFamily','fontWeight','letterSpacing','textTransform','color'
+      'fontFamily','fontSize','fontWeight','fontStyle','lineHeight',
+      'letterSpacing','textTransform','color'
     ].forEach(prop=>{
       const value=cs[prop];
       if(value) target.style.setProperty(prop.replace(/[A-Z]/g,m=>'-'+m.toLowerCase()),value,'important');
@@ -164,12 +168,14 @@
   }
 
   function unifyActionNotes(doc){
-    const gift=findActionNote(doc,'gift')||doc.querySelector('#inv5GiftInRsvp .gift-stage-subtitle');
-    if(!gift) return;
+    const model=findDjReferenceNote(doc);
+    if(!model) return;
 
-    gift.classList.add('inv5-action-note-unified');
-    copyNoteTypography(gift,findActionNote(doc,'confirmation'));
-    copyNoteTypography(gift,findActionNote(doc,'music'));
+    const confirmation=findActionNote(doc,'confirmation');
+    const gift=findActionNote(doc,'gift')||doc.querySelector('#inv5GiftInRsvp .gift-stage-subtitle');
+    const music=findActionNote(doc,'music');
+
+    [confirmation,gift,music].forEach(note=>copyNoteTypography(model,note));
   }
 
   function apply(){
