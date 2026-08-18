@@ -138,6 +138,12 @@
     doc.head.appendChild(style);
   }
 
+  function updateGiftPhysicalNote(doc){
+    const note=doc.querySelector('.gift-physical-note');
+    if(!note) return;
+    note.textContent='Si prefieres entregarnos un regalo físico, estaremos gustosos de recepcionarlo en la siguiente dirección: Urb. Alameda de la Rivera, Mz. G, Lt. 45, Ate.';
+  }
+
   function removeMusicKicker(doc){
     const music=doc.getElementById('musicSection');
     if(!music) return;
@@ -233,6 +239,7 @@
     const doc=findBaseDocument();
     if(!doc) return false;
     installLayoutStyle(doc);
+    updateGiftPhysicalNote(doc);
     removeMusicKicker(doc);
     arrangeGiftInstruction(doc);
     unifyActionNotes(doc);
