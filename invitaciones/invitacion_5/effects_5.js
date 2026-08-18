@@ -10,7 +10,7 @@
   if(!document.getElementById('inv5-layout-loader')){
     const layoutScript=document.createElement('script');
     layoutScript.id='inv5-layout-loader';
-    layoutScript.src='./layout_5.js?v=20260818-0850';
+    layoutScript.src='./layout_5.js?v=20260818-1125';
     document.head.appendChild(layoutScript);
   }
 
@@ -39,37 +39,24 @@
     const style=doc.createElement('style');
     style.id='inv5-title-effect-style';
     style.textContent=`
-      /* Estado normal: el título SIEMPRE queda visible. */
       .inv5-title-effect-safe{
         opacity:1;
         visibility:visible;
         overflow:visible;
       }
-
-      /*
-       * La animación solo existe cuando se agrega esta clase.
-       * Si JS no se ejecuta, el título permanece normal y visible.
-       */
       .inv5-title-effect-safe.inv5-title-effect-play{
         animation:inv5TitleInkArrival 1.05s cubic-bezier(.18,.72,.22,1) both;
       }
-
       @keyframes inv5TitleInkArrival{
         0%{
           opacity:.24;
           color:rgba(88,105,78,.42);
-          text-shadow:
-            0 0 1px rgba(88,105,78,.15),
-            0 0 18px rgba(88,105,78,.62),
-            0 0 34px rgba(179,143,116,.32);
+          text-shadow:0 0 1px rgba(88,105,78,.15),0 0 18px rgba(88,105,78,.62),0 0 34px rgba(179,143,116,.32);
         }
         42%{
           opacity:.82;
           color:rgba(88,105,78,.88);
-          text-shadow:
-            0 0 2px rgba(88,105,78,.28),
-            0 0 11px rgba(88,105,78,.42),
-            0 0 22px rgba(179,143,116,.20);
+          text-shadow:0 0 2px rgba(88,105,78,.28),0 0 11px rgba(88,105,78,.42),0 0 22px rgba(179,143,116,.20);
         }
         72%{
           opacity:1;
@@ -102,12 +89,9 @@
   function play(el){
     if(!el || el.dataset.inv5TitleEffectDone==='1') return;
     el.dataset.inv5TitleEffectDone='1';
-
-    /* Reiniciar de forma explícita para Safari/Chrome iOS. */
     el.classList.remove('inv5-title-effect-play');
     void el.offsetWidth;
     el.classList.add('inv5-title-effect-play');
-
     el.addEventListener('animationend',()=>{
       el.classList.remove('inv5-title-effect-play');
       el.style.removeProperty('opacity');
@@ -123,17 +107,11 @@
   function prepareTitleEffects(doc){
     installTitleEffectStyle(doc);
     const win=doc.defaultView;
-
     const prepareCurrent=()=>{
       titleCandidates(doc).forEach(el=>{
         if(!el.classList.contains('inv5-title-effect-safe')) cleanupOldEffect(el);
       });
     };
-
-    /*
-     * Escaneo real del viewport en cada scroll. No dependemos solo de
-     * IntersectionObserver porque la invitación vive dentro de iframes anidados.
-     */
     let raf=0;
     const scan=()=>{
       if(raf) return;
@@ -148,15 +126,12 @@
         });
       });
     };
-
     if(!win.__inv5TitleEffectScrollBound){
       win.__inv5TitleEffectScrollBound=true;
       win.addEventListener('scroll',scan,{passive:true});
       win.addEventListener('resize',scan,{passive:true});
       doc.addEventListener('scroll',scan,{passive:true,capture:true});
     }
-
-    /* Detectar títulos creados/reordenados por layout_5.js. */
     if(!win.__inv5TitleEffectMutation){
       win.__inv5TitleEffectMutation=new win.MutationObserver(()=>{
         prepareCurrent();
@@ -164,7 +139,6 @@
       });
       win.__inv5TitleEffectMutation.observe(doc.body,{childList:true,subtree:true});
     }
-
     prepareCurrent();
     scan();
     win.setTimeout(scan,250);
