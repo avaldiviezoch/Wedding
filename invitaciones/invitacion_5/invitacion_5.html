@@ -160,6 +160,58 @@
           }
         });
 
+        // REGALO — el panel original tenía un tope fijo de 420px.
+        // Se reemplaza el comportamiento por altura real del contenido para que nunca se recorte.
+        const giftWin=frame.contentWindow;
+        const giftExperience=doc.getElementById('giftExperience');
+        const giftRevealContent=doc.getElementById('giftRevealContent');
+        const giftPanel=doc.getElementById('gift-panel');
+        if(giftPanel&&giftWin){
+          giftPanel.style.maxHeight='0px';
+          giftWin.toggleGiftBox=function(){
+            const panel=doc.getElementById('gift-panel');
+            const arrow=doc.getElementById('gift-arrow');
+            if(!panel)return;
+            const opening=!panel.classList.contains('open');
+
+            if(opening){
+              panel.classList.add('open');
+              panel.style.maxHeight=panel.scrollHeight+'px';
+              if(arrow)arrow.textContent='⌃';
+
+              requestAnimationFrame(()=>{
+                const needed=giftRevealContent ? giftRevealContent.scrollHeight+24 : panel.scrollHeight+24;
+                if(giftExperience){
+                  const current=giftExperience.getBoundingClientRect().height;
+                  if(needed>current)giftExperience.style.minHeight=Math.ceil(needed)+'px';
+                }
+                panel.style.maxHeight=panel.scrollHeight+'px';
+              });
+
+              if(typeof giftWin.launchGiftConfetti==='function')giftWin.launchGiftConfetti();
+            }else{
+              panel.style.maxHeight=panel.scrollHeight+'px';
+              requestAnimationFrame(()=>{
+                panel.classList.remove('open');
+                panel.style.maxHeight='0px';
+                if(arrow)arrow.textContent='⌄';
+              });
+              if(giftExperience)giftExperience.style.minHeight='';
+            }
+          };
+
+          giftWin.addEventListener('resize',()=>{
+            if(giftPanel.classList.contains('open')){
+              giftPanel.style.maxHeight='none';
+              const panelHeight=giftPanel.scrollHeight;
+              giftPanel.style.maxHeight=panelHeight+'px';
+              if(giftExperience&&giftRevealContent){
+                giftExperience.style.minHeight=Math.ceil(giftRevealContent.scrollHeight+24)+'px';
+              }
+            }
+          });
+        }
+
         const finalCard=doc.querySelector('#esperamosSection .final-card');
         if(finalCard){
           finalCard.querySelector('.te-esperamos-gif')?.remove();
