@@ -76,12 +76,23 @@
       }
 
       /*
-       * Las tres notas de acción comparten una sola jerarquía visual.
-       * El tamaño real se toma dinámicamente de “Toca el regalo para descubrirlo”.
+       * Notas de interacción uniformes:
+       * Confirmación / Regalo / Música.
+       * Un poco más grandes y siempre en cursiva.
        */
       .inv5-action-note-unified{
+        font-size:clamp(18px,4.6vw,22px) !important;
+        line-height:1.42 !important;
         font-style:italic !important;
+        font-weight:500 !important;
+        letter-spacing:.01em !important;
         text-align:center !important;
+      }
+
+      @media(max-width:360px){
+        .inv5-action-note-unified{
+          font-size:clamp(17px,4.8vw,20px) !important;
+        }
       }
     `;
     doc.head.appendChild(style);
@@ -123,13 +134,11 @@
     if(!source||!target) return;
     const cs=source.ownerDocument.defaultView.getComputedStyle(source);
     [
-      'fontFamily','fontSize','fontWeight','lineHeight',
-      'letterSpacing','textTransform','color'
+      'fontFamily','fontWeight','letterSpacing','textTransform','color'
     ].forEach(prop=>{
       const value=cs[prop];
       if(value) target.style.setProperty(prop.replace(/[A-Z]/g,m=>'-'+m.toLowerCase()),value,'important');
     });
-    target.style.setProperty('font-style','italic','important');
     target.classList.add('inv5-action-note-unified');
   }
 
@@ -159,8 +168,6 @@
     if(!gift) return;
 
     gift.classList.add('inv5-action-note-unified');
-    gift.style.setProperty('font-style','italic','important');
-
     copyNoteTypography(gift,findActionNote(doc,'confirmation'));
     copyNoteTypography(gift,findActionNote(doc,'music'));
   }
