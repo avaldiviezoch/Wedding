@@ -29,19 +29,18 @@
     style.id='inv5-layout-polish-style';
     style.textContent=`
       /*
-       * Dress Code: acercar el bloque completo al cronograma.
-       * Se mueve la sección como unidad, sin tocar título, ilustración ni contenido interno.
+       * Dress Code: subir el bloque aproximadamente un 10% del alto visible,
+       * con límites para mantener aire respecto del GIF de Programación.
        */
       #dressCodeSection,
       .inv5-dress-section{
-        margin-top:-56px !important;
+        margin-top:clamp(-84px,-10vh,-68px) !important;
       }
 
-      /* En pantallas muy estrechas reducimos un poco el solape visual. */
       @media(max-width:360px){
         #dressCodeSection,
         .inv5-dress-section{
-          margin-top:-44px !important;
+          margin-top:clamp(-72px,-9vh,-60px) !important;
         }
       }
 
@@ -123,12 +122,10 @@
 
     subtitle.classList.add('inv5-gift-instruction');
 
-    /* Mover físicamente la indicación después del GIF para evitar solapamientos. */
     if(stage.nextElementSibling!==subtitle){
       stage.insertAdjacentElement('afterend',subtitle);
     }
 
-    /* Mantener el título antes del GIF. */
     if(title && title.nextElementSibling!==stage){
       experience.insertBefore(title,stage);
     }
