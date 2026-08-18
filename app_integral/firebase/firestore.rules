@@ -144,13 +144,38 @@ service cloud.firestore {
         && request.resource.data.notes is string
         && request.resource.data.notes.size() <= 700
         && request.resource.data.customData is map
-        && request.resource.data.customData.keys().size() <= 15
+        && request.resource.data.customData.keys().size() <= 16
         && request.resource.data.editToken is string
         && request.resource.data.editToken.size() >= 30
         && request.resource.data.editToken.size() <= 180
         && request.resource.data.clientDate is string
         && request.resource.data.clientDate.size() <= 60
-        && request.resource.data.source == 'public-rsvp';
+        && request.resource.data.source in ['public-rsvp', 'native-rsvp'];
+    }
+
+    function validMusicSubmission() {
+      return request.resource.data.keys().hasOnly([
+          'version',
+          'source',
+          'customData',
+          'editToken',
+          'clientDate',
+          'submittedAt',
+          'updatedAt'
+        ])
+        && request.resource.data.version == 1
+        && request.resource.data.source == 'music-widget'
+        && request.resource.data.customData is map
+        && request.resource.data.customData.keys().hasOnly(['mgdMusic'])
+        && request.resource.data.customData.keys().hasAll(['mgdMusic'])
+        && request.resource.data.customData.mgdMusic is string
+        && request.resource.data.customData.mgdMusic.size() > 0
+        && request.resource.data.customData.mgdMusic.size() <= 6000
+        && request.resource.data.editToken is string
+        && request.resource.data.editToken.size() >= 30
+        && request.resource.data.editToken.size() <= 180
+        && request.resource.data.clientDate is string
+        && request.resource.data.clientDate.size() <= 60;
     }
 
     match /users/{uid} {
@@ -272,13 +297,19 @@ service cloud.firestore {
         // El invitado no necesita cuenta. Puede crear una respuesta limitada
         // por la configuración pública y actualizarla únicamente con su editToken.
         allow create: if publicRsvpActive(token)
-          && validRsvpSubmission(token);
+          && (validRsvpSubmission(token) || validMusicSubmission());
 
         allow update: if (
             publicRsvpActive(token)
-            && validRsvpSubmission(token)
             && resource.data.editToken is string
             && request.resource.data.editToken == resource.data.editToken
+            && (
+              validRsvpSubmission(token)
+              || (
+                resource.data.get('source', '') == 'music-widget'
+                && validMusicSubmission()
+              )
+            )
           ) || (
             signedIn()
             && canEditPlanner(publicRsvpWedding(token))
