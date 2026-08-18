@@ -112,7 +112,7 @@ async function saveMusic(section) {
       await updateDoc(ref,{'customData.mgdMusic':serializeMusic(music),updatedAt:serverTimestamp()});
     } catch (error) {
       const code=String(error?.code||error?.message||'');
-      if(!code.includes('not-found')) throw error;
+      if(!code.includes('not-found')&&!code.includes('permission-denied')) throw error;
       await setDoc(ref,{
         version:1,
         source:'music-widget',
