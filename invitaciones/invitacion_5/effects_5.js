@@ -6,9 +6,15 @@
    * No toca: font-size, line-height, width, height, margin, padding,
    * transform, translate, scale, position, display, white-space ni layout.
    *
-   * La geometría/tamaño de títulos se resuelve en index.html antes de llamar
-   * a inv5ApplyVisualEffects(). Aquí solo añadimos un acabado visual seguro.
+   * Los ajustes estructurales/locales viven en layout_5.js.
    */
+
+  if(!document.getElementById('inv5-layout-loader')){
+    const layoutScript=document.createElement('script');
+    layoutScript.id='inv5-layout-loader';
+    layoutScript.src='./layout_5.js?v=20260818-0850';
+    document.head.appendChild(layoutScript);
+  }
 
   const TITLE_SELECTORS = [
     'section h2',
@@ -36,44 +42,18 @@
     const style=doc.createElement('style');
     style.id='inv5-title-effect-style';
     style.textContent=`
-      /*
-       * Animación segura: solo cambia text-shadow.
-       * No cambia caja, posición, tamaño ni salto de línea del título.
-       */
-      .inv5-title-effect{
-        text-shadow:none;
-      }
-
+      .inv5-title-effect{text-shadow:none;}
       .inv5-title-effect.inv5-title-effect-play{
         animation:inv5TitleInkGlow 1.15s cubic-bezier(.22,.7,.24,1) both;
       }
-
       @keyframes inv5TitleInkGlow{
-        0%{
-          text-shadow:
-            0 0 0 rgba(91,108,80,0),
-            0 0 0 rgba(151,128,105,0);
-        }
-        38%{
-          text-shadow:
-            0 0 7px rgba(91,108,80,.30),
-            0 0 20px rgba(151,128,105,.18);
-        }
-        68%{
-          text-shadow:
-            0 0 3px rgba(91,108,80,.18),
-            0 0 9px rgba(151,128,105,.10);
-        }
-        100%{
-          text-shadow:none;
-        }
+        0%{text-shadow:0 0 0 rgba(91,108,80,0),0 0 0 rgba(151,128,105,0)}
+        38%{text-shadow:0 0 7px rgba(91,108,80,.30),0 0 20px rgba(151,128,105,.18)}
+        68%{text-shadow:0 0 3px rgba(91,108,80,.18),0 0 9px rgba(151,128,105,.10)}
+        100%{text-shadow:none}
       }
-
       @media(prefers-reduced-motion:reduce){
-        .inv5-title-effect.inv5-title-effect-play{
-          animation:none!important;
-          text-shadow:none!important;
-        }
+        .inv5-title-effect.inv5-title-effect-play{animation:none!important;text-shadow:none!important}
       }
     `;
     doc.head.appendChild(style);
@@ -85,19 +65,13 @@
 
   function prepareTitleEffects(doc){
     installEffectStyle(doc);
-
     const win=doc.defaultView;
     const titles=titleCandidates(doc);
 
     titles.forEach(el=>{
-      /* Limpiar únicamente restos de efectos anteriores; jamás geometría. */
       el.classList.remove(
-        'inv5-title-arrival-v4',
-        'inv5-title-arrival-v3',
-        'inv5-title-arrival-v2',
-        'inv5-title-arrival',
-        'inv5-title-pulse',
-        'is-title-visible'
+        'inv5-title-arrival-v4','inv5-title-arrival-v3','inv5-title-arrival-v2',
+        'inv5-title-arrival','inv5-title-pulse','is-title-visible'
       );
       el.style.removeProperty('opacity');
       el.style.removeProperty('visibility');
@@ -112,10 +86,8 @@
 
     const scan=()=>{
       const h=win.innerHeight||doc.documentElement.clientHeight;
-
       titles.forEach(el=>{
         if(el.dataset.inv5TitleEffectDone==='1') return;
-
         const r=el.getBoundingClientRect();
         if(r.top < h*.88 && r.bottom > h*.08){
           el.dataset.inv5TitleEffectDone='1';
@@ -138,18 +110,15 @@
   function expandPetals(doc){
     const wrap=doc.getElementById('petals');
     if(!wrap) return;
-
     const target=55;
     for(let i=wrap.querySelectorAll('.petal').length;i<target;i++){
       const p=doc.createElement('span');
       p.className='petal';
       const delay=-Math.random()*22;
-
       p.style.left=(Math.random()*100)+'vw';
       p.style.animationDuration=`${9+Math.random()*11}s, ${2.6+Math.random()*3.6}s, ${5+Math.random()*6}s`;
       p.style.animationDelay=`${delay}s, ${delay}s, ${delay}s`;
       p.style.opacity=(.34+Math.random()*.46).toFixed(2);
-
       wrap.appendChild(p);
     }
   }
