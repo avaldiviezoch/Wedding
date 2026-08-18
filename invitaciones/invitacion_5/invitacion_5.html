@@ -14,25 +14,23 @@
   <iframe id="inv5" src="./invitacion_5_base.html?v=20260817-1639" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
   <script>
     const frame=document.getElementById('inv5');
+
     frame.addEventListener('load',()=>{
       try{
         const doc=frame.contentDocument||frame.contentWindow.document;
 
-        // PRIMER FONDO INVITACIÓN 5 — misma imagen de Invitación 4, sin texto.
-        // Va inmediatamente debajo de la portada/saludo y antes del resto del contenido.
-        const portada=doc.querySelector('#saludoWrap');
-        if(portada&&!doc.getElementById('inv5PrimerFondo')){
-          const primerFondo=doc.createElement('section');
-          primerFondo.id='inv5PrimerFondo';
-          primerFondo.className='inv5-primer-fondo';
-          primerFondo.setAttribute('aria-label','Presentación');
-          portada.insertAdjacentElement('afterend',primerFondo);
-        }
+        // Asegurar que no exista ningún bloque extra debajo de la portada.
+        doc.getElementById('inv5PrimerFondo')?.remove();
 
         const img=doc.querySelector('.countdown-image');
-        if(img){img.src='./imagen_de_fecha_5.png?v=20260816-2';img.removeAttribute('srcset')}
+        if(img){
+          img.src='./imagen_de_fecha_5.png?v=20260816-2';
+          img.removeAttribute('srcset');
+        }
 
-        const programacionImg=[...doc.querySelectorAll('img')].find(el=>decodeURIComponent(el.getAttribute('src')||'').includes('itinerario_2.png'));
+        const programacionImg=[...doc.querySelectorAll('img')].find(el=>
+          decodeURIComponent(el.getAttribute('src')||'').includes('itinerario_2.png')
+        );
         if(programacionImg){
           programacionImg.src='./programacion_5.gif?v=20260816-1';
           programacionImg.removeAttribute('srcset');
@@ -46,10 +44,17 @@
         if(nuestroDia) nuestroDia.style.transform='translateY(14px)';
 
         const shiftedSchedule=[
-          '02:00 PM –<br>03:00 PM','03:00 PM –<br>04:00 PM','04:00 PM –<br>05:00 PM',
-          '05:00 PM –<br>05:30 PM','05:30 PM –<br>06:30 PM','06:30 PM –<br>07:00 PM','07:00 PM<br>en adelante'
+          '02:00 PM –<br>03:00 PM',
+          '03:00 PM –<br>04:00 PM',
+          '04:00 PM –<br>05:00 PM',
+          '05:00 PM –<br>05:30 PM',
+          '05:30 PM –<br>06:30 PM',
+          '06:30 PM –<br>07:00 PM',
+          '07:00 PM<br>en adelante'
         ];
-        [...doc.querySelectorAll('.itinerary-time')].forEach((el,i)=>{if(shiftedSchedule[i])el.innerHTML=shiftedSchedule[i]});
+        [...doc.querySelectorAll('.itinerary-time')].forEach((el,i)=>{
+          if(shiftedSchedule[i]) el.innerHTML=shiftedSchedule[i];
+        });
 
         // DRESS CODE INVITACIÓN 5
         const dressSection=[...doc.querySelectorAll('section')].find(section=>{
@@ -78,6 +83,7 @@
             </div>`;
         }
 
+        // RSVP
         const rsvpSection=doc.querySelector('#rsvpSection');
         if(rsvpSection){
           const rsvpCard=rsvpSection.querySelector('.final-card');
@@ -89,6 +95,7 @@
           }
         }
 
+        // MÚSICA
         const musicSection=doc.querySelector('#musicSection');
         if(musicSection){
           const musicText=musicSection.querySelector('.music-copy .final-text');
@@ -97,25 +104,26 @@
           if(musicWarning) musicWarning.textContent='El DJ no aceptará pedidos musicales durante la celebración, así que este es tu momento para compartirnos tu canción.';
           const musicName=musicSection.querySelector('#musicGuestName');
           const musicNameWrap=musicName?.closest('label,.music-field-wrap,.field-wrap,.form-group');
-          if(musicNameWrap) musicNameWrap.remove(); else if(musicName) musicName.remove();
+          if(musicNameWrap) musicNameWrap.remove();
+          else if(musicName) musicName.remove();
         }
 
-        // PREGUNTAS INVITACIÓN 5 — imagen propia + efecto tipo estacionamiento
+        // PREGUNTAS INVITACIÓN 5
         [...doc.querySelectorAll('details.faq-item')].forEach(item=>{
           const summary=item.querySelector('summary');
           const answer=item.querySelector('.faq-answer');
-          if(!summary)return;
+          if(!summary) return;
 
           const question=(summary.textContent||'').trim().toLowerCase();
 
           if(question.includes('hasta cuándo puedo confirmar mi asistencia')||question.includes('hasta cuando puedo confirmar mi asistencia')){
             summary.textContent='¿Hasta qué fecha puedo confirmar mi asistencia?';
-            if(answer)answer.textContent='Por favor, confirma tu asistencia hasta el 15 de octubre.';
+            if(answer) answer.textContent='Por favor, confirma tu asistencia hasta el 15 de octubre.';
           }
 
           if(question.includes('podemos llevar un regalo')||question.includes('puedo dejar un regalo')){
             summary.textContent='¿Puedo informar de alguna alergia o restricción alimentaria?';
-            if(answer)answer.textContent='Sí, es muy importante por la comida que se repartirá y los bocaditos.';
+            if(answer) answer.textContent='Sí, es muy importante por la comida que se repartirá y los bocaditos.';
           }
 
           if(question.includes('solicitar canciones')||question.includes('música')||question.includes('musica')||question.includes('dj')){
@@ -144,74 +152,20 @@
           if(faqImage){
             item.classList.add('inv5-animated-faq');
             item.querySelectorAll('.faq-illustration,.inv5-faq-illustration').forEach(el=>el.remove());
-
             const illustration=doc.createElement('div');
             illustration.className='faq-illustration inv5-faq-illustration';
-
             const faqImg=doc.createElement('img');
             faqImg.src=faqImage;
             faqImg.alt=faqAlt;
             faqImg.loading='lazy';
             faqImg.decoding='async';
             faqImg.onerror=()=>faqImg.classList.add('media-error');
-
             illustration.appendChild(faqImg);
             item.appendChild(illustration);
           }
         });
 
-        // REGALO — el panel original tenía un tope fijo de 420px.
-        // Se reemplaza el comportamiento por altura real del contenido para que nunca se recorte.
-        const giftWin=frame.contentWindow;
-        const giftExperience=doc.getElementById('giftExperience');
-        const giftRevealContent=doc.getElementById('giftRevealContent');
-        const giftPanel=doc.getElementById('gift-panel');
-        if(giftPanel&&giftWin){
-          giftPanel.style.maxHeight='0px';
-          giftWin.toggleGiftBox=function(){
-            const panel=doc.getElementById('gift-panel');
-            const arrow=doc.getElementById('gift-arrow');
-            if(!panel)return;
-            const opening=!panel.classList.contains('open');
-
-            if(opening){
-              panel.classList.add('open');
-              panel.style.maxHeight=panel.scrollHeight+'px';
-              if(arrow)arrow.textContent='⌃';
-
-              requestAnimationFrame(()=>{
-                const needed=giftRevealContent ? giftRevealContent.scrollHeight+24 : panel.scrollHeight+24;
-                if(giftExperience){
-                  const current=giftExperience.getBoundingClientRect().height;
-                  if(needed>current)giftExperience.style.minHeight=Math.ceil(needed)+'px';
-                }
-                panel.style.maxHeight=panel.scrollHeight+'px';
-              });
-
-              if(typeof giftWin.launchGiftConfetti==='function')giftWin.launchGiftConfetti();
-            }else{
-              panel.style.maxHeight=panel.scrollHeight+'px';
-              requestAnimationFrame(()=>{
-                panel.classList.remove('open');
-                panel.style.maxHeight='0px';
-                if(arrow)arrow.textContent='⌄';
-              });
-              if(giftExperience)giftExperience.style.minHeight='';
-            }
-          };
-
-          giftWin.addEventListener('resize',()=>{
-            if(giftPanel.classList.contains('open')){
-              giftPanel.style.maxHeight='none';
-              const panelHeight=giftPanel.scrollHeight;
-              giftPanel.style.maxHeight=panelHeight+'px';
-              if(giftExperience&&giftRevealContent){
-                giftExperience.style.minHeight=Math.ceil(giftRevealContent.scrollHeight+24)+'px';
-              }
-            }
-          });
-        }
-
+        // FINAL BROOK
         const finalCard=doc.querySelector('#esperamosSection .final-card');
         if(finalCard){
           finalCard.querySelector('.te-esperamos-gif')?.remove();
@@ -222,36 +176,29 @@
           const brook=doc.createElement('img');
           brook.className='te-esperamos-gif brook-final-gif';
           brook.src='https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/invitaciones/invitacion_1/brook.gif?v=20260816-1728';
-          brook.alt='Brook';brook.loading='eager';brook.decoding='async';
-          if(title)title.insertAdjacentElement('afterend',brook);else finalCard.appendChild(brook);
+          brook.alt='Brook';
+          brook.loading='eager';
+          brook.decoding='async';
+          if(title) title.insertAdjacentElement('afterend',brook);
+          else finalCard.appendChild(brook);
         }
 
         const style=doc.createElement('style');
         style.id='inv5-amsterdam-four';
         style.textContent=`
-          @font-face{font-family:'Amsterdam Four';src:url('./Amsterdam%20Four_ttf%20400.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
-
-          /* Primer fondo debajo de portada: imagen original de Invitación 4, sin texto */
-          #inv5PrimerFondo.inv5-primer-fondo{
-            position:relative !important;
-            width:100% !important;
-            min-height:100svh !important;
-            margin:0 !important;
-            padding:0 !important;
-            background-color:#f4eedf !important;
-            background-image:url('https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/primer_fondo_4_1.png?v=20260817-2055') !important;
-            background-position:center !important;
-            background-size:cover !important;
-            background-repeat:no-repeat !important;
-            overflow:hidden !important;
+          @font-face{
+            font-family:'Amsterdam Four';
+            src:url('./Amsterdam%20Four_ttf%20400.ttf') format('truetype');
+            font-weight:400;
+            font-style:normal;
+            font-display:swap;
           }
-          #inv5PrimerFondo.inv5-primer-fondo::before,
-          #inv5PrimerFondo.inv5-primer-fondo::after{content:none !important;display:none !important}
 
-          /* Títulos principales */
-          h1,h2,h3,.section-title,.photo-story-title,.rsvp-title,.faq-title,.gift-title,.music-title,.dress-title,.location-title,.itinerary-title,.confirmation-title,.questions-title,[class*="section-title"],[class*="-title"]{font-family:'Amsterdam Four',cursive !important;font-weight:400 !important}
+          h1,h2,h3,.section-title,.photo-story-title,.rsvp-title,.faq-title,.gift-title,.music-title,.dress-title,.location-title,.itinerary-title,.confirmation-title,.questions-title,[class*="section-title"],[class*="-title"]{
+            font-family:'Amsterdam Four',cursive !important;
+            font-weight:400 !important;
+          }
 
-          /* Tipografía secundaria uniforme */
           body,p,li,a,label,input,textarea,select,button,summary,small,
           .final-text,.faq-answer,.music-warning,.gift-hint,.regalo-hint,.tap-text,
           .photo-story-subtitle,.countdown-subtitle,.countdown-text,
@@ -264,7 +211,6 @@
           }
           input::placeholder,textarea::placeholder{font-family:Georgia,'Times New Roman',serif !important}
 
-          /* Quitar líneas separadoras */
           hr,.divider,.separator,.section-divider,.line-divider,.section-line,
           [class*="divider"],[class*="separator"]{
             display:none !important;
@@ -281,7 +227,63 @@
             content:none !important;
           }
 
-          /* FAQ INVITACIÓN 5 — mismo efecto aprobado del estacionamiento */
+          /* REGALO: al revelarse deja de ser una caja 9:16 fija.
+             El contenido entra al flujo normal y los bancos amplían la sección. */
+          #giftSection .gift-vintage-card{
+            overflow:visible !important;
+          }
+          #giftSection .gift-experience{
+            overflow:visible !important;
+          }
+          #giftSection .gift-experience.is-revealed{
+            aspect-ratio:auto !important;
+            height:auto !important;
+            min-height:0 !important;
+            overflow:visible !important;
+            isolation:auto !important;
+          }
+          #giftSection .gift-experience.is-revealed .gift-reveal-content{
+            position:relative !important;
+            inset:auto !important;
+            width:100% !important;
+            height:auto !important;
+            min-height:0 !important;
+            padding:44px 28px 30px !important;
+            overflow:visible !important;
+            justify-content:flex-start !important;
+          }
+          #giftSection .gift-vintage-panel{
+            width:min(100%,440px) !important;
+            max-height:0 !important;
+            overflow:hidden !important;
+          }
+          #giftSection .gift-vintage-panel.open{
+            max-height:none !important;
+            height:auto !important;
+            overflow:visible !important;
+            opacity:1 !important;
+            margin-top:18px !important;
+          }
+          #giftSection .gift-yape-box,
+          #giftSection .gift-bank-data,
+          #giftSection .gift-data-row{
+            position:relative !important;
+            height:auto !important;
+            max-height:none !important;
+            overflow:visible !important;
+          }
+          #giftSection .gift-bank-data{
+            display:grid !important;
+            width:min(100%,430px) !important;
+            margin:18px auto 0 !important;
+            gap:10px !important;
+          }
+          #giftSection .gift-data-row{
+            display:flex !important;
+            flex-direction:column !important;
+            align-items:center !important;
+          }
+
           .inv5-faq-illustration{
             padding:8px 0 20px !important;
             display:flex !important;
@@ -343,11 +345,46 @@
           .gift-title,.regalo-title,[class*="gift"] h2,[class*="regalo"] h2{margin-bottom:20px !important;line-height:1.22 !important}
           .gift-hint,.regalo-hint,.tap-text,[class*="gift"] .tap-text,[class*="regalo"] .tap-text{margin-top:10px !important;line-height:1.45 !important}
 
-          #itinerarySection,.itinerary-section,[class*="itinerary-section"],[class*="itinerario-section"]{padding-bottom:62px !important;margin-bottom:34px !important;overflow:visible !important}
+          #itinerarySection,.itinerary-section,[class*="itinerary-section"],[class*="itinerario-section"]{
+            padding-bottom:62px !important;
+            margin-bottom:34px !important;
+            overflow:visible !important;
+          }
 
-          #dressCodeSection.inv5-dress-section{margin:10px auto 8px !important;padding:0 !important;position:relative !important;z-index:1 !important;background:transparent !important;overflow:visible !important;width:100% !important}
-          .inv5-dress-card{position:relative;width:120%;max-width:none;aspect-ratio:911/1727;min-height:0;margin-left:-10%;margin-right:-10%;background:url('./fondo_dress_code_5.png?v=20260816-2004') center/100% 100% no-repeat;display:flex;align-items:flex-start;justify-content:center}
-          .inv5-dress-content{width:62%;margin:0 auto;padding:42% 6px 8%;text-align:center;color:#5f6652;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;transform:translateY(76px)}
+          #dressCodeSection.inv5-dress-section{
+            margin:10px auto 8px !important;
+            padding:0 !important;
+            position:relative !important;
+            z-index:1 !important;
+            background:transparent !important;
+            overflow:visible !important;
+            width:100% !important;
+          }
+          .inv5-dress-card{
+            position:relative;
+            width:120%;
+            max-width:none;
+            aspect-ratio:911/1727;
+            min-height:0;
+            margin-left:-10%;
+            margin-right:-10%;
+            background:url('./fondo_dress_code_5.png?v=20260816-2004') center/100% 100% no-repeat;
+            display:flex;
+            align-items:flex-start;
+            justify-content:center;
+          }
+          .inv5-dress-content{
+            width:62%;
+            margin:0 auto;
+            padding:42% 6px 8%;
+            text-align:center;
+            color:#5f6652;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:flex-start;
+            transform:translateY(76px);
+          }
           .inv5-dress-heading{margin:0 0 18px;line-height:1;text-align:center;width:100%}
           .inv5-dress-code{display:block;font-family:'Amsterdam Four',cursive !important;font-weight:400 !important;font-size:clamp(25px,5.3vw,41px) !important;line-height:1 !important;color:#5f6652 !important;text-align:center}
           .inv5-dress-formal{display:block;margin-top:4px;font-family:Georgia,'Times New Roman',serif !important;font-size:clamp(30px,5.8vw,46px) !important;font-weight:400 !important;font-style:italic !important;line-height:1 !important;letter-spacing:.01em;color:#595548 !important;text-align:center}
@@ -360,12 +397,22 @@
           .inv5-dress-lower-1{margin-top:0;margin-bottom:20px}
           .inv5-dress-last{margin-top:0;margin-bottom:0}
 
-          #rsvpSection .inv5-rsvp-title{font-family:'Amsterdam Four',cursive !important;font-size:clamp(38px,8vw,58px) !important;line-height:1.15 !important;margin:0 auto 18px !important;text-align:center !important}
+          #rsvpSection .inv5-rsvp-title{
+            font-family:'Amsterdam Four',cursive !important;
+            font-size:clamp(38px,8vw,58px) !important;
+            line-height:1.15 !important;
+            margin:0 auto 18px !important;
+            text-align:center !important;
+          }
           #esperamosSection{padding-top:18px !important}
           #esperamosSection .final-card{min-height:235px !important;padding:24px 18px 22px !important;border-radius:24% 24% 22px 22px / 9% 9% 22px 22px !important}
           #esperamosSection .brook-final-gif{display:block !important;width:min(31%,140px) !important;max-width:140px !important;height:auto !important;margin:12px auto 0 !important;object-fit:contain !important}
 
           @media(max-width:540px){
+            #giftSection .gift-experience.is-revealed .gift-reveal-content{
+              padding:36px 18px 26px !important;
+            }
+            #giftSection .gift-bank-data{gap:8px !important}
             #itinerarySection,.itinerary-section,[class*="itinerary-section"],[class*="itinerario-section"]{padding-bottom:70px !important;margin-bottom:42px !important}
             #dressCodeSection.inv5-dress-section{margin-top:12px !important;padding:0 !important;overflow:visible !important}
             .inv5-dress-card{width:124%;max-width:none;margin-left:-12%;margin-right:-12%;align-items:flex-start;justify-content:center}
@@ -387,9 +434,12 @@
             #esperamosSection .brook-final-gif{width:min(31%,112px) !important;max-width:112px !important;margin-top:10px !important}
           }
         `;
+
         doc.getElementById('inv5-amsterdam-four')?.remove();
         doc.head.appendChild(style);
-      }catch(e){console.warn('No se pudieron aplicar los ajustes de Invitación 5',e)}
+      }catch(e){
+        console.warn('No se pudieron aplicar los ajustes de Invitación 5',e);
+      }
       frame.classList.add('ready');
     });
   </script>
