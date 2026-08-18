@@ -32,6 +32,28 @@
         letter-spacing:normal;
         text-shadow:0 0 0 rgba(121,131,102,0);
       }
+
+      /* Regalo: mantener el título principal en una sola línea mientras haya ancho suficiente. */
+      #inv5GiftInRsvp .gift-stage-heading{
+        width:calc(100vw - 28px)!important;
+        max-width:760px!important;
+        padding-left:0!important;
+        padding-right:0!important;
+      }
+      #inv5GiftInRsvp .gift-stage-title{
+        width:100%!important;
+        max-width:none!important;
+        white-space:nowrap!important;
+        text-wrap:nowrap!important;
+        line-height:1.08!important;
+      }
+      @media(max-width:350px){
+        #inv5GiftInRsvp .gift-stage-title{
+          white-space:normal!important;
+          text-wrap:balance!important;
+        }
+      }
+
       @media(prefers-reduced-motion:reduce){
         .inv5-title-arrival-v3{opacity:1!important;clip-path:none!important;letter-spacing:normal!important;text-shadow:none!important;transition:none!important}
       }
