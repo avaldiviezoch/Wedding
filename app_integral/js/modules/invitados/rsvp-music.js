@@ -7,7 +7,7 @@ import {
   updateDoc
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
-const VERSION = '20260816-1615-rsvp-music-builder1';
+const VERSION = '20260817-2215-rsvp-music-linked2';
 const params = new URLSearchParams(location.search);
 const token = String(params.get('token') || '').trim();
 const MUSIC_ONLY = params.get('view') === 'music';
@@ -23,7 +23,14 @@ const DEFAULT_CONFIG = {
 let musicConfig = { ...DEFAULT_CONFIG };
 let configPromise = null;
 
-function clean(value, max = 140) { return String(value || '').trim().slice(0, max); }
+function clean(value, max = 140) {
+  return String(value || '').trim().slice(0, max);
+}
+
+function emptyMusic() {
+  return { version: 1, songs: [], message: '', updatedAtClient: '' };
+}
+
 function normalizeConfig(value = {}) {
   return {
     enabled: value.enabled !== false,
@@ -44,7 +51,9 @@ async function loadMusicConfig() {
       const db = getFirestore(getApp());
       const snap = await getDoc(doc(db, 'publicRsvp', token));
       if (snap.exists()) musicConfig = normalizeConfig(snap.data()?.musicConfig || {});
-    } catch (error) { console.warn('No se pudo leer configuración de música:', error); }
+    } catch (error) {
+      console.warn('No se pudo leer configuración de música:', error);
+    }
     return musicConfig;
   })();
   return configPromise;
@@ -55,33 +64,96 @@ function getRsvpSession() {
   try {
     const value = JSON.parse(localStorage.getItem(`migrandia_rsvp_session_${token}`) || 'null');
     return value?.id && value?.editToken ? value : null;
-  } catch (_) { return null; }
+  } catch (_) {
+    return null;
+  }
 }
 
-function localKey(sessionId) { return `migrandia_rsvp_music_${token}_${sessionId || 'pending'}`; }
+function localKey(sessionId) {
+  return `migrandia_rsvp_music_${token}_${sessionId || 'pending'}`;
+}
+
+function normalizeMusic(value) {
+  const parsed = value && typeof value === 'object' ? value : {};
+  return {
+    version: 1,
+    songs: Array.isArray(parsed.songs)
+      ? parsed.songs
+          .map((item) => ({
+            title: clean(item?.title),
+            artist: clean(item?.artist)
+          }))
+          .filter((item) => item.title || item.artist)
+          .slice(0, musicConfig.maxSongs)
+      : [],
+    message: clean(parsed.message, 500),
+    updatedAtClient: clean(parsed.updatedAtClient, 60)
+  };
+}
+
 function readLocalMusic(sessionId) {
   try {
     const parsed = JSON.parse(localStorage.getItem(localKey(sessionId)) || 'null');
-    if (!parsed || !Array.isArray(parsed.songs)) return { songs: [], message: '', guestName: '' };
-    return {
-      version: 1,
-      songs: parsed.songs.map((item) => ({ title: clean(item?.title), artist: clean(item?.artist) })).filter((item) => item.title || item.artist).slice(0, musicConfig.maxSongs),
-      message: clean(parsed.message, 500),
-      guestName: clean(parsed.guestName, 120),
-      updatedAtClient: clean(parsed.updatedAtClient, 60)
-    };
-  } catch (_) { return { songs: [], message: '', guestName: '' }; }
+    return normalizeMusic(parsed);
+  } catch (_) {
+    return emptyMusic();
+  }
 }
-function writeLocalMusic(sessionId, value) { localStorage.setItem(localKey(sessionId), JSON.stringify(value)); }
+
+function writeLocalMusic(sessionId, value) {
+  localStorage.setItem(localKey(sessionId), JSON.stringify(normalizeMusic(value)));
+}
+
 function serializeMusic(value) {
-  return JSON.stringify({ version: 1, songs: (value?.songs || []).slice(0, musicConfig.maxSongs), message: clean(value?.message, 500), guestName: clean(value?.guestName, 120), updatedAtClient: value?.updatedAtClient || new Date().toISOString() });
+  const normalized = normalizeMusic({
+    ...value,
+    updatedAtClient: value?.updatedAtClient || new Date().toISOString()
+  });
+  return JSON.stringify(normalized);
 }
+
 function parseMusic(value) {
-  if (!value) return { songs: [], message: '', guestName: '' };
-  if (typeof value === 'object' && Array.isArray(value.songs)) return value;
-  try { const parsed = JSON.parse(String(value)); return parsed && Array.isArray(parsed.songs) ? parsed : { songs: [], message: '', guestName: '' }; } catch (_) { return { songs: [], message: '', guestName: '' }; }
+  if (!value) return emptyMusic();
+  if (typeof value === 'object') return normalizeMusic(value);
+  try {
+    return normalizeMusic(JSON.parse(String(value)));
+  } catch (_) {
+    return emptyMusic();
+  }
 }
-function escapeHtml(value = '') { return String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;'); }
+
+function escapeHtml(value = '') {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function rsvpUrl() {
+  const url = new URL(location.href);
+  url.searchParams.delete('view');
+  return url.href;
+}
+
+async function hasLinkedResponse(session) {
+  if (!session || !token || !getApps().length) return false;
+  try {
+    const db = getFirestore(getApp());
+    await updateDoc(
+      doc(db, 'publicRsvp', token, 'responses', session.id),
+      { updatedAt: serverTimestamp() }
+    );
+    return true;
+  } catch (error) {
+    const code = String(error?.code || error?.message || '');
+    if (!code.includes('not-found') && !code.includes('permission-denied')) {
+      console.warn('No se pudo comprobar la respuesta RSVP asociada:', error);
+    }
+    return false;
+  }
+}
 
 function songRow(item = {}, index = 0) {
   return `<div class="rsvp-music-row" data-music-row>
@@ -92,59 +164,300 @@ function songRow(item = {}, index = 0) {
 }
 
 function collectMusic(section) {
-  const songs = [...section.querySelectorAll('[data-music-row]')].map((row) => ({ title: clean(row.querySelector('[data-music-title]')?.value), artist: musicConfig.askArtist ? clean(row.querySelector('[data-music-artist]')?.value) : '' })).filter((item) => item.title || item.artist).slice(0, musicConfig.maxSongs);
-  return { version: 1, songs, message: musicConfig.askMessage ? clean(section.querySelector('#rsvpMusicMessage')?.value, 500) : '', guestName: MUSIC_ONLY ? clean(section.querySelector('#rsvpMusicGuestName')?.value, 120) : '', updatedAtClient: new Date().toISOString() };
+  const songs = [...section.querySelectorAll('[data-music-row]')]
+    .map((row) => ({
+      title: clean(row.querySelector('[data-music-title]')?.value),
+      artist: musicConfig.askArtist ? clean(row.querySelector('[data-music-artist]')?.value) : ''
+    }))
+    .filter((item) => item.title || item.artist)
+    .slice(0, musicConfig.maxSongs);
+
+  return {
+    version: 1,
+    songs,
+    message: musicConfig.askMessage ? clean(section.querySelector('#rsvpMusicMessage')?.value, 500) : '',
+    updatedAtClient: new Date().toISOString()
+  };
 }
-function setStatus(section, text, type = '') { const node=section.querySelector('#rsvpMusicStatus'); if(node){node.textContent=text;node.className=`rsvp-music-status${type?` ${type}`:''}`;} }
-function syncHiddenField(section, value) { const form=section.closest('form'); if(!form)return; let hidden=form.querySelector('[data-custom-key="mgdMusic"]'); if(!hidden){hidden=document.createElement('input');hidden.type='hidden';hidden.dataset.customKey='mgdMusic';form.appendChild(hidden);} hidden.value=serializeMusic(value); }
-function renderRows(section, value) { const host=section.querySelector('#rsvpMusicRows'); if(!host)return; const songs=Array.isArray(value?.songs)&&value.songs.length?value.songs:[{}]; host.innerHTML=songs.slice(0,musicConfig.maxSongs).map(songRow).join(''); const add=section.querySelector('#rsvpAddMusicRow'); if(add)add.disabled=host.querySelectorAll('[data-music-row]').length>=musicConfig.maxSongs; }
+
+function setStatus(section, text, type = '') {
+  const node = section.querySelector('#rsvpMusicStatus');
+  if (!node) return;
+  node.textContent = text;
+  node.className = `rsvp-music-status${type ? ` ${type}` : ''}`;
+}
+
+function syncHiddenField(form, value) {
+  if (!form) return;
+  let hidden = form.querySelector('[data-custom-key="mgdMusic"]');
+  if (!hidden) {
+    hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.dataset.customKey = 'mgdMusic';
+    form.appendChild(hidden);
+  }
+  hidden.value = serializeMusic(value);
+}
+
+function renderRows(section, value) {
+  const host = section.querySelector('#rsvpMusicRows');
+  if (!host) return;
+  const songs = Array.isArray(value?.songs) && value.songs.length ? value.songs : [{}];
+  host.innerHTML = songs.slice(0, musicConfig.maxSongs).map(songRow).join('');
+  const add = section.querySelector('#rsvpAddMusicRow');
+  if (add) add.disabled = host.querySelectorAll('[data-music-row]').length >= musicConfig.maxSongs;
+}
+
+function renderMusicOnlyGate(form, section) {
+  document.body.classList.add('rsvp-music-only');
+  form.querySelectorAll(':scope > *').forEach((node) => {
+    if (node !== section) node.classList.add('hidden');
+  });
+  section.classList.remove('hidden');
+  section.innerHTML = `
+    <div class="rsvp-music-heading">
+      <span class="rsvp-music-kicker">Antes de elegir la música</span>
+      <h2 class="rsvp-section-title">Primero confirma tu asistencia</h2>
+      <p>Así podremos asociar tu canción a tu confirmación sin pedirte el nombre otra vez.</p>
+    </div>
+    <div class="rsvp-music-status pending">Tu pedido musical quedará identificado automáticamente con tu RSVP.</div>
+    <div class="rsvp-music-actions">
+      <button class="rsvp-music-save" id="rsvpGoToConfirmation" type="button">Confirmar asistencia →</button>
+    </div>`;
+  section.querySelector('#rsvpGoToConfirmation')?.addEventListener('click', () => {
+    location.href = rsvpUrl();
+  });
+  const head = document.querySelector('.rsvp-public-head');
+  if (head) {
+    const brand = head.querySelector('.rsvp-brand');
+    if (brand) brand.textContent = 'Mi Gran Día · Música';
+    const title = head.querySelector('h1');
+    if (title) title.textContent = 'Tu canción para la boda';
+    const welcome = head.querySelector('.rsvp-welcome');
+    if (welcome) welcome.textContent = 'Primero necesitamos vincular este pedido con tu confirmación.';
+  }
+  const footer = document.querySelector('.rsvp-footer');
+  if (footer) footer.textContent = 'Encuesta musical protegida por Mi Gran Día';
+}
+
+function applyMusicOnlyLayout(form, section) {
+  document.body.classList.add('rsvp-music-only');
+  form.querySelectorAll(':scope > *').forEach((node) => {
+    if (node !== section) node.classList.add('hidden');
+  });
+  section.classList.remove('hidden');
+
+  const head = document.querySelector('.rsvp-public-head');
+  if (head) {
+    const brand = head.querySelector('.rsvp-brand');
+    if (brand) brand.textContent = 'Mi Gran Día · Música';
+    const title = head.querySelector('h1');
+    if (title) title.textContent = musicConfig.title;
+    const welcome = head.querySelector('.rsvp-welcome');
+    if (welcome) welcome.textContent = musicConfig.intro;
+  }
+
+  const identity = section.querySelector('#rsvpMusicIdentity');
+  if (identity) {
+    identity.textContent = 'Pedido vinculado a tu confirmación RSVP. No necesitas escribir tu nombre otra vez.';
+  }
+
+  const footer = document.querySelector('.rsvp-footer');
+  if (footer) footer.textContent = 'Encuesta musical protegida por Mi Gran Día';
+}
 
 async function saveMusic(section) {
-  const session=getRsvpSession(); if(!session){setStatus(section,'No pudimos identificar esta respuesta. Recarga el formulario.','error');return;}
-  const music=collectMusic(section); writeLocalMusic(session.id,music); syncHiddenField(section,music);
-  const button=section.querySelector('#rsvpSaveMusic'); if(button){button.disabled=true;button.textContent='Guardando…';}
-  if(!music.songs.length){setStatus(section,'Agrega al menos una canción para guardar.','pending');if(button){button.disabled=false;button.textContent='Guardar música';}return;}
+  const session = getRsvpSession();
+  if (!session) {
+    setStatus(section, 'No pudimos identificar esta respuesta. Vuelve a tu confirmación.', 'error');
+    return;
+  }
+
+  const linked = await hasLinkedResponse(session);
+  if (!linked) {
+    const form = section.closest('form');
+    if (form) renderMusicOnlyGate(form, section);
+    return;
+  }
+
+  const music = collectMusic(section);
+  writeLocalMusic(session.id, music);
+  const button = section.querySelector('#rsvpSaveMusic');
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Guardando…';
+  }
+
+  if (!music.songs.length) {
+    setStatus(section, 'Agrega al menos una canción para guardar.', 'pending');
+    if (button) {
+      button.disabled = false;
+      button.textContent = 'Guardar música';
+    }
+    return;
+  }
+
   try {
-    const app=getApps().length?getApp():null; if(!app)throw new Error('firebase-not-ready'); const db=getFirestore(app);
-    await updateDoc(doc(db,'publicRsvp',token,'responses',session.id),{'customData.mgdMusic':serializeMusic(music),updatedAt:serverTimestamp()});
-    setStatus(section,'Música guardada ✓','success');
-  } catch(error) {
-    const code=String(error?.code||error?.message||'');
-    if(code.includes('not-found')||code.includes('firebase-not-ready')||code.includes('permission-denied')) setStatus(section, MUSIC_ONLY ? 'Tus canciones quedaron guardadas en este dispositivo. Cuando completes la confirmación desde esta invitación se asociarán automáticamente.' : 'Tus canciones están listas y se guardarán junto con tu confirmación.','pending');
-    else { console.error('RSVP music save error:',error); setStatus(section,'No pudimos guardar la música ahora. Tus canciones siguen guardadas en este dispositivo.','error'); }
-  } finally { if(button){button.disabled=false;button.textContent='Guardar música';} }
+    const app = getApps().length ? getApp() : null;
+    if (!app) throw new Error('firebase-not-ready');
+    const db = getFirestore(app);
+    await updateDoc(
+      doc(db, 'publicRsvp', token, 'responses', session.id),
+      {
+        'customData.mgdMusic': serializeMusic(music),
+        updatedAt: serverTimestamp()
+      }
+    );
+    setStatus(section, 'Música guardada y vinculada a tu confirmación ✓', 'success');
+  } catch (error) {
+    console.error('RSVP music save error:', error);
+    setStatus(section, 'No pudimos guardar la música ahora. Intenta nuevamente.', 'error');
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = 'Guardar música';
+    }
+  }
 }
 
-function applyMusicOnlyLayout(form, section, stored) {
-  document.body.classList.add('rsvp-music-only');
-  form.querySelectorAll(':scope > *').forEach((node)=>{ if(node!==section) node.classList.add('hidden'); });
-  section.classList.remove('hidden');
-  const head=document.querySelector('.rsvp-public-head');
-  if(head){const brand=head.querySelector('.rsvp-brand');if(brand)brand.textContent='Mi Gran Día · Música';const title=head.querySelector('h1');if(title)title.textContent=musicConfig.title;const welcome=head.querySelector('.rsvp-welcome');if(welcome)welcome.textContent=musicConfig.intro;}
-  const footer=document.querySelector('.rsvp-footer');if(footer)footer.textContent='Encuesta musical protegida por Mi Gran Día';
-  const name=section.querySelector('#rsvpMusicGuestName');if(name)name.value=stored.guestName||'';
+async function installMusicPreserver(form) {
+  if (!form || form.dataset.mgdMusicPreserver === VERSION) return;
+  const session = getRsvpSession();
+  if (!session) return;
+  form.dataset.mgdMusicPreserver = VERSION;
+
+  const music = readLocalMusic(session.id);
+  if (music.songs.length || music.message) syncHiddenField(form, music);
 }
 
-function installMusicSection(form) {
-  if(!form||form.dataset.mgdMusicInstalled===VERSION)return; const session=getRsvpSession(); if(!session)return;
-  const submit=form.querySelector('#rsvpSubmitButton'); if(!submit)return;
-  form.dataset.mgdMusicInstalled=VERSION;
-  if(!musicConfig.enabled && !MUSIC_ONLY)return;
-  const section=document.createElement('section'); section.className='rsvp-section rsvp-music-section';section.id='rsvpMusicSection';
-  section.innerHTML=`<div class="rsvp-music-heading"><span class="rsvp-music-kicker">Para la fiesta</span><h2 class="rsvp-section-title">${escapeHtml(musicConfig.title)}</h2><p>${escapeHtml(musicConfig.intro)}</p></div>
-    ${MUSIC_ONLY?'<label class="rsvp-field"><span>Tu nombre</span><input class="rsvp-input" id="rsvpMusicGuestName" maxlength="120" autocomplete="name" placeholder="Nombre completo"></label>':''}
+async function installMusicOnlySection(form) {
+  if (!form || form.dataset.mgdMusicInstalled === VERSION) return;
+  const session = getRsvpSession();
+  if (!session) return;
+  const submit = form.querySelector('#rsvpSubmitButton');
+  if (!submit) return;
+
+  form.dataset.mgdMusicInstalled = VERSION;
+  if (!musicConfig.enabled) return;
+
+  const section = document.createElement('section');
+  section.className = 'rsvp-section rsvp-music-section';
+  section.id = 'rsvpMusicSection';
+  section.innerHTML = `
+    <div class="rsvp-music-heading">
+      <span class="rsvp-music-kicker">Para la fiesta</span>
+      <h2 class="rsvp-section-title">${escapeHtml(musicConfig.title)}</h2>
+      <p>${escapeHtml(musicConfig.intro)}</p>
+    </div>
+    <div class="rsvp-music-status success" id="rsvpMusicIdentity"></div>
     <div class="rsvp-music-rows" id="rsvpMusicRows"></div>
-    ${musicConfig.askMessage?`<label class="rsvp-field rsvp-music-message"><span>${escapeHtml(musicConfig.messageLabel)}</span><textarea class="rsvp-textarea" id="rsvpMusicMessage" maxlength="500" placeholder="Escribe aquí si quieres dejar una dedicatoria o indicación para los novios"></textarea></label>`:''}
-    <div class="rsvp-music-actions"><button class="rsvp-music-add" id="rsvpAddMusicRow" type="button">+ Agregar otra canción</button><button class="rsvp-music-save" id="rsvpSaveMusic" type="button">Guardar música</button></div><div class="rsvp-music-status" id="rsvpMusicStatus" role="status" aria-live="polite"></div>`;
+    ${musicConfig.askMessage ? `<label class="rsvp-field rsvp-music-message"><span>${escapeHtml(musicConfig.messageLabel)}</span><textarea class="rsvp-textarea" id="rsvpMusicMessage" maxlength="500" placeholder="Escribe aquí si quieres dejar una dedicatoria o indicación para los novios"></textarea></label>` : ''}
+    <div class="rsvp-music-actions">
+      <button class="rsvp-music-add" id="rsvpAddMusicRow" type="button">+ Agregar otra canción</button>
+      <button class="rsvp-music-save" id="rsvpSaveMusic" type="button">Guardar música</button>
+    </div>
+    <div class="rsvp-music-status" id="rsvpMusicStatus" role="status" aria-live="polite"></div>
+    <div class="rsvp-music-actions">
+      <button class="rsvp-music-add" id="rsvpBackToConfirmation" type="button">← Volver a mi confirmación</button>
+    </div>`;
   submit.before(section);
-  let stored=readLocalMusic(session.id);const previousHidden=form.querySelector('[data-custom-key="mgdMusic"]')?.value;if(previousHidden&&!stored.songs.length)stored=parseMusic(previousHidden);
-  renderRows(section,stored);if(musicConfig.askMessage){const msg=section.querySelector('#rsvpMusicMessage');if(msg)msg.value=stored.message||'';}syncHiddenField(section,stored);
-  if(MUSIC_ONLY)applyMusicOnlyLayout(form,section,stored);
-  section.addEventListener('input',()=>{const value=collectMusic(section);writeLocalMusic(session.id,value);syncHiddenField(section,value);setStatus(section,value.songs.length?'Cambios pendientes de guardar.':'');});
-  section.addEventListener('click',(event)=>{const remove=event.target.closest('[data-remove-music-row]');if(remove){const rows=section.querySelectorAll('[data-music-row]');if(rows.length===1){rows[0].querySelector('[data-music-title]').value='';const artist=rows[0].querySelector('[data-music-artist]');if(artist)artist.value='';}else remove.closest('[data-music-row]')?.remove();const value=collectMusic(section);writeLocalMusic(session.id,value);syncHiddenField(section,value);renderRows(section,value);return;}if(event.target.closest('#rsvpAddMusicRow')){const host=section.querySelector('#rsvpMusicRows');const count=host.querySelectorAll('[data-music-row]').length;if(count>=musicConfig.maxSongs)return;host.insertAdjacentHTML('beforeend',songRow({},count));section.querySelector('#rsvpAddMusicRow').disabled=count+1>=musicConfig.maxSongs;return;}if(event.target.closest('#rsvpSaveMusic'))saveMusic(section);});
-  form.addEventListener('submit',()=>{const value=collectMusic(section);writeLocalMusic(session.id,value);syncHiddenField(section,value);},true);
-  requestAnimationFrame(()=>window.parent?.postMessage({type:'MIGRANDIA_RSVP_HEIGHT',height:Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)},'*'));
+
+  const linked = await hasLinkedResponse(session);
+  if (!linked) {
+    renderMusicOnlyGate(form, section);
+    requestAnimationFrame(() => window.parent?.postMessage({
+      type: 'MIGRANDIA_RSVP_HEIGHT',
+      height: Math.max(document.documentElement.scrollHeight, document.body.scrollHeight)
+    }, '*'));
+    return;
+  }
+
+  const stored = readLocalMusic(session.id);
+  renderRows(section, stored);
+  if (musicConfig.askMessage) {
+    const msg = section.querySelector('#rsvpMusicMessage');
+    if (msg) msg.value = stored.message || '';
+  }
+  applyMusicOnlyLayout(form, section);
+
+  section.addEventListener('input', () => {
+    const value = collectMusic(section);
+    writeLocalMusic(session.id, value);
+    setStatus(section, value.songs.length ? 'Cambios pendientes de guardar.' : '');
+  });
+
+  section.addEventListener('click', (event) => {
+    const remove = event.target.closest('[data-remove-music-row]');
+    if (remove) {
+      const rows = section.querySelectorAll('[data-music-row]');
+      if (rows.length === 1) {
+        rows[0].querySelector('[data-music-title]').value = '';
+        const artist = rows[0].querySelector('[data-music-artist]');
+        if (artist) artist.value = '';
+      } else {
+        remove.closest('[data-music-row]')?.remove();
+      }
+      const value = collectMusic(section);
+      writeLocalMusic(session.id, value);
+      renderRows(section, value);
+      return;
+    }
+
+    if (event.target.closest('#rsvpAddMusicRow')) {
+      const host = section.querySelector('#rsvpMusicRows');
+      const count = host.querySelectorAll('[data-music-row]').length;
+      if (count >= musicConfig.maxSongs) return;
+      host.insertAdjacentHTML('beforeend', songRow({}, count));
+      section.querySelector('#rsvpAddMusicRow').disabled = count + 1 >= musicConfig.maxSongs;
+      return;
+    }
+
+    if (event.target.closest('#rsvpSaveMusic')) {
+      saveMusic(section);
+      return;
+    }
+
+    if (event.target.closest('#rsvpBackToConfirmation')) {
+      location.href = rsvpUrl();
+    }
+  });
+
+  requestAnimationFrame(() => window.parent?.postMessage({
+    type: 'MIGRANDIA_RSVP_HEIGHT',
+    height: Math.max(document.documentElement.scrollHeight, document.body.scrollHeight)
+  }, '*'));
 }
 
-async function scan() { const form=document.getElementById('rsvpPublicForm'); if(!form)return; await loadMusicConfig(); installMusicSection(form); }
-const observer=new MutationObserver(scan);observer.observe(document.documentElement,{childList:true,subtree:true});scan();
+function ensureSuccessMusicCta() {
+  if (MUSIC_ONLY || !musicConfig.enabled) return;
+  const success = document.getElementById('rsvpSuccess');
+  const editButton = document.getElementById('rsvpEditResponse');
+  if (!success || !editButton || success.querySelector('#rsvpChooseMusic')) return;
+
+  const button = document.createElement('button');
+  button.className = 'rsvp-edit-button';
+  button.id = 'rsvpChooseMusic';
+  button.type = 'button';
+  button.textContent = 'Elegir mi canción →';
+  button.addEventListener('click', () => {
+    const url = new URL(location.href);
+    url.searchParams.set('view', 'music');
+    location.href = url.href;
+  });
+  editButton.before(button);
+}
+
+async function scan() {
+  const form = document.getElementById('rsvpPublicForm');
+  if (!form) return;
+  await loadMusicConfig();
+  if (MUSIC_ONLY) await installMusicOnlySection(form);
+  else {
+    await installMusicPreserver(form);
+    ensureSuccessMusicCta();
+  }
+}
+
+const observer = new MutationObserver(scan);
+observer.observe(document.documentElement, { childList: true, subtree: true });
+scan();
