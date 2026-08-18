@@ -11,7 +11,7 @@
   </style>
 </head>
 <body>
-  <iframe id="inv5" src="./invitacion_5_base.html?v=20260817-1639" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
+  <iframe id="inv5" src="./invitacion_5_base.html?v=20260817-2152" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
   <script>
     const frame=document.getElementById('inv5');
 
@@ -206,25 +206,56 @@
           hr,.divider,.separator,.section-divider,.line-divider,.section-line,[class*="divider"],[class*="separator"]{display:none !important;border:0 !important;height:0 !important;min-height:0 !important;background:transparent !important;box-shadow:none !important}
           hr::before,hr::after,.divider::before,.divider::after,.separator::before,.separator::after,.section-divider::before,.section-divider::after,.line-divider::before,.line-divider::after,.section-line::before,.section-line::after{display:none !important;content:none !important}
 
-          /* CONFIRMACIÓN Y REGALO: una sola tarjeta, sin separador */
-          #rsvpSection .rsvp-image-card{overflow:visible !important}
+          /* UNA SOLA TARJETA Y SIN LA LÍNEA REAL DE .final-card::before */
+          #rsvpSection .rsvp-image-card{
+            overflow:visible !important;
+            border:0 !important;
+            box-shadow:none !important;
+            background:transparent !important;
+          }
+          #rsvpSection .rsvp-image-card::before,
+          #rsvpSection .rsvp-image-card::after{
+            content:none !important;
+            display:none !important;
+            width:0 !important;
+            height:0 !important;
+            background:none !important;
+            border:0 !important;
+          }
+
           #inv5GiftInRsvp{
             width:100% !important;
-            margin:26px auto 0 !important;
+            margin:20px auto 0 !important;
             padding:0 !important;
             border:0 !important;
-            border-top:0 !important;
             background:transparent !important;
             box-shadow:none !important;
             overflow:visible !important;
           }
-          #inv5GiftInRsvp::before,#inv5GiftInRsvp::after{content:none !important;display:none !important;border:0 !important}
+          #inv5GiftInRsvp::before,#inv5GiftInRsvp::after{content:none !important;display:none !important}
+          #inv5GiftInRsvp .gift-stage-heading,
+          #inv5GiftInRsvp .gift-stage-title,
+          #inv5GiftInRsvp .gift-stage-subtitle{
+            border:0 !important;
+            border-top:0 !important;
+            border-bottom:0 !important;
+            box-shadow:none !important;
+            background-image:none !important;
+          }
+          #inv5GiftInRsvp .gift-stage-heading::before,
+          #inv5GiftInRsvp .gift-stage-heading::after,
+          #inv5GiftInRsvp .gift-stage-title::before,
+          #inv5GiftInRsvp .gift-stage-title::after,
+          #inv5GiftInRsvp .gift-stage-subtitle::before,
+          #inv5GiftInRsvp .gift-stage-subtitle::after{
+            content:none !important;
+            display:none !important;
+          }
 
-          /* La segunda gaviota usa el mismo tamaño/proporción natural de la confirmación */
+          /* Segunda gaviota: deliberadamente más pequeña que Confirmación */
           #inv5GiftInRsvp .gift-experience{
             position:relative !important;
-            width:min(100%,760px) !important;
-            max-width:100% !important;
+            width:100% !important;
             height:auto !important;
             min-height:0 !important;
             aspect-ratio:auto !important;
@@ -245,8 +276,8 @@
           }
           #inv5GiftInRsvp .gift-main-media{
             display:block !important;
-            width:100% !important;
-            max-width:100% !important;
+            width:min(58%,300px) !important;
+            max-width:300px !important;
             height:auto !important;
             min-height:0 !important;
             margin:0 auto !important;
@@ -257,7 +288,6 @@
           }
           #inv5GiftInRsvp .gift-animation-stage::after{display:none !important;content:none !important}
 
-          /* Al revelar, la gaviota sale del flujo y la información ocupa su lugar */
           #inv5GiftInRsvp .gift-experience.is-revealed .gift-animation-stage{
             position:absolute !important;
             inset:0 !important;
@@ -320,8 +350,8 @@
           #esperamosSection .brook-final-gif{display:block !important;width:min(31%,140px) !important;max-width:140px !important;height:auto !important;margin:12px auto 0 !important;object-fit:contain !important}
 
           @media(max-width:540px){
-            #inv5GiftInRsvp{margin-top:20px !important}
-            #inv5GiftInRsvp .gift-experience{width:min(100%,94vw) !important}
+            #inv5GiftInRsvp{margin-top:18px !important}
+            #inv5GiftInRsvp .gift-main-media{width:min(62%,245px) !important;max-width:245px !important}
             #inv5GiftInRsvp .gift-experience.is-revealed .gift-reveal-content{padding:32px 18px 26px !important}
             #inv5GiftInRsvp .gift-bank-data{gap:8px !important}
             #itinerarySection,.itinerary-section,[class*="itinerary-section"],[class*="itinerario-section"]{padding-bottom:70px !important;margin-bottom:42px !important}
