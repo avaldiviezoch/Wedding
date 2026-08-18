@@ -4,7 +4,7 @@
 window.MiGranDiaModules = window.MiGranDiaModules || {};
 window.MiGranDiaModules.invitaciones = { id: 'invitaciones' };
 
-const VERSION = '20260817-preview-load-v7-invite1-safe';
+const VERSION = '20260817-preview-v8-legacy-isolation';
 const STORAGE_KEY = 'migrandia_invitacion_activa_v1';
 const DEVICE_KEY = 'migrandia_invitacion_dispositivo_v1';
 const INVITATIONS = Object.freeze([
@@ -66,6 +66,16 @@ function stopInvitationFrame(root) {
   } catch (_) {}
 }
 
+function restoreLegacyWorkspaceChildren(workspace) {
+  if (!workspace) return;
+  Array.from(workspace.children).forEach(child => {
+    if (child.getAttribute?.('data-mgd-suppressed-by') !== 'invitaciones') return;
+    child.hidden = false;
+    child.removeAttribute('aria-hidden');
+    child.removeAttribute('data-mgd-suppressed-by');
+  });
+}
+
 function purgeInvitationUi() {
   document.querySelectorAll('.mgd-inv-panel,[data-invitations-layout="mobile-preview"],[data-owner-module="invitaciones"]').forEach(root => {
     stopInvitationFrame(root);
@@ -74,12 +84,25 @@ function purgeInvitationUi() {
 
   document.getElementById('mgdInvitationMobilePanelStyles')?.remove();
   document.getElementById('mgdNativeInvitationsStyles')?.remove();
+  document.body.classList.remove('mgd-invitaciones-native-active');
+
+  if (activeModule !== 'invitaciones') {
+    restoreLegacyWorkspaceChildren(document.getElementById('unifiedWorkspace'));
+  }
 }
 
 function hideLegacyWorkspaceChildren(workspace) {
   Array.from(workspace.children).forEach(child => {
-    if (child.matches?.('.mgd-inv-panel,[data-invitations-layout="mobile-preview"],[data-owner-module="invitaciones"]')) return;
+    const isNative = child.matches?.('.mgd-inv-panel,[data-invitations-layout="mobile-preview"],[data-owner-module="invitaciones"]');
+    if (isNative) {
+      child.hidden = false;
+      child.removeAttribute('aria-hidden');
+      child.removeAttribute('data-mgd-suppressed-by');
+      return;
+    }
     child.hidden = true;
+    child.setAttribute('aria-hidden', 'true');
+    child.setAttribute('data-mgd-suppressed-by', 'invitaciones');
   });
 }
 
@@ -87,7 +110,13 @@ function ensureCleanupObserver() {
   const workspace = document.getElementById('unifiedWorkspace');
   if (!workspace || cleanupObserver) return;
   cleanupObserver = new MutationObserver(() => {
-    if (activeModule !== 'invitaciones') purgeInvitationUi();
+    if (activeModule === 'invitaciones') {
+      document.body.classList.add('mgd-invitaciones-native-active');
+      hideLegacyWorkspaceChildren(workspace);
+      return;
+    }
+    purgeInvitationUi();
+    restoreLegacyWorkspaceChildren(workspace);
   });
   cleanupObserver.observe(workspace, { childList: true, subtree: true });
 }
@@ -215,7 +244,9 @@ function render() {
   if (!workspace) return false;
 
   activeModule = 'invitaciones';
+  document.body.classList.add('mgd-invitaciones-native-active');
   purgeInvitationUi();
+  document.body.classList.add('mgd-invitaciones-native-active');
   hideLegacyWorkspaceChildren(workspace);
   ensureCleanupObserver();
 
@@ -228,6 +259,7 @@ function render() {
   const panel = host.firstElementChild;
   if (!panel) return false;
   workspace.appendChild(panel);
+  hideLegacyWorkspaceChildren(workspace);
 
   const frame = panel.querySelector('#mgdInvFrame');
   const loading = panel.querySelector('#mgdInvLoading');
@@ -359,7 +391,10 @@ document.addEventListener('click', event => {
   if (!nextModule) return;
   activeModule = nextModule;
   syncQuickNav(nextModule);
-  if (nextModule !== 'invitaciones') purgeInvitationUi();
+  if (nextModule !== 'invitaciones') {
+    purgeInvitationUi();
+    restoreLegacyWorkspaceChildren(document.getElementById('unifiedWorkspace'));
+  }
 }, true);
 
 document.addEventListener('click', event => {
@@ -382,7 +417,10 @@ window.addEventListener('hashchange', () => {
   activeModule = location.hash.replace(/^#/, '').toLowerCase();
   syncQuickNav(activeModule);
   if (activeModule === 'invitaciones' && window.WeddingPlannerAuthGuard?.authenticated) return void render();
-  if (activeModule !== 'invitaciones') purgeInvitationUi();
+  if (activeModule !== 'invitaciones') {
+    purgeInvitationUi();
+    restoreLegacyWorkspaceChildren(document.getElementById('unifiedWorkspace'));
+  }
 });
 
 syncQuickNav(activeModule);
