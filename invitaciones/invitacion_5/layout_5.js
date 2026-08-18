@@ -44,6 +44,51 @@
         }
       }
 
+      /*
+       * Dress Code: solo redistribución interna. El fondo no se modifica.
+       * La paleta pasa a 5 + 4 elementos y los textos respiran más entre sí.
+       */
+      #dressCodeSection .inv5-dress-palette{
+        width:258px !important;
+        max-width:258px !important;
+        justify-content:center !important;
+        align-content:center !important;
+        row-gap:12px !important;
+        column-gap:12px !important;
+        margin-bottom:30px !important;
+      }
+      #dressCodeSection .inv5-dress-subtitle{
+        margin-bottom:22px !important;
+      }
+      #dressCodeSection .inv5-dress-white{
+        margin-bottom:30px !important;
+      }
+      #dressCodeSection .inv5-dress-lower-1{
+        margin-bottom:30px !important;
+      }
+      #dressCodeSection .inv5-dress-last{
+        margin-top:0 !important;
+      }
+
+      @media(max-width:540px){
+        #dressCodeSection .inv5-dress-palette{
+          width:220px !important;
+          max-width:220px !important;
+          row-gap:10px !important;
+          column-gap:10px !important;
+          margin-bottom:28px !important;
+        }
+        #dressCodeSection .inv5-dress-subtitle{
+          margin-bottom:20px !important;
+        }
+        #dressCodeSection .inv5-dress-white{
+          margin-bottom:28px !important;
+        }
+        #dressCodeSection .inv5-dress-lower-1{
+          margin-bottom:28px !important;
+        }
+      }
+
       /* Música: separar el texto introductorio del título sin tocar el título. */
       #musicSection .music-copy .final-text.inv5-music-copy-spaced{
         margin-top:22px !important;
