@@ -9,6 +9,7 @@ La raíz del repositorio puede conservar entradas públicas de compatibilidad, p
 - `applu.html` — shell principal actual.
 - `appludesktop.html` — vista heredada de escritorio mientras se consolida una interfaz responsive única.
 - `applumovil.html` — vista heredada móvil mientras se consolida una interfaz responsive única.
+- `legacy_snapshots/` — copias históricas resguardadas de antiguas entradas de raíz; no son fuente de desarrollo.
 
 ## CSS
 
@@ -42,10 +43,14 @@ La raíz del repositorio puede conservar entradas públicas de compatibilidad, p
 1. No crear una segunda implementación de Mi Gran Día en la raíz.
 2. No agregar bloques grandes de CSS o JS directamente en HTML.
 3. Código nuevo debe ubicarse en `core`, `services` o el módulo correspondiente.
-4. `legacy` se mantiene solo para compatibilidad/migración; no es destino de desarrollo nuevo salvo corrección mínima indispensable.
+4. `legacy` y `legacy_snapshots` se mantienen solo para compatibilidad/migración; no son destino de desarrollo nuevo.
 5. No cambiar contratos de datos, IDs persistentes, colecciones Firestore ni claves de almacenamiento sin plan y respaldo.
 6. Invitados, mesas y distribución deben conservar una única fuente de datos y sus vínculos.
 7. Todo cambio visual debe respetar `../design-system/MASTER.md`.
+
+## Compatibilidad de URLs antiguas
+
+Las antiguas rutas raíz `appludesktop.html` y `applumovil.html` deben actuar únicamente como redirecciones hacia las versiones de `app_integral/`. Las versiones históricas previas a esa consolidación están archivadas en `legacy_snapshots/`.
 
 ## Documentación relacionada
 
