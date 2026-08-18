@@ -89,6 +89,12 @@
         }
       }
 
+      /* Te esperamos: dar más aire respecto del texto superior y de Brook. */
+      #esperamosSection .final-title{
+        margin-top:18px !important;
+        margin-bottom:18px !important;
+      }
+
       /* Música: separar el texto introductorio del título sin tocar el título. */
       #musicSection .music-copy .final-text.inv5-music-copy-spaced{
         margin-top:22px !important;
