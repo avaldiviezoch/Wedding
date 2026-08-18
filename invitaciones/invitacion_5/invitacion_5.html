@@ -95,6 +95,16 @@
           }
         }
 
+        // REGALO TEMPORAL: usar exactamente el mismo GIF de Confirmación.
+        const confirmationMedia=doc.querySelector('#rsvpSection .rsvp-main-image');
+        const giftMedia=doc.getElementById('giftMainMedia');
+        if(giftMedia){
+          const confirmationGif=confirmationMedia?.getAttribute('src') || 'https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/confirmar%20invitacion_2.gif?v=20260812-1';
+          giftMedia.src=confirmationGif;
+          giftMedia.dataset.gifSrc=confirmationGif;
+          giftMedia.alt='Pelícano mensajero de confirmación';
+        }
+
         // MÚSICA
         const musicSection=doc.querySelector('#musicSection');
         if(musicSection){
