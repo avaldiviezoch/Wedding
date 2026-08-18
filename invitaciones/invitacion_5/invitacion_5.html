@@ -92,12 +92,19 @@
         }
 
         const confirmationMedia=doc.querySelector('#rsvpSection .rsvp-main-image');
+        if(confirmationMedia){
+          confirmationMedia.style.clipPath='inset(4px)';
+          confirmationMedia.style.webkitClipPath='inset(4px)';
+        }
+
         const giftMedia=doc.getElementById('giftMainMedia');
         if(giftMedia){
           const confirmationGif=confirmationMedia?.getAttribute('src') || 'https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/confirmar%20invitacion_2.gif?v=20260812-1';
           giftMedia.src=confirmationGif;
           giftMedia.dataset.gifSrc=confirmationGif;
           giftMedia.alt='Pelícano mensajero de confirmación';
+          giftMedia.style.clipPath='inset(4px)';
+          giftMedia.style.webkitClipPath='inset(4px)';
         }
 
         const giftSection=doc.getElementById('giftSection');
@@ -206,103 +213,21 @@
           hr,.divider,.separator,.section-divider,.line-divider,.section-line,[class*="divider"],[class*="separator"]{display:none !important;border:0 !important;height:0 !important;min-height:0 !important;background:transparent !important;box-shadow:none !important}
           hr::before,hr::after,.divider::before,.divider::after,.separator::before,.separator::after,.section-divider::before,.section-divider::after,.line-divider::before,.line-divider::after,.section-line::before,.section-line::after{display:none !important;content:none !important}
 
-          /* UNA SOLA TARJETA Y SIN LA LÍNEA REAL DE .final-card::before */
-          #rsvpSection .rsvp-image-card{
-            overflow:visible !important;
-            border:0 !important;
-            box-shadow:none !important;
-            background:transparent !important;
-          }
-          #rsvpSection .rsvp-image-card::before,
-          #rsvpSection .rsvp-image-card::after{
-            content:none !important;
-            display:none !important;
-            width:0 !important;
-            height:0 !important;
-            background:none !important;
-            border:0 !important;
-          }
+          #rsvpSection .rsvp-image-card{overflow:visible !important;border:0 !important;box-shadow:none !important;background:transparent !important}
+          #rsvpSection .rsvp-image-card::before,#rsvpSection .rsvp-image-card::after{content:none !important;display:none !important;width:0 !important;height:0 !important;background:none !important;border:0 !important}
 
-          #inv5GiftInRsvp{
-            width:100% !important;
-            margin:20px auto 0 !important;
-            padding:0 !important;
-            border:0 !important;
-            background:transparent !important;
-            box-shadow:none !important;
-            overflow:visible !important;
-          }
+          #inv5GiftInRsvp{width:100% !important;margin:20px auto 0 !important;padding:0 !important;border:0 !important;background:transparent !important;box-shadow:none !important;overflow:visible !important}
           #inv5GiftInRsvp::before,#inv5GiftInRsvp::after{content:none !important;display:none !important}
-          #inv5GiftInRsvp .gift-stage-heading,
-          #inv5GiftInRsvp .gift-stage-title,
-          #inv5GiftInRsvp .gift-stage-subtitle{
-            border:0 !important;
-            border-top:0 !important;
-            border-bottom:0 !important;
-            box-shadow:none !important;
-            background-image:none !important;
-          }
-          #inv5GiftInRsvp .gift-stage-heading::before,
-          #inv5GiftInRsvp .gift-stage-heading::after,
-          #inv5GiftInRsvp .gift-stage-title::before,
-          #inv5GiftInRsvp .gift-stage-title::after,
-          #inv5GiftInRsvp .gift-stage-subtitle::before,
-          #inv5GiftInRsvp .gift-stage-subtitle::after{
-            content:none !important;
-            display:none !important;
-          }
+          #inv5GiftInRsvp .gift-stage-heading,#inv5GiftInRsvp .gift-stage-title,#inv5GiftInRsvp .gift-stage-subtitle{border:0 !important;border-top:0 !important;border-bottom:0 !important;box-shadow:none !important;background-image:none !important}
+          #inv5GiftInRsvp .gift-stage-heading::before,#inv5GiftInRsvp .gift-stage-heading::after,#inv5GiftInRsvp .gift-stage-title::before,#inv5GiftInRsvp .gift-stage-title::after,#inv5GiftInRsvp .gift-stage-subtitle::before,#inv5GiftInRsvp .gift-stage-subtitle::after{content:none !important;display:none !important}
 
-          /* Segunda gaviota: exactamente el mismo tamaño que Confirmación */
-          #inv5GiftInRsvp .gift-experience{
-            position:relative !important;
-            width:100% !important;
-            height:auto !important;
-            min-height:0 !important;
-            aspect-ratio:auto !important;
-            margin:0 auto !important;
-            overflow:visible !important;
-            background:transparent !important;
-            border:0 !important;
-            box-shadow:none !important;
-          }
-          #inv5GiftInRsvp .gift-animation-stage{
-            position:relative !important;
-            inset:auto !important;
-            width:100% !important;
-            height:auto !important;
-            min-height:0 !important;
-            margin:0 auto !important;
-            background:transparent !important;
-          }
-          #inv5GiftInRsvp .gift-main-media{
-            display:block !important;
-            width:min(76%,420px) !important;
-            max-width:420px !important;
-            height:auto !important;
-            min-height:0 !important;
-            margin:0 auto !important;
-            object-fit:contain !important;
-            object-position:center !important;
-            background:transparent !important;
-            filter:none !important;
-          }
+          #inv5GiftInRsvp .gift-experience{position:relative !important;width:100% !important;height:auto !important;min-height:0 !important;aspect-ratio:auto !important;margin:0 auto !important;overflow:visible !important;background:transparent !important;border:0 !important;box-shadow:none !important}
+          #inv5GiftInRsvp .gift-animation-stage{position:relative !important;inset:auto !important;width:100% !important;height:auto !important;min-height:0 !important;margin:0 auto !important;background:transparent !important}
+          #inv5GiftInRsvp .gift-main-media{display:block !important;width:min(76%,420px) !important;max-width:420px !important;height:auto !important;min-height:0 !important;margin:0 auto !important;object-fit:contain !important;object-position:center !important;background:transparent !important;filter:none !important}
           #inv5GiftInRsvp .gift-animation-stage::after{display:none !important;content:none !important}
 
-          #inv5GiftInRsvp .gift-experience.is-revealed .gift-animation-stage{
-            position:absolute !important;
-            inset:0 !important;
-          }
-          #inv5GiftInRsvp .gift-experience.is-revealed .gift-reveal-content{
-            position:relative !important;
-            inset:auto !important;
-            width:100% !important;
-            height:auto !important;
-            min-height:0 !important;
-            padding:36px 28px 30px !important;
-            overflow:visible !important;
-            justify-content:flex-start !important;
-            background:transparent !important;
-          }
+          #inv5GiftInRsvp .gift-experience.is-revealed .gift-animation-stage{position:absolute !important;inset:0 !important}
+          #inv5GiftInRsvp .gift-experience.is-revealed .gift-reveal-content{position:relative !important;inset:auto !important;width:100% !important;height:auto !important;min-height:0 !important;padding:36px 28px 30px !important;overflow:visible !important;justify-content:flex-start !important;background:transparent !important}
           #inv5GiftInRsvp .gift-vintage-panel{width:min(100%,440px) !important;max-height:0 !important;overflow:hidden !important}
           #inv5GiftInRsvp .gift-vintage-panel.open{max-height:none !important;height:auto !important;overflow:visible !important;opacity:1 !important;margin-top:18px !important}
           #inv5GiftInRsvp .gift-yape-box,#inv5GiftInRsvp .gift-bank-data,#inv5GiftInRsvp .gift-data-row{position:relative !important;height:auto !important;max-height:none !important;overflow:visible !important}
