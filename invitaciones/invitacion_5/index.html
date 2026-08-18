@@ -24,7 +24,7 @@
   </style>
 </head>
 <body>
-  <iframe id="inviteFrame" src="./invitacion_5.html?v=20260818-0815" title="Invitación Antonio y Lucero" allow="autoplay; fullscreen"></iframe>
+  <iframe id="inviteFrame" src="./invitacion_5.html?v=20260818-0823" title="Invitación Antonio y Lucero" allow="autoplay; fullscreen"></iframe>
   <div id="introGuard" role="button" tabindex="0" aria-label="Toca para entrar a la invitación">
     <video id="introPreview" autoplay muted playsinline webkit-playsinline preload="auto" disablepictureinpicture aria-hidden="true">
       <source src="./video_entrada.mp4#t=0.001" type="video/mp4">
@@ -32,6 +32,7 @@
     <canvas id="introPoster" aria-hidden="true"></canvas>
     <div id="introHint">Toca para entrar</div>
   </div>
+<script src="./effects_5.js?v=20260818-0823"></script>
 <script>
 (()=>{
   const frame=document.getElementById('inviteFrame');
@@ -69,24 +70,11 @@
 
   function getTitleCandidates(doc){
     return [...new Set(doc.querySelectorAll([
-      'section h2',
-      '.section-title',
-      '.photo-story-title',
-      '.final-title',
-      '.location-title',
-      '.dresscode-title',
-      '.inv5-dress-code',
-      '.rsvp-title',
-      '.faq-title',
-      '.gift-title',
-      '.gift-stage-title',
-      '.music-title',
-      '.confirmation-title',
-      '.questions-title',
-      '.itinerary-title',
-      '.itinerario-title',
-      '.timeline-title'
-    ].join(',')) )];
+      'section h2','.section-title','.photo-story-title','.final-title','.location-title',
+      '.dresscode-title','.inv5-dress-code','.rsvp-title','.faq-title','.gift-title',
+      '.gift-stage-title','.music-title','.confirmation-title','.questions-title',
+      '.itinerary-title','.itinerario-title','.timeline-title'
+    ].join(',')))];
   }
 
   function normalizeSectionTitleSizes(doc){
@@ -94,85 +82,13 @@
     if(!reference) return false;
     const size=doc.defaultView.getComputedStyle(reference).fontSize;
     if(!size) return false;
-
     getTitleCandidates(doc).forEach(el=>{
       const text=(el.textContent||'').trim().toLowerCase();
-      const isProgramming=el.closest('#itinerarySection,.itinerary-section,[aria-label*="Itinerario"],[aria-label*="itinerario"]')||
-        text==='nuestro día'||text==='nuestro dia'||text.includes('programación')||text.includes('programacion');
+      const isProgramming=el.closest('#itinerarySection,.itinerary-section,[aria-label*="Itinerario"],[aria-label*="itinerario"]')||text==='nuestro día'||text==='nuestro dia'||text.includes('programación')||text.includes('programacion');
       if(isProgramming) return;
       el.style.setProperty('font-size',size,'important');
     });
     return true;
-  }
-
-  function installTitleArrival(doc){
-    if(doc.getElementById('inv5-title-arrival-style')) return;
-    const style=doc.createElement('style');
-    style.id='inv5-title-arrival-style';
-    style.textContent=`
-      .inv5-title-arrival{
-        opacity:0;
-        translate:0 22px;
-        filter:blur(3px);
-        transition:opacity .9s cubic-bezier(.2,.75,.25,1),translate 1.05s cubic-bezier(.18,.8,.22,1),filter .85s ease;
-        will-change:opacity,translate,filter;
-      }
-      .inv5-title-arrival.is-title-visible{
-        opacity:1;
-        translate:0 0;
-        filter:blur(0);
-      }
-      @media(prefers-reduced-motion:reduce){
-        .inv5-title-arrival{opacity:1!important;translate:0 0!important;filter:none!important;transition:none!important}
-      }
-    `;
-    doc.head.appendChild(style);
-  }
-
-  function animateSectionTitles(doc){
-    installTitleArrival(doc);
-    const titles=getTitleCandidates(doc);
-    const fresh=titles.filter(el=>!el.classList.contains('inv5-title-arrival'));
-    if(!fresh.length) return;
-
-    const observer=new doc.defaultView.IntersectionObserver(entries=>{
-      entries.forEach(entry=>{
-        if(entry.isIntersecting){
-          entry.target.classList.add('is-title-visible');
-          observer.unobserve(entry.target);
-        }
-      });
-    },{threshold:.28,rootMargin:'0px 0px -7% 0px'});
-
-    fresh.forEach((el,i)=>{
-      el.classList.add('inv5-title-arrival');
-      el.style.transitionDelay=`${Math.min((i%3)*45,90)}ms`;
-      observer.observe(el);
-    });
-  }
-
-  function increaseSakuraPetals(doc){
-    const petals=doc.getElementById('petals');
-    if(!petals||petals.dataset.inv5Expanded==='1') return;
-    petals.dataset.inv5Expanded='1';
-    const targetTotal=40;
-    const current=petals.querySelectorAll('.petal').length;
-    for(let i=current;i<targetTotal;i++){
-      const p=doc.createElement('span');
-      p.className='petal';
-      const left=Math.random()*100;
-      const dur1=10+Math.random()*11;
-      const dur2=2.8+Math.random()*3.4;
-      const dur3=5.5+Math.random()*5.5;
-      const delay=Math.random()*-20;
-      const scale=.62+Math.random()*1.02;
-      p.style.left=left+'vw';
-      p.style.animationDuration=`${dur1}s, ${dur2}s, ${dur3}s`;
-      p.style.animationDelay=`${delay}s, ${delay}s, ${delay}s`;
-      p.style.transform=`scale(${scale})`;
-      p.style.opacity=(.3+Math.random()*.42).toFixed(2);
-      petals.appendChild(p);
-    }
   }
 
   function sizePoster(){
@@ -212,14 +128,13 @@
       if(!inner) return false;
       const doc=inner.contentDocument||inner.contentWindow.document;
       localizeAssets(doc);
-      [0,250,900].forEach(delay=>setTimeout(()=>{
+      [0,220,700,1400].forEach(delay=>setTimeout(()=>{
         normalizeSectionTitleSizes(doc);
-        animateSectionTitles(doc);
-        increaseSakuraPetals(doc);
+        window.inv5ApplyVisualEffects?.(doc);
       },delay));
       if(doc.fonts?.ready) doc.fonts.ready.then(()=>{
         normalizeSectionTitleSizes(doc);
-        animateSectionTitles(doc);
+        window.inv5ApplyVisualEffects?.(doc);
       }).catch(()=>{});
       childEntry=doc.getElementById('entryScreen');
       childVideo=doc.getElementById('entryVideo');
