@@ -4,6 +4,19 @@
 window.MiGranDiaModules = window.MiGranDiaModules || {};
 window.MiGranDiaModules.invitaciones = { id: 'invitaciones' };
 
+const STYLE_VERSION = '20260817-layout-refine-v5';
+
+function ensureModuleStyle() {
+  if (document.querySelector('link[href*="css/modules/invitaciones.css"]')) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = `css/modules/invitaciones.css?v=${STYLE_VERSION}`;
+  link.dataset.mgdInvitacionesStyle = 'true';
+  document.head.appendChild(link);
+}
+
+ensureModuleStyle();
+
 const VERSION = '20260817-preview-v8-legacy-isolation';
 const STORAGE_KEY = 'migrandia_invitacion_activa_v1';
 const DEVICE_KEY = 'migrandia_invitacion_dispositivo_v1';
