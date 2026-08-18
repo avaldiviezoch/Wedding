@@ -28,10 +28,6 @@
     const style=doc.createElement('style');
     style.id='inv5-layout-polish-style';
     style.textContent=`
-      /*
-       * Dress Code: subir el bloque aproximadamente un 10% del alto visible,
-       * con límites para mantener aire respecto del GIF de Programación.
-       */
       #dressCodeSection,
       .inv5-dress-section{
         margin-top:clamp(-84px,-10vh,-68px) !important;
@@ -44,10 +40,6 @@
         }
       }
 
-      /*
-       * Dress Code: solo redistribución interna. El fondo no se modifica.
-       * La paleta pasa a 5 + 4 elementos y los textos respiran más entre sí.
-       */
       #dressCodeSection .inv5-dress-palette{
         width:258px !important;
         max-width:258px !important;
@@ -89,18 +81,15 @@
         }
       }
 
-      /* Te esperamos: dar más aire respecto del texto superior y de Brook. */
       #esperamosSection .final-title{
         margin-top:18px !important;
         margin-bottom:18px !important;
       }
 
-      /* Música: separar el texto introductorio del título sin tocar el título. */
       #musicSection .music-copy .final-text.inv5-music-copy-spaced{
         margin-top:22px !important;
       }
 
-      /* Regalo: título -> GIF -> indicación, siguiendo la jerarquía de Confirmación. */
       #inv5GiftInRsvp .gift-stage-heading{
         display:block !important;
         width:calc(100vw - 24px) !important;
@@ -136,10 +125,6 @@
         box-shadow:none !important;
       }
 
-      /*
-       * Cuando el regalo ya fue revelado, el título y la indicación desaparecen.
-       * Al reiniciar la animación se elimina is-revealed y vuelven automáticamente.
-       */
       #inv5GiftInRsvp .gift-experience.is-revealed .gift-stage-heading,
       #inv5GiftInRsvp .gift-experience.is-revealed .gift-stage-subtitle{
         display:none !important;
@@ -154,10 +139,6 @@
         }
       }
 
-      /*
-       * Confirmación / Regalo / Música toman exactamente la tipografía
-       * de la nota del DJ. La nota del DJ no se modifica.
-       */
       .inv5-action-note-unified{
         font-style:italic !important;
         text-align:center !important;
@@ -170,6 +151,12 @@
     const note=doc.querySelector('.gift-physical-note');
     if(!note) return;
     note.textContent='Si prefieres entregarnos un regalo físico, estaremos gustosos de recepcionarlo en la siguiente dirección: Urb. Alameda de la Rivera, Mz. G, Lt. 45, Ate.';
+  }
+
+  function updateGiftRevealText(doc){
+    const note=doc.querySelector('#gift-panel .gift-reveal-text');
+    if(!note) return;
+    note.textContent='Si prefieres un detalle no físico puedes optar por estas opciones.';
   }
 
   function removeMusicKicker(doc){
@@ -268,6 +255,7 @@
     if(!doc) return false;
     installLayoutStyle(doc);
     updateGiftPhysicalNote(doc);
+    updateGiftRevealText(doc);
     removeMusicKicker(doc);
     arrangeGiftInstruction(doc);
     unifyActionNotes(doc);
