@@ -18,6 +18,17 @@
       try{
         const doc=frame.contentDocument||frame.contentWindow.document;
 
+        // PRIMER FONDO INVITACIÓN 5 — misma imagen de Invitación 4, sin texto.
+        // Va inmediatamente debajo de la portada/saludo y antes del resto del contenido.
+        const portada=doc.querySelector('#saludoWrap');
+        if(portada&&!doc.getElementById('inv5PrimerFondo')){
+          const primerFondo=doc.createElement('section');
+          primerFondo.id='inv5PrimerFondo';
+          primerFondo.className='inv5-primer-fondo';
+          primerFondo.setAttribute('aria-label','Presentación');
+          portada.insertAdjacentElement('afterend',primerFondo);
+        }
+
         const img=doc.querySelector('.countdown-image');
         if(img){img.src='./imagen_de_fecha_5.png?v=20260816-2';img.removeAttribute('srcset')}
 
@@ -167,6 +178,23 @@
         style.id='inv5-amsterdam-four';
         style.textContent=`
           @font-face{font-family:'Amsterdam Four';src:url('./Amsterdam%20Four_ttf%20400.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+
+          /* Primer fondo debajo de portada: imagen original de Invitación 4, sin texto */
+          #inv5PrimerFondo.inv5-primer-fondo{
+            position:relative !important;
+            width:100% !important;
+            min-height:100svh !important;
+            margin:0 !important;
+            padding:0 !important;
+            background-color:#f4eedf !important;
+            background-image:url('https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/primer_fondo_4_1.png?v=20260817-2055') !important;
+            background-position:center !important;
+            background-size:cover !important;
+            background-repeat:no-repeat !important;
+            overflow:hidden !important;
+          }
+          #inv5PrimerFondo.inv5-primer-fondo::before,
+          #inv5PrimerFondo.inv5-primer-fondo::after{content:none !important;display:none !important}
 
           /* Títulos principales */
           h1,h2,h3,.section-title,.photo-story-title,.rsvp-title,.faq-title,.gift-title,.music-title,.dress-title,.location-title,.itinerary-title,.confirmation-title,.questions-title,[class*="section-title"],[class*="-title"]{font-family:'Amsterdam Four',cursive !important;font-weight:400 !important}
