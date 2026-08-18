@@ -78,10 +78,10 @@
       /*
        * Notas de interacción uniformes:
        * Confirmación / Regalo / Música.
-       * Tamaño intermedio para seguir ajustando visualmente.
+       * Reducidas aproximadamente a la mitad del tamaño anterior.
        */
       .inv5-action-note-unified{
-        font-size:clamp(15px,3.8vw,18px) !important;
+        font-size:clamp(8px,1.9vw,9px) !important;
         line-height:1.42 !important;
         font-style:italic !important;
         font-weight:500 !important;
@@ -91,7 +91,7 @@
 
       @media(max-width:360px){
         .inv5-action-note-unified{
-          font-size:clamp(14px,3.9vw,16px) !important;
+          font-size:clamp(8px,2vw,9px) !important;
         }
       }
     `;
