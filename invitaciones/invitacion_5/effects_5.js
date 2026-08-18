@@ -34,6 +34,53 @@
     '.timeline-title'
   ].join(',');
 
+  function installInvitationBranding(doc){
+    doc.getElementById('inv5-branding-style')?.remove();
+    const style=doc.createElement('style');
+    style.id='inv5-branding-style';
+    style.textContent=`
+      @font-face{
+        font-family:'Amsterdam Four';
+        src:url('./Amsterdam%20Four_ttf%20400.ttf') format('truetype');
+        font-weight:400;
+        font-style:normal;
+        font-display:swap;
+      }
+
+      ${TITLE_SELECTORS},
+      h1,h2,h3,
+      [class*="section-title"],
+      [class*="-title"]{
+        font-family:'Amsterdam Four',cursive !important;
+        font-weight:400 !important;
+      }
+
+      .credit-monogram,
+      .photo-story-signature,
+      .wait-signature{
+        font-family:'Amsterdam Four',cursive !important;
+        font-weight:400 !important;
+      }
+
+      .photo-frame.photo-placeholder::before{
+        content:'Antonio  &  Lucero' !important;
+        font-family:'Amsterdam Four',cursive !important;
+        font-weight:400 !important;
+        font-size:clamp(28px,6vw,42px) !important;
+      }
+    `;
+    doc.head.appendChild(style);
+
+    const exactInitials=/^\s*A\s*(?:&|\+|y)\s*L\s*$/i;
+    doc.querySelectorAll('.credit-monogram,.photo-story-signature,.wait-signature').forEach(el=>{
+      const text=(el.textContent||'').replace(/\s+/g,' ').trim();
+      if(exactInitials.test(text)) el.textContent='Antonio & Lucero';
+    });
+
+    const creditMonogram=doc.querySelector('#creditSection .credit-monogram');
+    if(creditMonogram) creditMonogram.textContent='Antonio & Lucero';
+  }
+
   function installTitleEffectStyle(doc){
     doc.getElementById('inv5-title-effect-style')?.remove();
     const style=doc.createElement('style');
@@ -164,6 +211,7 @@
 
   window.inv5ApplyVisualEffects=(doc)=>{
     try{
+      installInvitationBranding(doc);
       prepareTitleEffects(doc);
       expandPetals(doc);
     }catch(e){
