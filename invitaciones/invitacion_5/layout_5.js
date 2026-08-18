@@ -104,6 +104,15 @@
       #inv5GiftInRsvp .gift-stage-heading{
         display:contents !important;
       }
+
+      /*
+       * Cuando el regalo ya fue revelado, el título y la indicación desaparecen.
+       * Al reiniciar la animación se elimina is-revealed y vuelven automáticamente.
+       */
+      #inv5GiftInRsvp .gift-experience.is-revealed .gift-stage-heading{
+        display:none !important;
+      }
+
       #inv5GiftInRsvp .gift-stage-title{
         order:1 !important;
       }
