@@ -2,11 +2,9 @@
   /*
    * INVITACIÓN 5 — EFECTOS VISUALES
    * ---------------------------------
-   * Este archivo NO modifica geometría.
-   * No toca: font-size, line-height, width, height, margin, padding,
-   * transform, translate, scale, position, display, white-space ni layout.
-   *
-   * Los ajustes estructurales/locales viven en layout_5.js.
+   * Regla: este archivo no modifica geometría de títulos.
+   * El efecto usa únicamente propiedades de pintura (opacity/text-shadow/color)
+   * durante la animación. No toca tamaño, márgenes, ancho, transform ni layout.
    */
 
   if(!document.getElementById('inv5-layout-loader')){
@@ -36,7 +34,59 @@
     '.timeline-title'
   ].join(',');
 
-  function cleanupLegacyTitleEffects(el){
+  function installTitleEffectStyle(doc){
+    doc.getElementById('inv5-title-effect-style')?.remove();
+    const style=doc.createElement('style');
+    style.id='inv5-title-effect-style';
+    style.textContent=`
+      /* Estado normal: el título SIEMPRE queda visible. */
+      .inv5-title-effect-safe{
+        opacity:1;
+        visibility:visible;
+        overflow:visible;
+      }
+
+      /*
+       * La animación solo existe cuando se agrega esta clase.
+       * Si JS no se ejecuta, el título permanece normal y visible.
+       */
+      .inv5-title-effect-safe.inv5-title-effect-play{
+        animation:inv5TitleInkArrival 1.05s cubic-bezier(.18,.72,.22,1) both;
+      }
+
+      @keyframes inv5TitleInkArrival{
+        0%{
+          opacity:.24;
+          color:rgba(88,105,78,.42);
+          text-shadow:
+            0 0 1px rgba(88,105,78,.15),
+            0 0 18px rgba(88,105,78,.62),
+            0 0 34px rgba(179,143,116,.32);
+        }
+        42%{
+          opacity:.82;
+          color:rgba(88,105,78,.88);
+          text-shadow:
+            0 0 2px rgba(88,105,78,.28),
+            0 0 11px rgba(88,105,78,.42),
+            0 0 22px rgba(179,143,116,.20);
+        }
+        72%{
+          opacity:1;
+          color:currentColor;
+          text-shadow:0 0 5px rgba(88,105,78,.24);
+        }
+        100%{
+          opacity:1;
+          color:currentColor;
+          text-shadow:none;
+        }
+      }
+    `;
+    doc.head.appendChild(style);
+  }
+
+  function cleanupOldEffect(el){
     el.classList.remove(
       'inv5-title-arrival-v4','inv5-title-arrival-v3','inv5-title-arrival-v2',
       'inv5-title-arrival','inv5-title-pulse','is-title-visible',
@@ -44,115 +94,82 @@
     );
     [
       'opacity','visibility','clip-path','filter','letter-spacing','text-shadow',
-      'transition','transition-delay','animation','animation-delay'
+      'transition','transition-delay','animation','animation-delay','color'
     ].forEach(prop=>el.style.removeProperty(prop));
+    el.classList.add('inv5-title-effect-safe');
   }
 
-  function playTitleInkEffect(doc,el){
+  function play(el){
     if(!el || el.dataset.inv5TitleEffectDone==='1') return;
     el.dataset.inv5TitleEffectDone='1';
 
-    cleanupLegacyTitleEffects(el);
+    /* Reiniciar de forma explícita para Safari/Chrome iOS. */
+    el.classList.remove('inv5-title-effect-play');
+    void el.offsetWidth;
+    el.classList.add('inv5-title-effect-play');
 
-    const win=doc.defaultView;
-    if(win.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
-
-    /*
-     * Web Animations API: solo anima text-shadow (pintura), nunca la caja.
-     * Por eso el título mantiene exactamente tamaño, posición y saltos de línea.
-     */
-    try{
-      el.animate([
-        {textShadow:'0 0 0 rgba(91,108,80,0), 0 0 0 rgba(151,128,105,0)'},
-        {textShadow:'0 0 12px rgba(91,108,80,.58), 0 0 28px rgba(151,128,105,.30)',offset:.30},
-        {textShadow:'0 0 5px rgba(91,108,80,.32), 0 0 14px rgba(151,128,105,.16)',offset:.62},
-        {textShadow:'0 0 0 rgba(91,108,80,0), 0 0 0 rgba(151,128,105,0)'}
-      ],{
-        duration:1350,
-        easing:'cubic-bezier(.22,.72,.2,1)',
-        fill:'none'
-      });
-    }catch(e){
-      /* Fallback seguro: no alterar geometría si WAAPI no está disponible. */
-      el.style.textShadow='0 0 8px rgba(91,108,80,.25)';
-      win.setTimeout(()=>el.style.removeProperty('text-shadow'),650);
-    }
+    el.addEventListener('animationend',()=>{
+      el.classList.remove('inv5-title-effect-play');
+      el.style.removeProperty('opacity');
+      el.style.removeProperty('color');
+      el.style.removeProperty('text-shadow');
+    },{once:true});
   }
 
   function titleCandidates(doc){
     return [...new Set(doc.querySelectorAll(TITLE_SELECTORS))];
   }
 
-  function ensureTitleObserver(doc){
+  function prepareTitleEffects(doc){
+    installTitleEffectStyle(doc);
     const win=doc.defaultView;
-    if(win.__inv5TitleEffectState) return win.__inv5TitleEffectState;
 
-    const state={observer:null,observed:new WeakSet(),mutation:null};
-
-    if('IntersectionObserver' in win){
-      state.observer=new win.IntersectionObserver(entries=>{
-        entries.forEach(entry=>{
-          if(!entry.isIntersecting) return;
-          playTitleInkEffect(doc,entry.target);
-          state.observer.unobserve(entry.target);
-        });
-      },{
-        threshold:.30,
-        rootMargin:'0px 0px -8% 0px'
-      });
-    }
-
-    const observeCurrentTitles=()=>{
+    const prepareCurrent=()=>{
       titleCandidates(doc).forEach(el=>{
-        cleanupLegacyTitleEffects(el);
-        if(el.dataset.inv5TitleEffectDone==='1' || state.observed.has(el)) return;
-        state.observed.add(el);
-        if(state.observer){
-          state.observer.observe(el);
-        }
+        if(!el.classList.contains('inv5-title-effect-safe')) cleanupOldEffect(el);
       });
     };
-
-    const fallbackScan=()=>{
-      if(state.observer) return;
-      const h=win.innerHeight||doc.documentElement.clientHeight;
-      titleCandidates(doc).forEach(el=>{
-        if(el.dataset.inv5TitleEffectDone==='1') return;
-        const r=el.getBoundingClientRect();
-        if(r.top<h*.88 && r.bottom>h*.08) playTitleInkEffect(doc,el);
-      });
-    };
-
-    state.observeCurrentTitles=observeCurrentTitles;
-    state.fallbackScan=fallbackScan;
 
     /*
-     * Importante: layout_5.js crea/reordena algunos títulos después de cargar.
-     * MutationObserver hace que esos títulos nuevos también reciban el efecto.
+     * Escaneo real del viewport en cada scroll. No dependemos solo de
+     * IntersectionObserver porque la invitación vive dentro de iframes anidados.
      */
-    state.mutation=new win.MutationObserver(()=>{
-      observeCurrentTitles();
-      fallbackScan();
-    });
-    state.mutation.observe(doc.body,{childList:true,subtree:true});
+    let raf=0;
+    const scan=()=>{
+      if(raf) return;
+      raf=win.requestAnimationFrame(()=>{
+        raf=0;
+        prepareCurrent();
+        const h=win.innerHeight||doc.documentElement.clientHeight;
+        titleCandidates(doc).forEach(el=>{
+          if(el.dataset.inv5TitleEffectDone==='1') return;
+          const r=el.getBoundingClientRect();
+          if(r.top < h*.84 && r.bottom > h*.10) play(el);
+        });
+      });
+    };
 
-    if(!state.observer){
-      win.addEventListener('scroll',fallbackScan,{passive:true});
-      win.addEventListener('resize',fallbackScan,{passive:true});
+    if(!win.__inv5TitleEffectScrollBound){
+      win.__inv5TitleEffectScrollBound=true;
+      win.addEventListener('scroll',scan,{passive:true});
+      win.addEventListener('resize',scan,{passive:true});
+      doc.addEventListener('scroll',scan,{passive:true,capture:true});
     }
 
-    win.__inv5TitleEffectState=state;
-    return state;
-  }
+    /* Detectar títulos creados/reordenados por layout_5.js. */
+    if(!win.__inv5TitleEffectMutation){
+      win.__inv5TitleEffectMutation=new win.MutationObserver(()=>{
+        prepareCurrent();
+        scan();
+      });
+      win.__inv5TitleEffectMutation.observe(doc.body,{childList:true,subtree:true});
+    }
 
-  function prepareTitleEffects(doc){
-    const state=ensureTitleObserver(doc);
-    state.observeCurrentTitles();
-    state.fallbackScan();
-
-    /* Captura cambios tardíos de fuentes/layout sin recrear listeners. */
-    setTimeout(()=>state.observeCurrentTitles(),250);
-    setTimeout(()=>state.observeCurrentTitles(),900);
+    prepareCurrent();
+    scan();
+    win.setTimeout(scan,250);
+    win.setTimeout(scan,750);
+    win.setTimeout(scan,1500);
   }
 
   function expandPetals(doc){
