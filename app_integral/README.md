@@ -1,19 +1,56 @@
-# App Integral de Bodas
+# App Integral de Bodas — Mi Gran Día
 
-Esta carpeta contiene únicamente el planificador integral de bodas.
+`app_integral/` es la **fuente de verdad del producto Mi Gran Día / Applu**.
 
-## Estructura
+La raíz del repositorio puede conservar entradas públicas de compatibilidad, pero el código funcional, estilos, servicios y módulos del producto deben vivir aquí.
 
-- `applu.html`: entrada principal actual.
-- `css/legacy/`: CSS existente extraído del HTML.
-- `css/core/`: variables, layout y componentes globales.
-- `css/modules/`: estilos separados por módulo.
-- `js/legacy/`: JavaScript heredado todavía no migrado.
-- `js/core/`: núcleo de la aplicación.
-- `js/services/`: Firebase, autenticación, Firestore y almacenamiento.
-- `js/modules/`: lógica por módulo de negocio.
-- `ARCHITECTURE.md`: reglas de arquitectura.
+## Entradas
 
-## Regla de desarrollo
+- `applu.html` — shell principal actual.
+- `appludesktop.html` — vista heredada de escritorio mientras se consolida una interfaz responsive única.
+- `applumovil.html` — vista heredada móvil mientras se consolida una interfaz responsive única.
 
-No volver a agregar bloques grandes de CSS o JavaScript dentro de los HTML. Todo desarrollo nuevo debe ubicarse en `core`, `services` o en el módulo correspondiente. El código de `legacy` se migrará progresivamente para evitar romper funcionalidades existentes.
+## CSS
+
+- `css/legacy/` — CSS existente pendiente de migración.
+- `css/core/` — variables, layout y componentes globales.
+- `css/modules/` — estilos separados por módulo funcional.
+
+## JavaScript
+
+- `js/legacy/` — JavaScript heredado todavía no migrado.
+- `js/core/` — arranque, router, estado, eventos y utilidades DOM.
+- `js/services/` — Firebase, autenticación, Firestore, almacenamiento y persistencia.
+- `js/modules/` — lógica de negocio separada por dominio.
+
+## Módulos
+
+- dashboard
+- checklist
+- presupuesto
+- proveedores
+- invitados
+- distribución
+- cronograma
+- invitaciones (gestión; las plantillas viven en `/invitaciones`)
+- música
+- documentos
+- configuración
+
+## Reglas obligatorias
+
+1. No crear una segunda implementación de Mi Gran Día en la raíz.
+2. No agregar bloques grandes de CSS o JS directamente en HTML.
+3. Código nuevo debe ubicarse en `core`, `services` o el módulo correspondiente.
+4. `legacy` se mantiene solo para compatibilidad/migración; no es destino de desarrollo nuevo salvo corrección mínima indispensable.
+5. No cambiar contratos de datos, IDs persistentes, colecciones Firestore ni claves de almacenamiento sin plan y respaldo.
+6. Invitados, mesas y distribución deben conservar una única fuente de datos y sus vínculos.
+7. Todo cambio visual debe respetar `../design-system/MASTER.md`.
+
+## Documentación relacionada
+
+- `ARCHITECTURE.md` — arquitectura detallada.
+- `../docs/REPOSITORY_INDEX.md` — mapa global del repositorio.
+- `../docs/MAINTENANCE.md` — reglas de mantenimiento y limpieza.
+- `../docs/QA_CHECKLIST.md` — QA mínimo antes de publicar.
+- `../AGENTS.md` — reglas globales para mantenimiento asistido.
