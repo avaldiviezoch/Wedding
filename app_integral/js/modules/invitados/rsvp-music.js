@@ -4,10 +4,11 @@ import {
   getDoc,
   getFirestore,
   serverTimestamp,
+  setDoc,
   updateDoc
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
-const VERSION = '20260816-1615-rsvp-music-builder1';
+const VERSION = '20260817-2112-rsvp-music2';
 const params = new URLSearchParams(location.search);
 const token = String(params.get('token') || '').trim();
 const MUSIC_ONLY = params.get('view') === 'music';
@@ -106,11 +107,26 @@ async function saveMusic(section) {
   if(!music.songs.length){setStatus(section,'Agrega al menos una canción para guardar.','pending');if(button){button.disabled=false;button.textContent='Guardar música';}return;}
   try {
     const app=getApps().length?getApp():null; if(!app)throw new Error('firebase-not-ready'); const db=getFirestore(app);
-    await updateDoc(doc(db,'publicRsvp',token,'responses',session.id),{'customData.mgdMusic':serializeMusic(music),updatedAt:serverTimestamp()});
+    const ref=doc(db,'publicRsvp',token,'responses',session.id);
+    try {
+      await updateDoc(ref,{'customData.mgdMusic':serializeMusic(music),updatedAt:serverTimestamp()});
+    } catch (error) {
+      const code=String(error?.code||error?.message||'');
+      if(!code.includes('not-found')) throw error;
+      await setDoc(ref,{
+        version:1,
+        source:'music-widget',
+        customData:{mgdMusic:serializeMusic(music)},
+        editToken:session.editToken,
+        clientDate:new Date().toISOString(),
+        submittedAt:serverTimestamp(),
+        updatedAt:serverTimestamp()
+      },{merge:true});
+    }
     setStatus(section,'Música guardada ✓','success');
   } catch(error) {
     const code=String(error?.code||error?.message||'');
-    if(code.includes('not-found')||code.includes('firebase-not-ready')||code.includes('permission-denied')) setStatus(section, MUSIC_ONLY ? 'Tus canciones quedaron guardadas en este dispositivo. Cuando completes la confirmación desde esta invitación se asociarán automáticamente.' : 'Tus canciones están listas y se guardarán junto con tu confirmación.','pending');
+    if(code.includes('firebase-not-ready')||code.includes('permission-denied')) setStatus(section,'Tus canciones quedaron guardadas en este dispositivo. Intenta nuevamente cuando tengas conexión.','pending');
     else { console.error('RSVP music save error:',error); setStatus(section,'No pudimos guardar la música ahora. Tus canciones siguen guardadas en este dispositivo.','error'); }
   } finally { if(button){button.disabled=false;button.textContent='Guardar música';} }
 }
