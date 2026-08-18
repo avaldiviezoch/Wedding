@@ -120,6 +120,14 @@
             giftInRsvp.appendChild(giftExperience);
             rsvpCard.appendChild(giftInRsvp);
           }
+
+          // El título de Regalo siempre debe estar físicamente arriba del GIF.
+          const giftHeading=giftExperience.querySelector('.gift-stage-heading');
+          const giftStage=giftExperience.querySelector('.gift-animation-stage');
+          if(giftHeading&&giftStage){
+            giftExperience.insertBefore(giftHeading,giftStage);
+          }
+
           giftSection?.remove();
         }
 
@@ -219,12 +227,14 @@
 
           #inv5GiftInRsvp{width:100% !important;margin:48px auto 64px !important;padding:0 !important;border:0 !important;background:transparent !important;background-image:none !important;box-shadow:none !important;overflow:visible !important}
           #inv5GiftInRsvp::before,#inv5GiftInRsvp::after{content:none !important;display:none !important}
-          #inv5GiftInRsvp .gift-stage-heading{position:relative !important;inset:auto !important;top:auto !important;right:auto !important;bottom:auto !important;left:auto !important;transform:none !important;width:100% !important;max-width:100% !important;margin:0 auto 28px !important;padding:0 18px !important;z-index:3 !important;text-align:center !important;border:0 !important;border-top:0 !important;border-bottom:0 !important;box-shadow:none !important;background:transparent !important;background-image:none !important}
-          #inv5GiftInRsvp .gift-stage-title,#inv5GiftInRsvp .gift-stage-subtitle{position:relative !important;inset:auto !important;transform:none !important;border:0 !important;border-top:0 !important;border-bottom:0 !important;box-shadow:none !important;background:transparent !important;background-image:none !important}
+
+          #inv5GiftInRsvp .gift-experience{position:relative !important;display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:flex-start !important;gap:0 !important;width:100% !important;height:auto !important;min-height:0 !important;aspect-ratio:auto !important;margin:0 auto !important;overflow:visible !important;background:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important}
+
+          #inv5GiftInRsvp .gift-stage-heading{position:relative !important;inset:auto !important;top:auto !important;right:auto !important;bottom:auto !important;left:auto !important;transform:none !important;display:block !important;order:1 !important;width:min(100%,320px) !important;max-width:320px !important;margin:0 auto 24px !important;padding:0 12px !important;z-index:3 !important;text-align:center !important;border:0 !important;border-top:0 !important;border-bottom:0 !important;box-shadow:none !important;background:transparent !important;background-image:none !important}
+          #inv5GiftInRsvp .gift-stage-title,#inv5GiftInRsvp .gift-stage-subtitle{position:relative !important;inset:auto !important;transform:none !important;display:block !important;width:100% !important;margin-left:auto !important;margin-right:auto !important;text-align:center !important;border:0 !important;border-top:0 !important;border-bottom:0 !important;box-shadow:none !important;background:transparent !important;background-image:none !important}
           #inv5GiftInRsvp .gift-stage-heading::before,#inv5GiftInRsvp .gift-stage-heading::after,#inv5GiftInRsvp .gift-stage-title::before,#inv5GiftInRsvp .gift-stage-title::after,#inv5GiftInRsvp .gift-stage-subtitle::before,#inv5GiftInRsvp .gift-stage-subtitle::after{content:none !important;display:none !important}
 
-          #inv5GiftInRsvp .gift-experience{position:relative !important;width:100% !important;height:auto !important;min-height:0 !important;aspect-ratio:auto !important;margin:0 auto !important;overflow:visible !important;background:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important}
-          #inv5GiftInRsvp .gift-animation-stage{position:relative !important;inset:auto !important;width:100% !important;height:auto !important;min-height:0 !important;margin:0 auto !important;background:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important}
+          #inv5GiftInRsvp .gift-animation-stage{position:relative !important;inset:auto !important;display:block !important;order:2 !important;width:100% !important;height:auto !important;min-height:0 !important;margin:0 auto !important;background:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important}
           #inv5GiftInRsvp .gift-main-media{position:relative !important;inset:auto !important;display:block !important;width:min(76%,420px) !important;max-width:420px !important;height:auto !important;min-height:0 !important;margin:0 auto !important;object-fit:contain !important;object-position:center !important;background:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important;filter:none !important}
           #inv5GiftInRsvp .gift-animation-stage::after{display:none !important;content:none !important}
 
@@ -278,7 +288,7 @@
 
           @media(max-width:540px){
             #inv5GiftInRsvp{margin:46px auto 58px !important}
-            #inv5GiftInRsvp .gift-stage-heading{margin-bottom:24px !important;padding-left:14px !important;padding-right:14px !important}
+            #inv5GiftInRsvp .gift-stage-heading{width:min(100%,240px) !important;max-width:240px !important;margin:0 auto 20px !important;padding:0 8px !important}
             #inv5GiftInRsvp .gift-main-media{width:min(80%,340px) !important;max-width:340px !important}
             #inv5GiftInRsvp .gift-experience.is-revealed .gift-reveal-content{padding:32px 18px 26px !important}
             #inv5GiftInRsvp .gift-bank-data{gap:8px !important}
