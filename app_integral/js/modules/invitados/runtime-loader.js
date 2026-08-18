@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-1648-distribucion-stable';
+  const VERSION = '20260817-2135-rsvp-music2';
   let baseRuntime = null;
   let rsvpRuntime = null;
 
@@ -28,7 +28,7 @@
     ensureSharedShellStyles();
     if (baseRuntime) return baseRuntime;
     baseRuntime = Promise.all([
-      import(moduleUrl('index.js', '20260816-1853-native1')),
+      import(moduleUrl('index.js', '20260817-2135-rsvp2')),
       import(moduleUrl('ui-copy.js', '20260814-1532-uicopy3')),
       import(moduleUrl('tables-lazy-loader.js', '20260816-1916-idle1'))
     ]).catch((error) => {
@@ -43,8 +43,8 @@
     if (rsvpRuntime) return rsvpRuntime;
     rsvpRuntime = Promise.all([
       import(moduleUrl('rsvp-admin-music.js', '20260816-1615-rsvp-music-builder1')),
-      import(moduleUrl('rsvp-admin-music-builder-fix.js', '20260816-1920-music-fast1')),
-      import(moduleUrl('rsvp-native-admin-patch.js', '20260816-1918-native-fast1'))
+      import(moduleUrl('rsvp-admin-music-builder-fix.js', '20260817-2112-native2')),
+      import(moduleUrl('rsvp-native-admin-patch.js', '20260817-2112-native2'))
     ]).catch((error) => {
       console.error('No se pudo iniciar RSVP:', error);
       rsvpRuntime = null;
