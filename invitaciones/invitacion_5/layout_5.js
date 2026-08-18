@@ -74,6 +74,15 @@
         border:0 !important;
         box-shadow:none !important;
       }
+
+      /*
+       * Las tres notas de acción comparten una sola jerarquía visual.
+       * El tamaño real se toma dinámicamente de “Toca el regalo para descubrirlo”.
+       */
+      .inv5-action-note-unified{
+        font-style:italic !important;
+        text-align:center !important;
+      }
     `;
     doc.head.appendChild(style);
   }
@@ -91,23 +100,37 @@
     if(copy) copy.classList.add('inv5-music-copy-spaced');
   }
 
-  function findConfirmationInstruction(doc){
-    return [...doc.querySelectorAll('#rsvpSection *')].find(el=>{
-      const text=norm(el.textContent);
-      return text.includes('toca a nuestro mensajero') && text.includes('confirmar tu asistencia');
-    })||null;
+  function findActionNote(doc,kind){
+    const tests={
+      confirmation:text=>text.includes('toca a nuestro mensajero')&&text.includes('confirmar tu asistencia'),
+      gift:text=>text.includes('toca el regalo')&&text.includes('descubrirlo'),
+      music:text=>text.includes('toca la imagen')&&text.includes('dejar tu canci')
+    };
+    const test=tests[kind];
+    if(!test) return null;
+
+    const matches=[...doc.querySelectorAll('p,span,small,div,strong,em')]
+      .filter(el=>{
+        const text=norm(el.textContent);
+        return text.length>0&&text.length<180&&test(text);
+      })
+      .sort((a,b)=>norm(a.textContent).length-norm(b.textContent).length);
+
+    return matches[0]||null;
   }
 
-  function copyTypography(source,target){
+  function copyNoteTypography(source,target){
     if(!source||!target) return;
     const cs=source.ownerDocument.defaultView.getComputedStyle(source);
     [
-      'fontFamily','fontSize','fontWeight','fontStyle','lineHeight',
+      'fontFamily','fontSize','fontWeight','lineHeight',
       'letterSpacing','textTransform','color'
     ].forEach(prop=>{
       const value=cs[prop];
       if(value) target.style.setProperty(prop.replace(/[A-Z]/g,m=>'-'+m.toLowerCase()),value,'important');
     });
+    target.style.setProperty('font-style','italic','important');
+    target.classList.add('inv5-action-note-unified');
   }
 
   function arrangeGiftInstruction(doc){
@@ -129,8 +152,17 @@
     if(title && title.nextElementSibling!==stage){
       experience.insertBefore(title,stage);
     }
+  }
 
-    copyTypography(findConfirmationInstruction(doc),subtitle);
+  function unifyActionNotes(doc){
+    const gift=findActionNote(doc,'gift')||doc.querySelector('#inv5GiftInRsvp .gift-stage-subtitle');
+    if(!gift) return;
+
+    gift.classList.add('inv5-action-note-unified');
+    gift.style.setProperty('font-style','italic','important');
+
+    copyNoteTypography(gift,findActionNote(doc,'confirmation'));
+    copyNoteTypography(gift,findActionNote(doc,'music'));
   }
 
   function apply(){
@@ -139,6 +171,7 @@
     installLayoutStyle(doc);
     removeMusicKicker(doc);
     arrangeGiftInstruction(doc);
+    unifyActionNotes(doc);
     return true;
   }
 
