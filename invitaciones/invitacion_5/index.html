@@ -9,6 +9,13 @@
     *{box-sizing:border-box}
     html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f1e5da}
     body{min-height:100svh}
+
+    /*
+     * INVITACIÓN 5 — CONTENEDOR RESPONSIVE
+     * Móvil mantiene exactamente la experiencia full-screen actual.
+     * Desde escritorio la invitación conserva su proporción editorial y se
+     * presenta centrada, evitando estirarse horizontalmente.
+     */
     #inviteFrame{position:fixed;inset:0;width:100%;height:100%;border:0;background:#f1e5da;opacity:0;transition:opacity .18s ease}
     #inviteFrame.ready{opacity:1}
     #introGuard{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#f1e5da;overflow:hidden;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -20,11 +27,69 @@
     #introGuard.frame-ready #introHint{opacity:0}
     #introGuard.fallback:not(.frame-ready) #introHint{opacity:1}
     #introPreview::-webkit-media-controls,#introPreview::-webkit-media-controls-enclosure,#introPreview::-webkit-media-controls-panel,#introPreview::-webkit-media-controls-start-playback-button,#introPreview::-webkit-media-controls-overlay-play-button{display:none!important;-webkit-appearance:none!important;opacity:0!important;pointer-events:none!important}
+
+    /* Tablet: seguimos aprovechando bastante pantalla sin deformar la composición. */
+    @media (min-width:768px) and (max-width:1023px){
+      body{
+        background:
+          radial-gradient(circle at 18% 12%,rgba(255,255,255,.45),transparent 30%),
+          radial-gradient(circle at 82% 88%,rgba(109,117,89,.07),transparent 30%),
+          #e8ddd1;
+      }
+      #inviteFrame,#introGuard{
+        left:50%;right:auto;
+        width:min(760px,100vw);
+        transform:translateX(-50%);
+      }
+    }
+
+    /* Escritorio: columna editorial central + laterales de papel, no una invitación estirada. */
+    @media (min-width:1024px){
+      body{
+        background:
+          radial-gradient(circle at 15% 18%,rgba(255,255,255,.62),transparent 29%),
+          radial-gradient(circle at 86% 78%,rgba(109,117,89,.09),transparent 32%),
+          linear-gradient(135deg,#e7dbcf 0%,#ddd1c5 48%,#e8ddd2 100%);
+      }
+      body::before,body::after{
+        content:"";
+        position:fixed;
+        top:0;bottom:0;
+        width:max(0px,calc((100vw - 760px)/2));
+        pointer-events:none;
+        z-index:0;
+      }
+      body::before{
+        left:0;
+        background:linear-gradient(90deg,rgba(61,67,53,.06),transparent 72%);
+      }
+      body::after{
+        right:0;
+        background:linear-gradient(270deg,rgba(61,67,53,.06),transparent 72%);
+      }
+      #inviteFrame,#introGuard{
+        left:50%;right:auto;top:0;bottom:0;
+        width:min(760px,calc(100vw - 96px));
+        height:100%;
+        transform:translateX(-50%);
+        border-left:1px solid rgba(91,82,70,.10);
+        border-right:1px solid rgba(91,82,70,.10);
+        box-shadow:0 0 44px rgba(65,54,43,.13);
+      }
+      #introGuard{background:#f1e5da}
+      #introHint{bottom:max(34px,env(safe-area-inset-bottom))}
+    }
+
+    /* Pantallas muy anchas: un poco más de aire, manteniendo proporción de lectura. */
+    @media (min-width:1440px){
+      #inviteFrame,#introGuard{width:780px}
+    }
+
     @media (prefers-reduced-motion:reduce){#inviteFrame,#introGuard{transition:none!important}}
   </style>
 </head>
 <body>
-  <iframe id="inviteFrame" src="./invitacion_5.html?v=20260818-0909" title="Invitación Antonio y Lucero" allow="autoplay; fullscreen"></iframe>
+  <iframe id="inviteFrame" src="./invitacion_5.html?v=20260818-0918" title="Invitación Antonio y Lucero" allow="autoplay; fullscreen"></iframe>
   <div id="introGuard" role="button" tabindex="0" aria-label="Toca para entrar a la invitación">
     <video id="introPreview" autoplay muted playsinline webkit-playsinline preload="auto" disablepictureinpicture aria-hidden="true">
       <source src="./video_entrada.mp4#t=0.001" type="video/mp4">
@@ -32,7 +97,7 @@
     <canvas id="introPoster" aria-hidden="true"></canvas>
     <div id="introHint">Toca para entrar</div>
   </div>
-<script src="./effects_5.js?v=20260818-0909"></script>
+<script src="./effects_5.js?v=20260818-0918"></script>
 <script>
 (()=>{
   const frame=document.getElementById('inviteFrame');
@@ -93,7 +158,10 @@
 
   function sizePoster(){
     const dpr=Math.min(window.devicePixelRatio||1,2);
-    const w=Math.max(1,Math.round(innerWidth*dpr)),h=Math.max(1,Math.round(innerHeight*dpr));
+    /* En escritorio el canvas toma el tamaño REAL del marco central, no todo el monitor. */
+    const cssW=Math.max(1,guard.clientWidth||innerWidth);
+    const cssH=Math.max(1,guard.clientHeight||innerHeight);
+    const w=Math.max(1,Math.round(cssW*dpr)),h=Math.max(1,Math.round(cssH*dpr));
     if(poster.width!==w||poster.height!==h){poster.width=w;poster.height=h;}
     return {w,h};
   }
