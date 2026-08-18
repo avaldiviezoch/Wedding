@@ -102,19 +102,20 @@
 
       /* Regalo: título -> GIF -> indicación, siguiendo la jerarquía de Confirmación. */
       #inv5GiftInRsvp .gift-stage-heading{
-        display:contents !important;
+        display:block !important;
+        width:calc(100vw - 24px) !important;
+        max-width:520px !important;
+        margin-left:auto !important;
+        margin-right:auto !important;
+        padding-left:0 !important;
+        padding-right:0 !important;
       }
-
-      /*
-       * Cuando el regalo ya fue revelado, el título y la indicación desaparecen.
-       * Al reiniciar la animación se elimina is-revealed y vuelven automáticamente.
-       */
-      #inv5GiftInRsvp .gift-experience.is-revealed .gift-stage-heading{
-        display:none !important;
-      }
-
       #inv5GiftInRsvp .gift-stage-title{
         order:1 !important;
+        width:100% !important;
+        max-width:none !important;
+        white-space:nowrap !important;
+        text-align:center !important;
       }
       #inv5GiftInRsvp .gift-animation-stage{
         order:2 !important;
@@ -133,6 +134,24 @@
         background:transparent !important;
         border:0 !important;
         box-shadow:none !important;
+      }
+
+      /*
+       * Cuando el regalo ya fue revelado, el título y la indicación desaparecen.
+       * Al reiniciar la animación se elimina is-revealed y vuelven automáticamente.
+       */
+      #inv5GiftInRsvp .gift-experience.is-revealed .gift-stage-heading,
+      #inv5GiftInRsvp .gift-experience.is-revealed .gift-stage-subtitle{
+        display:none !important;
+      }
+
+      @media(max-width:350px){
+        #inv5GiftInRsvp .gift-stage-heading{
+          width:calc(100vw - 20px) !important;
+        }
+        #inv5GiftInRsvp .gift-stage-title{
+          white-space:normal !important;
+        }
       }
 
       /*
