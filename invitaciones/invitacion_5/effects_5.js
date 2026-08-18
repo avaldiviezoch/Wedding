@@ -35,6 +35,14 @@
   ].join(',');
 
   function installInvitationBranding(doc){
+    if(!doc.getElementById('inv5-great-vibes-font')){
+      const fontLink=doc.createElement('link');
+      fontLink.id='inv5-great-vibes-font';
+      fontLink.rel='stylesheet';
+      fontLink.href='https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap';
+      doc.head.appendChild(fontLink);
+    }
+
     doc.getElementById('inv5-branding-style')?.remove();
     const style=doc.createElement('style');
     style.id='inv5-branding-style';
@@ -55,10 +63,14 @@
         font-weight:400 !important;
       }
 
-      .credit-monogram,
       .photo-story-signature,
       .wait-signature{
         font-family:'Amsterdam Four',cursive !important;
+        font-weight:400 !important;
+      }
+
+      #creditSection .credit-monogram{
+        font-family:'Great Vibes',cursive !important;
         font-weight:400 !important;
       }
 
