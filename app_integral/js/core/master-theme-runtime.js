@@ -1,10 +1,11 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-master-theme-runtime-v10-native-navigation';
+  const VERSION = '20260817-master-theme-runtime-v11-distribucion-integrada';
   const WORKSPACE_ID = 'unifiedWorkspace';
   const STYLE_ID = 'mgdMasterThemeStyles';
   const CHECKLIST_STYLE_ID = 'mgdChecklistRefineStyles';
+  const DISTRIBUTION_STYLE_ID = 'mgdDistribucionModuleStyles';
   const MODULES = new Set([
     'checklist','presupuesto','proveedores','invitados',
     'distribucion','cronograma','invitaciones','musica',
@@ -21,6 +22,10 @@
 
   function checklistThemeHref() {
     return new URL(`css/modules/checklist-refine.css?v=${VERSION}`, document.baseURI).href;
+  }
+
+  function distributionThemeHref() {
+    return new URL(`css/modules/distribucion.css?v=${VERSION}`, document.baseURI).href;
   }
 
   function classifyActions(doc) {
@@ -90,12 +95,33 @@
     doc.body.classList.remove('mgd-checklist-refine');
   }
 
-  function patchDocument(doc, moduleId) {
-    if (!doc?.documentElement || !doc.body) return false;
+  function useDistributionTheme(doc) {
+    doc.documentElement.classList.remove('mgd-master-theme');
+    doc.body.classList.remove('mgd-master-theme');
+    doc.getElementById(STYLE_ID)?.remove();
+    doc.getElementById(CHECKLIST_STYLE_ID)?.remove();
+    clearChecklistDecor(doc);
+
+    let link = doc.getElementById(DISTRIBUTION_STYLE_ID);
+    if (!link) {
+      link = doc.createElement('link');
+      link.id = DISTRIBUTION_STYLE_ID;
+      link.rel = 'stylesheet';
+      link.href = distributionThemeHref();
+      doc.head?.appendChild(link);
+    } else if (link.href !== distributionThemeHref()) {
+      link.href = distributionThemeHref();
+    }
+
+    doc.documentElement.dataset.mgdDistributionTheme = VERSION;
+    return true;
+  }
+
+  function useMasterTheme(doc) {
+    doc.getElementById(DISTRIBUTION_STYLE_ID)?.remove();
+    delete doc.documentElement.dataset.mgdDistributionTheme;
     doc.documentElement.classList.add('mgd-master-theme');
     doc.body.classList.add('mgd-master-theme');
-    doc.documentElement.dataset.mgdModule = moduleId || 'unknown';
-    doc.documentElement.dataset.mgdMasterTheme = VERSION;
 
     let link = doc.getElementById(STYLE_ID);
     if (!link) {
@@ -105,10 +131,24 @@
       link.href = frameThemeHref();
       doc.head?.appendChild(link);
     }
+  }
 
+  function patchDocument(doc, moduleId) {
+    if (!doc?.documentElement || !doc.body) return false;
+    const activeModule = moduleId || 'unknown';
+    doc.documentElement.dataset.mgdModule = activeModule;
+    doc.documentElement.dataset.mgdMasterTheme = VERSION;
+
+    if (activeModule === 'distribucion') {
+      useDistributionTheme(doc);
+      annotateStatus(doc);
+      return true;
+    }
+
+    useMasterTheme(doc);
     classifyActions(doc);
     annotateStatus(doc);
-    if (moduleId === 'checklist') decorateChecklist(doc);
+    if (activeModule === 'checklist') decorateChecklist(doc);
     else clearChecklistDecor(doc);
     return true;
   }
@@ -131,6 +171,7 @@
     const active = MODULES.has(moduleId) || Boolean(moduleId);
     document.body.classList.toggle('mgd-master-host-active', active && document.body.classList.contains('module-view'));
     document.body.classList.toggle('mgd-checklist-host-active', moduleId === 'checklist' && document.body.classList.contains('module-view'));
+    document.body.classList.toggle('mgd-distribucion-host-active', moduleId === 'distribucion' && document.body.classList.contains('module-view'));
     workspace.dataset.mgdMasterTheme = VERSION;
     workspace.dataset.mgdModule = moduleId || '';
     workspace.querySelectorAll('iframe').forEach(frame => patchFrame(frame, moduleId));

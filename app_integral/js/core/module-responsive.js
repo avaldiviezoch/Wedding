@@ -1,11 +1,15 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260816-2115-modules-responsive2-invscroll';
+  const VERSION = '20260817-1932-modules-responsive3-distribucion-native';
   const MOBILE = '(max-width: 760px)';
 
   function isMobile() {
     return window.matchMedia(MOBILE).matches;
+  }
+
+  function currentModule() {
+    return location.hash.replace(/^#/, '').trim().toLowerCase();
   }
 
   function ensureViewport(doc) {
@@ -125,6 +129,11 @@
         const doc = frame.contentDocument;
         if (!doc?.documentElement) return;
         ensureViewport(doc);
+        if (currentModule() === 'distribucion') {
+          doc.getElementById('mgdModuleResponsiveCss')?.remove();
+          doc.documentElement.dataset.mgdResponsiveModule = 'distribucion-css';
+          return;
+        }
         injectResponsiveCss(doc);
         doc.documentElement.dataset.mgdResponsiveModule = VERSION;
       } catch (_) {}
@@ -168,6 +177,7 @@
     window.matchMedia(MOBILE).addEventListener?.('change', normalizeWorkspace);
     window.addEventListener('orientationchange', () => setTimeout(normalizeWorkspace, 120));
     window.addEventListener('resize', normalizeWorkspace, { passive:true });
+    window.addEventListener('hashchange', () => setTimeout(normalizeWorkspace, 0));
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind, { once:true });
