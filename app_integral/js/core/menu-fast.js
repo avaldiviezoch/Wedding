@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-1455-cronograma-clean';
+  const VERSION = '20260817-1932-distribucion-integrada1';
   let passthrough = false;
   let queuedClick = false;
   let authPoll = 0;
@@ -151,8 +151,6 @@
     const button = document.getElementById('menuButton');
     const state = authState();
 
-    // El formulario de acceso no necesita esperar a que onAuthStateChanged termine.
-    // En cuanto Firebase expone WeddingPlannerRequestAuth lo abrimos directamente.
     if (!state.ready && requestAuthNow(button)) return;
     if (!state.ready) return;
 
@@ -190,7 +188,6 @@
         authPoll = 0;
       }
 
-      // Nunca dejamos el botón principal eternamente en aria-busy.
       if (queuedClick) {
         queuedClick = false;
         const button = document.getElementById('menuButton');
@@ -220,8 +217,6 @@
       if (!state.ready) {
         event.preventDefault();
         event.stopImmediatePropagation();
-
-        // Si Firebase ya publicó la función de acceso, abrimos el modal ahora mismo.
         if (requestAuthNow(button)) return;
 
         queuedClick = true;
@@ -235,7 +230,6 @@
         event.stopImmediatePropagation();
         if (requestAuthNow(button)) return;
 
-        // Fallback: permitimos que el listener legado gestione el acceso.
         passthrough = true;
         button.click();
         passthrough = false;
