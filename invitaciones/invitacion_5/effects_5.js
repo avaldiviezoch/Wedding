@@ -10,7 +10,7 @@
   if(!document.getElementById('inv5-layout-loader')){
     const layoutScript=document.createElement('script');
     layoutScript.id='inv5-layout-loader';
-    layoutScript.src='./layout_5.js?v=20260818-1222';
+    layoutScript.src='./layout_5.js?v=20260818-1251';
     document.head.appendChild(layoutScript);
   }
 
