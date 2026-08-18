@@ -4,7 +4,7 @@
 window.MiGranDiaModules = window.MiGranDiaModules || {};
 window.MiGranDiaModules.invitaciones = { id: 'invitaciones' };
 
-const VERSION = '20260817-layout-refine-v5-source-css';
+const VERSION = '20260817-preview-scrollbarless-v6-true-viewport';
 const STORAGE_KEY = 'migrandia_invitacion_activa_v1';
 const DEVICE_KEY = 'migrandia_invitacion_dispositivo_v1';
 const INVITATIONS = Object.freeze([
@@ -72,7 +72,6 @@ function purgeInvitationUi() {
     root.remove();
   });
 
-  // Limpia estilos dinámicos de versiones anteriores para evitar superposición visual.
   document.getElementById('mgdInvitationMobilePanelStyles')?.remove();
   document.getElementById('mgdNativeInvitationsStyles')?.remove();
 }
@@ -101,6 +100,33 @@ function deviceMarkup(device, selected) {
   return `<button class="mgd-device-option${selected ? ' is-active' : ''}" type="button" data-device-id="${device.id}">${device.label} · ${device.width}×${device.height}</button>`;
 }
 
+function hidePreviewScrollbar(doc) {
+  if (!doc) return;
+
+  [doc.documentElement, doc.body].forEach(node => {
+    if (!node) return;
+    node.style.setProperty('scrollbar-width', 'none', 'important');
+    node.style.setProperty('-ms-overflow-style', 'none', 'important');
+  });
+
+  if (doc.getElementById('mgdPreviewScrollbarStyle')) return;
+  const style = doc.createElement('style');
+  style.id = 'mgdPreviewScrollbarStyle';
+  style.textContent = `
+    html, body {
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar {
+      width: 0 !important;
+      height: 0 !important;
+      display: none !important;
+    }
+  `;
+  (doc.head || doc.documentElement)?.appendChild(style);
+}
+
 function enableScrollablePreview(frame) {
   const patch = () => {
     try {
@@ -114,6 +140,7 @@ function enableScrollablePreview(frame) {
         node.style.setProperty('-webkit-overflow-scrolling', 'touch', 'important');
         node.style.setProperty('touch-action', 'pan-y', 'important');
       });
+      hidePreviewScrollbar(doc);
 
       const nested = doc.querySelector('iframe');
       if (!nested) return;
@@ -132,6 +159,7 @@ function enableScrollablePreview(frame) {
             node.style.setProperty('overflow-x', 'hidden', 'important');
             node.style.setProperty('overflow-y', 'visible', 'important');
           });
+          hidePreviewScrollbar(nestedDoc);
 
           const height = Math.max(
             nestedDoc.documentElement?.scrollHeight || 0,
