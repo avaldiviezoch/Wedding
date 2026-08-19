@@ -125,8 +125,7 @@
     void workspace.offsetWidth;
     workspace.classList.add('mgd-surface-repaint');
 
-    workspace.querySelectorAll('iframe').forEach((frame) => {
-      frame.removeAttribute('hidden');
+    workspace.querySelectorAll('iframe:not([hidden])').forEach((frame) => {
       frame.setAttribute('aria-hidden', 'false');
       ['display','visibility','opacity'].forEach((name) => frame.style.removeProperty(name));
       frame.classList.remove('mgd-frame-repaint');
@@ -165,6 +164,19 @@
       if (workspace.children.length) {
         loader?.classList.remove('show');
         loader?.setAttribute('aria-hidden', 'true');
+      }
+
+      const frames = [...workspace.querySelectorAll('iframe')];
+      const visibleFrame = frames.some((frame) => !frame.hidden);
+      const visibleNativePanel = [...workspace.children].some((node) =>
+        node.tagName !== 'IFRAME' && !node.hidden && getComputedStyle(node).display !== 'none'
+      );
+      if (frames.length && !visibleFrame && !visibleNativePanel && !routeRepairQueued) {
+        routeRepairQueued = true;
+        setTimeout(() => {
+          window.dispatchEvent(new Event('hashchange'));
+          setTimeout(() => { routeRepairQueued = false; }, 60);
+        }, 0);
       }
       repaintModuleSurface(workspace, moduleId, reason);
     } else if (!moduleId) {
