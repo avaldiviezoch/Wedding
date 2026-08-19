@@ -3,7 +3,7 @@ import { doc as fsDoc, getDoc, serverTimestamp, writeBatch } from 'https://www.g
 
 const VERSION='20260816-1920-music-fast1';
 const PUBLIC_RSVP_BASE='https://avaldiviezoch.github.io/Wedding/rsvp.html';
-const NATIVE_WIDGET_URL='https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260816-1845-native1';
+const NATIVE_WIDGET_URL='https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-1700-progressive-rsvp1';
 const done=new WeakSet();
 const DEFAULTS={enabled:true,title:'La música también la eligen ustedes',intro:'Ayúdanos a preparar la fiesta. Déjanos las canciones que te gustaría escuchar para tenerlas en cuenta con el DJ o grupo y que ese día solo tengas que disfrutar.',maxSongs:5,askArtist:true,askMessage:true,messageLabel:'Mensaje o dedicatoria (opcional)'};
 
