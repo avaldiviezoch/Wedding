@@ -1050,6 +1050,6 @@ if (!document.querySelector('link[data-weddings-style]')) {
   document.head.appendChild(weddingsStyle);
 }
 
-import('../modules/configuracion/weddings.js?v=20260814-1136-collab1').catch((error) => {
+import('../modules/configuracion/weddings.js?v=20260819-module-context1').catch((error) => {
   console.error('No se pudo cargar el módulo de bodas compartidas:', error);
 });
