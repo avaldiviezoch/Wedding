@@ -1,13 +1,13 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260819-module-context1';
+  const VERSION = '20260819-module-context2';
   const ROLE_LABELS = {
     owner: 'Propietario',
     admin: 'Administrador',
     editor: 'Editor',
     provider: 'Proveedor',
-    viewer: 'Solo lectura'
+    viewer: 'Visualizador'
   };
 
   function initials(value = '') {
