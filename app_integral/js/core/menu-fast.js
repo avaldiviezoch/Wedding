@@ -1,14 +1,15 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260819-route-stable1';
+  const VERSION = '20260819-tab-lifecycle2';
   let passthrough = false;
   let queuedClick = false;
   const MODULE_HASHES = new Set([
     'checklist','presupuesto','proveedores','invitados','distribucion',
     'cronograma','invitaciones','musica','documentos','configuracion'
   ]);
-  let resumeQueued = 0;
+  let resumeQueued = false;
+  let resumeReason = '';
   let routeRepairQueued = false;
 
   function preloadAuthCore() {
@@ -119,31 +120,6 @@
     return String(location.hash || '').replace(/^#/, '').split(/[/?&]/)[0].trim().toLowerCase();
   }
 
-  function repaintModuleSurface(workspace, moduleId, reason) {
-    if (!workspace?.isConnected) return;
-    workspace.classList.remove('mgd-surface-repaint');
-    void workspace.offsetWidth;
-    workspace.classList.add('mgd-surface-repaint');
-
-    workspace.querySelectorAll('iframe:not([hidden])').forEach((frame) => {
-      frame.setAttribute('aria-hidden', 'false');
-      ['display','visibility','opacity'].forEach((name) => frame.style.removeProperty(name));
-      frame.classList.remove('mgd-frame-repaint');
-      void frame.offsetWidth;
-      frame.classList.add('mgd-frame-repaint');
-      try {
-        frame.contentWindow?.postMessage({ type:'migrandia:resume', module:moduleId, reason }, location.origin);
-      } catch (_) {}
-    });
-
-    setTimeout(() => {
-      workspace.classList.remove('mgd-surface-repaint');
-      workspace.querySelectorAll('iframe.mgd-frame-repaint:not([hidden])').forEach((frame) => {
-        frame.classList.remove('mgd-frame-repaint');
-      });
-    }, 180);
-  }
-
   function restoreVisibleSurface(reason = 'resume') {
     if (document.hidden) return;
     const moduleId = currentModule();
@@ -153,14 +129,11 @@
     const guard = window.WeddingPlannerAuthGuard;
     const sessionAllowsModule = guard?.authenticated !== false || guard?.ready !== true;
 
-    // Restablecer la superficie de forma síncrona evita un fotograma negro
-    // mientras el navegador vuelve a activar timers y requestAnimationFrame.
     if (moduleRequested && sessionAllowsModule && workspace) {
-      document.body.classList.add('module-view');
-      document.documentElement.classList.add('mgd-module-surface-active');
-      workspace.removeAttribute('hidden');
-      workspace.setAttribute('aria-hidden', 'false');
-      ['display','visibility','opacity'].forEach((name) => workspace.style.removeProperty(name));
+      if (!document.body.classList.contains('module-view')) document.body.classList.add('module-view');
+      if (!document.documentElement.classList.contains('mgd-module-surface-active')) document.documentElement.classList.add('mgd-module-surface-active');
+      if (workspace.hidden) workspace.removeAttribute('hidden');
+      if (workspace.getAttribute('aria-hidden') !== 'false') workspace.setAttribute('aria-hidden', 'false');
       if (workspace.children.length) {
         loader?.classList.remove('show');
         loader?.setAttribute('aria-hidden', 'true');
@@ -178,7 +151,6 @@
           setTimeout(() => { routeRepairQueued = false; }, 60);
         }, 0);
       }
-      repaintModuleSurface(workspace, moduleId, reason);
     } else if (!moduleId) {
       document.body.classList.remove('module-view');
       document.documentElement.classList.remove('mgd-module-surface-active');
@@ -186,29 +158,22 @@
       loader?.setAttribute('aria-hidden', 'true');
     }
 
-    if (resumeQueued) cancelAnimationFrame(resumeQueued);
-    resumeQueued = requestAnimationFrame(() => {
-      resumeQueued = requestAnimationFrame(() => {
-        resumeQueued = 0;
-        if (moduleRequested && workspace) repaintModuleSurface(workspace, moduleId, reason);
-        const video = document.getElementById('heroVideo');
-        if (video && !document.body.classList.contains('module-view')) {
-          video.style.removeProperty('visibility');
-          video.style.removeProperty('opacity');
-          if (video.readyState === 0 || video.networkState === video.NETWORK_NO_SOURCE) video.load();
-          video.play()?.catch?.(() => {});
-        }
-        window.dispatchEvent(new CustomEvent('migrandia:resume', {
-          detail: { reason, module: moduleId, preserved: Boolean(workspace?.children.length) }
-        }));
-      });
-    });
+    const video = document.getElementById('heroVideo');
+    if (video && !document.body.classList.contains('module-view') && video.paused) video.play()?.catch?.(() => {});
+    window.dispatchEvent(new CustomEvent('migrandia:resume', {
+      detail: { reason, module: moduleId, preserved: Boolean(workspace?.children.length) }
+    }));
   }
 
   function scheduleSurfaceRestore(reason) {
-    restoreVisibleSurface(reason);
-    setTimeout(() => restoreVisibleSurface(`${reason}:settled`), 80);
-    setTimeout(() => restoreVisibleSurface(`${reason}:final`), 260);
+    if (document.hidden) return;
+    resumeReason = reason;
+    if (resumeQueued) return;
+    resumeQueued = true;
+    queueMicrotask(() => {
+      resumeQueued = false;
+      restoreVisibleSurface(resumeReason);
+    });
   }
 
   document.addEventListener('visibilitychange', () => {
@@ -216,22 +181,7 @@
   });
   window.addEventListener('pageshow', (event) => scheduleSurfaceRestore(event.persisted ? 'bfcache' : 'pageshow'));
   window.addEventListener('focus', () => scheduleSurfaceRestore('focus'));
-  window.addEventListener('hashchange', () => scheduleSurfaceRestore('module-change'));
-  window.addEventListener('popstate', () => scheduleSurfaceRestore('history-change'));
-  document.addEventListener('click', (event) => {
-    if (!event.target.closest?.('[data-quick-module],[data-module]')) return;
-    setTimeout(() => scheduleSurfaceRestore('module-click'), 0);
-  }, true);
-  window.addEventListener('migrandia:auth', () => scheduleSurfaceRestore('auth'));
   window.addEventListener('migrandia:auth-resume', () => scheduleSurfaceRestore('auth-resume'));
-
-  setInterval(() => {
-    if (document.hidden || !MODULE_HASHES.has(currentModule())) return;
-    const workspace = document.getElementById('unifiedWorkspace');
-    if (!document.body.classList.contains('module-view') || !workspace || workspace.getClientRects().length === 0) {
-      scheduleSurfaceRestore('watchdog');
-    }
-  }, 1200);
 
   preloadAuthCore();
   loadResponsiveCss();

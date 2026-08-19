@@ -69,6 +69,7 @@ let pendingOpenMenu = false;
 let activeUid = '';
 let cloudBusy = false;
 let cloudTimer = 0;
+let cloudDirty = false;
 let hydrated = false;
 let authResolved = false;
 let activeWeddingId = '';
@@ -439,8 +440,9 @@ async function ensureWeddingContext(user) {
   return currentContext();
 }
 
-async function writeCloudBackup(user, silent = false) {
+async function writeCloudBackup(user, silent = false, force = false) {
   if (!user || cloudBusy || !hydrated) return;
+  if (!force && !cloudDirty) return;
   if (!legacyMode && (!activeWeddingId || !canEditPlannerRole())) return;
   const bridge = window.WeddingPlannerBridge;
   if (!bridge) return;
@@ -499,6 +501,7 @@ async function writeCloudBackup(user, silent = false) {
 
     if (cloudState) cloudState.textContent = legacyMode ? 'Guardado en la nube' : 'Boda sincronizada';
     localStorage.setItem('migrandia_cloud_sync_meta_v1', new Date().toISOString());
+    cloudDirty = false;
   } catch (error) {
     console.error('Firebase sync error:', error);
     if (cloudState) cloudState.textContent = 'No se pudo sincronizar';
@@ -510,6 +513,7 @@ async function writeCloudBackup(user, silent = false) {
 
 function scheduleCloudSave(delayMs = 2500) {
   if (!auth.currentUser || !hydrated || !canEditPlannerRole()) return;
+  cloudDirty = true;
   clearTimeout(cloudTimer);
   cloudTimer = setTimeout(() => writeCloudBackup(auth.currentUser, true), delayMs);
 }
@@ -571,7 +575,7 @@ async function hydrateUser(user, epoch) {
 
     if (!cloudBackup || migratedLegacy) {
       setTimeout(() => {
-        if (auth.currentUser?.uid === user.uid && hydrated) writeCloudBackup(user, true);
+        if (auth.currentUser?.uid === user.uid && hydrated) writeCloudBackup(user, true, true);
       }, 0);
     }
   } catch (error) {
@@ -658,7 +662,7 @@ export async function switchWedding(weddingId) {
   if (activeWeddingId === targetId && hydrated) return currentContext();
 
   if (activeWeddingId && hydrated && canEditPlannerRole()) {
-    await Promise.race([writeCloudBackup(user, true), delay(FINAL_SAVE_BUDGET_MS)]).catch(() => {});
+    await Promise.race([writeCloudBackup(user, true, true), delay(FINAL_SAVE_BUDGET_MS)]).catch(() => {});
   }
 
   const [indexSnap, membership] = await Promise.all([
@@ -926,7 +930,7 @@ async function performLogout(button) {
     clearTimeout(cloudTimer);
     const saveStartedAt = performance.now();
     if (hydrated && canEditPlannerRole()) {
-      await Promise.race([writeCloudBackup(currentUser, true), delay(FINAL_SAVE_BUDGET_MS)]);
+      await Promise.race([writeCloudBackup(currentUser, true, true), delay(FINAL_SAVE_BUDGET_MS)]);
       metric('logout_final_save_budget', saveStartedAt, { budgetMs: FINAL_SAVE_BUDGET_MS });
     }
     hydrated = false;
@@ -954,13 +958,24 @@ moduleSessionLogout?.addEventListener('click', () => performLogout(moduleSession
 window.addEventListener('storage', (event) => {
   if (event.key && (event.key.startsWith('planificador_bodas_') || event.key.startsWith('eventPlanner'))) scheduleCloudSave();
 });
-window.addEventListener('message', () => scheduleCloudSave(3500));
+window.addEventListener('message', (event) => {
+  const message = event.data;
+  if (!message || typeof message !== 'object') return;
+  if (
+    message.type === 'PLANIFICADOR_BODAS_UPDATE' ||
+    message.type === 'MIGRANDIA_RSVP_SYNC' ||
+    (message.source === 'planificador-bodas-respaldo-general' && message.action === 'save-all')
+  ) scheduleCloudSave(3500);
+});
 window.addEventListener('migrandia:datachange', () => scheduleCloudSave(400));
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') scheduleCloudSave(0);
+  if (document.visibilityState === 'hidden' && cloudDirty) {
+    clearTimeout(cloudTimer);
+    cloudTimer = setTimeout(() => writeCloudBackup(auth.currentUser, true), 0);
+  }
 });
 setInterval(() => {
-  if (!document.hidden && auth.currentUser && hydrated) writeCloudBackup(auth.currentUser, true);
+  if (!document.hidden && cloudDirty && auth.currentUser && hydrated) writeCloudBackup(auth.currentUser, true);
 }, 15000);
 
 onAuthStateChanged(auth, (user) => {

@@ -11,7 +11,7 @@
 
   // Distribución: solo se carga el vínculo de datos. La capa visual dinámica queda
   // fuera del flujo activo para evitar que una interfaz se pinte sobre otra.
-  import(new URL('js/modules/distribucion/index.js?v=20260819-2355-distribution16', document.baseURI).href)
+  import(new URL('js/modules/distribucion/index.js?v=20260819-tab-lifecycle2', document.baseURI).href)
     .catch((error) => console.warn('No se pudo iniciar el vínculo Invitados ↔ Distribución:', error));
 
   function ensureSharedShellStyles() {
