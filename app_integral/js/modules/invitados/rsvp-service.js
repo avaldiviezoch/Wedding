@@ -14,7 +14,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
 const PUBLIC_RSVP_BASE = 'https://avaldiviezoch.github.io/Wedding/rsvp.html';
-const NATIVE_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2330-music-gate1';
+const NATIVE_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2430-rsvp-style1';
 const EDITABLE_ROLES = new Set(['owner', 'admin', 'editor']);
 
 export const RSVP_ATTENDANCE = {
@@ -122,6 +122,8 @@ function normalizeConfig(raw = {}, context = getWeddingContext()) {
     ),
     maxGuests,
     allowTentative: raw.allowTentative !== false,
+    attendanceControlStyle: ['buttons', 'cards', 'compact'].includes(raw.attendanceControlStyle) ? raw.attendanceControlStyle : 'buttons',
+    quantityControlStyle: ['counter', 'select'].includes(raw.quantityControlStyle) ? raw.quantityControlStyle : 'counter',
     allowEditResponse: raw.allowEditResponse !== false,
     confirmedMessage: cleanText(raw.confirmedMessage || RSVP_MESSAGE_PRESETS.confirmed[0], 500) || RSVP_MESSAGE_PRESETS.confirmed[0],
     declinedMessage: cleanText(raw.declinedMessage || RSVP_MESSAGE_PRESETS.declined[0], 500) || RSVP_MESSAGE_PRESETS.declined[0],
@@ -206,6 +208,8 @@ export async function saveRsvpConfig(input = {}) {
     welcomeText: normalized.welcomeText,
     maxGuests: normalized.maxGuests,
     allowTentative: normalized.allowTentative,
+    attendanceControlStyle: normalized.attendanceControlStyle,
+    quantityControlStyle: normalized.quantityControlStyle,
     allowEditResponse: normalized.allowEditResponse,
     confirmedMessage: normalized.confirmedMessage,
     declinedMessage: normalized.declinedMessage,
