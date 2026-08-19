@@ -1,4 +1,26 @@
 /* Mi Gran Día · cabecera contextual de módulos */
+
+/* Superficie estable: evita el fondo negro al cambiar o reactivar módulos. */
+html.mgd-module-surface-active,
+html.mgd-module-surface-active body,
+body.module-view{background:#f7f6f3!important}
+html.mgd-module-surface-active body.module-view #unifiedWorkspace,
+body.module-view #unifiedWorkspace{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  background:#f7f6f3!important;
+}
+#unifiedWorkspace.mgd-surface-repaint{
+  transform:translateZ(0);
+  backface-visibility:hidden;
+  will-change:transform;
+}
+#unifiedWorkspace iframe.mgd-frame-repaint{
+  transform:translateZ(0);
+  backface-visibility:hidden;
+  will-change:transform;
+}
 .module-quick-nav{
   box-sizing:border-box!important;
   position:fixed!important;
@@ -18,8 +40,7 @@
   color:#384037!important;
   background:rgba(255,255,255,.97)!important;
   box-shadow:0 12px 34px rgba(54,59,49,.12)!important;
-  backdrop-filter:blur(18px) saturate(1.15)!important;
-  -webkit-backdrop-filter:blur(18px) saturate(1.15)!important;
+  backdrop-filter:none!important;\n  -webkit-backdrop-filter:none!important;
   z-index:330!important;
 }
 body.module-view .module-quick-nav{display:flex!important}
