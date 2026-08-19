@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260819-tab-lifecycle2';
+  const VERSION = '20260819-mobile-popup-gesture1';
   let passthrough = false;
   let queuedClick = false;
   const MODULE_HASHES = new Set([
@@ -16,7 +16,7 @@
     if (document.querySelector('link[data-mgd-auth-preload]')) return;
     const link = document.createElement('link');
     link.rel = 'modulepreload';
-    link.href = new URL('js/services/firebase-core.js?v=20260819-tab-resume1', document.baseURI).href;
+    link.href = new URL('js/services/firebase-core.js?v=20260819-mobile-popup-gesture1', document.baseURI).href;
     link.dataset.mgdAuthPreload = VERSION;
     document.head.appendChild(link);
   }
