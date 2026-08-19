@@ -14,7 +14,7 @@
     if (document.querySelector('link[data-mgd-auth-preload]')) return;
     const link = document.createElement('link');
     link.rel = 'modulepreload';
-    link.href = new URL('js/services/firebase-core.js?v=20260818-auth-perf1', document.baseURI).href;
+    link.href = new URL('js/services/firebase-core.js?v=20260819-tab-resume1', document.baseURI).href;
     link.dataset.mgdAuthPreload = VERSION;
     document.head.appendChild(link);
   }
