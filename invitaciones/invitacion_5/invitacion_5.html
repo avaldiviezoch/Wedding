@@ -146,7 +146,7 @@
           if(musicWarning) musicWarning.textContent='El DJ no aceptará pedidos musicales durante la celebración, así que este es tu momento para compartirnos tu canción.';
           const musicPanel=doc.getElementById('music-request-panel');
           if(musicPanel){
-            musicPanel.innerHTML=`<div class="inv5-native-widget-shell" data-mgd-music-token="${linkedRsvpToken}" style="--mgd-accent:#6d7559;--mgd-surface:rgba(255,255,255,.12);--mgd-border:rgba(109,117,89,.24);"></div>`;
+            musicPanel.innerHTML=`<div class="inv5-native-widget-shell" data-mgd-music-token="${linkedRsvpToken}" data-mgd-music-message="false" style="--mgd-accent:#6d7559;--mgd-surface:rgba(255,255,255,.12);--mgd-border:rgba(109,117,89,.24);"></div>`;
           }
         }
 
@@ -155,7 +155,7 @@
           const nativeWidgetScript=doc.createElement('script');
           nativeWidgetScript.id='inv5NativeRsvpWidget';
           nativeWidgetScript.type='module';
-          nativeWidgetScript.src='https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2500-inv5-natural1';
+          nativeWidgetScript.src='https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2520-inv5-music-fields1';
           doc.head.appendChild(nativeWidgetScript);
         }
 
