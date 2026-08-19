@@ -14,7 +14,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
 const PUBLIC_RSVP_BASE = 'https://avaldiviezoch.github.io/Wedding/rsvp.html';
-const NATIVE_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2000-attendee-music1';
+const NATIVE_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2100-rsvp-guide1';
 const EDITABLE_ROLES = new Set(['owner', 'admin', 'editor']);
 
 export const RSVP_ATTENDANCE = {
@@ -31,6 +31,21 @@ export const RSVP_DEFAULT_FIELDS = Object.freeze({
   phone: { enabled: false, required: false, label: 'Teléfono / WhatsApp' },
   restriction: { enabled: false, required: false, label: 'Restricción alimentaria' },
   notes: { enabled: false, required: false, label: 'Mensaje u observaciones' }
+});
+
+export const RSVP_MESSAGE_PRESETS = Object.freeze({
+  confirmed: [
+    '¡Qué alegría! Hemos recibido tu confirmación y nos encantará compartir este día contigo.',
+    '¡Nos hace muy felices saber que vendrás! Prepárate para celebrar, reír y crear recuerdos juntos.',
+    '¡Confirmación recibida! Tu presencia hará que nuestro día sea todavía más especial.',
+    '¡Qué emoción contar contigo! Gracias por acompañarnos en este momento tan importante.'
+  ],
+  declined: [
+    'Nos hubiera encantado compartir este día contigo. Gracias por hacérnoslo saber; te tendremos presente con mucho cariño.',
+    'Lamentamos que no puedas acompañarnos, pero agradecemos mucho que nos hayas avisado. Estarás presente en nuestros pensamientos.',
+    'Gracias por contarnos. Sentiremos tu ausencia, aunque sabemos que nos acompañarás de corazón.',
+    'Nos dará mucha pena no verte ese día. Gracias por avisarnos y por formar parte de nuestra historia.'
+  ]
 });
 
 function cloneDefaultFields() {
@@ -107,6 +122,9 @@ function normalizeConfig(raw = {}, context = getWeddingContext()) {
     ),
     maxGuests,
     allowTentative: raw.allowTentative !== false,
+    allowEditResponse: raw.allowEditResponse !== false,
+    confirmedMessage: cleanText(raw.confirmedMessage || RSVP_MESSAGE_PRESETS.confirmed[0], 500) || RSVP_MESSAGE_PRESETS.confirmed[0],
+    declinedMessage: cleanText(raw.declinedMessage || RSVP_MESSAGE_PRESETS.declined[0], 500) || RSVP_MESSAGE_PRESETS.declined[0],
     fields: cleanFieldConfig(raw.fields || RSVP_DEFAULT_FIELDS),
     menuOptions: (Array.isArray(raw.menuOptions) ? raw.menuOptions : String(raw.menuOptions || '').split('\n'))
       .map((item) => cleanText(item, 80))
@@ -188,6 +206,9 @@ export async function saveRsvpConfig(input = {}) {
     welcomeText: normalized.welcomeText,
     maxGuests: normalized.maxGuests,
     allowTentative: normalized.allowTentative,
+    allowEditResponse: normalized.allowEditResponse,
+    confirmedMessage: normalized.confirmedMessage,
+    declinedMessage: normalized.declinedMessage,
     fields: normalized.fields,
     menuOptions: normalized.menuOptions,
     customFields: normalized.customFields,
