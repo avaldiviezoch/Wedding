@@ -40,7 +40,7 @@ function messagePresetOptions(messages = []) {
   return messages.map((message, index) => `<option value="${escapeHtml(message)}">Opción ${index + 1} · ${escapeHtml(message)}</option>`).join('');
 }
 
-const VERSION = '20260819-2430-rsvp-style1';
+const VERSION = '20260819-2450-rsvp-layout1';
 const GUEST_STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 const RSVP_CSS_URL = new URL(`css/modules/invitados-rsvp.css?v=${VERSION}`, document.baseURI).href;
