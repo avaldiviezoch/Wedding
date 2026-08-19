@@ -76,6 +76,7 @@ function parseMusic(value) {
 }
 
 function responseMusic(item) {
+  if (item?.attendance !== 'confirmed') return { songs: [], message: '', guestName: '' };
   return parseMusic(item?.customData?.mgdMusic);
 }
 
