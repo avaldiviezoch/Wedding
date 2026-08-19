@@ -40,7 +40,7 @@ function messagePresetOptions(messages = []) {
   return messages.map((message, index) => `<option value="${escapeHtml(message)}">Opción ${index + 1} · ${escapeHtml(message)}</option>`).join('');
 }
 
-const VERSION = '20260819-2100-rsvp-guide1';
+const VERSION = '20260819-2300-rsvp-live-preview1';
 const GUEST_STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 const RSVP_CSS_URL = new URL(`css/modules/invitados-rsvp.css?v=${VERSION}`, document.baseURI).href;
@@ -450,6 +450,10 @@ function panelMarkup() {
         <div class="rsvp-card">
           <div class="rsvp-card-head"><div><h3>Campos personalizados</h3><p>Agrega preguntas propias como movilidad, canción favorita, transporte u otros datos.</p></div><button class="rsvp-btn" id="rsvpAddCustomField" type="button">+ Agregar campo</button></div>
           <div class="rsvp-custom-list" id="rsvpCustomFields"></div>
+          <div class="rsvp-live-preview-wrap">
+            <div class="rsvp-preview-heading"><div><small>VISTA PREVIA EN VIVO</small><strong>Así verá la confirmación tu invitado</strong><span>Es solo una simulación: no guarda respuestas ni modifica el token.</span></div><span class="rsvp-preview-safe">Sin publicar</span></div>
+            <div class="rsvp-live-preview" id="rsvpLivePreview"></div>
+          </div>
           <div class="rsvp-config-footer"><button class="rsvp-btn primary" id="rsvpSaveConfig" type="button">Guardar y publicar RSVP</button></div>
         </div>
       </section>
@@ -549,6 +553,7 @@ function renderConfig(doc) {
   doc.getElementById('rsvpMenuOptions').value = (rsvpConfig.menuOptions || []).join('\n');
   doc.getElementById('rsvpCustomFields').innerHTML = (rsvpConfig.customFields || []).map(customFieldMarkup).join('');
   updateMenuVisibility(doc);
+  renderRsvpPreview(doc);
   renderIntegration(doc);
   renderPublishState(doc);
 }
@@ -747,6 +752,31 @@ function collectConfig(doc) {
   };
 }
 
+function renderRsvpPreview(doc) {
+  const host = doc.getElementById('rsvpLivePreview');
+  if (!host) return;
+  const config = collectConfig(doc);
+  const enabledFields = Object.entries(config.fields).filter(([, field]) => field.enabled);
+  host.innerHTML = `
+    <div class="rsvp-preview-media"><span>✦</span><strong>Tu foto, imagen o GIF</strong><small>Aquí irá el elemento que abre la confirmación</small></div>
+    <div class="rsvp-preview-form">
+      <div class="rsvp-preview-eyebrow">CONFIRMACIÓN DE ASISTENCIA</div>
+      <h4>${escapeHtml(config.formTitle || 'Confirma tu asistencia')}</h4>
+      <p>${escapeHtml(config.welcomeText || 'Nos encantará compartir este día contigo.')}</p>
+      <label><span>Nombre completo</span><i>Escribe tu nombre</i></label>
+      <div class="rsvp-preview-label">Asistencia</div>
+      <div class="rsvp-preview-attendance"><button type="button" data-preview-attendance="confirmed">Sí, asistiré</button><button type="button" data-preview-attendance="declined">No asistiré</button>${config.allowTentative ? '<button type="button" data-preview-attendance="tentative">Por confirmar</button>' : ''}</div>
+      <div class="rsvp-preview-conditional" data-preview-conditional><label><span>Cantidad de asistentes</span><i>1</i></label></div>
+      <div class="rsvp-preview-fields">${enabledFields.filter(([key]) => key !== 'companions').map(([, field]) => `<label><span>${escapeHtml(field.label)}${field.required ? ' *' : ''}</span><i>Respuesta del invitado</i></label>`).join('')}${config.customFields.map((field) => `<label><span>${escapeHtml(field.label)}${field.required ? ' *' : ''}</span><i>${field.type === 'select' ? escapeHtml(field.options[0] || 'Selecciona una opción') : field.type === 'yesno' ? 'Sí / No' : 'Respuesta del invitado'}</i></label>`).join('')}</div>
+      <button class="rsvp-preview-submit" type="button">Enviar confirmación</button>
+    </div>`;
+  const conditional = host.querySelector('[data-preview-conditional]');
+  host.querySelectorAll('[data-preview-attendance]').forEach((button) => button.addEventListener('click', () => {
+    host.querySelectorAll('[data-preview-attendance]').forEach((item) => item.classList.toggle('is-selected', item === button));
+    conditional.classList.toggle('is-visible', button.dataset.previewAttendance === 'confirmed');
+  }));
+}
+
 function collectManagementFromCard(card) {
   return {
     group: card.querySelector('[data-rsvp-group]')?.value || '',
@@ -806,21 +836,29 @@ function bindPanel(doc) {
 
   doc.getElementById('rsvpBuiltInFields')?.addEventListener('change', (event) => {
     if (event.target.matches('[data-field-enabled]')) updateMenuVisibility(doc);
+    renderRsvpPreview(doc);
   });
 
   doc.getElementById('rsvpCustomFields')?.addEventListener('change', (event) => {
     if (event.target.matches('[data-custom-type]')) event.target.closest('[data-custom-field]').dataset.type = event.target.value;
+    renderRsvpPreview(doc);
+  });
+
+  doc.querySelector('[data-rsvp-pane="form"]')?.addEventListener('input', (event) => {
+    if (!event.target.closest('#rsvpLivePreview')) renderRsvpPreview(doc);
   });
 
   doc.getElementById('rsvpCustomFields')?.addEventListener('click', (event) => {
     const button = event.target.closest('[data-remove-custom]');
     button?.closest('[data-custom-field]')?.remove();
+    if (button) renderRsvpPreview(doc);
   });
 
   doc.getElementById('rsvpAddCustomField')?.addEventListener('click', () => {
     const host = doc.getElementById('rsvpCustomFields');
     const index = host.children.length;
     host.insertAdjacentHTML('beforeend', customFieldMarkup({ key: `custom_${Date.now()}` }, index));
+    renderRsvpPreview(doc);
   });
 
   doc.getElementById('rsvpSaveConfig')?.addEventListener('click', async (event) => {
