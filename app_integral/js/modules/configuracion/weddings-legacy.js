@@ -587,6 +587,10 @@ window.addEventListener('migrandia:wedding-context', () => {
 });
 
 window.addEventListener('migrandia:auth', () => refreshAll());
+window.addEventListener('migrandia:open-weddings', () => {
+  ensureUI();
+  setOpen(true);
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   ensureUI();
