@@ -14,7 +14,7 @@ import {
 const VERSION = '20260816-1615-rsvp-music-builder1';
 const installedDocs = new WeakMap();
 const PUBLIC_RSVP_BASE = 'https://avaldiviezoch.github.io/Wedding/rsvp.html';
-const NATIVE_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260816-1845-native1';
+const NATIVE_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-1700-progressive-rsvp1';
 
 const DEFAULT_MUSIC_CONFIG = Object.freeze({
   enabled: true,
