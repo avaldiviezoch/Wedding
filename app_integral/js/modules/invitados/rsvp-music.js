@@ -10,7 +10,9 @@ import {
 const VERSION = '20260816-1615-rsvp-music-builder1';
 const params = new URLSearchParams(location.search);
 const token = String(params.get('token') || '').trim();
-const MUSIC_ONLY = params.get('view') === 'music';
+const PUBLIC_VIEW = params.get('view') || 'all';
+const MUSIC_ONLY = PUBLIC_VIEW === 'music';
+const RSVP_ONLY = PUBLIC_VIEW === 'rsvp';
 const DEFAULT_CONFIG = {
   enabled: true,
   title: 'La música también la eligen ustedes',
@@ -146,5 +148,5 @@ function installMusicSection(form) {
   requestAnimationFrame(()=>window.parent?.postMessage({type:'MIGRANDIA_RSVP_HEIGHT',height:Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)},'*'));
 }
 
-async function scan() { const form=document.getElementById('rsvpPublicForm'); if(!form)return; await loadMusicConfig(); installMusicSection(form); }
+async function scan() { if(RSVP_ONLY)return; const form=document.getElementById('rsvpPublicForm'); if(!form)return; await loadMusicConfig(); installMusicSection(form); }
 const observer=new MutationObserver(scan);observer.observe(document.documentElement,{childList:true,subtree:true});scan();
