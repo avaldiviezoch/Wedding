@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260819-surface-recovery4';
+  const VERSION = '20260819-route-stable1';
   let passthrough = false;
   let queuedClick = false;
   const MODULE_HASHES = new Set([
@@ -9,6 +9,7 @@
     'cronograma','invitaciones','musica','documentos','configuracion'
   ]);
   let resumeQueued = 0;
+  let routeRepairQueued = false;
 
   function preloadAuthCore() {
     if (document.querySelector('link[data-mgd-auth-preload]')) return;
@@ -138,7 +139,7 @@
 
     setTimeout(() => {
       workspace.classList.remove('mgd-surface-repaint');
-      workspace.querySelectorAll('iframe.mgd-frame-repaint').forEach((frame) => {
+      workspace.querySelectorAll('iframe.mgd-frame-repaint:not([hidden])').forEach((frame) => {
         frame.classList.remove('mgd-frame-repaint');
       });
     }, 180);
