@@ -559,8 +559,14 @@ async function hydrateUser(user, epoch) {
     }
     if (epoch !== authEpoch) return;
 
-    if (cloudBackup) await bridge.restoreCloudBackup?.(cloudBackup);
-    else await bridge.clearLocalUserData?.();
+    if (cloudBackup) {
+      await bridge.restoreCloudBackup?.(cloudBackup);
+    } else if (localOwner !== user.uid) {
+      // A new/different account must never inherit planner data left in this
+      // browser. When the owner is the same, however, keep its existing local
+      // data and use it to create the first cloud backup instead of erasing it.
+      await bridge.clearLocalUserData?.();
+    }
     if (epoch !== authEpoch) return;
 
     localStorage.setItem(LOCAL_OWNER_KEY, user.uid);
