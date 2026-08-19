@@ -14,7 +14,7 @@ import {
 const VERSION = '20260819-2300-rsvp-live-preview1';
 const installedDocs = new WeakMap();
 const PUBLIC_RSVP_BASE = 'https://avaldiviezoch.github.io/Wedding/rsvp.html';
-const NATIVE_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2100-rsvp-guide1';
+const NATIVE_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2330-music-gate1';
 
 const DEFAULT_MUSIC_CONFIG = Object.freeze({
   enabled: true,
