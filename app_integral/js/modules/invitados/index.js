@@ -9,7 +9,7 @@ import {
   rsvpEmbedCode,
   saveRsvpConfig,
   subscribeRsvpResponses
-} from './rsvp-service.js?v=20260814-1205-rsvp1';
+} from './rsvp-service.js?v=20260819-1500-publication-views1';
 import { db, getWeddingContext } from '../../services/firebase.js?v=20260814-1136-collab1';
 import {
   collection,
@@ -22,6 +22,18 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
 export const moduleId = 'invitados';
+
+const RSVP_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260816-1845-native1';
+
+function musicEmbedCode(token) {
+  const cleanToken = String(token || '').trim();
+  return cleanToken ? `<div\n  data-mgd-music-token="${cleanToken}"\n  style="--mgd-accent:#6d7559;--mgd-surface:rgba(255,255,255,.12);--mgd-border:rgba(109,117,89,.24);"\n></div>\n<script type="module" src="${RSVP_WIDGET_URL}"></script>` : '';
+}
+
+function combinedEmbedCode(token) {
+  const cleanToken = String(token || '').trim();
+  return cleanToken ? `<div\n  data-mgd-rsvp-token="${cleanToken}"\n  style="--mgd-accent:#6d7559;--mgd-surface:rgba(255,255,255,.12);--mgd-border:rgba(109,117,89,.24);"\n></div>\n<div\n  data-mgd-music-token="${cleanToken}"\n  style="--mgd-accent:#6d7559;--mgd-surface:rgba(255,255,255,.12);--mgd-border:rgba(109,117,89,.24);margin-top:24px;"\n></div>\n<script type="module" src="${RSVP_WIDGET_URL}"></script>` : '';
+}
 
 const VERSION = '20260814-1242-rsvp2';
 const GUEST_STORAGE_KEY = 'planificador_bodas_invitados_v1';
@@ -430,20 +442,34 @@ function panelMarkup() {
 
       <section class="rsvp-pane" data-rsvp-pane="integrate">
         <div class="rsvp-card">
-          <div class="rsvp-card-head"><div><h3>Integrar en tu invitación digital</h3><p>Usa el enlace directo o inserta el formulario como HTML. Las invitaciones impresas pueden seguir administrándose manualmente desde la lista de invitados.</p></div></div>
+          <div class="rsvp-card-head"><div><h3>Elige qué quieres publicar</h3><p>Puedes usar Confirmación y Música por separado o mostrar ambos juntos. Cada opción tiene su propio enlace, vista previa y código para insertar.</p></div></div>
           <div class="rsvp-integrate-grid">
             <div class="rsvp-code-box">
-              <label>Enlace público</label>
+              <label>1. Solo Confirmación RSVP</label>
+              <p>Para que el invitado confirme asistencia. No muestra la encuesta musical.</p>
               <input id="rsvpPublicUrl" readonly placeholder="Guarda el formulario para generar el enlace">
-              <div class="rsvp-copy-actions"><button class="rsvp-btn" id="rsvpCopyUrl" type="button">Copiar enlace</button><button class="rsvp-btn dark" id="rsvpOpenUrl" type="button">Abrir</button></div>
+              <div class="rsvp-copy-actions"><button class="rsvp-btn" id="rsvpCopyUrl" type="button">Copiar enlace RSVP</button><button class="rsvp-btn dark" id="rsvpOpenUrl" type="button">Abrir Confirmación</button></div>
+              <textarea id="rsvpEmbedCode" readonly placeholder="Aquí aparecerá el código para Confirmación"></textarea>
+              <div class="rsvp-copy-actions"><button class="rsvp-btn" id="rsvpCopyEmbed" type="button">Copiar código RSVP</button></div>
+            </div>
+            <div class="rsvp-code-box mgd-music-integrate-box">
+              <label>2. Solo Música</label>
+              <p>Para pedir canciones sin mostrar el formulario de confirmación.</p>
+              <input id="mgdMusicPublicUrl" readonly placeholder="Guarda el formulario para generar el enlace">
+              <div class="rsvp-copy-actions"><button class="rsvp-btn" id="mgdCopyMusicUrl" type="button">Copiar enlace Música</button><button class="rsvp-btn dark" id="mgdOpenMusicUrl" type="button">Abrir Música</button></div>
+              <textarea id="mgdMusicEmbedCode" readonly placeholder="Aquí aparecerá el código para Música"></textarea>
+              <div class="rsvp-copy-actions"><button class="rsvp-btn" id="mgdCopyMusicEmbed" type="button">Copiar código Música</button></div>
             </div>
             <div class="rsvp-code-box">
-              <label>Código HTML &lt;/&gt;</label>
-              <textarea id="rsvpEmbedCode" readonly placeholder="Aquí aparecerá el iframe para integrar"></textarea>
-              <div class="rsvp-copy-actions"><button class="rsvp-btn" id="rsvpCopyEmbed" type="button">Copiar HTML</button><button class="rsvp-btn danger" id="rsvpRegenerateLink" type="button">Regenerar enlace</button></div>
+              <label>3. Confirmación + Música</label>
+              <p>Muestra los dos formularios juntos en una sola vista.</p>
+              <input id="rsvpCombinedUrl" readonly placeholder="Guarda el formulario para generar el enlace">
+              <div class="rsvp-copy-actions"><button class="rsvp-btn" id="rsvpCopyCombinedUrl" type="button">Copiar enlace completo</button><button class="rsvp-btn dark" id="rsvpOpenCombinedUrl" type="button">Abrir ambos</button></div>
+              <textarea id="rsvpCombinedEmbedCode" readonly placeholder="Aquí aparecerá el código combinado"></textarea>
+              <div class="rsvp-copy-actions"><button class="rsvp-btn" id="rsvpCopyCombinedEmbed" type="button">Copiar código combinado</button><button class="rsvp-btn danger" id="rsvpRegenerateLink" type="button">Regenerar token</button></div>
             </div>
           </div>
-          <div class="rsvp-note">El enlace contiene un token largo y no requiere cuenta del invitado. Las respuestas permanecen independientes hasta que un administrador las clasifica o vincula.</div>
+          <div class="rsvp-note"><strong>Los tres usan el mismo token de la boda.</strong> Así puedes publicarlos por separado sin perder la relación entre quién confirmó y qué canción pidió. Regenerar el token cambia las tres opciones.</div>
         </div>
       </section>
     </div>
@@ -502,15 +528,26 @@ function renderPublishState(doc) {
 }
 
 function renderIntegration(doc) {
-  const url = publicRsvpUrl(rsvpConfig?.token || '');
-  const code = rsvpEmbedCode(rsvpConfig?.token || '');
+  const token = rsvpConfig?.token || '';
+  const url = publicRsvpUrl(token, 'rsvp');
+  const code = rsvpEmbedCode(token);
+  const musicUrl = publicRsvpUrl(token, 'music');
+  const combinedUrl = publicRsvpUrl(token, 'all');
   const urlInput = doc.getElementById('rsvpPublicUrl');
   const codeInput = doc.getElementById('rsvpEmbedCode');
   if (urlInput) urlInput.value = url;
   if (codeInput) codeInput.value = code;
-  ['rsvpCopyUrl', 'rsvpOpenUrl', 'rsvpCopyEmbed', 'rsvpRegenerateLink'].forEach((id) => {
+  const musicUrlInput = doc.getElementById('mgdMusicPublicUrl');
+  const musicCodeInput = doc.getElementById('mgdMusicEmbedCode');
+  const combinedUrlInput = doc.getElementById('rsvpCombinedUrl');
+  const combinedCodeInput = doc.getElementById('rsvpCombinedEmbedCode');
+  if (musicUrlInput) musicUrlInput.value = musicUrl;
+  if (musicCodeInput) musicCodeInput.value = musicEmbedCode(token);
+  if (combinedUrlInput) combinedUrlInput.value = combinedUrl;
+  if (combinedCodeInput) combinedCodeInput.value = combinedEmbedCode(token);
+  ['rsvpCopyUrl', 'rsvpOpenUrl', 'rsvpCopyEmbed', 'mgdCopyMusicUrl', 'mgdOpenMusicUrl', 'mgdCopyMusicEmbed', 'rsvpCopyCombinedUrl', 'rsvpOpenCombinedUrl', 'rsvpCopyCombinedEmbed', 'rsvpRegenerateLink'].forEach((id) => {
     const button = doc.getElementById(id);
-    if (button) button.disabled = !rsvpConfig?.token;
+    if (button) button.disabled = !token;
   });
 }
 
@@ -775,8 +812,14 @@ function bindPanel(doc) {
   };
   doc.getElementById('rsvpOpenPublicButton')?.addEventListener('click', openPublic);
   doc.getElementById('rsvpOpenUrl')?.addEventListener('click', openPublic);
-  doc.getElementById('rsvpCopyUrl')?.addEventListener('click', (event) => copyText(doc, publicRsvpUrl(rsvpConfig?.token || ''), event.currentTarget));
+  doc.getElementById('rsvpCopyUrl')?.addEventListener('click', (event) => copyText(doc, publicRsvpUrl(rsvpConfig?.token || '', 'rsvp'), event.currentTarget));
   doc.getElementById('rsvpCopyEmbed')?.addEventListener('click', (event) => copyText(doc, rsvpEmbedCode(rsvpConfig?.token || ''), event.currentTarget));
+  doc.getElementById('rsvpCopyCombinedUrl')?.addEventListener('click', (event) => copyText(doc, publicRsvpUrl(rsvpConfig?.token || '', 'all'), event.currentTarget));
+  doc.getElementById('rsvpCopyCombinedEmbed')?.addEventListener('click', (event) => copyText(doc, combinedEmbedCode(rsvpConfig?.token || ''), event.currentTarget));
+  doc.getElementById('rsvpOpenCombinedUrl')?.addEventListener('click', () => {
+    const url = publicRsvpUrl(rsvpConfig?.token || '', 'all');
+    if (url) window.open(url, '_blank', 'noopener');
+  });
 
   doc.getElementById('rsvpRegenerateLink')?.addEventListener('click', async (event) => {
     if (!confirm('¿Regenerar el enlace RSVP? El enlace anterior dejará de aceptar respuestas.')) return;
