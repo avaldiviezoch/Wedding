@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260819-1500-rsvp-publication-views1';
+  const VERSION = '20260819-2300-rsvp-live-preview1';
   let baseRuntime = null;
   let rsvpRuntime = null;
 
@@ -28,7 +28,7 @@
     ensureSharedShellStyles();
     if (baseRuntime) return baseRuntime;
     baseRuntime = Promise.all([
-      import(moduleUrl('index.js', '20260819-2100-rsvp-guide1')),
+      import(moduleUrl('index.js', '20260819-2300-rsvp-live-preview1')),
       import(moduleUrl('ui-copy.js', '20260814-1532-uicopy3')),
       import(moduleUrl('tables-lazy-loader.js', '20260816-1916-idle1'))
     ]).catch((error) => {
@@ -42,7 +42,7 @@
   function loadRsvpRuntime() {
     if (rsvpRuntime) return rsvpRuntime;
     rsvpRuntime = Promise.all([
-      import(moduleUrl('rsvp-admin-music.js', '20260819-2100-rsvp-guide1')),
+      import(moduleUrl('rsvp-admin-music.js', '20260819-2300-rsvp-live-preview1')),
       import(moduleUrl('rsvp-admin-music-builder-fix.js', '20260816-1920-music-fast1')),
       import(moduleUrl('rsvp-native-admin-patch.js', '20260816-1918-native-fast1'))
     ]).catch((error) => {
