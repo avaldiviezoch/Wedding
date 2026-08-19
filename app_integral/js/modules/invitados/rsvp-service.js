@@ -142,9 +142,10 @@ export function generateRsvpToken() {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
-export function publicRsvpUrl(token) {
+export function publicRsvpUrl(token, view = 'rsvp') {
   const cleanToken = cleanText(token, 160);
-  return cleanToken ? `${PUBLIC_RSVP_BASE}?token=${encodeURIComponent(cleanToken)}` : '';
+  const cleanView = ['rsvp', 'music', 'all'].includes(view) ? view : 'rsvp';
+  return cleanToken ? `${PUBLIC_RSVP_BASE}?token=${encodeURIComponent(cleanToken)}&view=${cleanView}` : '';
 }
 
 export function rsvpEmbedCode(token) {
