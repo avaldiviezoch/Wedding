@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260819-2430-rsvp-style1';
+  const VERSION = '20260819-2450-rsvp-layout1';
   let baseRuntime = null;
   let rsvpRuntime = null;
 
@@ -28,7 +28,7 @@
     ensureSharedShellStyles();
     if (baseRuntime) return baseRuntime;
     baseRuntime = Promise.all([
-      import(moduleUrl('index.js', '20260819-2430-rsvp-style1')),
+      import(moduleUrl('index.js', '20260819-2450-rsvp-layout1')),
       import(moduleUrl('ui-copy.js', '20260814-1532-uicopy3')),
       import(moduleUrl('tables-lazy-loader.js', '20260816-1916-idle1'))
     ]).catch((error) => {
