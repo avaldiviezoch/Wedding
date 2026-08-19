@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#fffdf8">
   <title>Antonio & Lucero | Invitación 1</title>
-  <link rel="preload" href="invitacion_1_base.html" as="fetch">
   <style>
     html,body{margin:0;min-height:100%;background:#fffdf8}
     .loader{position:fixed;inset:0;display:grid;place-items:center;background:#fffdf8;color:#6f7d76;font:600 12px/1.4 system-ui,sans-serif;letter-spacing:.08em;text-align:center;padding:24px}
@@ -20,7 +19,6 @@
       if(!response.ok) throw new Error('No se pudo cargar invitacion_1_base.html');
       let html=await response.text();
 
-      // Todos los medios visuales/audio propios se resuelven desde esta carpeta.
       html=html
         .replaceAll('https://raw.githubusercontent.com/avaldiviezoch/Wedding/refs/heads/main/','./')
         .replaceAll('https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/','./')
@@ -29,8 +27,6 @@
         .replaceAll('https://drive.google.com/thumbnail?id=129AZ9O5LpL5E3ivn4KuuqgDYH6sAjoTV&sz=w500','assets/invitacion_1/dres_code_movible_1.gif')
         .replaceAll('preload="auto"','preload="metadata"');
 
-      // SOBRe_PROBAR.MP4 ya no existe en el repositorio: se elimina la petición rota
-      // y queda activo el fallback visual del propio intro.
       html=html.replace(/\s*<source[^>]+SOBRE_PROBAR\.MP4[^>]*>/gi,'');
 
       document.open();
