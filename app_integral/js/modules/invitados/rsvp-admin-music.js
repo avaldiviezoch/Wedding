@@ -256,7 +256,7 @@ function annotateResponseCards(doc, items) {
     const tags = card.querySelector('.rsvp-admin-tags');
     if (tags && songs.length) { const chip=doc.createElement('span'); chip.className='rsvp-chip rsvp-admin-tag is-music'; chip.dataset.mgdMusicChip='true'; chip.textContent=`♫ ${songs.length} canción${songs.length===1?'':'es'}`; tags.appendChild(chip); }
     const main = card.querySelector('.rsvp-response-main');
-    if (main) { const box=doc.createElement('div'); box.className='rsvp-music-response-box'; box.dataset.mgdMusicBox='true'; const lines=[]; if(songs.length) lines.push(`<strong>Música:</strong><ol class="rsvp-music-response-list">${songs.map((song)=>`<li>${escapeHtml([song.title,song.artist].filter(Boolean).join(' — '))}</li>`).join('')}</ol>`); if(music.message) lines.push(`<strong>Mensaje:</strong> ${escapeHtml(music.message)}`); box.innerHTML=lines.join('<div class="rsvp-music-response-separator"></div>'); main.appendChild(box); }
+    if (main && !card.querySelector('[data-rsvp-inline-music]')) { const box=doc.createElement('div'); box.className='rsvp-music-response-box'; box.dataset.mgdMusicBox='true'; const lines=[]; if(songs.length) lines.push(`<strong>Música:</strong><ol class="rsvp-music-response-list">${songs.map((song)=>`<li>${escapeHtml([song.title,song.artist].filter(Boolean).join(' — '))}</li>`).join('')}</ol>`); if(music.message) lines.push(`<strong>Mensaje:</strong> ${escapeHtml(music.message)}`); box.innerHTML=lines.join('<div class="rsvp-music-response-separator"></div>'); main.appendChild(box); }
   });
 }
 
