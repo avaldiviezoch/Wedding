@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f4eedf">
   <title>Antonio & Lucero | Invitación 4</title>
-  <link rel="preload" href="invitacion_4_base.html" as="fetch">
   <style>
     html,body{margin:0;min-height:100%;background:#f4eedf}
     .loader{position:fixed;inset:0;display:grid;place-items:center;background:#f4eedf;color:#46533c;font:600 12px/1.4 system-ui,sans-serif;letter-spacing:.08em;text-align:center;padding:24px}
@@ -20,8 +19,6 @@
     if(!response.ok) throw new Error('No se pudo cargar invitacion_4_base.html');
     let html=await response.text();
 
-    // Los PNG y el vídeo de esta invitación ya existen dentro de invitacion_4/.
-    // Se eliminan dependencias innecesarias de GitHub Raw antes de pintar el DOM.
     html=html
       .replaceAll('https://raw.githubusercontent.com/avaldiviezoch/Wedding/refs/heads/main/','./')
       .replaceAll('https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/','./')
