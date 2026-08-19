@@ -120,7 +120,7 @@ body.module-view .unified-frame{inset:80px 0 0!important;height:calc(100% - 80px
     background:rgba(255,255,255,.98);box-shadow:0 18px 44px rgba(43,48,40,.16);
   }
   .module-quick-nav.module-tabs-open .module-quick-scroll{display:grid!important}
-  .module-quick-tab{width:100%;min-height:39px!important;text-align:left!important}
+  .module-quick-tab{width:100%;min-height:44px!important;text-align:left!important;font-size:11px!important}
   .module-context-actions{margin-left:auto}
   .module-context-chip{min-width:0;width:min(40vw,164px);height:44px;padding:5px 9px!important}
   .module-context-label{display:none}
@@ -135,7 +135,7 @@ body.module-view .unified-frame{inset:80px 0 0!important;height:calc(100% - 80px
   .module-context-chip{width:142px}
   .module-context-role{display:none}
   .module-context-chip{display:block;padding:8px 9px!important}
-  .module-context-name{display:block;.module-context-name{font-size:9.5px}}
+  .module-context-name{display:block;font-size:9.5px}
 }
 @media(max-width:370px){
   .module-context-chip{width:112px}
