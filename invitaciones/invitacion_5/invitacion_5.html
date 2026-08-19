@@ -101,7 +101,7 @@
         const linkedRsvpToken='8c7e5b5c261e4b85ad15a220ca70e0cc66d1336feee740c08027d0c324646167';
         const rsvpPanel=doc.getElementById('rsvp-panel');
         if(rsvpPanel){
-          rsvpPanel.innerHTML=`<div class="inv5-native-widget-shell" data-mgd-rsvp-token="${linkedRsvpToken}" style="--mgd-accent:#6d7559;--mgd-surface:rgba(255,255,255,.12);--mgd-border:rgba(109,117,89,.24);"></div>`;
+          rsvpPanel.innerHTML=`<div class="inv5-native-widget-shell" data-mgd-rsvp-token="${linkedRsvpToken}" data-mgd-attendance-style="buttons" data-mgd-quantity-style="counter" style="--mgd-accent:#6d7559;--mgd-surface:rgba(255,255,255,.12);--mgd-border:rgba(109,117,89,.24);"></div>`;
         }
 
         const giftMedia=doc.getElementById('giftMainMedia');
@@ -155,7 +155,7 @@
           const nativeWidgetScript=doc.createElement('script');
           nativeWidgetScript.id='inv5NativeRsvpWidget';
           nativeWidgetScript.type='module';
-          nativeWidgetScript.src='https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2430-rsvp-style1';
+          nativeWidgetScript.src='https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2500-inv5-natural1';
           doc.head.appendChild(nativeWidgetScript);
         }
 
@@ -298,6 +298,26 @@
           .inv5-dress-last{margin-top:0;margin-bottom:0}
 
           #rsvpSection .inv5-rsvp-title{font-family:'Amsterdam Four',cursive !important;font-size:clamp(38px,8vw,58px) !important;line-height:1.15 !important;margin:0 auto 18px !important;text-align:center !important}
+
+          /* Los widgets conservan Firebase y el token, pero visualmente pertenecen a Invitación 5. */
+          .inv5-native-widget-shell{width:min(100%,470px) !important;margin:0 auto !important;padding:18px 17px !important;border:1px solid rgba(109,117,89,.15) !important;border-radius:21px !important;background:rgba(255,253,248,.25) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.24) !important;color:#4f5745 !important}
+          .inv5-native-widget-shell .mgd-native-form{gap:14px !important}
+          .inv5-native-widget-shell .mgd-native-label{font-family:Georgia,'Times New Roman',serif !important;font-size:13px !important;font-weight:400 !important;color:#69705c !important;text-align:center !important}
+          .inv5-native-widget-shell .mgd-native-input,.inv5-native-widget-shell .mgd-native-select,.inv5-native-widget-shell .mgd-native-textarea{min-height:46px !important;padding:12px 16px !important;border:1px solid rgba(109,117,89,.28) !important;border-radius:999px !important;background:rgba(255,253,248,.52) !important;color:#4f5745 !important;font-family:Georgia,'Times New Roman',serif !important;font-size:14px !important;text-align:center !important;box-shadow:none !important}
+          .inv5-native-widget-shell .mgd-native-textarea{min-height:88px !important;border-radius:20px !important;text-align:left !important}
+          .inv5-native-widget-shell .mgd-native-choices,.inv5-native-widget-shell .mgd-native-choices.is-buttons,.inv5-native-widget-shell .mgd-native-choices.is-buttons.has-tentative{display:flex !important;justify-content:center !important;gap:10px !important;flex-wrap:wrap !important}
+          .inv5-native-widget-shell .mgd-native-choice{flex:0 1 auto !important}
+          .inv5-native-widget-shell .mgd-native-choice span{min-height:0 !important;padding:10px 15px !important;border:1px solid rgba(109,117,89,.30) !important;border-radius:999px !important;background:rgba(255,253,248,.42) !important;color:#5e6652 !important;font-family:Georgia,'Times New Roman',serif !important;font-size:13px !important;font-weight:400 !important;box-shadow:none !important}
+          .inv5-native-widget-shell .mgd-native-choice input:checked+span{background:#78835d !important;border-color:#78835d !important;color:#fffdf8 !important;transform:translateY(-1px) !important}
+          .inv5-native-widget-shell .mgd-native-counter{grid-template-columns:38px 46px 38px !important;gap:17px !important}
+          .inv5-native-widget-shell .mgd-native-counter button{width:38px !important;height:38px !important;padding:0 !important;border:1px solid rgba(109,117,89,.30) !important;border-radius:999px !important;background:rgba(255,253,248,.42) !important;color:#5e6652 !important;font-family:Georgia,'Times New Roman',serif !important;font-size:20px !important;box-shadow:none !important}
+          .inv5-native-widget-shell .mgd-native-counter output{height:auto !important;min-width:30px !important;border:0 !important;background:transparent !important;color:#657050 !important;font-family:'Caveat','Patrick Hand',cursive !important;font-size:29px !important;box-shadow:none !important}
+          .inv5-native-widget-shell .mgd-native-button{width:auto !important;min-height:0 !important;margin:3px auto 0 !important;padding:11px 20px !important;border:0 !important;border-radius:999px !important;background:#78835d !important;color:#fffdf8 !important;font-family:Georgia,'Times New Roman',serif !important;font-size:13px !important;font-weight:400 !important;letter-spacing:.08em !important;box-shadow:0 6px 13px rgba(96,107,75,.16) !important}
+          .inv5-native-widget-shell .mgd-native-button.secondary{border:1px solid rgba(109,117,89,.30) !important;background:rgba(255,253,248,.52) !important;color:#5e6652 !important;box-shadow:none !important}
+          .inv5-native-widget-shell .mgd-native-music-row{padding:10px !important;border:1px solid rgba(109,117,89,.16) !important;border-radius:20px !important;background:rgba(255,253,248,.20) !important}
+          .inv5-native-widget-shell .mgd-native-remove{border-radius:999px !important;background:rgba(255,253,248,.52) !important;color:#78835d !important}
+          .inv5-native-widget-shell .mgd-native-success{padding:12px 4px !important;color:#687552 !important}
+          .inv5-native-widget-shell .mgd-native-success-icon{color:#78835d !important}
           #esperamosSection{padding-top:18px !important}
           #esperamosSection .final-card{min-height:235px !important;padding:24px 18px 22px !important;border-radius:24% 24% 22px 22px / 9% 9% 22px 22px !important}
           #esperamosSection .brook-final-gif{display:block !important;width:min(31%,140px) !important;max-width:140px !important;height:auto !important;margin:12px auto 0 !important;object-fit:contain !important}
