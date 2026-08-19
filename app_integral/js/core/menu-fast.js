@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-1932-distribucion-integrada1';
+  const VERSION = '20260818-auth-performance-v1';
   let passthrough = false;
   let queuedClick = false;
   let authPoll = 0;
@@ -58,7 +58,8 @@
     video.setAttribute('autoplay', '');
     video.setAttribute('loop', '');
     video.setAttribute('playsinline', '');
-    video.preload = 'auto';
+    // Evita competir con Firebase y el JS crítico por ~10 MB de vídeo al iniciar.
+    video.preload = 'metadata';
 
     const tryPlay = () => {
       if (!video.paused && !video.ended) return;
@@ -104,6 +105,7 @@
   loadResponsiveCss();
 
   function setMenu(open) {
+    const startedAt = performance.now();
     const body = document.body;
     const button = document.getElementById('menuButton');
     const drawer = document.getElementById('mainDrawer');
@@ -115,6 +117,11 @@
     button.removeAttribute('aria-busy');
     drawer.setAttribute('aria-hidden', open ? 'false' : 'true');
     backdrop.setAttribute('aria-hidden', open ? 'false' : 'true');
+
+    const durationMs = Math.round((performance.now() - startedAt) * 10) / 10;
+    window.dispatchEvent(new CustomEvent('migrandia:perf', {
+      detail: { name: 'menuToggle', durationMs, at: new Date().toISOString(), open: Boolean(open) }
+    }));
   }
 
   function authState() {

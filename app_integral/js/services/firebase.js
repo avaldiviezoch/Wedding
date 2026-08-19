@@ -3,7 +3,6 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
-  getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
@@ -37,9 +36,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const provider = new GoogleAuthProvider();
-provider.setCustomParameters({ prompt: 'select_account' });
-await setPersistence(auth, browserLocalPersistence);
+
+const persistenceReady = setPersistence(auth, browserLocalPersistence).catch((error) => {
+  console.warn('No se pudo fijar persistencia local de Firebase:', error);
+});
 
 const menuButton = document.getElementById('menuButton');
 const authOverlay = document.getElementById('authOverlay');
@@ -73,9 +73,80 @@ let activeWeddingName = '';
 let legacyMode = false;
 let authTransitioning = false;
 let logoutInProgress = false;
+let hydrationToken = 0;
 
 const CHUNK_SIZE = 180000;
 const LOCAL_OWNER_KEY = 'migrandia_local_owner_uid_v1';
+const PERF_LIMIT = 30;
+
+const perf = window.WeddingPlannerAuthPerf = window.WeddingPlannerAuthPerf || {
+  version: '20260818-auth-performance-v1',
+  baseline: {
+    blockingLegacyBytes: 10457449,
+    authFlow: 'Firebase auth + Firestore context + cloud restore were serialized before interactive unlock',
+    menuBlockedDuringHydration: true
+  },
+  samples: []
+};
+
+function recordPerf(name, startedAt, detail = {}) {
+  const duration = Math.max(0, performance.now() - startedAt);
+  const sample = {
+    name,
+    durationMs: Math.round(duration * 10) / 10,
+    at: new Date().toISOString(),
+    ...detail
+  };
+  perf.samples.push(sample);
+  if (perf.samples.length > PERF_LIMIT) perf.samples.splice(0, perf.samples.length - PERF_LIMIT);
+  window.dispatchEvent(new CustomEvent('migrandia:perf', { detail: sample }));
+  return sample;
+}
+
+window.WeddingPlannerAuthPerfReport = () => {
+  const grouped = {};
+  perf.samples.forEach((sample) => {
+    (grouped[sample.name] ||= []).push(sample.durationMs);
+  });
+  const metrics = Object.fromEntries(
+    Object.entries(grouped).map(([name, values]) => {
+      const sorted = [...values].sort((a, b) => a - b);
+      const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
+      const p95 = sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))];
+      return [name, {
+        count: values.length,
+        avgMs: Math.round(avg * 10) / 10,
+        p95Ms: Math.round(p95 * 10) / 10,
+        lastMs: values[values.length - 1]
+      }];
+    })
+  );
+  return { version: perf.version, baseline: perf.baseline, metrics };
+};
+
+function nextPaint() {
+  return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+}
+
+function yieldToMain() {
+  return new Promise((resolve) => {
+    if ('scheduler' in window && typeof window.scheduler?.postTask === 'function') {
+      window.scheduler.postTask(resolve, { priority: 'user-visible' }).catch(() => setTimeout(resolve, 0));
+      return;
+    }
+    setTimeout(resolve, 0);
+  });
+}
+
+async function waitForBridge(timeoutMs = 8000) {
+  if (window.WeddingPlannerBridge) return window.WeddingPlannerBridge;
+  const startedAt = performance.now();
+  while (performance.now() - startedAt < timeoutMs) {
+    await new Promise((resolve) => setTimeout(resolve, 40));
+    if (window.WeddingPlannerBridge) return window.WeddingPlannerBridge;
+  }
+  return null;
+}
 
 function normalizeRole(role) {
   return ['owner', 'admin', 'editor', 'provider', 'viewer'].includes(role) ? role : 'viewer';
@@ -158,55 +229,94 @@ function openAuth() {
   if (logoutInProgress) return;
   pendingOpenMenu = true;
   closePrivatePanels();
-  authOverlay.classList.add('show');
-  authOverlay.setAttribute('aria-hidden', 'false');
-  authStatus.textContent = '';
+  authOverlay?.classList.add('show');
+  authOverlay?.setAttribute('aria-hidden', 'false');
+  if (authStatus) authStatus.textContent = '';
   setAuthControlsBusy(false);
-  setTimeout(() => googleLoginButton.focus(), 40);
+  setTimeout(() => googleLoginButton?.focus(), 40);
 }
 
 window.WeddingPlannerRequestAuth = () => {
   if (logoutInProgress) return;
-
-  // Si Firebase ya conoce al usuario pero todavía está restaurando la boda,
-  // no volvemos a disparar click sobre el mismo botón: eso generaba recursión.
   if (auth.currentUser) {
     pendingOpenMenu = true;
     closeAuth(true);
+    if (window.WeddingPlannerAuthGuard?.authenticated) {
+      requestAnimationFrame(() => menuButton?.click());
+    }
     return;
   }
-
   openAuth();
 };
 
 function closeAuth(force = false) {
-  authOverlay.classList.remove('show');
-  authOverlay.setAttribute('aria-hidden', 'true');
-  if (force) authStatus.textContent = '';
+  authOverlay?.classList.remove('show');
+  authOverlay?.setAttribute('aria-hidden', 'true');
+  if (force && authStatus) authStatus.textContent = '';
+}
+
+function setGuard(user, { hydrating = false } = {}) {
+  const guard = window.WeddingPlannerAuthGuard;
+  if (guard) {
+    guard.ready = true;
+    guard.authenticated = Boolean(user);
+    guard.uid = user?.uid || '';
+    guard.hydrated = Boolean(user) && !hydrating;
+  }
+
+  if (user) {
+    document.body.classList.add('auth-hydrating');
+    document.body.classList.toggle('auth-locked', hydrating);
+    menuButton && (menuButton.disabled = false);
+    closeAuth(true);
+  } else {
+    document.body.classList.add('auth-locked');
+    document.body.classList.remove('auth-hydrating');
+    menuButton && (menuButton.disabled = false);
+    closeAuth(true);
+  }
 }
 
 function lockPlanner() {
-  document.body.classList.add('auth-locked');
-  document.body.classList.remove('auth-hydrating');
+  setGuard(null);
   closePrivatePanels();
-  menuButton.disabled = false;
-  window.WeddingPlannerAuthGuard.ready = authResolved;
-  window.WeddingPlannerAuthGuard.authenticated = false;
-  window.WeddingPlannerAuthGuard.uid = '';
-  closeAuth(true);
   if (location.hash) {
     history.replaceState({ module: 'home' }, '', location.pathname + location.search);
   }
 }
 
 function unlockPlanner(user) {
-  window.WeddingPlannerAuthGuard.ready = true;
-  window.WeddingPlannerAuthGuard.authenticated = true;
-  window.WeddingPlannerAuthGuard.uid = user.uid;
+  const guard = window.WeddingPlannerAuthGuard;
+  if (guard) {
+    guard.ready = true;
+    guard.authenticated = true;
+    guard.uid = user.uid;
+    guard.hydrated = true;
+  }
   document.body.classList.remove('auth-locked', 'auth-hydrating');
-  menuButton.disabled = false;
+  menuButton && (menuButton.disabled = false);
   closeAuth(true);
   window.dispatchEvent(new Event('hashchange'));
+}
+
+function renderAccount(user) {
+  accountCard?.classList.toggle('show', Boolean(user));
+  if (!user) {
+    if (accountName) accountName.textContent = '';
+    if (accountEmail) accountEmail.textContent = '';
+    accountAvatar?.removeAttribute('src');
+    accountAvatar?.classList.remove('show');
+    return;
+  }
+  if (accountName) accountName.textContent = user.displayName || 'Mi Gran Día';
+  if (accountEmail) accountEmail.textContent = user.email || '';
+  if (user.photoURL && accountAvatar) {
+    accountAvatar.src = user.photoURL;
+    accountAvatar.classList.add('show');
+  } else {
+    accountAvatar?.removeAttribute('src');
+    accountAvatar?.classList.remove('show');
+  }
 }
 
 function friendlyAuthError(error) {
@@ -225,23 +335,27 @@ function friendlyAuthError(error) {
 
 function splitText(text) {
   const chunks = [];
-  for (let i = 0; i < text.length; i += CHUNK_SIZE) {
-    chunks.push(text.slice(i, i + CHUNK_SIZE));
-  }
+  for (let i = 0; i < text.length; i += CHUNK_SIZE) chunks.push(text.slice(i, i + CHUNK_SIZE));
   return chunks.length ? chunks : [''];
 }
 
 async function readBackup(metaRef, chunkRefFactory) {
+  const startedAt = performance.now();
   const metaSnap = await getDoc(metaRef);
-  if (!metaSnap.exists()) return null;
+  if (!metaSnap.exists()) {
+    recordPerf('cloudBackupRead', startedAt, { chunks: 0 });
+    return null;
+  }
   const count = Number(metaSnap.data().chunkCount || 0);
-  if (!count) return null;
+  if (!count) {
+    recordPerf('cloudBackupRead', startedAt, { chunks: 0 });
+    return null;
+  }
   const parts = await Promise.all(
     Array.from({ length: count }, (_, index) => getDoc(chunkRefFactory(index)))
   );
-  const text = parts
-    .map((snap) => (snap.exists() ? String(snap.data().data || '') : ''))
-    .join('');
+  const text = parts.map((snap) => (snap.exists() ? String(snap.data().data || '') : '')).join('');
+  recordPerf('cloudBackupRead', startedAt, { chunks: count, bytes: text.length });
   return text ? JSON.parse(text) : null;
 }
 
@@ -270,14 +384,17 @@ async function getWeddingMembership(weddingId, uid) {
 
 async function ensureWeddingContext(user) {
   if (!user) return null;
+  const startedAt = performance.now();
   const profileRef = doc(db, 'users', user.uid);
   const profileSnap = await getDoc(profileRef);
   const profile = profileSnap.exists() ? profileSnap.data() : {};
   const requestedId = String(profile.activeWeddingId || '');
 
   if (requestedId) {
-    const indexSnap = await getDoc(doc(db, 'users', user.uid, 'weddings', requestedId));
-    const membership = await getWeddingMembership(requestedId, user.uid);
+    const [indexSnap, membership] = await Promise.all([
+      getDoc(doc(db, 'users', user.uid, 'weddings', requestedId)),
+      getWeddingMembership(requestedId, user.uid)
+    ]);
     if (indexSnap.exists() && membership) {
       const index = indexSnap.data() || {};
       setWeddingContext({
@@ -286,84 +403,77 @@ async function ensureWeddingContext(user) {
         role: membership.role || index.role,
         legacyMode: false
       });
+      recordPerf('weddingContext', startedAt, { path: 'active' });
       return currentContext();
     }
   }
 
   const indexSnaps = await getDocs(collection(db, 'users', user.uid, 'weddings'));
-  for (const item of indexSnaps.docs) {
-    const membership = await getWeddingMembership(item.id, user.uid);
-    if (!membership) {
-      try {
-        await deleteDoc(item.ref);
-      } catch (_) {}
-      continue;
-    }
-    const data = item.data() || {};
+  const candidates = await Promise.all(
+    indexSnaps.docs.map(async (item) => ({
+      item,
+      membership: await getWeddingMembership(item.id, user.uid)
+    }))
+  );
+
+  const valid = candidates.find(({ membership }) => Boolean(membership));
+  const stale = candidates.filter(({ membership }) => !membership);
+  if (stale.length) {
+    Promise.allSettled(stale.map(({ item }) => deleteDoc(item.ref))).catch(() => {});
+  }
+
+  if (valid) {
+    const data = valid.item.data() || {};
     setWeddingContext({
-      id: item.id,
-      name: membership.weddingName || data.name || 'Mi boda',
-      role: membership.role || data.role,
+      id: valid.item.id,
+      name: valid.membership.weddingName || data.name || 'Mi boda',
+      role: valid.membership.role || data.role,
       legacyMode: false
     });
-    await setDoc(
+    setDoc(
       profileRef,
-      { activeWeddingId: item.id, lastSeenAt: serverTimestamp() },
+      { activeWeddingId: valid.item.id, lastSeenAt: serverTimestamp() },
       { merge: true }
-    );
+    ).catch(() => {});
+    recordPerf('weddingContext', startedAt, { path: 'fallback', candidates: candidates.length });
     return currentContext();
   }
 
   const weddingId = `wedding_${user.uid}`;
   const weddingName = user.displayName ? `Boda de ${user.displayName}` : 'Mi boda';
   const batch = writeBatch(db);
-  batch.set(
-    doc(db, 'weddings', weddingId),
-    {
-      name: weddingName,
-      ownerUid: user.uid,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      version: 1
-    },
-    { merge: true }
-  );
-  batch.set(
-    doc(db, 'weddings', weddingId, 'members', user.uid),
-    {
-      uid: user.uid,
-      email: String(user.email || '').toLowerCase(),
-      displayName: user.displayName || '',
-      role: 'owner',
-      status: 'active',
-      weddingName,
-      joinedAt: serverTimestamp()
-    },
-    { merge: true }
-  );
-  batch.set(
-    doc(db, 'users', user.uid, 'weddings', weddingId),
-    {
-      weddingId,
-      name: weddingName,
-      role: 'owner',
-      ownerUid: user.uid,
-      addedAt: serverTimestamp()
-    },
-    { merge: true }
-  );
-  batch.set(
-    profileRef,
-    {
-      email: user.email || '',
-      displayName: user.displayName || '',
-      activeWeddingId: weddingId,
-      lastSeenAt: serverTimestamp()
-    },
-    { merge: true }
-  );
+  batch.set(doc(db, 'weddings', weddingId), {
+    name: weddingName,
+    ownerUid: user.uid,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    version: 1
+  }, { merge: true });
+  batch.set(doc(db, 'weddings', weddingId, 'members', user.uid), {
+    uid: user.uid,
+    email: String(user.email || '').toLowerCase(),
+    displayName: user.displayName || '',
+    role: 'owner',
+    status: 'active',
+    weddingName,
+    joinedAt: serverTimestamp()
+  }, { merge: true });
+  batch.set(doc(db, 'users', user.uid, 'weddings', weddingId), {
+    weddingId,
+    name: weddingName,
+    role: 'owner',
+    ownerUid: user.uid,
+    addedAt: serverTimestamp()
+  }, { merge: true });
+  batch.set(profileRef, {
+    email: user.email || '',
+    displayName: user.displayName || '',
+    activeWeddingId: weddingId,
+    lastSeenAt: serverTimestamp()
+  }, { merge: true });
   await batch.commit();
   setWeddingContext({ id: weddingId, name: weddingName, role: 'owner', legacyMode: false });
+  recordPerf('weddingContext', startedAt, { path: 'created' });
   return currentContext();
 }
 
@@ -373,8 +483,9 @@ async function writeCloudBackup(user, silent = false) {
   const bridge = window.WeddingPlannerBridge;
   if (!bridge) return;
 
+  const startedAt = performance.now();
   cloudBusy = true;
-  if (!silent) cloudState.textContent = 'Guardando en la nube…';
+  if (!silent && cloudState) cloudState.textContent = 'Guardando en la nube…';
 
   try {
     const backup = await bridge.buildCloudBackup();
@@ -419,27 +530,22 @@ async function writeCloudBackup(user, silent = false) {
       version: legacyMode ? 1 : 2
     });
     ops++;
-    batch.set(
-      doc(db, 'users', user.uid),
-      {
-        email: user.email || '',
-        displayName: user.displayName || '',
-        activeWeddingId: activeWeddingId || '',
-        lastSeenAt: serverTimestamp()
-      },
-      { merge: true }
-    );
+    batch.set(doc(db, 'users', user.uid), {
+      email: user.email || '',
+      displayName: user.displayName || '',
+      activeWeddingId: activeWeddingId || '',
+      lastSeenAt: serverTimestamp()
+    }, { merge: true });
     ops++;
     await commitIfNeeded(true);
 
-    cloudState.textContent = legacyMode ? 'Guardado en la nube' : 'Boda sincronizada';
+    if (cloudState) cloudState.textContent = legacyMode ? 'Guardado en la nube' : 'Boda sincronizada';
     localStorage.setItem('migrandia_cloud_sync_meta_v1', new Date().toISOString());
+    recordPerf('cloudBackupWrite', startedAt, { chunks: chunks.length, bytes: text.length });
   } catch (error) {
     console.error('Firebase sync error:', error);
-    cloudState.textContent = 'No se pudo sincronizar';
-    if (!silent) {
-      bridge.showToast('No se pudo guardar en Firebase. Revisa las reglas de Firestore.');
-    }
+    if (cloudState) cloudState.textContent = 'No se pudo sincronizar';
+    if (!silent) bridge.showToast?.('No se pudo guardar en Firebase. Revisa las reglas de Firestore.');
   } finally {
     cloudBusy = false;
   }
@@ -451,24 +557,39 @@ function scheduleCloudSave(delay = 2500) {
   cloudTimer = setTimeout(() => writeCloudBackup(auth.currentUser, true), delay);
 }
 
-async function hydrateUser(user) {
-  const bridge = window.WeddingPlannerBridge;
-  if (!bridge) return;
+async function hydrateUser(user, { clearFirst = false } = {}) {
+  const token = ++hydrationToken;
+  const startedAt = performance.now();
+  const bridge = await waitForBridge();
+  if (token !== hydrationToken) return;
+  if (!bridge) {
+    hydrated = true;
+    if (cloudState) cloudState.textContent = 'Sincronización pendiente';
+    unlockPlanner(user);
+    recordPerf('hydration', startedAt, { error: 'bridge-timeout' });
+    return;
+  }
+
   hydrated = false;
-  cloudState.textContent = 'Cargando tu boda…';
+  if (cloudState) cloudState.textContent = 'Sincronizando tu boda…';
 
   try {
+    await yieldToMain();
+
+    if (clearFirst) {
+      const clearStartedAt = performance.now();
+      await bridge.clearLocalUserData?.();
+      recordPerf('localClear', clearStartedAt, { reason: 'user-change' });
+      if (token !== hydrationToken) return;
+    }
+
     try {
       await ensureWeddingContext(user);
     } catch (workspaceError) {
       console.warn('Espacios compartidos aún no habilitados en Firestore; se conserva el modo anterior.', workspaceError);
-      setWeddingContext({
-        id: '',
-        name: 'Mi boda',
-        role: 'owner',
-        legacyMode: true
-      });
+      setWeddingContext({ id: '', name: 'Mi boda', role: 'owner', legacyMode: true });
     }
+    if (token !== hydrationToken) return;
 
     let cloudBackup = legacyMode
       ? await readLegacyCloudBackup(user.uid)
@@ -487,31 +608,47 @@ async function hydrateUser(user) {
         console.warn('No se pudo leer la copia anterior:', legacyError);
       }
     }
+    if (token !== hydrationToken) return;
+
+    await yieldToMain();
 
     if (cloudBackup) {
+      const restoreStartedAt = performance.now();
       await bridge.restoreCloudBackup(cloudBackup);
-    } else if (localOwner && localOwner !== user.uid) {
-      await bridge.clearLocalUserData();
-    } else if (!cloudBackup) {
-      await bridge.clearLocalUserData();
+      recordPerf('cloudRestore', restoreStartedAt);
+    } else if (localOwner !== user.uid) {
+      const clearStartedAt = performance.now();
+      await bridge.clearLocalUserData?.();
+      recordPerf('localClear', clearStartedAt, { reason: localOwner ? 'owner-mismatch' : 'empty-cloud' });
     }
+
+    if (token !== hydrationToken) return;
 
     localStorage.setItem(LOCAL_OWNER_KEY, user.uid);
     hydrated = true;
-    cloudState.textContent = cloudBackup
-      ? legacyMode
-        ? 'Sincronizado'
-        : 'Boda sincronizada'
-      : 'Preparando primera copia…';
+    if (cloudState) {
+      cloudState.textContent = cloudBackup
+        ? (legacyMode ? 'Sincronizado' : 'Boda sincronizada')
+        : 'Preparando primera copia…';
+    }
+
+    unlockPlanner(user);
+    recordPerf('hydration', startedAt, {
+      cloudBackup: Boolean(cloudBackup),
+      migratedLegacy
+    });
 
     if (!cloudBackup || migratedLegacy) {
-      await writeCloudBackup(user);
+      setTimeout(() => writeCloudBackup(user, true), 800);
     }
   } catch (error) {
+    if (token !== hydrationToken) return;
     console.error('Firebase load error:', error);
     hydrated = true;
-    cloudState.textContent = 'Sincronización pendiente';
-    bridge.showToast('Sesión iniciada, pero Firestore todavía no permite guardar.');
+    if (cloudState) cloudState.textContent = 'Sincronización pendiente';
+    unlockPlanner(user);
+    bridge.showToast?.('Sesión iniciada, pero la sincronización quedó pendiente.');
+    recordPerf('hydration', startedAt, { error: String(error?.message || error) });
   }
 }
 
@@ -523,38 +660,38 @@ export function getWeddingContext() {
 
 export async function listUserWeddings() {
   const user = auth.currentUser;
-  if (!user) return [];
-  if (legacyMode) return [];
+  if (!user || legacyMode) return [];
 
   const snaps = await getDocs(collection(db, 'users', user.uid, 'weddings'));
-  const items = [];
+  const entries = await Promise.all(
+    snaps.docs.map(async (snap) => {
+      const data = snap.data() || {};
+      const membership = await getWeddingMembership(snap.id, user.uid);
+      return { snap, data, membership };
+    })
+  );
 
-  for (const snap of snaps.docs) {
-    const data = snap.data() || {};
-    const membership = await getWeddingMembership(snap.id, user.uid);
+  const items = [];
+  const cleanup = [];
+  const repairs = [];
+  for (const { snap, data, membership } of entries) {
     if (!membership) {
-      try {
-        await deleteDoc(snap.ref);
-      } catch (_) {}
+      cleanup.push(deleteDoc(snap.ref));
       continue;
     }
-
     const role = normalizeRole(membership.role || data.role);
     const name = membership.weddingName || data.name || 'Mi boda';
     if (role !== data.role || name !== data.name) {
-      try {
-        await setDoc(snap.ref, { role, name }, { merge: true });
-      } catch (_) {}
+      repairs.push(setDoc(snap.ref, { role, name }, { merge: true }));
     }
-
     items.push({ id: snap.id, ...data, name, role });
   }
+  Promise.allSettled([...cleanup, ...repairs]).catch(() => {});
 
   const roleRank = { owner: 0, admin: 1, editor: 2, provider: 3, viewer: 4 };
   return items.sort((a, b) => {
     const rankDiff = (roleRank[a.role] ?? 9) - (roleRank[b.role] ?? 9);
-    if (rankDiff) return rankDiff;
-    return String(a.name || '').localeCompare(String(b.name || ''), 'es');
+    return rankDiff || String(a.name || '').localeCompare(String(b.name || ''), 'es');
   });
 }
 
@@ -603,42 +740,50 @@ export async function switchWedding(weddingId) {
   if (!user) throw new Error('Debes iniciar sesión.');
   if (legacyMode) throw new Error('Activa las reglas de Firestore para usar varias bodas.');
 
+  const startedAt = performance.now();
   const targetId = String(weddingId || '');
   if (!targetId) throw new Error('Boda no válida.');
   if (activeWeddingId === targetId && hydrated) return currentContext();
 
-  if (activeWeddingId && hydrated && canEditPlannerRole()) {
-    try {
-      await writeCloudBackup(user, true);
-    } catch (_) {}
-  }
+  const savePromise = activeWeddingId && hydrated && canEditPlannerRole()
+    ? writeCloudBackup(user, true).catch(() => {})
+    : Promise.resolve();
 
-  const indexSnap = await getDoc(doc(db, 'users', user.uid, 'weddings', targetId));
-  const membership = await getWeddingMembership(targetId, user.uid);
+  const [indexSnap, membership] = await Promise.all([
+    getDoc(doc(db, 'users', user.uid, 'weddings', targetId)),
+    getWeddingMembership(targetId, user.uid)
+  ]);
+
   if (!indexSnap.exists() || !membership) {
-    if (indexSnap.exists()) {
-      try {
-        await deleteDoc(indexSnap.ref);
-      } catch (_) {}
-    }
+    if (indexSnap.exists()) deleteDoc(indexSnap.ref).catch(() => {});
     throw new Error('Ya no tienes acceso a esta boda.');
   }
 
-  const data = indexSnap.data() || {};
+  await savePromise;
   hydrated = false;
-  await window.WeddingPlannerBridge?.clearLocalUserData?.();
+  setGuard(user, { hydrating: true });
+  if (cloudState) cloudState.textContent = 'Cambiando de boda…';
+  await nextPaint();
+
+  const bridge = await waitForBridge();
+  await bridge?.clearLocalUserData?.();
+
+  const data = indexSnap.data() || {};
   setWeddingContext({
     id: targetId,
     name: membership.weddingName || data.name || 'Mi boda',
     role: membership.role || data.role,
     legacyMode: false
   });
-  await setDoc(
+
+  setDoc(
     doc(db, 'users', user.uid),
     { activeWeddingId: targetId, lastSeenAt: serverTimestamp() },
     { merge: true }
-  );
+  ).catch(() => {});
+
   await hydrateUser(user);
+  recordPerf('switchWedding', startedAt, { weddingId: targetId });
   return currentContext();
 }
 
@@ -652,9 +797,7 @@ export async function inviteWeddingMember(email, role = 'editor') {
   }
 
   const normalizedEmail = String(email || '').trim().toLowerCase();
-  if (!normalizedEmail || !normalizedEmail.includes('@')) {
-    throw new Error('Escribe un correo válido.');
-  }
+  if (!normalizedEmail || !normalizedEmail.includes('@')) throw new Error('Escribe un correo válido.');
   if (normalizedEmail === String(user.email || '').toLowerCase()) {
     throw new Error('Ya eres propietario de esta boda.');
   }
@@ -664,34 +807,24 @@ export async function inviteWeddingMember(email, role = 'editor') {
     throw new Error('Solo el propietario puede asignar el rol Administrador.');
   }
   const inviteId = safeInviteId(activeWeddingId, normalizedEmail);
-  await setDoc(
-    doc(db, 'invitations', inviteId),
-    {
-      weddingId: activeWeddingId,
-      weddingName: activeWeddingName || 'Boda compartida',
-      email: normalizedEmail,
-      role: cleanRole,
-      status: 'pending',
-      invitedBy: user.uid,
-      invitedByEmail: String(user.email || '').toLowerCase(),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    },
-    { merge: true }
-  );
+  await setDoc(doc(db, 'invitations', inviteId), {
+    weddingId: activeWeddingId,
+    weddingName: activeWeddingName || 'Boda compartida',
+    email: normalizedEmail,
+    role: cleanRole,
+    status: 'pending',
+    invitedBy: user.uid,
+    invitedByEmail: String(user.email || '').toLowerCase(),
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  }, { merge: true });
 
   return { id: inviteId, email: normalizedEmail, role: cleanRole };
 }
 
 export async function listWeddingInvitations() {
-  if (!auth.currentUser || !activeWeddingId || legacyMode || !canManageTeamRole()) {
-    return [];
-  }
-
-  const q = query(
-    collection(db, 'invitations'),
-    where('weddingId', '==', activeWeddingId)
-  );
+  if (!auth.currentUser || !activeWeddingId || legacyMode || !canManageTeamRole()) return [];
+  const q = query(collection(db, 'invitations'), where('weddingId', '==', activeWeddingId));
   const snaps = await getDocs(q);
   return snaps.docs
     .map((snap) => ({ id: snap.id, ...snap.data() }))
@@ -706,8 +839,7 @@ export async function cancelWeddingInvitation(inviteId) {
   const ref = doc(db, 'invitations', String(inviteId || ''));
   const snap = await getDoc(ref);
   if (!snap.exists()) return;
-  const data = snap.data() || {};
-  if (String(data.weddingId || '') !== activeWeddingId) {
+  if (String(snap.data()?.weddingId || '') !== activeWeddingId) {
     throw new Error('La invitación no pertenece a esta boda.');
   }
   await deleteDoc(ref);
@@ -743,40 +875,28 @@ export async function acceptWeddingInvitation(inviteId) {
   const weddingName = String(invite.weddingName || 'Boda compartida');
   const batch = writeBatch(db);
 
-  batch.set(
-    doc(db, 'weddings', weddingId, 'members', user.uid),
-    {
-      uid: user.uid,
-      email: String(user.email).toLowerCase(),
-      displayName: user.displayName || '',
-      role,
-      status: 'active',
-      weddingName,
-      joinedAt: serverTimestamp()
-    },
-    { merge: true }
-  );
-  batch.set(
-    doc(db, 'users', user.uid, 'weddings', weddingId),
-    {
-      weddingId,
-      name: weddingName,
-      role,
-      ownerUid: invite.invitedBy || '',
-      addedAt: serverTimestamp()
-    },
-    { merge: true }
-  );
-  batch.set(
-    inviteRef,
-    {
-      status: 'accepted',
-      acceptedBy: user.uid,
-      acceptedAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    },
-    { merge: true }
-  );
+  batch.set(doc(db, 'weddings', weddingId, 'members', user.uid), {
+    uid: user.uid,
+    email: String(user.email).toLowerCase(),
+    displayName: user.displayName || '',
+    role,
+    status: 'active',
+    weddingName,
+    joinedAt: serverTimestamp()
+  }, { merge: true });
+  batch.set(doc(db, 'users', user.uid, 'weddings', weddingId), {
+    weddingId,
+    name: weddingName,
+    role,
+    ownerUid: invite.invitedBy || '',
+    addedAt: serverTimestamp()
+  }, { merge: true });
+  batch.set(inviteRef, {
+    status: 'accepted',
+    acceptedBy: user.uid,
+    acceptedAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  }, { merge: true });
   await batch.commit();
 
   return { id: weddingId, name: weddingName, role };
@@ -791,10 +911,7 @@ export async function listWeddingMembers() {
     .sort((a, b) => {
       if (a.role === 'owner') return -1;
       if (b.role === 'owner') return 1;
-      return String(a.displayName || a.email || '').localeCompare(
-        String(b.displayName || b.email || ''),
-        'es'
-      );
+      return String(a.displayName || a.email || '').localeCompare(String(b.displayName || b.email || ''), 'es');
     });
 }
 
@@ -819,11 +936,7 @@ export async function updateWeddingMemberRole(uid, role) {
     throw new Error('Solo el propietario puede administrar el rol Administrador.');
   }
 
-  await setDoc(
-    memberRef,
-    { role: cleanRole, updatedAt: serverTimestamp() },
-    { merge: true }
-  );
+  await setDoc(memberRef, { role: cleanRole, updatedAt: serverTimestamp() }, { merge: true });
   return cleanRole;
 }
 
@@ -845,98 +958,91 @@ export async function removeWeddingMember(uid) {
     throw new Error('Solo el propietario puede retirar a otro administrador.');
   }
 
-  await setDoc(
-    memberRef,
-    {
-      status: 'removed',
-      removedAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    },
-    { merge: true }
-  );
+  await setDoc(memberRef, {
+    status: 'removed',
+    removedAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  }, { merge: true });
 }
 
 let googleAttemptToken = 0;
 
 function reactivateGoogleButton(message = '') {
   setAuthControlsBusy(false);
-  googleLoginButton.removeAttribute('aria-busy');
-  if (message !== undefined) authStatus.textContent = message;
+  googleLoginButton?.removeAttribute('aria-busy');
+  if (message !== undefined && authStatus) authStatus.textContent = message;
 }
 
-googleLoginButton.addEventListener('click', async () => {
+googleLoginButton?.addEventListener('click', async () => {
   if (authTransitioning || logoutInProgress) return;
+  const startedAt = performance.now();
   const token = ++googleAttemptToken;
   setAuthControlsBusy(true);
   googleLoginButton.setAttribute('aria-busy', 'true');
-  authStatus.textContent = 'Elige la cuenta de Google que deseas usar…';
+  if (authStatus) authStatus.textContent = 'Elige la cuenta de Google que deseas usar…';
 
   const attemptProvider = new GoogleAuthProvider();
   attemptProvider.setCustomParameters({ prompt: 'select_account' });
 
   try {
+    await persistenceReady;
     const result = await signInWithPopup(auth, attemptProvider);
     if (token !== googleAttemptToken) return;
     if (result?.user) {
-      authStatus.textContent = 'Acceso correcto. Cargando tu boda…';
+      if (authStatus) authStatus.textContent = 'Acceso correcto. Abriendo tu espacio…';
       closeAuth(true);
+      recordPerf('googlePopup', startedAt, { success: true });
     }
   } catch (error) {
     if (token !== googleAttemptToken) return;
     console.error('Google sign-in error:', error);
     const code = String(error?.code || '');
-    if (
-      code === 'auth/popup-closed-by-user' ||
-      code === 'auth/cancelled-popup-request' ||
-      code === 'auth/user-cancelled'
-    ) {
-      authStatus.textContent = 'Ventana de Google cerrada. Puedes pulsar “Continuar con Google” otra vez.';
-    } else {
-      authStatus.textContent = friendlyAuthError(error);
+    if (authStatus) {
+      authStatus.textContent = (
+        code === 'auth/popup-closed-by-user' ||
+        code === 'auth/cancelled-popup-request' ||
+        code === 'auth/user-cancelled'
+      )
+        ? 'Ventana de Google cerrada. Puedes pulsar “Continuar con Google” otra vez.'
+        : friendlyAuthError(error);
     }
+    recordPerf('googlePopup', startedAt, { success: false, code });
   } finally {
     googleLoginButton.removeAttribute('aria-busy');
-    if (token === googleAttemptToken && !auth.currentUser) {
-      setAuthControlsBusy(false);
-    }
+    if (token === googleAttemptToken && !auth.currentUser) setAuthControlsBusy(false);
   }
 });
 
-
-emailLoginButton.addEventListener('click', async () => {
+emailLoginButton?.addEventListener('click', async () => {
   if (authTransitioning || logoutInProgress) return;
-  authStatus.textContent = 'Ingresando…';
+  if (authStatus) authStatus.textContent = 'Ingresando…';
   setAuthControlsBusy(true);
   try {
+    await persistenceReady;
     const result = await signInWithEmailAndPassword(auth, authEmail.value.trim(), authPassword.value);
-    if (result?.user) {
-      authStatus.textContent = 'Acceso correcto. Cargando tu boda…';
-      closeAuth(true);
-    }
+    if (result?.user) closeAuth(true);
   } catch (error) {
-    authStatus.textContent = friendlyAuthError(error);
+    if (authStatus) authStatus.textContent = friendlyAuthError(error);
     setAuthControlsBusy(false);
   }
 });
 
-emailRegisterButton.addEventListener('click', async () => {
+emailRegisterButton?.addEventListener('click', async () => {
   if (authTransitioning || logoutInProgress) return;
-  authStatus.textContent = 'Creando tu cuenta…';
+  if (authStatus) authStatus.textContent = 'Creando tu cuenta…';
   setAuthControlsBusy(true);
   try {
+    await persistenceReady;
     const result = await createUserWithEmailAndPassword(auth, authEmail.value.trim(), authPassword.value);
-    if (result?.user) {
-      authStatus.textContent = 'Cuenta creada. Cargando tu boda…';
-      closeAuth(true);
-    }
+    if (result?.user) closeAuth(true);
   } catch (error) {
-    authStatus.textContent = friendlyAuthError(error);
+    if (authStatus) authStatus.textContent = friendlyAuthError(error);
     setAuthControlsBusy(false);
   }
 });
 
-authPassword.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') emailLoginButton.click();
+authPassword?.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') emailLoginButton?.click();
 });
 
 function cancelAuthDialog() {
@@ -948,9 +1054,8 @@ function cancelAuthDialog() {
   if (!auth.currentUser) lockPlanner();
 }
 
-authCloseButton.addEventListener('click', cancelAuthDialog);
-
-authOverlay.addEventListener('click', (event) => {
+authCloseButton?.addEventListener('click', cancelAuthDialog);
+authOverlay?.addEventListener('click', (event) => {
   if (event.target === authOverlay) cancelAuthDialog();
 });
 
@@ -958,51 +1063,52 @@ async function performLogout(button) {
   const currentUser = auth.currentUser;
   if (!currentUser || logoutInProgress) return;
 
+  const startedAt = performance.now();
   logoutInProgress = true;
   pendingOpenMenu = false;
   googleAttemptToken++;
   if (button) button.disabled = true;
 
-  // El usuario queda visualmente fuera en el mismo instante en que pulsa salir.
   authResolved = true;
   lockPlanner();
-  accountCard.classList.remove('show');
-  cloudState.textContent = 'Cerrando sesión…';
+  renderAccount(null);
+  if (cloudState) cloudState.textContent = 'Cerrando sesión…';
 
   try {
-    try {
-      await writeCloudBackup(currentUser);
-    } catch (error) {
+    const savePromise = writeCloudBackup(currentUser, true).catch((error) => {
       console.error('Final cloud save before logout failed:', error);
-    }
+    });
+
+    await nextPaint();
+    await savePromise;
 
     hydrated = false;
-    await window.WeddingPlannerBridge?.clearLocalUserData?.();
+    hydrationToken++;
+    const bridge = await waitForBridge(3000);
+    await bridge?.clearLocalUserData?.();
     localStorage.removeItem(LOCAL_OWNER_KEY);
     await signOut(auth);
     history.replaceState(null, '', location.pathname + location.search);
     window.scrollTo(0, 0);
+    recordPerf('logout', startedAt, { success: true });
   } catch (error) {
     console.error('Logout failed:', error);
     if (auth.currentUser) {
       unlockPlanner(auth.currentUser);
       window.WeddingPlannerBridge?.showToast?.('No se pudo cerrar la sesión. Inténtalo nuevamente.');
     }
+    recordPerf('logout', startedAt, { success: false });
   } finally {
     logoutInProgress = false;
     if (button) button.disabled = false;
   }
 }
 
-
 logoutButton?.addEventListener('click', () => performLogout(logoutButton));
 moduleSessionLogout?.addEventListener('click', () => performLogout(moduleSessionLogout));
 
 window.addEventListener('storage', (event) => {
-  if (
-    event.key &&
-    (event.key.startsWith('planificador_bodas_') || event.key.startsWith('eventPlanner'))
-  ) {
+  if (event.key && (event.key.startsWith('planificador_bodas_') || event.key.startsWith('eventPlanner'))) {
     scheduleCloudSave();
   }
 });
@@ -1016,75 +1122,64 @@ setInterval(() => {
 }, 15000);
 
 onAuthStateChanged(auth, async (user) => {
+  const authStartedAt = performance.now();
   authResolved = true;
 
   if (user) {
-    // Firebase ya autenticó. El modal se cierra antes de restaurar todos los datos.
     closeAuth(true);
     setAuthControlsBusy(false);
     closePrivatePanels();
-    document.body.classList.add('auth-locked', 'auth-hydrating');
-    menuButton.disabled = true;
+    renderAccount(user);
 
-    accountCard.classList.add('show');
-    accountName.textContent = user.displayName || 'Mi Gran Día';
-    accountEmail.textContent = user.email || '';
-    if (user.photoURL) {
-      accountAvatar.src = user.photoURL;
-      accountAvatar.classList.add('show');
-    } else {
-      accountAvatar.removeAttribute('src');
-      accountAvatar.classList.remove('show');
-    }
-
-    if (activeUid && activeUid !== user.uid) {
-      await window.WeddingPlannerBridge?.clearLocalUserData?.();
-    }
-
+    const changedUser = Boolean(activeUid && activeUid !== user.uid);
     activeUid = user.uid;
-    await hydrateUser(user);
-    unlockPlanner(user);
 
-    window.dispatchEvent(
-      new CustomEvent('migrandia:auth', {
-        detail: { authenticated: true, uid: user.uid }
-      })
-    );
+    // La identidad ya es válida: desbloqueamos el shell de inmediato y dejamos
+    // únicamente los enlaces de datos en estado de hidratación.
+    setGuard(user, { hydrating: true });
+    if (cloudState) cloudState.textContent = 'Sincronizando tu boda…';
+
+    window.dispatchEvent(new CustomEvent('migrandia:auth', {
+      detail: { authenticated: true, uid: user.uid, hydrating: true }
+    }));
 
     if (pendingOpenMenu) {
       pendingOpenMenu = false;
-      setTimeout(() => {
-        if (window.WeddingPlannerAuthGuard?.authenticated === true) menuButton.click();
-      }, 40);
+      requestAnimationFrame(() => menuButton?.click());
     }
+
+    await nextPaint();
+    recordPerf('authToInteractive', authStartedAt, { changedUser });
+
+    hydrateUser(user, { clearFirst: changedUser }).then(() => {
+      window.dispatchEvent(new CustomEvent('migrandia:auth', {
+        detail: { authenticated: true, uid: user.uid, hydrating: false }
+      }));
+    });
     return;
   }
 
-  // Sin sesión, se bloquea ANTES de cualquier limpieza asíncrona.
+  hydrationToken++;
   lockPlanner();
   setAuthControlsBusy(false);
   const hadAuthenticatedUser = Boolean(activeUid);
   activeUid = '';
   hydrated = false;
+  renderAccount(null);
 
   if (hadAuthenticatedUser) {
-    await window.WeddingPlannerBridge?.clearLocalUserData?.();
+    const bridge = await waitForBridge(3000);
+    await bridge?.clearLocalUserData?.();
     localStorage.removeItem(LOCAL_OWNER_KEY);
   }
 
-  accountCard.classList.remove('show');
-  accountName.textContent = '';
-  accountEmail.textContent = '';
-  accountAvatar.removeAttribute('src');
-  accountAvatar.classList.remove('show');
-  cloudState.textContent = 'Inicia sesión para sincronizar';
+  if (cloudState) cloudState.textContent = 'Inicia sesión para sincronizar';
   pendingOpenMenu = false;
   setWeddingContext({ id: '', name: '', role: 'viewer', legacyMode: false });
-  window.dispatchEvent(
-    new CustomEvent('migrandia:auth', { detail: { authenticated: false } })
-  );
+  window.dispatchEvent(new CustomEvent('migrandia:auth', {
+    detail: { authenticated: false }
+  }));
 });
-
 
 if (!document.querySelector('link[data-weddings-style]')) {
   const weddingsStyle = document.createElement('link');
@@ -1094,6 +1189,6 @@ if (!document.querySelector('link[data-weddings-style]')) {
   document.head.appendChild(weddingsStyle);
 }
 
-import('../modules/configuracion/weddings.js?v=20260814-1136-collab1').catch((error) => {
+import('../modules/configuracion/weddings.js?v=20260818-auth-performance-v1').catch((error) => {
   console.error('No se pudo cargar el módulo de bodas compartidas:', error);
 });
