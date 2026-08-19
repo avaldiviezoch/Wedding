@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <base href="../">
+  <base href="app_integral/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0b0b">
+  <title>Planificador de bodas</title>
+
+  <link rel="stylesheet" href="css/legacy/applu-style-01.css">
+  <link rel="stylesheet" href="css/core/auth-guard.css?v=20260817171255">
+  <link rel="stylesheet" href="css/modules/auth-premium.css?v=20260814-1144-auth1">
+</head>
+
+<!-- ENLACE OFICIAL: recursos servidos desde app_integral/ -->
+<body class="auth-locked">
+  <main class="app">
+
+    <video
+      class="hero-video"
+      id="heroVideo"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="auto"
+      aria-label="Video de un anillo de boda"
+    >
+      <source src="https://avaldiviezoch.github.io/Wedding/anillo_loop_planifcador.mp4" type="video/mp4">
+      <source src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/anillo_loop_planifcador.mp4" type="video/mp4">
+      <source src="anillo_loop_planifcador.mp4" type="video/mp4">
+      Tu navegador no puede reproducir el video.
+    </video>
+
+    <div class="video-shade" aria-hidden="true"></div>
+
+    <section class="video-recovery" id="videoRecovery" aria-live="polite">
+      <strong>No se encontró el video de portada</strong>
+      <p>
+        El sistema intentó cargar el video desde GitHub. También puedes seleccionar
+        <b>anillo_loop_planifcador.mp4</b> manualmente como respaldo.
+      </p>
+
+      <div class="video-recovery-actions">
+        <button class="primary" id="selectHeroVideoButton" type="button">
+          Seleccionar video
+        </button>
+        <button id="hideVideoRecoveryButton" type="button">
+          Continuar sin video
+        </button>
+      </div>
+
+      <input id="heroVideoInput" type="file" accept="video/mp4,video/webm" hidden>
+    </section>
+
+    <button
+      class="menu-button"
+      id="menuButton"
+      type="button"
+      aria-label="Abrir menú"
+      aria-expanded="false"
+      aria-controls="mainDrawer"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M4 7h16M4 12h16M4 17h16"/>
+      </svg>
+      <span aria-hidden="true">Menú</span>
+    </button>
+
+    <div class="backdrop" id="backdrop" aria-hidden="true"></div>
+
+    <aside class="drawer" id="mainDrawer" aria-hidden="true">
+      <div class="drawer-content">
+
+        <header class="drawer-title">
+          <span class="eyebrow">Gestión integral</span>
+          <h1>Planificador de bodas</h1>
+          <p>
+            Organiza cada detalle desde un solo lugar.
+          </p>
+        </header>
+
+        <section class="account-card" id="accountCard" aria-live="polite">
+          <div class="account-user">
+            <img class="account-avatar" id="accountAvatar" alt="Foto de perfil">
+            <div class="account-copy">
+              <strong id="accountName">Cuenta</strong>
+              <span id="accountEmail"></span>
+              <div class="cloud-state" id="cloudState">Todo guardado</div>
+            </div>
+          </div>
+          <button class="account-logout" id="logoutButton" type="button">Cerrar sesión</button>
+        </section>
+
+        <section class="countdown-card" aria-label="Cuenta regresiva">
+          <div class="countdown-head">
+            <strong>Cuenta regresiva</strong>
+            <div class="countdown-date-actions">
+              <span class="countdown-date-label" id="weddingDateLabel">16.01.2027</span>
+              <button class="countdown-edit" id="editWeddingDateButton" type="button">Editar</button>
+            </div>
+          </div>
+          <div class="date-editor" id="dateEditor">
+            <input id="weddingDateInput" type="date" value="2027-01-16" aria-label="Fecha de la boda">
+            <button class="date-save" id="saveWeddingDateButton" type="button">Guardar</button>
+            <button class="date-cancel" id="cancelWeddingDateButton" type="button">Cancelar</button>
+          </div>
+
+          <div class="countdown">
+            <div class="time-box">
+              <strong id="days">000</strong>
+              <span>Días</span>
+            </div>
+
+            <div class="time-box">
+              <strong id="hours">00</strong>
+              <span>Horas</span>
+            </div>
+
+            <div class="time-box">
+              <strong id="minutes">00</strong>
+              <span>Minutos</span>
+            </div>
+
+            <div class="time-box">
+              <strong id="seconds">00</strong>
+              <span>Segundos</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="modules" aria-label="Módulos">
+
+          <article class="module">
+            <button class="module-toggle" type="button" aria-expanded="false">
+              <span class="module-label">
+                <span class="module-number">01</span>
+                <span>
+                  <span class="module-name">Planificación</span>
+                  <span class="module-description">
+                    Tareas, presupuesto y proveedores.
+                  </span>
+                </span>
+              </span>
+
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <path d="m6 9 6 6 6-6"/>
+              </svg>
+            </button>
+
+            <div class="module-body">
+              <div class="module-body-inner">
+                <div class="module-links">
+                  <a class="module-link unified-module-link" href="#checklist" data-module="checklist">
+                    <span>Checklist de boda</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                  </a>
+
+                  <a class="module-link unified-module-link" href="#presupuesto" data-module="presupuesto">
+                    <span>Presupuesto</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                  </a>
+
+                  <a class="module-link unified-module-link" href="#proveedores" data-module="proveedores">
+                    <span>Proveedores</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="module">
+            <button class="module-toggle" type="button" aria-expanded="false">
+              <span class="module-label">
+                <span class="module-number">02</span>
+                <span>
+                  <span class="module-name">Espacio de la boda</span>
+                  <span class="module-description">
+                    Invitados, distribución, cronograma e invitaciones.
+                  </span>
+                </span>
+              </span>
+
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <path d="m6 9 6 6 6-6"/>
+              </svg>
+            </button>
+
+            <div class="module-body">
+              <div class="module-body-inner">
+                <div class="module-links">
+                  <a class="module-link unified-module-link" href="#invitados" data-module="invitados">
+                    <span>Lista de invitados</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                  </a>
+
+                  <a class="module-link unified-module-link" href="#distribucion" data-module="distribucion">
+                    <span>
+                      Distribución y diseño
+                      <small>Selector integrado</small>
+                    </span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                  </a>
+
+                  <a class="module-link unified-module-link" href="#cronograma" data-module="cronograma">
+                    <span>Cronograma</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                  </a>
+
+                  <a class="module-link unified-module-link" href="#invitaciones" data-module="invitaciones">
+                    <span>
+                      Invitaciones
+                      <small>Gestión de 5 invitaciones</small>
+                    </span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="module">
+            <button class="module-toggle" type="button" aria-expanded="false">
+              <span class="module-label">
+                <span class="module-number">03</span>
+                <span>
+                  <span class="module-name">En la boda</span>
+                  <span class="module-description">
+                    Música y fotografías.
+                  </span>
+                </span>
+              </span>
+
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <path d="m6 9 6 6 6-6"/>
+              </svg>
+            </button>
+
+            <div class="module-body">
+              <div class="module-body-inner">
+                <div class="module-links">
+                  <a class="module-link unified-module-link" href="#musica" data-module="musica">
+                    <span>
+                      Música
+                      <small>Playlist, pedidos y lista para el DJ</small>
+                    </span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                  </a>
+
+                  <a
+                    class="module-link pending"
+                    href="#"
+                    data-name="Fotos"
+                    data-message="Fotos queda en pausa hasta definir una cuenta de almacenamiento con espacio."
+                  >
+                    <span>
+                      Fotos
+                      <small>En pausa · almacenamiento pendiente</small>
+                    </span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </article>
+
+        </section>
+
+        <div class="copyright">Antonio Valdiviezo © Derechos reservados</div>
+      </div>
+    </aside>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <section class="auth-overlay" id="authOverlay" aria-hidden="true">
+    <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <h2 id="authTitle">Tu boda, siempre contigo</h2>
+      <p>Inicia sesión para abrir el planificador y guardar tus cambios en la nube.</p>
+      <button class="auth-google" id="googleLoginButton" type="button">
+        <span class="auth-google-icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48" role="img">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.61l6.85-6.85C35.91 2.38 30.4 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.46 13.59 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.14-3.09-.39-4.55H24v9.02h12.94c-.56 3.01-2.25 5.56-4.8 7.27l7.73 6c4.51-4.16 7.11-10.3 7.11-17.74z"/>
+            <path fill="#FBBC05" d="M10.54 28.59A14.5 14.5 0 0 1 9.5 24c0-1.6.28-3.15.79-4.59l-7.98-6.19A23.96 23.96 0 0 0 0 24c0 3.86.92 7.51 2.56 10.78l7.98-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.92-2.13 15.89-5.81l-7.73-6c-2.15 1.44-4.9 2.31-8.16 2.31-6.26 0-11.54-4.09-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+        </span>
+        <span class="auth-google-copy">
+          <span class="auth-google-title">Continuar con Google</span>
+          <span class="auth-google-subtitle">Acceso rápido y seguro</span>
+        </span>
+      </button>
+      <div class="auth-divider">o usa tu correo</div>
+      <div class="auth-fields">
+        <input id="authEmail" type="email" autocomplete="email" placeholder="Correo electrónico">
+        <input id="authPassword" type="password" autocomplete="current-password" placeholder="Contraseña · mínimo 6 caracteres">
+      </div>
+      <div class="auth-actions">
+        <button class="auth-action" id="emailLoginButton" type="button">Ingresar</button>
+        <button class="auth-secondary" id="emailRegisterButton" type="button">Crear cuenta</button>
+      </div>
+      <p class="auth-status" id="authStatus" role="status"></p>
+      <p class="auth-help">Google te permitirá elegir una de las cuentas disponibles en este navegador.</p>
+      <button class="auth-close" id="authCloseButton" type="button">Cancelar</button>
+    </div>
+  </section>
+
+  <nav
+    class="module-quick-nav"
+    id="moduleQuickNav"
+    aria-label="Navegación rápida entre módulos"
+  >
+    <button
+      class="module-quick-home"
+      id="moduleQuickHome"
+      type="button"
+    >
+      ← Volver al menú
+    </button>
+
+    <div class="module-quick-scroll">
+      <button class="module-quick-tab" type="button" data-quick-module="checklist">Checklist</button>
+      <button class="module-quick-tab" type="button" data-quick-module="presupuesto">Presupuesto</button>
+      <button class="module-quick-tab" type="button" data-quick-module="proveedores">Proveedores</button>
+      <button class="module-quick-tab" type="button" data-quick-module="invitados">Invitados</button>
+      <button class="module-quick-tab" type="button" data-quick-module="distribucion">Distribución</button>
+      <button class="module-quick-tab" type="button" data-quick-module="cronograma">Cronograma</button>
+      <button class="module-quick-tab" type="button" data-quick-module="invitaciones">Invitaciones</button>
+      <button class="module-quick-tab" type="button" data-quick-module="musica">Música</button>
+    </div>
+  </nav>
+
+  <section class="unified-workspace" id="unifiedWorkspace" aria-label="Módulos integrados"></section>
+
+  <button class="module-session-logout" id="moduleSessionLogout" type="button" aria-label="Cerrar sesión">
+    Cerrar sesión
+  </button>
+
+  <button class="unified-home-button" id="unifiedHomeButton" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+      <path d="m15 18-6-6 6-6"/>
+    </svg>
+    Volver al menú
+  </button>
+
+  <div class="unified-loader" id="unifiedLoader" aria-hidden="true">
+    <div class="unified-loader-card">
+      <div class="unified-loader-spinner"></div>
+      <strong id="unifiedLoaderText">Abriendo módulo…</strong>
+    </div>
+  </div>
+
+  <script src="js/core/accordion-fast.js?v=20260819192617-nav"></script>
+  <script src="js/core/menu-fast.js?v=20260819-tab-lifecycle2"></script>
+  <script src="qa/runtime-loader.js?v=20260819-distribution-lifecycle3"></script>
+  <script src="js/modules/invitaciones/index.js?v=20260819192617-invitaciones"></script>
+
+<script src="js/legacy/applu-script-01.js?v=20260819192617-legacy"></script>
+  <script type="module" src="js/services/firebase.js?v=20260819-tab-lifecycle2"></script>
+  <script defer src="js/modules/configuracion/invite-direct.js?v=20260819043411-bfdb0fee-direct"></script>
+
+</body>
+</html>
