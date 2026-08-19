@@ -1,6 +1,7 @@
 import {
   RSVP_ATTENDANCE,
   RSVP_DEFAULT_FIELDS,
+  RSVP_MESSAGE_PRESETS,
   deleteRsvpResponse,
   loadRsvpConfig,
   listRsvpResponses,
@@ -9,7 +10,7 @@ import {
   rsvpEmbedCode,
   saveRsvpConfig,
   subscribeRsvpResponses
-} from './rsvp-service.js?v=20260819-1500-publication-views1';
+} from './rsvp-service.js?v=20260819-2100-rsvp-guide1';
 import { db, getWeddingContext } from '../../services/firebase.js?v=20260814-1136-collab1';
 import {
   collection,
@@ -23,7 +24,7 @@ import {
 
 export const moduleId = 'invitados';
 
-const RSVP_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2000-attendee-music1';
+const RSVP_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2100-rsvp-guide1';
 
 function musicEmbedCode(token) {
   const cleanToken = String(token || '').trim();
@@ -35,7 +36,11 @@ function combinedEmbedCode(token) {
   return cleanToken ? `<div\n  data-mgd-rsvp-token="${cleanToken}"\n  style="--mgd-accent:#6d7559;--mgd-surface:rgba(255,255,255,.12);--mgd-border:rgba(109,117,89,.24);"\n></div>\n<div\n  data-mgd-music-token="${cleanToken}"\n  style="--mgd-accent:#6d7559;--mgd-surface:rgba(255,255,255,.12);--mgd-border:rgba(109,117,89,.24);margin-top:24px;"\n></div>\n<script type="module" src="${RSVP_WIDGET_URL}"></script>` : '';
 }
 
-const VERSION = '20260814-1242-rsvp2';
+function messagePresetOptions(messages = []) {
+  return messages.map((message, index) => `<option value="${escapeHtml(message)}">Opción ${index + 1} · ${escapeHtml(message)}</option>`).join('');
+}
+
+const VERSION = '20260819-2100-rsvp-guide1';
 const GUEST_STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 const RSVP_CSS_URL = new URL(`css/modules/invitados-rsvp.css?v=${VERSION}`, document.baseURI).href;
@@ -428,6 +433,15 @@ function panelMarkup() {
         </div>
 
         <div class="rsvp-card">
+          <div class="rsvp-card-head"><div><h3>Respuesta final según lo que elija</h3><p>El invitado primero elige si asistirá. La cantidad aparece únicamente cuando responde “Sí”. Después de enviar verá el mensaje correspondiente.</p></div></div>
+          <div class="rsvp-form-grid">
+            <label class="rsvp-field wide"><span>Mensaje si confirma que sí asistirá</span><select id="rsvpConfirmedMessage">${messagePresetOptions(RSVP_MESSAGE_PRESETS.confirmed)}</select></label>
+            <label class="rsvp-field wide"><span>Mensaje si responde que no asistirá</span><select id="rsvpDeclinedMessage">${messagePresetOptions(RSVP_MESSAGE_PRESETS.declined)}</select></label>
+          </div>
+          <label class="rsvp-toggle-row" style="margin-top:12px;max-width:520px"><input id="rsvpAllowEditResponse" type="checkbox"><span class="rsvp-toggle-copy"><strong>Mostrar “Modificar respuesta”</strong><span>Permite cambiar posteriormente de Sí a No, o viceversa, desde el mismo dispositivo.</span></span></label>
+        </div>
+
+        <div class="rsvp-card">
           <div class="rsvp-card-head"><div><h3>Datos opcionales</h3><p>Activa solo los campos que realmente necesita esta boda.</p></div></div>
           <div class="rsvp-toggle-list" id="rsvpBuiltInFields"></div>
           <label class="rsvp-field wide" id="rsvpMenuOptionsField" style="margin-top:12px;display:none"><span>Opciones de menú · una por línea</span><textarea id="rsvpMenuOptions" placeholder="Carne\nPollo\nVegetariano"></textarea></label>
@@ -471,6 +485,23 @@ function panelMarkup() {
           </div>
           <div class="rsvp-note"><strong>Los tres usan el mismo token de la boda.</strong> Así puedes publicarlos por separado sin perder la relación entre quién confirmó y qué canción pidió. Regenerar el token cambia las tres opciones.</div>
         </div>
+
+        <div class="rsvp-card rsvp-integration-guide">
+          <div class="rsvp-card-head"><div><h3>Cómo integrarlo dentro de la invitación</h3><p>El formulario puede abrirse detrás de una imagen o GIF y aparecer como parte natural de la invitación. No necesitas crear otro index ni usar iframe.</p></div></div>
+          <ol class="rsvp-guide-steps">
+            <li><strong>Usa tu GIF o imagen como botón.</strong><span>Al hacer clic, abre un contenedor oculto dentro de la misma invitación.</span></li>
+            <li><strong>Pega el DIV generado dentro de ese contenedor.</strong><span>Elige el DIV de Confirmación, Música o ambos según la experiencia que quieras.</span></li>
+            <li><strong>Pega el script una sola vez.</strong><span>Aunque uses dos DIV, el archivo <code>rsvp-native-widget.js</code> solo debe cargarse una vez, al final de la invitación.</span></li>
+            <li><strong>Muestra el contenedor al abrir.</strong><span>Puedes usar una clase como <code>is-open</code>; el formulario se dibuja dentro de tu diseño y conserva sus respuestas.</span></li>
+          </ol>
+          <div class="rsvp-case-grid">
+            <article><strong>Antes de elegir</strong><p>No se muestra la cantidad. Primero debe responder Sí, No o Por confirmar.</p></article>
+            <article><strong>Si responde Sí</strong><p>Aparecen cantidad y acompañantes. Al guardar verá el mensaje positivo que elegiste y podrá pedir música.</p></article>
+            <article><strong>Si responde No</strong><p>La cantidad desaparece, se guarda 0 asistentes y se muestra el mensaje de ausencia. La música queda desactivada por ser exclusiva para asistentes.</p></article>
+            <article><strong>Si modifica</strong><p>Con la opción activada puede volver al formulario. Si cambia de Sí a No, su acceso musical se cancela automáticamente.</p></article>
+          </div>
+          <div class="rsvp-note"><strong>Separado también queda relacionado:</strong> Confirmación y Música pueden estar en distintas partes de la invitación. Usa el mismo token en ambos DIV para identificar qué persona confirmó y qué canciones propuso.</div>
+        </div>
       </section>
     </div>
   `;
@@ -510,6 +541,9 @@ function renderConfig(doc) {
   doc.getElementById('rsvpFormTitle').value = rsvpConfig.formTitle || '';
   doc.getElementById('rsvpWelcomeText').value = rsvpConfig.welcomeText || '';
   doc.getElementById('rsvpAllowTentative').checked = rsvpConfig.allowTentative !== false;
+  doc.getElementById('rsvpConfirmedMessage').value = rsvpConfig.confirmedMessage || RSVP_MESSAGE_PRESETS.confirmed[0];
+  doc.getElementById('rsvpDeclinedMessage').value = rsvpConfig.declinedMessage || RSVP_MESSAGE_PRESETS.declined[0];
+  doc.getElementById('rsvpAllowEditResponse').checked = rsvpConfig.allowEditResponse !== false;
   doc.getElementById('rsvpBuiltInFields').innerHTML = Object.entries(rsvpConfig.fields || RSVP_DEFAULT_FIELDS)
     .map(([key, config]) => fieldRowMarkup(key, config)).join('');
   doc.getElementById('rsvpMenuOptions').value = (rsvpConfig.menuOptions || []).join('\n');
@@ -704,6 +738,9 @@ function collectConfig(doc) {
     welcomeText: doc.getElementById('rsvpWelcomeText').value.trim(),
     maxGuests: Number(doc.getElementById('rsvpMaxGuests').value || 1),
     allowTentative: doc.getElementById('rsvpAllowTentative').checked,
+    confirmedMessage: doc.getElementById('rsvpConfirmedMessage').value,
+    declinedMessage: doc.getElementById('rsvpDeclinedMessage').value,
+    allowEditResponse: doc.getElementById('rsvpAllowEditResponse').checked,
     fields,
     menuOptions: doc.getElementById('rsvpMenuOptions').value.split('\n').map((item) => item.trim()).filter(Boolean),
     customFields
