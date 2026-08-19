@@ -1,9 +1,14 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260818-auth-perf1';
+  const VERSION = '20260819-tab-resume1';
   let passthrough = false;
   let queuedClick = false;
+  const MODULE_HASHES = new Set([
+    'checklist','presupuesto','proveedores','invitados','distribucion',
+    'cronograma','invitaciones','musica','documentos','configuracion'
+  ]);
+  let resumeQueued = 0;
 
   function preloadAuthCore() {
     if (document.querySelector('link[data-mgd-auth-preload]')) return;
@@ -108,6 +113,69 @@
     loadLocal();
     tryPlay();
   }
+
+  function currentModule() {
+    return String(location.hash || '').replace(/^#/, '').split(/[/?&]/)[0].trim().toLowerCase();
+  }
+
+  function restoreVisibleSurface(reason = 'resume') {
+    if (document.hidden || resumeQueued) return;
+    resumeQueued = requestAnimationFrame(() => {
+      resumeQueued = requestAnimationFrame(() => {
+        resumeQueued = 0;
+        const moduleId = currentModule();
+        const workspace = document.getElementById('unifiedWorkspace');
+        const loader = document.getElementById('unifiedLoader');
+        const hasModuleContent = Boolean(workspace?.children.length);
+        const authenticated = window.WeddingPlannerAuthGuard?.authenticated === true;
+
+        if (authenticated && MODULE_HASHES.has(moduleId)) {
+          if (hasModuleContent) {
+            document.body.classList.add('module-view');
+            workspace.removeAttribute('hidden');
+            workspace.setAttribute('aria-hidden', 'false');
+            ['display','visibility','opacity'].forEach((name) => workspace.style.removeProperty(name));
+            loader?.classList.remove('show');
+            loader?.setAttribute('aria-hidden', 'true');
+            workspace.querySelectorAll('iframe').forEach((frame) => {
+              frame.removeAttribute('hidden');
+              frame.setAttribute('aria-hidden', 'false');
+              ['display','visibility','opacity'].forEach((name) => frame.style.removeProperty(name));
+              try {
+                frame.contentWindow?.postMessage({ type:'migrandia:resume', module:moduleId, reason }, location.origin);
+              } catch (_) {}
+            });
+          } else {
+            // Solo reconstruye la vista si el navegador realmente descartó su contenido.
+            window.dispatchEvent(new Event('hashchange'));
+          }
+        } else if (!moduleId) {
+          document.body.classList.remove('module-view');
+          loader?.classList.remove('show');
+          loader?.setAttribute('aria-hidden', 'true');
+        }
+
+        const video = document.getElementById('heroVideo');
+        if (video && !document.body.classList.contains('module-view')) {
+          video.style.removeProperty('visibility');
+          video.style.removeProperty('opacity');
+          if (video.readyState === 0 || video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) video.load();
+          const playback = video.play();
+          playback?.catch?.(() => {});
+        }
+
+        window.dispatchEvent(new CustomEvent('migrandia:resume', {
+          detail: { reason, module: moduleId, preserved: hasModuleContent }
+        }));
+      });
+    });
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) restoreVisibleSurface('visibilitychange');
+  });
+  window.addEventListener('pageshow', (event) => restoreVisibleSurface(event.persisted ? 'bfcache' : 'pageshow'));
+  window.addEventListener('focus', () => restoreVisibleSurface('focus'));
 
   preloadAuthCore();
   loadResponsiveCss();
