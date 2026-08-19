@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260819-tab-resume1';
+  const VERSION = '20260819-surface-recovery2';
   let passthrough = false;
   let queuedClick = false;
   const MODULE_HASHES = new Set([
@@ -118,64 +118,102 @@
     return String(location.hash || '').replace(/^#/, '').split(/[/?&]/)[0].trim().toLowerCase();
   }
 
+  function repaintModuleSurface(workspace, moduleId, reason) {
+    if (!workspace?.isConnected) return;
+    workspace.classList.remove('mgd-surface-repaint');
+    void workspace.offsetWidth;
+    workspace.classList.add('mgd-surface-repaint');
+
+    workspace.querySelectorAll('iframe').forEach((frame) => {
+      frame.removeAttribute('hidden');
+      frame.setAttribute('aria-hidden', 'false');
+      ['display','visibility','opacity'].forEach((name) => frame.style.removeProperty(name));
+      frame.classList.remove('mgd-frame-repaint');
+      void frame.offsetWidth;
+      frame.classList.add('mgd-frame-repaint');
+      try {
+        frame.contentWindow?.postMessage({ type:'migrandia:resume', module:moduleId, reason }, location.origin);
+      } catch (_) {}
+    });
+
+    setTimeout(() => {
+      workspace.classList.remove('mgd-surface-repaint');
+      workspace.querySelectorAll('iframe.mgd-frame-repaint').forEach((frame) => {
+        frame.classList.remove('mgd-frame-repaint');
+      });
+    }, 180);
+  }
+
   function restoreVisibleSurface(reason = 'resume') {
-    if (document.hidden || resumeQueued) return;
+    if (document.hidden) return;
+    const moduleId = currentModule();
+    const workspace = document.getElementById('unifiedWorkspace');
+    const loader = document.getElementById('unifiedLoader');
+    const moduleRequested = MODULE_HASHES.has(moduleId);
+    const guard = window.WeddingPlannerAuthGuard;
+    const sessionAllowsModule = guard?.authenticated !== false || guard?.ready !== true;
+
+    // Restablecer la superficie de forma síncrona evita un fotograma negro
+    // mientras el navegador vuelve a activar timers y requestAnimationFrame.
+    if (moduleRequested && sessionAllowsModule && workspace) {
+      document.body.classList.add('module-view');
+      document.documentElement.classList.add('mgd-module-surface-active');
+      workspace.removeAttribute('hidden');
+      workspace.setAttribute('aria-hidden', 'false');
+      ['display','visibility','opacity'].forEach((name) => workspace.style.removeProperty(name));
+      if (workspace.children.length) {
+        loader?.classList.remove('show');
+        loader?.setAttribute('aria-hidden', 'true');
+      }
+      repaintModuleSurface(workspace, moduleId, reason);
+    } else if (!moduleId) {
+      document.body.classList.remove('module-view');
+      document.documentElement.classList.remove('mgd-module-surface-active');
+      loader?.classList.remove('show');
+      loader?.setAttribute('aria-hidden', 'true');
+    }
+
+    if (resumeQueued) cancelAnimationFrame(resumeQueued);
     resumeQueued = requestAnimationFrame(() => {
       resumeQueued = requestAnimationFrame(() => {
         resumeQueued = 0;
-        const moduleId = currentModule();
-        const workspace = document.getElementById('unifiedWorkspace');
-        const loader = document.getElementById('unifiedLoader');
-        const hasModuleContent = Boolean(workspace?.children.length);
-        const authenticated = window.WeddingPlannerAuthGuard?.authenticated === true;
-
-        if (authenticated && MODULE_HASHES.has(moduleId)) {
-          if (hasModuleContent) {
-            document.body.classList.add('module-view');
-            workspace.removeAttribute('hidden');
-            workspace.setAttribute('aria-hidden', 'false');
-            ['display','visibility','opacity'].forEach((name) => workspace.style.removeProperty(name));
-            loader?.classList.remove('show');
-            loader?.setAttribute('aria-hidden', 'true');
-            workspace.querySelectorAll('iframe').forEach((frame) => {
-              frame.removeAttribute('hidden');
-              frame.setAttribute('aria-hidden', 'false');
-              ['display','visibility','opacity'].forEach((name) => frame.style.removeProperty(name));
-              try {
-                frame.contentWindow?.postMessage({ type:'migrandia:resume', module:moduleId, reason }, location.origin);
-              } catch (_) {}
-            });
-          } else {
-            // Solo reconstruye la vista si el navegador realmente descartó su contenido.
-            window.dispatchEvent(new Event('hashchange'));
-          }
-        } else if (!moduleId) {
-          document.body.classList.remove('module-view');
-          loader?.classList.remove('show');
-          loader?.setAttribute('aria-hidden', 'true');
-        }
-
+        if (moduleRequested && workspace) repaintModuleSurface(workspace, moduleId, reason);
         const video = document.getElementById('heroVideo');
         if (video && !document.body.classList.contains('module-view')) {
           video.style.removeProperty('visibility');
           video.style.removeProperty('opacity');
-          if (video.readyState === 0 || video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) video.load();
-          const playback = video.play();
-          playback?.catch?.(() => {});
+          if (video.readyState === 0 || video.networkState === video.NETWORK_NO_SOURCE) video.load();
+          video.play()?.catch?.(() => {});
         }
-
         window.dispatchEvent(new CustomEvent('migrandia:resume', {
-          detail: { reason, module: moduleId, preserved: hasModuleContent }
+          detail: { reason, module: moduleId, preserved: Boolean(workspace?.children.length) }
         }));
       });
     });
   }
 
+  function scheduleSurfaceRestore(reason) {
+    restoreVisibleSurface(reason);
+    setTimeout(() => restoreVisibleSurface(`${reason}:settled`), 80);
+    setTimeout(() => restoreVisibleSurface(`${reason}:final`), 260);
+  }
+
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) restoreVisibleSurface('visibilitychange');
+    if (!document.hidden) scheduleSurfaceRestore('visibilitychange');
   });
-  window.addEventListener('pageshow', (event) => restoreVisibleSurface(event.persisted ? 'bfcache' : 'pageshow'));
-  window.addEventListener('focus', () => restoreVisibleSurface('focus'));
+  window.addEventListener('pageshow', (event) => scheduleSurfaceRestore(event.persisted ? 'bfcache' : 'pageshow'));
+  window.addEventListener('focus', () => scheduleSurfaceRestore('focus'));
+  window.addEventListener('hashchange', () => scheduleSurfaceRestore('module-change'));
+  window.addEventListener('migrandia:auth', () => scheduleSurfaceRestore('auth'));
+  window.addEventListener('migrandia:auth-resume', () => scheduleSurfaceRestore('auth-resume'));
+
+  setInterval(() => {
+    if (document.hidden || !MODULE_HASHES.has(currentModule())) return;
+    const workspace = document.getElementById('unifiedWorkspace');
+    if (!document.body.classList.contains('module-view') || !workspace || workspace.getClientRects().length === 0) {
+      scheduleSurfaceRestore('watchdog');
+    }
+  }, 1200);
 
   preloadAuthCore();
   loadResponsiveCss();
