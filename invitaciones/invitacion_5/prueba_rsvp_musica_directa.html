@@ -116,10 +116,71 @@
       filter:drop-shadow(0 15px 22px rgba(68,70,51,.08));
     }
 
+    .illustration-trigger{
+      display:block;
+      width:100%;
+      margin:10px auto 0;
+      padding:0;
+      border:0;
+      outline:none;
+      background:transparent;
+      cursor:pointer;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    .illustration-trigger .illustration{
+      pointer-events:none;
+      transition:transform .45s cubic-bezier(.2,.8,.25,1),filter .45s ease;
+    }
+
+    .illustration-trigger:hover .illustration,
+    .illustration-trigger:focus-visible .illustration{
+      transform:translateY(-5px) scale(1.015);
+      filter:drop-shadow(0 20px 26px rgba(68,70,51,.13));
+    }
+
+    .illustration-trigger.is-open .illustration{
+      animation:invitationTap .72s cubic-bezier(.2,.8,.25,1);
+    }
+
+    .tap-hint{
+      margin:0 0 14px;
+      color:#78806b;
+      font-size:clamp(10px,1.8vw,12px);
+      letter-spacing:.13em;
+      line-height:1.45;
+      text-align:center;
+      text-transform:uppercase;
+      transition:opacity .3s ease;
+    }
+
+    .illustration-trigger.is-open + .tap-hint{
+      opacity:.58;
+    }
+
     .native-form{
       width:min(100%,520px);
-      margin:8px auto 0;
+      max-height:0;
+      margin:0 auto;
+      overflow:hidden;
+      opacity:0;
+      transform:translateY(-12px);
       text-align:left;
+      transition:max-height .9s ease,opacity .5s ease,transform .55s ease,margin .55s ease;
+    }
+
+    .native-form.is-open{
+      max-height:2400px;
+      margin-top:12px;
+      overflow:visible;
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    @keyframes invitationTap{
+      0%,100%{transform:scale(1)}
+      34%{transform:scale(.965) rotate(-1deg)}
+      68%{transform:scale(1.025) rotate(1deg)}
     }
 
     .native-form .mgd-native-widget{
@@ -190,12 +251,15 @@
         <p>Completa tus datos para hacernos saber si podrás acompañarnos en este día tan especial.</p>
       </div>
 
-      <img
-        class="illustration"
-        src="./confirmar%20invitacion_2.gif"
-        alt="Mensajero de la Invitación 5 para confirmar asistencia">
+      <button class="illustration-trigger" id="rsvpTrigger" type="button" aria-controls="rsvpNativePanel" aria-expanded="false">
+        <img
+          class="illustration"
+          src="./confirmar%20invitacion_2.gif"
+          alt="Mensajero de la Invitación 5 para confirmar asistencia">
+      </button>
+      <p class="tap-hint">Toca al mensajero para confirmar tu asistencia</p>
 
-      <div class="native-form">
+      <div class="native-form" id="rsvpNativePanel">
         <div
           data-mgd-rsvp-token="b00bca195e8e448eab17557bb6b4ffc480ad2e95c0db4c85bca52a62ff60b499"
           style="--mgd-accent:#6d7559;--mgd-text:#555d4d;--mgd-muted:#777d6d;--mgd-surface:rgba(255,255,255,.20);--mgd-border:rgba(109,117,89,.20);"
@@ -212,12 +276,15 @@
         <p>Déjanos las canciones que te gustaría escuchar durante la recepción o la fiesta.</p>
       </div>
 
-      <img
-        class="illustration"
-        src="./musica_2.png"
-        alt="Tocadiscos de la Invitación 5 para dejar pedidos musicales">
+      <button class="illustration-trigger" id="musicTrigger" type="button" aria-controls="musicNativePanel" aria-expanded="false">
+        <img
+          class="illustration"
+          src="./musica_2.png"
+          alt="Tocadiscos de la Invitación 5 para dejar pedidos musicales">
+      </button>
+      <p class="tap-hint">Toca el tocadiscos para dejar tu canción</p>
 
-      <div class="native-form">
+      <div class="native-form" id="musicNativePanel">
         <div
           data-mgd-music-token="b00bca195e8e448eab17557bb6b4ffc480ad2e95c0db4c85bca52a62ff60b499"
           style="--mgd-accent:#6d7559;--mgd-text:#555d4d;--mgd-muted:#777d6d;--mgd-surface:rgba(255,255,255,.20);--mgd-border:rgba(109,117,89,.20);"
@@ -228,6 +295,27 @@
     <p class="test-note">Ambos formularios usan el mismo token y la misma sesión del invitado. La confirmación y las canciones quedan relacionadas sin mostrarse como una aplicación separada.</p>
   </main>
 
+  <script>
+    function bindReveal(triggerId,panelId){
+      const trigger=document.getElementById(triggerId);
+      const panel=document.getElementById(panelId);
+      if(!trigger||!panel)return;
+
+      trigger.addEventListener('click',()=>{
+        const willOpen=!panel.classList.contains('is-open');
+        panel.classList.toggle('is-open',willOpen);
+        trigger.classList.toggle('is-open',willOpen);
+        trigger.setAttribute('aria-expanded',String(willOpen));
+
+        if(willOpen){
+          setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}),220);
+        }
+      });
+    }
+
+    bindReveal('rsvpTrigger','rsvpNativePanel');
+    bindReveal('musicTrigger','musicNativePanel');
+  </script>
   <script type="module" src="https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260816-1845-native1"></script>
 </body>
 </html>
