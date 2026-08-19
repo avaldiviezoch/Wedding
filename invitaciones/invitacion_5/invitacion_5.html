@@ -97,6 +97,13 @@
           confirmationMedia.style.webkitClipPath='inset(4px)';
         }
 
+        // RSVP nativo de la boda vinculada: conserva el GIF y abre el formulario dentro de la invitación.
+        const linkedRsvpToken='8c7e5b5c261e4b85ad15a220ca70e0cc66d1336feee740c08027d0c324646167';
+        const rsvpPanel=doc.getElementById('rsvp-panel');
+        if(rsvpPanel){
+          rsvpPanel.innerHTML=`<div class="inv5-native-widget-shell" data-mgd-rsvp-token="${linkedRsvpToken}" style="--mgd-accent:#6d7559;--mgd-surface:rgba(255,255,255,.12);--mgd-border:rgba(109,117,89,.24);"></div>`;
+        }
+
         const giftMedia=doc.getElementById('giftMainMedia');
         if(giftMedia){
           const giftGif='./regalo_5_1.gif?v=20260817-2219';
@@ -137,10 +144,19 @@
           const musicWarning=musicSection.querySelector('.music-warning');
           if(musicText) musicText.textContent='¿Hay una canción que te gustaría escuchar durante la recepción o la fiesta? Déjanos tu pedido aquí para considerarlo con anticipación.';
           if(musicWarning) musicWarning.textContent='El DJ no aceptará pedidos musicales durante la celebración, así que este es tu momento para compartirnos tu canción.';
-          const musicName=musicSection.querySelector('#musicGuestName');
-          const musicNameWrap=musicName?.closest('label,.music-field-wrap,.field-wrap,.form-group');
-          if(musicNameWrap) musicNameWrap.remove();
-          else if(musicName) musicName.remove();
+          const musicPanel=doc.getElementById('music-request-panel');
+          if(musicPanel){
+            musicPanel.innerHTML=`<div class="inv5-native-widget-shell" data-mgd-music-token="${linkedRsvpToken}" style="--mgd-accent:#6d7559;--mgd-surface:rgba(255,255,255,.12);--mgd-border:rgba(109,117,89,.24);"></div>`;
+          }
+        }
+
+        // Un solo script atiende Confirmación y Música; no crea iframe ni duplica la aplicación.
+        if(!doc.getElementById('inv5NativeRsvpWidget')){
+          const nativeWidgetScript=doc.createElement('script');
+          nativeWidgetScript.id='inv5NativeRsvpWidget';
+          nativeWidgetScript.type='module';
+          nativeWidgetScript.src='https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2330-music-gate1';
+          doc.head.appendChild(nativeWidgetScript);
         }
 
         [...doc.querySelectorAll('details.faq-item')].forEach(item=>{
