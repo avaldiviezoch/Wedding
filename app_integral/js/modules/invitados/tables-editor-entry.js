@@ -1,4 +1,4 @@
-const FINAL_STYLE_VERSION = '20260819-1615-distribution-source1';
+const FINAL_STYLE_VERSION = '20260819-seat-remove-source2';
 const FINAL_STYLE_URL = new URL(`css/modules/invitados-tables-old-look.css?v=${FINAL_STYLE_VERSION}`, document.baseURI).href;
 
 function preloadFinalStyle() {
@@ -20,13 +20,8 @@ function preloadFinalStyle() {
 }
 
 preloadFinalStyle();
-await import('./tables-editor.js?v=20260819-1615-distribution-source1');
+await import('./tables-editor.js?v=20260819-seat-remove-source2');
 await Promise.all([
   import('./tables-stable-polish.js?v=20260816-1440-stable-name1'),
   import('./tables-old-look.js?v=20260816-1545-fast-tables1')
 ]);
-
-/* Mejoras no bloqueantes. */
-import('./tables-seat-remove.js?v=20260816-1520-seatremove3').catch((error) => {
-  console.warn('No se pudo activar la acción rápida de quitar invitado:', error);
-});

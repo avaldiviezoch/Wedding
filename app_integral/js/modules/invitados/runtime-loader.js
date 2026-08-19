@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260819-1615-distribution-source1';
+  const VERSION = '20260819-seat-remove-source2';
   let baseRuntime = null;
   let rsvpRuntime = null;
 
@@ -30,7 +30,7 @@
     baseRuntime = Promise.all([
       import(moduleUrl('index.js', '20260819-1615-distribution-source1')),
       import(moduleUrl('ui-copy.js', '20260814-1532-uicopy3')),
-      import(moduleUrl('tables-lazy-loader.js', '20260819-1615-distribution-source1'))
+      import(moduleUrl('tables-lazy-loader.js', '20260819-seat-remove-source2'))
     ]).catch((error) => {
       console.error('No se pudo iniciar Invitados:', error);
       baseRuntime = null;

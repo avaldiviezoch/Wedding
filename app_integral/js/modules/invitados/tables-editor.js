@@ -1,4 +1,4 @@
-const VERSION = '20260819-1615-distribution-source1';
+const VERSION = '20260819-seat-remove-source2';
 const STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 const CSS_URL = new URL(`css/modules/invitados-tables-editor.css?v=${VERSION}`, document.baseURI).href;
@@ -428,7 +428,7 @@ function seatPositions(type, capacity, tableW, tableH) {
 function seatMarkup(data, table, index, position) {
   const guest = guestAtSeat(data, table.id, index);
   const occupied = Boolean(guest);
-  return `<button
+  const seat = `<button
     class="mgd-seat${occupied ? ' is-occupied' : ''}"
     type="button"
     data-seat-index="${index}"
@@ -438,6 +438,15 @@ function seatMarkup(data, table, index, position) {
     title="${esc(occupied ? `${guest.name || 'Invitado'} · Silla ${index + 1}` : `Silla ${index + 1} libre`)}"
     aria-label="${esc(occupied ? `${guest.name || 'Invitado'}, silla ${index + 1}` : `Silla ${index + 1} libre`)}"
   >${occupied ? esc(initials(guest.name)) : ''}</button>`;
+  if (!occupied) return seat;
+  return `${seat}<button
+    class="mgd-seat-remove"
+    type="button"
+    data-unassign-guest="${esc(guest.id)}"
+    style="left:${position.x}px;top:${position.y}px"
+    title="Quitar de esta mesa"
+    aria-label="Quitar a ${esc(guest.name || 'este invitado')} de la mesa"
+  >×</button>`;
 }
 
 function tableMarkup(data, table) {
@@ -579,6 +588,13 @@ function bindEditorEvents(doc) {
   root.dataset.bound = VERSION;
 
   root.addEventListener('click', (event) => {
+    const removeGuest = event.target.closest('[data-unassign-guest]');
+    if (removeGuest) {
+      event.preventDefault();
+      event.stopPropagation();
+      return unassignGuest(removeGuest.dataset.unassignGuest);
+    }
+
     const add = event.target.closest('#mgdAddTable');
     if (add) return openCreateModal();
 
