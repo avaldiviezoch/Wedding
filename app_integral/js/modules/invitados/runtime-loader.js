@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260819-2550-rsvp-music-list1';
+  const VERSION = '20260819-2355-distribution16';
   let baseRuntime = null;
   let rsvpRuntime = null;
 
@@ -11,7 +11,7 @@
 
   // Distribución: solo se carga el vínculo de datos. La capa visual dinámica queda
   // fuera del flujo activo para evitar que una interfaz se pinte sobre otra.
-  import(new URL('js/modules/distribucion/index.js?v=20260817-1648-link3', document.baseURI).href)
+  import(new URL('js/modules/distribucion/index.js?v=20260819-2355-distribution16', document.baseURI).href)
     .catch((error) => console.warn('No se pudo iniciar el vínculo Invitados ↔ Distribución:', error));
 
   function ensureSharedShellStyles() {
@@ -28,7 +28,7 @@
     ensureSharedShellStyles();
     if (baseRuntime) return baseRuntime;
     baseRuntime = Promise.all([
-      import(moduleUrl('index.js', '20260819-2550-rsvp-music-list1')),
+      import(moduleUrl('index.js', '20260819-2355-distribution16')),
       import(moduleUrl('ui-copy.js', '20260814-1532-uicopy3')),
       import(moduleUrl('tables-lazy-loader.js', '20260816-1916-idle1'))
     ]).catch((error) => {
@@ -42,7 +42,7 @@
   function loadRsvpRuntime() {
     if (rsvpRuntime) return rsvpRuntime;
     rsvpRuntime = Promise.all([
-      import(moduleUrl('rsvp-admin-music.js', '20260819-2550-rsvp-music-list1')),
+      import(moduleUrl('rsvp-admin-music.js', '20260819-2355-distribution16')),
       import(moduleUrl('rsvp-admin-music-builder-fix.js', '20260816-1920-music-fast1')),
       import(moduleUrl('rsvp-native-admin-patch.js', '20260816-1918-native-fast1'))
     ]).catch((error) => {
