@@ -14,6 +14,7 @@ import {
 const VERSION = '20260816-1615-rsvp-music-builder1';
 const installedDocs = new WeakMap();
 const PUBLIC_RSVP_BASE = 'https://avaldiviezoch.github.io/Wedding/rsvp.html';
+const NATIVE_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260816-1845-native1';
 
 const DEFAULT_MUSIC_CONFIG = Object.freeze({
   enabled: true,
@@ -84,9 +85,9 @@ function musicOnlyUrl(token) {
 }
 
 function musicEmbedCode(token) {
-  const url = musicOnlyUrl(token);
-  if (!url) return '';
-  return `<iframe\n  src="${url}"\n  title="Encuesta de música para la boda"\n  style="width:100%;min-height:620px;border:0;border-radius:24px;overflow:hidden;"\n  loading="lazy"\n  referrerpolicy="strict-origin-when-cross-origin"\n></iframe>`;
+  const cleanToken = cleanText(token, 180);
+  if (!cleanToken) return '';
+  return `<div\n  data-mgd-music-token="${cleanToken}"\n  style="--mgd-accent:#6d7559;--mgd-surface:rgba(255,255,255,.12);--mgd-border:rgba(109,117,89,.24);"\n></div>\n<script type="module" src="${NATIVE_WIDGET_URL}"></script>`;
 }
 
 function injectStyles(doc) {
@@ -170,7 +171,7 @@ function ensureUi(doc) {
   const formPane = shell.querySelector('[data-rsvp-pane="form"]');
   if (formPane && !formPane.querySelector('#mgdMusicBuilderCard')) formPane.insertAdjacentHTML('beforeend', builderMarkup());
   const integratePane = shell.querySelector('[data-rsvp-pane="integrate"]');
-  if (integratePane && !integratePane.querySelector('#mgdMusicIntegrateCard')) integratePane.insertAdjacentHTML('beforeend', integrationMarkup());
+  if (integratePane && !integratePane.querySelector('#mgdMusicPublicUrl') && !integratePane.querySelector('#mgdMusicIntegrateCard')) integratePane.insertAdjacentHTML('beforeend', integrationMarkup());
   return { tab, pane };
 }
 
