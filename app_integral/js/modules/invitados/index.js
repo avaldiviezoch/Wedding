@@ -499,7 +499,7 @@ function panelMarkup() {
             <li><strong>Muestra el contenedor al abrir.</strong><span>Puedes usar una clase como <code>is-open</code>; el formulario se dibuja dentro de tu diseño y conserva sus respuestas.</span></li>
           </ol>
           <div class="rsvp-case-grid">
-            <article><strong>Antes de elegir</strong><p>No se muestra la cantidad. Primero debe responder Sí, No o Por confirmar.</p></article>
+            <article><strong>Antes de confirmar</strong><p>No se muestra la cantidad y Música permanece bloqueada. Si intenta abrirla, verá “Primero confirma tu asistencia” y un botón para volver a Confirmación.</p></article>
             <article><strong>Si responde Sí</strong><p>Aparecen cantidad y acompañantes. Al guardar verá el mensaje positivo que elegiste y podrá pedir música.</p></article>
             <article><strong>Si responde No</strong><p>La cantidad desaparece, se guarda 0 asistentes y se muestra el mensaje de ausencia. La música queda desactivada por ser exclusiva para asistentes.</p></article>
             <article><strong>Si modifica</strong><p>Con la opción activada puede volver al formulario. Si cambia de Sí a No, su acceso musical se cancela automáticamente.</p></article>
