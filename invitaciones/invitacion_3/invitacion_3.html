@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#fbeed8">
   <title>Antonio & Lucero | Invitación 3</title>
-  <link rel="preload" href="invitacion_3_base.html" as="fetch">
   <style>
     html,body{margin:0;min-height:100%;background:#fbeed8}
     .loader{position:fixed;inset:0;display:grid;place-items:center;background:#fbeed8;color:#355a35;font:600 12px/1.4 system-ui,sans-serif;letter-spacing:.08em;text-align:center;padding:24px}
@@ -20,7 +19,6 @@
     if(!response.ok) throw new Error('No se pudo cargar invitacion_3_base.html');
     let html=await response.text();
 
-    // Todos los medios de la Invitación 3 existen físicamente junto a este HTML.
     html=html
       .replaceAll('https://avaldiviezoch.github.io/Wedding/','./')
       .replaceAll('https://raw.githubusercontent.com/avaldiviezoch/Wedding/refs/heads/main/','./')
