@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260819-surface-recovery2';
+  const VERSION = '20260819-surface-recovery4';
   let passthrough = false;
   let queuedClick = false;
   const MODULE_HASHES = new Set([
@@ -203,7 +203,7 @@
   });
   window.addEventListener('pageshow', (event) => scheduleSurfaceRestore(event.persisted ? 'bfcache' : 'pageshow'));
   window.addEventListener('focus', () => scheduleSurfaceRestore('focus'));
-  window.addEventListener('hashchange', () => scheduleSurfaceRestore('module-change'));
+  window.addEventListener('hashchange', () => scheduleSurfaceRestore('module-change'));\n  window.addEventListener('popstate', () => scheduleSurfaceRestore('history-change'));\n  document.addEventListener('click', (event) => {\n    if (!event.target.closest?.('[data-quick-module],[data-module]')) return;\n    setTimeout(() => scheduleSurfaceRestore('module-click'), 0);\n  }, true);
   window.addEventListener('migrandia:auth', () => scheduleSurfaceRestore('auth'));
   window.addEventListener('migrandia:auth-resume', () => scheduleSurfaceRestore('auth-resume'));
 
