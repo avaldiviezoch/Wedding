@@ -1,5 +1,5 @@
 const VERSION='20260816-1918-native-fast1';
-const WIDGET='https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2100-rsvp-guide1';
+const WIDGET='https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2330-music-gate1';
 const done=new WeakSet();
 
 function tokenFrom(doc){
