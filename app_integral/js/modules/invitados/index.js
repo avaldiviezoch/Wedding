@@ -23,7 +23,7 @@ import {
 
 export const moduleId = 'invitados';
 
-const RSVP_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-1900-firestore-music1';
+const RSVP_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2000-attendee-music1';
 
 function musicEmbedCode(token) {
   const cleanToken = String(token || '').trim();
