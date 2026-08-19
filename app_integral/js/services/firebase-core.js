@@ -960,7 +960,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') scheduleCloudSave(0);
 });
 setInterval(() => {
-  if (auth.currentUser && hydrated) writeCloudBackup(auth.currentUser, true);
+  if (!document.hidden && auth.currentUser && hydrated) writeCloudBackup(auth.currentUser, true);
 }, 15000);
 
 onAuthStateChanged(auth, (user) => {
@@ -969,6 +969,24 @@ onAuthStateChanged(auth, (user) => {
   authResolved = true;
 
   if (user) {
+    // Firebase puede volver a notificar el mismo usuario al reactivarse una pestaña.
+    // Esa notificación no es un nuevo inicio de sesión: conservar el módulo y su DOM.
+    if (
+      user.uid === activeUid &&
+      hydrated &&
+      window.WeddingPlannerAuthGuard?.authenticated === true &&
+      !logoutInProgress
+    ) {
+      setAuthControlsBusy(false);
+      authOverlay?.classList.remove('show');
+      authOverlay?.setAttribute('aria-hidden', 'true');
+      renderAccount(user);
+      window.dispatchEvent(new CustomEvent('migrandia:auth-resume', {
+        detail: { authenticated: true, uid: user.uid, preserved: true }
+      }));
+      return;
+    }
+
     setAuthControlsBusy(false);
     closePrivatePanels();
     renderAccount(user);
