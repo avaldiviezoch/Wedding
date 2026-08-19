@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f1e5da">
   <title>Antonio & Lucero | Invitación 2</title>
-  <link rel="preload" href="invitacion_2_base.html" as="fetch">
   <style>
     html,body{margin:0;min-height:100%;background:#f1e5da}
     .loader{position:fixed;inset:0;display:grid;place-items:center;background:#f1e5da;color:#52634f;font:600 12px/1.4 system-ui,sans-serif;letter-spacing:.08em;text-align:center;padding:24px}
@@ -29,13 +28,8 @@
         .replaceAll('./sobre_enviar_confir_2.png','invitacion_confirmacion_2.png')
         .replaceAll('preload="auto"','preload="metadata"');
 
-      // La entrada oficial sí existe dentro de esta invitación.
-      // Se eliminan candidatos externos: la fuente única es video_entrada.mp4 local.
       html=html.replace(/const entryVideoCandidates\s*=\s*\[[\s\S]*?\];/,
         "const entryVideoCandidates = ['video_entrada.mp4'];");
-
-      // entrada_2.png ya no existe físicamente. Si el vídeo falla se usa un recurso
-      // local conocido en lugar de intentar URLs antiguas/inexistentes.
       html=html.replace(/const coverImageCandidates\s*=\s*\[[\s\S]*?\];/,
         "const coverImageCandidates = ['invitacion_confirmacion_2.png'];");
 
