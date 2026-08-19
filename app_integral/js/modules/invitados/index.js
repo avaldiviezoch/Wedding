@@ -40,7 +40,7 @@ function messagePresetOptions(messages = []) {
   return messages.map((message, index) => `<option value="${escapeHtml(message)}">Opción ${index + 1} · ${escapeHtml(message)}</option>`).join('');
 }
 
-const VERSION = '20260819-2450-rsvp-layout1';
+const VERSION = '20260819-2550-rsvp-music-list1';
 const GUEST_STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 const RSVP_CSS_URL = new URL(`css/modules/invitados-rsvp.css?v=${VERSION}`, document.baseURI).href;
@@ -615,6 +615,22 @@ function optionMarkup(guest, selectedIds) {
   return `<option value="${escapeHtml(guest.id)}" ${selected}>${escapeHtml(guest.name || 'Sin nombre')}${detail ? ` — ${escapeHtml(detail)}` : ''}</option>`;
 }
 
+function responseMusicSongs(item) {
+  if (item?.attendance !== 'confirmed') return [];
+  let music = item?.customData?.mgdMusic;
+  if (!music) return [];
+  if (typeof music === 'string') {
+    try { music = JSON.parse(music); } catch (_) { return []; }
+  }
+  return (Array.isArray(music?.songs) ? music.songs : [])
+    .map((song) => ({
+      title: cleanText(song?.title, 140),
+      artist: cleanText(song?.artist, 140)
+    }))
+    .filter((song) => song.title || song.artist)
+    .slice(0, 10);
+}
+
 function renderResponseTags(item, meta) {
   const tags = responseTags(item, meta);
   if (meta.reviewed) tags.push('Revisado');
@@ -640,6 +656,7 @@ function renderResponses(doc) {
     const selectedIds = new Set(Array.isArray(meta.linkedGuestIds) ? meta.linkedGuestIds : []);
     const suggestions = suggestedGuestIds(item);
     const companions = Array.isArray(item.companions) ? item.companions.filter(Boolean) : [];
+    const musicSongs = responseMusicSongs(item);
     const detailChips = [];
     if (item.menu) detailChips.push(`Menú: ${item.menu}`);
     if (item.restriction) detailChips.push(`Restricción: ${item.restriction}`);
@@ -652,6 +669,7 @@ function renderResponses(doc) {
           <div class="rsvp-response-name">
             <strong>${escapeHtml(item.name || 'Sin nombre')}</strong>
             <span>${escapeHtml(item.email || item.phone || 'Respuesta sin datos de contacto')}</span>
+            ${musicSongs.length ? `<div class="rsvp-inline-music" data-rsvp-inline-music><b>♫ Música solicitada</b><ol>${musicSongs.map((song) => `<li><strong>${escapeHtml(song.title || 'Canción sin título')}</strong>${song.artist ? `<span>${escapeHtml(song.artist)}</span>` : ''}</li>`).join('')}</ol></div>` : ''}
           </div>
           <div class="rsvp-response-summary">
             <span class="rsvp-status ${escapeHtml(item.attendance || 'pending')}">${escapeHtml(statusLabel(item.attendance))}</span>
