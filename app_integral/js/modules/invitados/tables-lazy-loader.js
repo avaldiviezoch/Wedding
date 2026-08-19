@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260819-seat-remove-source2';
+  const VERSION = '20260819-empty-onboarding1';
   let tablesRuntime = null;
   let preloadScheduled = false;
 
@@ -78,7 +78,7 @@
 
   function loadTablesRuntime() {
     if (tablesRuntime) return tablesRuntime;
-    tablesRuntime = import(new URL('tables-editor-entry.js?v=20260819-seat-remove-source2', import.meta.url).href)
+    tablesRuntime = import(new URL('tables-editor-entry.js?v=20260819-empty-onboarding1', import.meta.url).href)
       .then((runtime) => {
         const workspace = document.getElementById('unifiedWorkspace');
         workspace?.querySelectorAll('iframe').forEach((frame) => {

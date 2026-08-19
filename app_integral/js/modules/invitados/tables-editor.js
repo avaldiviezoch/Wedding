@@ -1,4 +1,4 @@
-const VERSION = '20260819-seat-remove-source2';
+const VERSION = '20260819-empty-onboarding1';
 const STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 const CSS_URL = new URL(`css/modules/invitados-tables-editor.css?v=${VERSION}`, document.baseURI).href;
@@ -510,7 +510,7 @@ function editorMarkup(data) {
       <section class="mgd-table-stage">
         <div class="mgd-stage-head"><strong>${visibleTables.length} mesa${visibleTables.length === 1 ? '' : 's'}</strong><span>${unassigned} invitado${unassigned === 1 ? '' : 's'} sin mesa</span></div>
         <div class="mgd-table-grid" id="mgdTableGrid">
-          ${visibleTables.length ? visibleTables.map((table) => tableMarkup(data, table)).join('') : `<div class="mgd-empty-tables"><div><strong>${activeFilter === 'assigned' ? 'No hay mesas para este filtro' : 'Aún no hay mesas'}</strong><span>${activeFilter === 'assigned' ? 'Los invitados con mesa aparecerán aquí con su mesa correspondiente.' : 'Agrega la primera y elige su forma y capacidad.'}</span></div></div>`}
+          ${visibleTables.length ? visibleTables.map((table) => tableMarkup(data, table)).join('') : `<div class="mgd-empty-tables"><div><strong>${activeFilter === 'assigned' ? 'No hay mesas para este filtro' : 'Aún no hay mesas'}</strong><span>${activeFilter === 'assigned' ? 'Los invitados con mesa aparecerán aquí con su mesa correspondiente.' : 'Comienza creando la primera mesa y elige su forma y capacidad.'}</span>${activeFilter === 'assigned' ? '' : '<button class="mgd-btn primary mgd-add-first-table" id="mgdAddFirstTable" type="button"><strong>+</strong> Agrega tu primera mesa</button>'}</div></div>`}
         </div>
       </section>
       <aside class="mgd-guests-panel" id="mgdGuestsPanel">
@@ -595,7 +595,7 @@ function bindEditorEvents(doc) {
       return unassignGuest(removeGuest.dataset.unassignGuest);
     }
 
-    const add = event.target.closest('#mgdAddTable');
+    const add = event.target.closest('#mgdAddTable, #mgdAddFirstTable');
     if (add) return openCreateModal();
 
     const edit = event.target.closest('[data-edit-table]');

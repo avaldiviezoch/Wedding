@@ -107,7 +107,7 @@
   let copiedPlannerItems = [];
   let pasteSequence = 0;
 
-  const defaultGuestOptions = [{"id": 1, "name": "Jesus Balboa"}, {"id": 2, "name": "Gloria de Balboa"}, {"id": 3, "name": "Harry Balboa"}, {"id": 4, "name": "Jessica"}, {"id": 5, "name": "Iván Balboa"}, {"id": 6, "name": "Elizabeth"}, {"id": 7, "name": "Jerico"}, {"id": 8, "name": "Melani"}, {"id": 9, "name": "Jenny Balboa"}, {"id": 10, "name": "Jonathan"}, {"id": 11, "name": "Megan"}, {"id": 12, "name": "Logan"}, {"id": 13, "name": "John Balboa"}, {"id": 14, "name": "Gaby"}, {"id": 15, "name": "Sebas"}, {"id": 16, "name": "Mateo"}, {"id": 17, "name": "Anto"}, {"id": 18, "name": "Stefani Balboa"}, {"id": 19, "name": "Rolando"}, {"id": 20, "name": "Yaneth Balboa"}, {"id": 21, "name": "Lizeth Balboa"}, {"id": 22, "name": "Doris"}, {"id": 23, "name": "Fernando"}, {"id": 24, "name": "Godofredo Valdiviezo"}, {"id": 25, "name": "Chela dé Valdiviezo"}, {"id": 26, "name": "Karen Valdiviezo"}, {"id": 27, "name": "Eloy"}, {"id": 28, "name": "Nathy"}, {"id": 29, "name": "Mateo"}, {"id": 30, "name": "Manolo Valdiviezo"}, {"id": 31, "name": "Sarita"}, {"id": 32, "name": "Pedrito"}, {"id": 33, "name": "Juanchito"}, {"id": 34, "name": "Tía Lucy"}, {"id": 35, "name": "Esposo Tia Lucy"}, {"id": 36, "name": "Tía Charita Antonio"}, {"id": 37, "name": "Esposo"}, {"id": 38, "name": "Brenda USA"}, {"id": 39, "name": "Esposo"}, {"id": 40, "name": "Brenda Nieves"}, {"id": 41, "name": "Prisilla Vega"}, {"id": 42, "name": "José de Prisilla"}, {"id": 43, "name": "Marcia"}, {"id": 44, "name": "Kathy"}, {"id": 45, "name": "Antonio"}, {"id": 46, "name": "Brenda Oq"}, {"id": 47, "name": "Andrea"}, {"id": 48, "name": "Diego"}, {"id": 49, "name": "Fran"}, {"id": 50, "name": "Ronny"}, {"id": 51, "name": "Shey"}, {"id": 52, "name": "Cristian"}, {"id": 53, "name": "Giuseppe"}, {"id": 54, "name": "Acompañante"}];
+  const defaultGuestOptions = [];
   const defaultGuestNames = defaultGuestOptions.map(option=>option.name);
   let guests = defaultGuestOptions.map(option=>({id:option.id,name:option.name}));
   let guestUid = Math.max(1,...guests.map(guest=>guest.id+1));
@@ -1443,15 +1443,6 @@
   function autoLayout(){
     elements = [];
     uid = 1;
-    const tablePositions = [
-      [935,450],[1075,450],[1215,450],
-      [915,600],[1055,600],[1195,600],
-      [950,755],[1095,755]
-    ];
-    tablePositions.forEach((p,i)=>{
-      addElement('table', p[0], p[1]);
-      elements[elements.length-1].label = `Mesa ${i+1}`;
-    });
     addElement('dance', 735,520);
     addElement('altar', 620,265);
     addElement('dj', 780,370);

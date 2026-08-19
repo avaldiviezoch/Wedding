@@ -131,6 +131,8 @@
   padding:30px;
 }
 .mgd-empty-tables strong{display:block;color:var(--mgd-ink);font-size:18px;margin-bottom:6px}
+.mgd-empty-tables span{display:block}
+.mgd-add-first-table{margin:18px auto 0}
 
 .mgd-table-card{
   position:relative;
