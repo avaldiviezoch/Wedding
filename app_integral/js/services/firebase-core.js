@@ -24,7 +24,7 @@ import {
   serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
-const VERSION = '20260818-auth-perf1';
+const VERSION = '20260819-mobile-popup-gesture1';
 const FINAL_SAVE_BUDGET_MS = 650;
 const CHUNK_SIZE = 180000;
 const LOCAL_OWNER_KEY = 'migrandia_local_owner_uid_v1';
@@ -844,7 +844,11 @@ googleLoginButton?.addEventListener('click', async () => {
   const attemptProvider = new GoogleAuthProvider();
   attemptProvider.setCustomParameters({ prompt: 'select_account' });
   try {
-    await persistenceReady;
+    // Keep the popup creation in the original trusted click. In iOS browsers,
+    // awaiting persistence here can consume the transient user activation and
+    // make Firebase open its helper as a detached tab without its initial
+    // sessionStorage state. Persistence is already queued during module startup;
+    // Firebase serializes the auth operation without delaying this popup call.
     const result = await signInWithPopup(auth, attemptProvider);
     if (token !== googleAttemptToken) return;
     metric('google_popup', googleStartedAt, { uid: result?.user?.uid || '' });
