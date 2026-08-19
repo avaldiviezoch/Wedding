@@ -113,7 +113,9 @@ body.module-view .unified-frame{inset:80px 0 0!important;height:calc(100% - 80px
     top:max(5px,env(safe-area-inset-top))!important;left:6px!important;right:6px!important;
     min-height:56px!important;border-radius:18px!important;gap:6px!important;padding:6px!important;
   }
-  .module-quick-home{width:46px!important;height:44px!important;min-width:46px!important;padding:0!important;gap:0!important}\n  .module-home-label{display:none}\n  .module-home-arrow{font-size:20px;transform:none}
+  .module-quick-home{width:46px!important;height:44px!important;min-width:46px!important;padding:0!important;gap:0!important}
+  .module-home-label{display:none}
+  .module-home-arrow{font-size:20px;transform:none}
   .module-mobile-tabs{display:inline-flex;align-items:center}
   .module-quick-scroll{
     position:absolute;top:calc(100% + 7px);left:0;right:0;padding:8px!important;
