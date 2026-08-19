@@ -10,7 +10,7 @@ import {
   rsvpEmbedCode,
   saveRsvpConfig,
   subscribeRsvpResponses
-} from './rsvp-service.js?v=20260819-2330-music-gate1';
+} from './rsvp-service.js?v=20260819-2430-rsvp-style1';
 import { db, getWeddingContext } from '../../services/firebase.js?v=20260814-1136-collab1';
 import {
   collection,
@@ -24,7 +24,7 @@ import {
 
 export const moduleId = 'invitados';
 
-const RSVP_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2330-music-gate1';
+const RSVP_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2430-rsvp-style1';
 
 function musicEmbedCode(token) {
   const cleanToken = String(token || '').trim();
@@ -40,7 +40,7 @@ function messagePresetOptions(messages = []) {
   return messages.map((message, index) => `<option value="${escapeHtml(message)}">Opción ${index + 1} · ${escapeHtml(message)}</option>`).join('');
 }
 
-const VERSION = '20260819-2300-rsvp-live-preview1';
+const VERSION = '20260819-2430-rsvp-style1';
 const GUEST_STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 const RSVP_CSS_URL = new URL(`css/modules/invitados-rsvp.css?v=${VERSION}`, document.baseURI).href;
@@ -426,6 +426,8 @@ function panelMarkup() {
           <div class="rsvp-form-grid">
             <label class="rsvp-field"><span>Máximo de asistentes por respuesta</span><input id="rsvpMaxGuests" type="number" min="1" max="20" value="4"></label>
             <label class="rsvp-field"><span>Estado público</span><select id="rsvpActive"><option value="true">Activo</option><option value="false">Pausado</option></select></label>
+            <label class="rsvp-field"><span>Estilo de botones de asistencia</span><select id="rsvpAttendanceControlStyle"><option value="buttons">Botones clásicos</option><option value="cards">Tarjetas amplias</option><option value="compact">Selector compacto</option></select></label>
+            <label class="rsvp-field"><span>Selector de cantidad</span><select id="rsvpQuantityControlStyle"><option value="counter">Número con − y +</option><option value="select">Lista desplegable</option></select></label>
             <label class="rsvp-field wide"><span>Título</span><input id="rsvpFormTitle" maxlength="100" value="Confirma tu asistencia"></label>
             <label class="rsvp-field wide"><span>Mensaje</span><textarea id="rsvpWelcomeText" maxlength="500"></textarea></label>
           </div>
@@ -545,6 +547,8 @@ function renderConfig(doc) {
   doc.getElementById('rsvpFormTitle').value = rsvpConfig.formTitle || '';
   doc.getElementById('rsvpWelcomeText').value = rsvpConfig.welcomeText || '';
   doc.getElementById('rsvpAllowTentative').checked = rsvpConfig.allowTentative !== false;
+  doc.getElementById('rsvpAttendanceControlStyle').value = rsvpConfig.attendanceControlStyle || 'buttons';
+  doc.getElementById('rsvpQuantityControlStyle').value = rsvpConfig.quantityControlStyle || 'counter';
   doc.getElementById('rsvpConfirmedMessage').value = rsvpConfig.confirmedMessage || RSVP_MESSAGE_PRESETS.confirmed[0];
   doc.getElementById('rsvpDeclinedMessage').value = rsvpConfig.declinedMessage || RSVP_MESSAGE_PRESETS.declined[0];
   doc.getElementById('rsvpAllowEditResponse').checked = rsvpConfig.allowEditResponse !== false;
@@ -743,6 +747,8 @@ function collectConfig(doc) {
     welcomeText: doc.getElementById('rsvpWelcomeText').value.trim(),
     maxGuests: Number(doc.getElementById('rsvpMaxGuests').value || 1),
     allowTentative: doc.getElementById('rsvpAllowTentative').checked,
+    attendanceControlStyle: doc.getElementById('rsvpAttendanceControlStyle').value,
+    quantityControlStyle: doc.getElementById('rsvpQuantityControlStyle').value,
     confirmedMessage: doc.getElementById('rsvpConfirmedMessage').value,
     declinedMessage: doc.getElementById('rsvpDeclinedMessage').value,
     allowEditResponse: doc.getElementById('rsvpAllowEditResponse').checked,
@@ -765,8 +771,8 @@ function renderRsvpPreview(doc) {
       <p>${escapeHtml(config.welcomeText || 'Nos encantará compartir este día contigo.')}</p>
       <label><span>Nombre completo</span><i>Escribe tu nombre</i></label>
       <div class="rsvp-preview-label">Asistencia</div>
-      <div class="rsvp-preview-attendance"><button type="button" data-preview-attendance="confirmed">Sí, asistiré</button><button type="button" data-preview-attendance="declined">No asistiré</button>${config.allowTentative ? '<button type="button" data-preview-attendance="tentative">Por confirmar</button>' : ''}</div>
-      <div class="rsvp-preview-conditional" data-preview-conditional><label><span>Cantidad de asistentes</span><i>1</i></label></div>
+      <div class="rsvp-preview-attendance is-${escapeHtml(config.attendanceControlStyle)}"><button type="button" data-preview-attendance="confirmed">Sí, asistiré</button><button type="button" data-preview-attendance="declined">No asistiré</button>${config.allowTentative ? '<button type="button" data-preview-attendance="tentative">Por confirmar</button>' : ''}</div>
+      <div class="rsvp-preview-conditional" data-preview-conditional><span class="rsvp-preview-label">Cantidad de asistentes</span>${config.quantityControlStyle === 'select' ? '<label><i>1 ▾</i></label>' : '<div class="rsvp-preview-counter"><button type="button" data-preview-step="-1">−</button><strong data-preview-count>1</strong><button type="button" data-preview-step="1">+</button></div>'}</div>
       <div class="rsvp-preview-fields">${enabledFields.filter(([key]) => key !== 'companions').map(([, field]) => `<label><span>${escapeHtml(field.label)}${field.required ? ' *' : ''}</span><i>Respuesta del invitado</i></label>`).join('')}${config.customFields.map((field) => `<label><span>${escapeHtml(field.label)}${field.required ? ' *' : ''}</span><i>${field.type === 'select' ? escapeHtml(field.options[0] || 'Selecciona una opción') : field.type === 'yesno' ? 'Sí / No' : 'Respuesta del invitado'}</i></label>`).join('')}</div>
       <button class="rsvp-preview-submit" type="button">Enviar confirmación</button>
     </div>`;
@@ -774,6 +780,11 @@ function renderRsvpPreview(doc) {
   host.querySelectorAll('[data-preview-attendance]').forEach((button) => button.addEventListener('click', () => {
     host.querySelectorAll('[data-preview-attendance]').forEach((item) => item.classList.toggle('is-selected', item === button));
     conditional.classList.toggle('is-visible', button.dataset.previewAttendance === 'confirmed');
+  }));
+  host.querySelectorAll('[data-preview-step]').forEach((button) => button.addEventListener('click', () => {
+    const output = host.querySelector('[data-preview-count]');
+    const next = Math.max(1, Math.min(config.maxGuests, Number(output.textContent || 1) + Number(button.dataset.previewStep)));
+    output.textContent = String(next);
   }));
 }
 
