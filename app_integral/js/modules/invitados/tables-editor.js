@@ -1,13 +1,16 @@
-const VERSION = '20260814-1354-tables1';
+const VERSION = '20260819-1615-distribution-source1';
 const STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 const CSS_URL = new URL(`css/modules/invitados-tables-editor.css?v=${VERSION}`, document.baseURI).href;
 const SHAPES = ['round', 'square', 'rectangular'];
 const SHAPE_LABELS = { round: 'Redonda', square: 'Cuadrada', rectangular: 'Rectangular' };
+const MIN_CAPACITY = 4;
+const MAX_CAPACITY = 16;
+const CAPACITY_STEP = 2;
 const CAPACITY_PRESETS = {
-  round: [4, 6, 8, 10, 12],
-  square: [4, 8],
-  rectangular: [6, 8, 10, 12, 14, 16]
+  round: [4, 6, 8, 10, 12, 14, 16],
+  square: [4, 6, 8, 10, 12, 14, 16],
+  rectangular: [4, 6, 8, 10, 12, 14, 16]
 };
 
 let activeFrame = null;
@@ -56,7 +59,7 @@ function readState() {
 function tableCapacity(table) {
   const fromCapacity = Number(table?.capacity);
   const fromSeats = Array.isArray(table?.seats) ? table.seats.length : 0;
-  return clamp(fromCapacity || fromSeats || 10, 1, 40);
+  return clamp(fromCapacity || fromSeats || 10, MIN_CAPACITY, MAX_CAPACITY);
 }
 
 function normalizeShape(value) {
@@ -282,8 +285,8 @@ function addTables(type, capacity, quantity) {
       id: uid('table'),
       name,
       type: normalizeShape(type),
-      capacity: clamp(capacity, 1, 40),
-      seats: createSeats([], clamp(capacity, 1, 40)),
+      capacity: clamp(capacity, MIN_CAPACITY, MAX_CAPACITY),
+      seats: createSeats([], clamp(capacity, MIN_CAPACITY, MAX_CAPACITY)),
       positionX: null,
       positionY: null,
       rotation: 0,
@@ -310,23 +313,27 @@ function updateTable(tableId, patch) {
   const table = data.tables.find((item) => String(item.id) === String(tableId));
   if (!table) return false;
   const oldCapacity = table.capacity;
-  const newCapacity = clamp(patch.capacity ?? oldCapacity, 1, 40);
+  const newCapacity = clamp(patch.capacity ?? oldCapacity, MIN_CAPACITY, MAX_CAPACITY);
   const occupied = guestsAtTable(data, table.id).length;
   if (newCapacity < occupied) {
     toast(`Esta mesa tiene ${occupied} invitados. Reasigna ${occupied - newCapacity} antes de reducirla.`);
     return false;
   }
+  const affectedByReduction = newCapacity < oldCapacity && guestsAtTable(data, table.id)
+    .some((guest) => Number(guest.seatNumber) > newCapacity);
+  if (affectedByReduction && activeFrame?.contentWindow && !activeFrame.contentWindow.confirm(
+    'Hay invitados en sillas que desaparecerán. ¿Deseas reducir la mesa y reubicarlos automáticamente en sillas disponibles?'
+  )) return false;
 
   table.name = String(patch.name ?? table.name).trim().slice(0, 80) || table.name;
   table.type = normalizeShape(patch.type ?? table.type);
   if (newCapacity !== oldCapacity) {
-    if (newCapacity < oldCapacity) compactGuestsForCapacity(data, table, newCapacity);
+    if (affectedByReduction) compactGuestsForCapacity(data, table, newCapacity);
     table.capacity = newCapacity;
     table.seats = createSeats(table.seats, newCapacity);
-    const assigned = guestsAtTable(data, table.id).sort((a, b) => (a.seatNumber || 999) - (b.seatNumber || 999));
-    assigned.forEach((guest, index) => {
-      guest.seatNumber = index + 1;
-      guest.seatId = table.seats[index].id;
+    guestsAtTable(data, table.id).forEach((guest) => {
+      const index = Number(guest.seatNumber) - 1;
+      guest.seatId = table.seats[index]?.id || '';
     });
   }
   table.updatedAt = new Date().toISOString();
@@ -477,6 +484,12 @@ function guestMarkup(data, guest) {
 
 function editorMarkup(data) {
   const visibleGuests = data.guests.filter(guestFilterMatch);
+  const visibleTableIds = activeFilter === 'assigned'
+    ? new Set(visibleGuests.map((guest) => String(guest.tableId || '')).filter(Boolean))
+    : null;
+  const visibleTables = visibleTableIds
+    ? data.tables.filter((table) => visibleTableIds.has(String(table.id)))
+    : data.tables;
   const unassigned = data.guests.filter((guest) => !guest.tableId).length;
   return `<div class="mgd-tables-editor" id="mgdTablesEditor">
     <div class="mgd-tables-topbar">
@@ -486,9 +499,9 @@ function editorMarkup(data) {
     </div>
     <div class="mgd-tables-layout">
       <section class="mgd-table-stage">
-        <div class="mgd-stage-head"><strong>${data.tables.length} mesa${data.tables.length === 1 ? '' : 's'}</strong><span>${unassigned} invitado${unassigned === 1 ? '' : 's'} sin mesa</span></div>
+        <div class="mgd-stage-head"><strong>${visibleTables.length} mesa${visibleTables.length === 1 ? '' : 's'}</strong><span>${unassigned} invitado${unassigned === 1 ? '' : 's'} sin mesa</span></div>
         <div class="mgd-table-grid" id="mgdTableGrid">
-          ${data.tables.length ? data.tables.map((table) => tableMarkup(data, table)).join('') : `<div class="mgd-empty-tables"><div><strong>Aún no hay mesas</strong><span>Agrega la primera y elige su forma y capacidad.</span></div></div>`}
+          ${visibleTables.length ? visibleTables.map((table) => tableMarkup(data, table)).join('') : `<div class="mgd-empty-tables"><div><strong>${activeFilter === 'assigned' ? 'No hay mesas para este filtro' : 'Aún no hay mesas'}</strong><span>${activeFilter === 'assigned' ? 'Los invitados con mesa aparecerán aquí con su mesa correspondiente.' : 'Agrega la primera y elige su forma y capacidad.'}</span></div></div>`}
         </div>
       </section>
       <aside class="mgd-guests-panel" id="mgdGuestsPanel">
@@ -605,6 +618,7 @@ function bindEditorEvents(doc) {
   root.addEventListener('dragstart', (event) => {
     const guestSource = event.target.closest('[data-guest-id]');
     if (!guestSource) return;
+    if (!event.dataTransfer) return;
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/mgd-guest', guestSource.dataset.guestId);
     event.dataTransfer.setData('text/plain', guestSource.dataset.guestId);
@@ -641,6 +655,7 @@ function bindEditorEvents(doc) {
     const table = event.target.closest('.mgd-table-card[data-table-id]');
     if (!unassigned && !seat && !table) return;
     event.preventDefault();
+    event.stopPropagation();
     if (unassigned) return unassignGuest(guestId);
     if (seat) return assignGuest(guestId, seat.dataset.tableId, Number(seat.dataset.seatIndex));
     if (table) return assignGuest(guestId, table.dataset.tableId);
@@ -756,7 +771,8 @@ function openEditModal(tableId) {
     updateUi();
   };
   backdrop.querySelectorAll('[data-edit-capacity]').forEach((button) => button.onclick = () => {
-    const next = clamp(capacity + Number(button.dataset.editCapacity), 1, 40);
+    const direction = Math.sign(Number(button.dataset.editCapacity));
+    const next = clamp(capacity + direction * CAPACITY_STEP, MIN_CAPACITY, MAX_CAPACITY);
     if (next < occupied) return toast(`Esta mesa tiene ${occupied} invitados asignados.`);
     capacity = next;
     updateUi();

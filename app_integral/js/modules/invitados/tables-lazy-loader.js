@@ -78,7 +78,7 @@
 
   function loadTablesRuntime() {
     if (tablesRuntime) return tablesRuntime;
-    tablesRuntime = import(new URL('tables-editor-entry.js?v=20260816-1545-fast-tables1', import.meta.url).href)
+    tablesRuntime = import(new URL('tables-editor-entry.js?v=20260819-1615-distribution-source1', import.meta.url).href)
       .then((runtime) => {
         const workspace = document.getElementById('unifiedWorkspace');
         workspace?.querySelectorAll('iframe').forEach((frame) => {

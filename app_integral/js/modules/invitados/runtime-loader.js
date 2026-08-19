@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260819-2355-distribution16';
+  const VERSION = '20260819-1615-distribution-source1';
   let baseRuntime = null;
   let rsvpRuntime = null;
 
@@ -28,9 +28,9 @@
     ensureSharedShellStyles();
     if (baseRuntime) return baseRuntime;
     baseRuntime = Promise.all([
-      import(moduleUrl('index.js', '20260819-2355-distribution16')),
+      import(moduleUrl('index.js', '20260819-1615-distribution-source1')),
       import(moduleUrl('ui-copy.js', '20260814-1532-uicopy3')),
-      import(moduleUrl('tables-lazy-loader.js', '20260816-1916-idle1'))
+      import(moduleUrl('tables-lazy-loader.js', '20260819-1615-distribution-source1'))
     ]).catch((error) => {
       console.error('No se pudo iniciar Invitados:', error);
       baseRuntime = null;
