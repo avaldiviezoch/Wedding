@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="css/legacy/applu-style-01.css">
   <link rel="stylesheet" href="css/core/auth-guard.css?v=20260817171255">
   <link rel="stylesheet" href="css/modules/auth-premium.css?v=20260814-1144-auth1">
-  <link rel="stylesheet" href="css/modules/invitaciones.css?v=20260817-layout-refine-v5">
+  <link rel="stylesheet" href="css/modules/invitaciones.css?v=20260817-layout-refine-v5">\n  <link rel="stylesheet" href="css/core/module-context-bar.css?v=20260819-module-context1">
 </head>
 
 <body class="auth-locked">
@@ -175,10 +175,29 @@
     </div>
   </section>
 
-  <nav class="module-quick-nav" id="moduleQuickNav" aria-label="Navegación rápida entre módulos">
-    <button class="module-quick-home" id="moduleQuickHome" type="button">← Volver al menú</button>
-    <div class="module-quick-scroll">
+  <nav class="module-quick-nav" id="moduleQuickNav" aria-label="Navegación y contexto de la boda">
+    <button class="module-quick-home" id="moduleQuickHome" type="button" aria-label="Volver al menú">Volver al menú</button>
+    <button class="module-mobile-tabs" id="moduleMobileTabs" type="button" aria-label="Mostrar módulos">Módulos</button>
+    <div class="module-quick-scroll" aria-label="Cambiar de módulo">
       <button class="module-quick-tab" type="button" data-quick-module="checklist">Checklist</button><button class="module-quick-tab" type="button" data-quick-module="presupuesto">Presupuesto</button><button class="module-quick-tab" type="button" data-quick-module="proveedores">Proveedores</button><button class="module-quick-tab" type="button" data-quick-module="invitados">Invitados</button><button class="module-quick-tab" type="button" data-quick-module="distribucion">Distribución</button><button class="module-quick-tab" type="button" data-quick-module="cronograma">Cronograma</button><button class="module-quick-tab" type="button" data-quick-module="invitaciones">Invitaciones</button><button class="module-quick-tab" type="button" data-quick-module="musica">Música</button>
+    </div>
+    <div class="module-context-actions">
+      <button class="module-context-chip" id="moduleWeddingButton" type="button" aria-label="Cambiar boda o administrar accesos">
+        <span class="module-context-label">Boda activa</span>
+        <strong class="module-context-name" id="moduleWeddingName">Mi boda</strong>
+        <span class="module-context-role" id="moduleWeddingRole">Propietario</span>
+      </button>
+      <div class="module-account-wrap" id="moduleAccountWrap">
+        <button class="module-account-chip" id="moduleAccountButton" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Abrir cuenta">
+          <img class="module-account-avatar" id="moduleAccountAvatar" alt="">
+          <span class="module-account-initials" id="moduleAccountInitials">MGD</span>
+        </button>
+        <div class="module-account-popover" role="dialog" aria-label="Cuenta activa">
+          <strong id="moduleAccountName">Mi cuenta</strong>
+          <span id="moduleAccountEmail"></span>
+          <button class="module-account-logout" id="moduleContextLogout" type="button">Cerrar sesión</button>
+        </div>
+      </div>
     </div>
   </nav>
 
@@ -187,7 +206,7 @@
   <button class="unified-home-button" id="unifiedHomeButton" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="m15 18-6-6 6-6"/></svg>Volver al menú</button>
   <div class="unified-loader" id="unifiedLoader" aria-hidden="true"><div class="unified-loader-card"><div class="unified-loader-spinner"></div><strong id="unifiedLoaderText">Abriendo módulo…</strong></div></div>
 
-  <script src="js/core/accordion-fast.js?v=20260819041445-nav"></script>
+  <script src="js/core/accordion-fast.js?v=20260819041445-nav"></script>\n  <script src="js/core/module-context-bar.js?v=20260819-module-context1"></script>
   <script src="js/core/menu-fast.js?v=20260819-tab-resume1"></script>
   <script src="js/modules/invitados/runtime-loader.js?v=20260819-2550-rsvp-music-list1"></script>
   <script src="js/modules/invitaciones/index.js?v=20260819043411-bfdb0fee-invitaciones"></script>
