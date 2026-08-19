@@ -10,7 +10,7 @@ import {
   rsvpEmbedCode,
   saveRsvpConfig,
   subscribeRsvpResponses
-} from './rsvp-service.js?v=20260819-2100-rsvp-guide1';
+} from './rsvp-service.js?v=20260819-2330-music-gate1';
 import { db, getWeddingContext } from '../../services/firebase.js?v=20260814-1136-collab1';
 import {
   collection,
@@ -24,7 +24,7 @@ import {
 
 export const moduleId = 'invitados';
 
-const RSVP_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2100-rsvp-guide1';
+const RSVP_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2330-music-gate1';
 
 function musicEmbedCode(token) {
   const cleanToken = String(token || '').trim();
