@@ -1,5 +1,5 @@
 export const moduleId='distribucion';
-const V='20260817-1648-link3';
+const V='20260819-2355-distribution16';
 const GK='planificador_bodas_invitados_v1';
 const SK='planificador_bodas_datos_compartidos_v1';
 const LK='migrandia_distribucion_invitados_link_v1';
@@ -10,7 +10,7 @@ let obs=null, lock=false, extTimer=0;
 const cp=v=>{try{return structuredClone(v)}catch(_){return JSON.parse(JSON.stringify(v))}};
 const id=p=>`${p}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`;
 const txt=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ').toLowerCase();
-const cap=(v,hi=0)=>hi>MAX?Math.max(Number(v)||10,hi):Math.min(MAX,Math.max(1,Math.round(Number(v)||10),hi));
+const cap=(v,hi=0)=>Math.min(MAX,Math.max(4,Math.round(Number(v)||10),Math.min(MAX,Math.round(Number(hi)||0))));
 const seats=(old,n)=>Array.from({length:n},(_,i)=>({...((old||[])[i]||{}),id:(old||[])[i]?.id||id('seat'),index:i}));
 function norm(x={}){
  const d={...x,guests:Array.isArray(x.guests)?x.guests.map(g=>({...g})):[],tables:Array.isArray(x.tables)?x.tables.map(t=>({...t})):[]};
@@ -80,7 +80,7 @@ function pullSnap(s,x,l,pid,initial=false){
  return norm(d);
 }
 function pushSnap(s,x,l,pid){
- const d=norm(x),p=pe(l,pid);mapTables(d,s,p,'push');guestMap(d,s,l);s.guests=d.guests.map(g=>({id:Number(l.guestIds[String(g.id)]),name:String(g.name||'Invitado'),sourceGuestId:String(g.id)}));s.guestUid=Math.max(1,...s.guests.map(g=>g.id+1));
+ const d=norm(x),p=pe(l,pid);mapTables(d,s,p,'push');guestMap(d,s,l);s.guests=d.guests.map(g=>({id:Number(l.guestIds[String(g.id)]),name:String(g.name||'Invitado'),sourceGuestId:String(g.id),status:g.status||'',rsvpStatus:g.rsvpStatus||'',photoId:g.photoId||'',photoThumb:g.photoThumb||''}));s.guestUid=Math.max(1,...s.guests.map(g=>g.id+1));
  const gm=new Map();d.guests.forEach(g=>{if(!g.tableId)return;const k=String(g.tableId);if(!gm.has(k))gm.set(k,[]);gm.get(k).push(g)});
  d.tables.forEach(t=>{const e=lt(s).find(x=>String(x.id)===String(p.tables[String(t.id)]));if(!e)return;const n=cap(t.capacity||10);e.type='table';e.shape='table';e.label=t.name||e.label;e.capacity=n;e.sharedTableId=String(t.id);e.sharedTableType=t.type||'round';e.seats=Array(n).fill(null);(gm.get(String(t.id))||[]).forEach(g=>{const i=Number(g.seatNumber)-1,v=Number(l.guestIds[String(g.id)]);if(Number.isInteger(i)&&i>=0&&i<n&&Number.isFinite(v)&&e.seats[i]===null)e.seats[i]=v})});p.initialized=true;p.ready=true;return s;
 }
@@ -102,5 +102,6 @@ function external(){clearTimeout(extTimer);extTimer=setTimeout(()=>document.getE
 function start(){const w=document.getElementById('unifiedWorkspace');if(!w)return;if(!obs){obs=new MutationObserver(scan);obs.observe(w,{childList:true,subtree:true})}scan()}
 window.addEventListener('migrandia:datachange',e=>{if(lock||String(e.detail?.source||'').startsWith('distribucion'))return;external()});
 window.addEventListener('storage',e=>{if(e.key===GK||e.key===SK)external()});
+window.addEventListener('message',e=>{if(e.data?.type!=='MIGRANDIA_DISTRIBUTION_CHANGED')return;document.getElementById('unifiedWorkspace')?.querySelectorAll('iframe').forEach(f=>{if(f.contentWindow!==e.source)return;const c=ctl.get(f);if(!c)return;setTimeout(()=>pull(c,false).then(()=>push(c)).catch(console.warn),60)})});
 window.MiGranDiaDistributionGuestLink=Object.freeze({version:V,syncNow(){scan();external()},readState:read});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
