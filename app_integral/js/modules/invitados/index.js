@@ -23,7 +23,7 @@ import {
 
 export const moduleId = 'invitados';
 
-const RSVP_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260816-1845-native1';
+const RSVP_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-1700-progressive-rsvp1';
 
 function musicEmbedCode(token) {
   const cleanToken = String(token || '').trim();
