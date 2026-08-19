@@ -124,6 +124,7 @@ function builderMarkup() {
         <label class="mgd-music-builder-switch"><input id="mgdMusicAskArtist" type="checkbox"> Preguntar artista</label>
         <label class="mgd-music-builder-switch"><input id="mgdMusicAskMessage" type="checkbox"> Permitir mensaje / dedicatoria</label>
       </div>
+      <div class="rsvp-note"><strong>Acceso protegido automáticamente:</strong> la encuesta solo se habilita después de que la persona confirme “Sí, asistiré”. Si aún no respondió, verá un botón para ir a Confirmación; si respondió “No” o “Por confirmar”, no podrá guardar canciones.</div>
       <div class="mgd-music-preview" id="mgdMusicPreview"></div>
       <div class="rsvp-config-footer"><button class="rsvp-btn primary" id="mgdSaveMusicConfig" type="button">Guardar encuesta de música</button></div>
     </div>`;
