@@ -1,10 +1,18 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260817-1932-distribucion-integrada1';
+  const VERSION = '20260818-auth-perf1';
   let passthrough = false;
   let queuedClick = false;
-  let authPoll = 0;
+
+  function preloadAuthCore() {
+    if (document.querySelector('link[data-mgd-auth-preload]')) return;
+    const link = document.createElement('link');
+    link.rel = 'modulepreload';
+    link.href = new URL('js/services/firebase-core.js?v=20260818-auth-perf1', document.baseURI).href;
+    link.dataset.mgdAuthPreload = VERSION;
+    document.head.appendChild(link);
+  }
 
   function loadResponsiveCss() {
     if (!document.querySelector('link[data-mgd-home-responsive]')) {
@@ -101,6 +109,7 @@
     tryPlay();
   }
 
+  preloadAuthCore();
   loadResponsiveCss();
 
   function setMenu(open) {
@@ -113,88 +122,44 @@
     body.classList.toggle('menu-open', Boolean(open));
     button.setAttribute('aria-expanded', open ? 'true' : 'false');
     button.removeAttribute('aria-busy');
+    button.disabled = false;
     drawer.setAttribute('aria-hidden', open ? 'false' : 'true');
     backdrop.setAttribute('aria-hidden', open ? 'false' : 'true');
   }
 
   function authState() {
-    if (document.body?.classList.contains('auth-hydrating')) {
-      return { ready: true, authenticated: true, hydrating: true };
-    }
     const guard = window.WeddingPlannerAuthGuard;
-    if (!guard || !guard.ready) return { ready: false, authenticated: false, hydrating: false };
-    return { ready: true, authenticated: Boolean(guard.authenticated), hydrating: false };
+    if (!guard?.ready) return { ready: false, authenticated: false };
+    return { ready: true, authenticated: Boolean(guard.authenticated) };
   }
 
   function requestAuthNow(button) {
     const requestAuth = window.WeddingPlannerRequestAuth;
     if (typeof requestAuth !== 'function') return false;
-
     queuedClick = false;
     button?.removeAttribute('aria-busy');
     requestAuth();
     return true;
   }
 
-  function keepHydratingMenuResponsive() {
-    const button = document.getElementById('menuButton');
-    if (!button) return;
-    if (document.body.classList.contains('auth-hydrating')) {
-      button.disabled = false;
-      button.removeAttribute('aria-busy');
-    }
+  function queueUntilAuthController(button) {
+    queuedClick = true;
+    button?.setAttribute('aria-busy', 'true');
   }
 
   function releaseQueuedClick() {
     if (!queuedClick) return;
-
     const button = document.getElementById('menuButton');
     const state = authState();
 
-    if (!state.ready && requestAuthNow(button)) return;
-    if (!state.ready) return;
-
-    queuedClick = false;
-    button?.removeAttribute('aria-busy');
-
-    if (state.authenticated) {
+    if (state.ready && state.authenticated) {
+      queuedClick = false;
+      button?.removeAttribute('aria-busy');
       setMenu(true);
       return;
     }
 
     if (requestAuthNow(button)) return;
-
-    if (button) {
-      passthrough = true;
-      button.click();
-      passthrough = false;
-    }
-  }
-
-  function startAuthPoll() {
-    if (authPoll) return;
-    authPoll = window.setInterval(() => {
-      keepHydratingMenuResponsive();
-      releaseQueuedClick();
-      if (!queuedClick || authState().ready) {
-        clearInterval(authPoll);
-        authPoll = 0;
-      }
-    }, 60);
-
-    window.setTimeout(() => {
-      if (authPoll) {
-        clearInterval(authPoll);
-        authPoll = 0;
-      }
-
-      if (queuedClick) {
-        queuedClick = false;
-        const button = document.getElementById('menuButton');
-        button?.removeAttribute('aria-busy');
-        requestAuthNow(button);
-      }
-    }, 4000);
   }
 
   function bind() {
@@ -203,12 +168,8 @@
     if (!button || !backdrop || button.dataset.mgdFastMenu === VERSION) return false;
 
     button.dataset.mgdFastMenu = VERSION;
+    button.disabled = false;
     initHeroVideo();
-
-    new MutationObserver(() => {
-      keepHydratingMenuResponsive();
-      releaseQueuedClick();
-    }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
     button.addEventListener('click', (event) => {
       if (passthrough) return;
@@ -217,11 +178,7 @@
       if (!state.ready) {
         event.preventDefault();
         event.stopImmediatePropagation();
-        if (requestAuthNow(button)) return;
-
-        queuedClick = true;
-        button.setAttribute('aria-busy', 'true');
-        startAuthPoll();
+        if (!requestAuthNow(button)) queueUntilAuthController(button);
         return;
       }
 
@@ -252,9 +209,8 @@
       if (event.key === 'Escape' && document.body.classList.contains('menu-open')) setMenu(false);
     });
 
-    window.addEventListener('migrandia:wedding-context', releaseQueuedClick);
+    window.addEventListener('migrandia:auth-controller-ready', releaseQueuedClick);
     window.addEventListener('migrandia:auth', releaseQueuedClick);
-    keepHydratingMenuResponsive();
     return true;
   }
 
