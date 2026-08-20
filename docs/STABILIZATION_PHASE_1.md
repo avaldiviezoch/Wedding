@@ -95,3 +95,23 @@ Los cuatro podían modificar invitaciones, crear commits y ejecutar `git push`; 
 El retiro elimina únicamente los archivos de workflow. No se modificaron invitaciones, HTML, CSS, JavaScript productivo, datos bancarios, reglas Firestore ni contratos de datos. La lógica histórica no se migró, no se corrigieron rutas y ninguno de los workflows fue ejecutado manualmente ni reactivado durante esta tarea.
 
 Deuda histórica pendiente: revisar separadamente si la información de pago conservada en el historial Git requiere una política adicional de minimización o rotación. Esta tarea no reescribe el historial ni modifica los datos productivos.
+
+
+## Tarea intermedia — Gobernanza de workflows escritores
+
+Fecha: 2026-08-20  
+Rama: `stabilization/task-3-prerequisite-workflow-governance`
+
+Clasificación y resultado:
+
+- `install-fast-accordion.yml`: retirado. Era un instalador histórico y la referencia a `accordion-fast.js` ya existe en `applu.html` y `app_integral/applu.html`.
+- `cache-bust-auth-guard.yml`: migrado a rama y Pull Request automático.
+- `cache-bust-invite-direct.yml`: migrado a rama y Pull Request automático.
+- `cache-bust-master-theme.yml`: migrado a rama y Pull Request automático.
+- `sync-applu-runtime.yml`: migrado a rama y Pull Request automático.
+
+Los cuatro workflows conservados ya no actualizan `main` directamente. Generan una rama `automation/*`, crean un Pull Request hacia `main` y dejan la integración pendiente de `Repository validation` y revisión. No realizan merge automático.
+
+Se retiraron los triggers sobre los propios archivos YAML para evitar ejecuciones causadas por su migración. `app_integral/js/modules/invitaciones/index.js` quedó exclusivamente bajo el sincronizador de Invitaciones, eliminando la creación paralela de dos PR sobre las mismas referencias.
+
+No se modificaron `applu.html`, `app_integral/applu.html`, invitaciones, código productivo, reglas Firestore ni datos. No se ejecutó la lógica de cache-busting o sincronización durante la migración.
