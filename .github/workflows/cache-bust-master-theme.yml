@@ -2,19 +2,19 @@ name: Cache bust Master Theme
 
 on:
   push:
+    branches: [main]
     paths:
       - 'app_integral/js/core/menu-fast.js'
       - 'app_integral/js/core/master-theme-runtime.js'
       - 'app_integral/js/core/accordion-fast.js'
-      - 'app_integral/js/modules/invitaciones/index.js'
       - 'app_integral/js/services/firebase.js'
       - 'app_integral/js/legacy/applu-script-01.js'
       - 'app_integral/css/core/master-theme.css'
       - 'app_integral/css/core/master-frame-theme.css'
-      - '.github/workflows/cache-bust-master-theme.yml'
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   update-version:
@@ -36,16 +36,20 @@ jobs:
               text = p.read_text(encoding='utf-8')
               text = re.sub(r'js/core/menu-fast\.js\?v=[^"\']+', f'js/core/menu-fast.js?v={version}-master', text)
               text = re.sub(r'js/core/accordion-fast\.js\?v=[^"\']+', f'js/core/accordion-fast.js?v={version}-nav', text)
-              text = re.sub(r'js/modules/invitaciones/index\.js\?v=[^"\']+', f'js/modules/invitaciones/index.js?v={version}-invitaciones', text)
               text = re.sub(r'js/services/firebase\.js\?v=[^"\']+', f'js/services/firebase.js?v={version}-auth', text)
               text = re.sub(r'js/legacy/applu-script-01\.js\?v=[^"\']+', f'js/legacy/applu-script-01.js?v={version}-legacy', text)
               p.write_text(text, encoding='utf-8')
           PY
-      - name: Publicar cambio
+      - name: Crear Pull Request de cache bust
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           if git diff --quiet; then exit 0; fi
+          BRANCH="automation/cache-bust-master-theme-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
           git add applu.html app_integral/applu.html
-          git commit -m "Actualizar versiones de navegación [skip ci]"
-          git push
+          git commit -m "Actualizar versiones de navegación"
+          git push --set-upstream origin "$BRANCH"
+          gh pr create --base main --head "$BRANCH" --title "Automatización — Cache bust Master Theme" --body "Actualiza las referencias del tema, navegación y autenticación después de cambios en sus fuentes. Requiere Repository validation y revisión antes del merge."

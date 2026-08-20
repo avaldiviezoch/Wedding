@@ -2,12 +2,13 @@ name: Sync public applu runtime
 
 on:
   push:
+    branches: [main]
     paths:
       - 'app_integral/js/modules/invitados/**'
-      - '.github/workflows/sync-applu-runtime.yml'
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   bump-runtime:
@@ -19,26 +20,28 @@ jobs:
       - name: Update public runtime version
         shell: bash
         run: |
-          VERSION="$(date -u +%Y%m%d%H%M%S)-${GITHUB_SHA::7}"
           python - <<'PY'
           import os, re
           from pathlib import Path
           p = Path('applu.html')
           text = p.read_text(encoding='utf-8')
-          version = os.environ.get('VERSION_OVERRIDE') or os.popen('date -u +%Y%m%d%H%M%S').read().strip()
+          version = os.popen('date -u +%Y%m%d%H%M%S').read().strip()
           sha = os.environ.get('GITHUB_SHA','')[:7]
           version = f"{version}-{sha}" if sha else version
           text = re.sub(r'runtime-loader\.js\?v=[^\"]+', f'runtime-loader.js?v={version}', text)
           p.write_text(text, encoding='utf-8')
           PY
-      - name: Commit public entry update
+      - name: Crear Pull Request de runtime público
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          if git diff --quiet -- applu.html; then
-            exit 0
-          fi
+          if git diff --quiet -- applu.html; then exit 0; fi
+          BRANCH="automation/sync-applu-runtime-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
           git add applu.html
-          git commit -m "Actualizar runtime público [skip ci]"
-          git push
+          git commit -m "Actualizar runtime público"
+          git push --set-upstream origin "$BRANCH"
+          gh pr create --base main --head "$BRANCH" --title "Automatización — Actualizar runtime público" --body "Actualiza la referencia del runtime público después de cambios en Invitados. Requiere Repository validation y revisión antes del merge."
