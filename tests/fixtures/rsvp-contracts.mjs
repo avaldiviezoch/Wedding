@@ -97,4 +97,3 @@ export function managementPayloadFixture(overrides = {}) {
 export function managementDocumentId(token = TEST_IDS.activeToken, responseId = TEST_IDS.responseId) {
   return `${token}__${responseId}`;
 }
-

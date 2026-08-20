@@ -6,6 +6,7 @@ import {
   serverTimestamp,
   setDoc
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import { savePublicRsvp } from './rsvp-backend-client.js?v=20260820-5b1';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDCRuQgMjnm7KcAN_qo8AHPD3ueyis4-LY',
@@ -249,7 +250,7 @@ async function submitResponse(event) {
   status.className = 'rsvp-status';
 
   try {
-    await setDoc(doc(db, 'publicRsvp', token, 'responses', session.id), payload, { merge: true });
+    await savePublicRsvp({ db, token, responseId: session.id, editToken: session.editToken, payload });
     showSuccess(payload);
   } catch (error) {
     console.error('RSVP submit error:', error);

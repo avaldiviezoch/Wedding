@@ -12,6 +12,7 @@ import {
   setDoc,
   writeBatch
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import { listSanitizedResponses } from './rsvp-backend-client.js?v=20260820-5b1';
 
 const PUBLIC_RSVP_BASE = 'https://avaldiviezoch.github.io/Wedding/rsvp.html';
 const NATIVE_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2430-rsvp-style1';
@@ -253,13 +254,29 @@ function responseFromSnap(snap) {
   };
 }
 
+function responseFromData(data = {}) {
+  return {
+    ...data,
+    submittedAtDate: data.submittedAt?.toDate?.() || null,
+    updatedAtDate: data.updatedAt?.toDate?.() || null
+  };
+}
+
+function requiresSanitizedRead(context) {
+  return ['provider', 'viewer'].includes(context?.role);
+}
+
 function isMusicOnlyResponse(item) {
   return item?.source === 'music-widget' && !item?.attendance && !String(item?.name || '').trim();
 }
 
 export async function listRsvpResponses(token) {
-  requireWedding();
+  const context = requireWedding();
   if (!token) return [];
+  if (requiresSanitizedRead(context)) {
+    const items = await listSanitizedResponses({ weddingId: context.id, token });
+    return items.map(responseFromData).filter((item) => !isMusicOnlyResponse(item));
+  }
   try {
     const snaps = await getDocs(query(responseCollection(token), orderBy('submittedAt', 'desc')));
     return snaps.docs.map(responseFromSnap).filter((item) => !isMusicOnlyResponse(item));
@@ -274,10 +291,24 @@ export async function listRsvpResponses(token) {
 }
 
 export function subscribeRsvpResponses(token, onData, onError = console.error) {
-  requireWedding();
+  const context = requireWedding();
   if (!token) {
     onData?.([]);
     return () => {};
+  }
+  if (requiresSanitizedRead(context)) {
+    let active = true;
+    const refresh = async () => {
+      try {
+        const items = await listRsvpResponses(token);
+        if (active) onData?.(items);
+      } catch (error) {
+        if (active) onError?.(error);
+      }
+    };
+    refresh();
+    const timer = setInterval(refresh, 15000);
+    return () => { active = false; clearInterval(timer); };
   }
   const q = query(responseCollection(token), orderBy('submittedAt', 'desc'));
   return onSnapshot(q, (snaps) => {

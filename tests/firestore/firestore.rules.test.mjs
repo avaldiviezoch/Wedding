@@ -124,21 +124,25 @@ describe('RSVP público', () => {
     await assertFails(getDoc(response));
   });
 
-  test('un miembro activo puede leer respuestas y un extraño no', async () => {
+  test('solo owner, admin y editor leen respuestas completas directamente', async () => {
     await environment.withSecurityRulesDisabled(async (context) => {
       await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'response-a'), validRsvp());
     });
-    await assertSucceeds(getDoc(doc(dbFor('viewer'), 'publicRsvp', 'public-token', 'responses', 'response-a')));
-    await assertFails(getDoc(doc(dbFor('outsider'), 'publicRsvp', 'public-token', 'responses', 'response-a')));
+    for (const role of ['owner', 'admin', 'editor']) {
+      await assertSucceeds(getDoc(doc(dbFor(role), 'publicRsvp', 'public-token', 'responses', 'response-a')));
+    }
+    for (const role of ['provider', 'viewer', 'outsider']) {
+      await assertFails(getDoc(doc(dbFor(role), 'publicRsvp', 'public-token', 'responses', 'response-a')));
+    }
   });
 
-  test('una actualización pública exige conservar el editToken', async () => {
+  test('Firestore bloquea toda actualización pública directa', async () => {
     const originalToken = 'a'.repeat(40);
     await environment.withSecurityRulesDisabled(async (context) => {
       await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'response-a'), validRsvp(originalToken));
     });
     const response = doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'response-a');
-    await assertSucceeds(setDoc(response, { ...validRsvp(originalToken), notes: 'Actualización válida' }));
+    await assertFails(setDoc(response, { ...validRsvp(originalToken), notes: 'Actualización bloqueada' }));
     await assertFails(setDoc(response, validRsvp('b'.repeat(40))));
   });
 });
@@ -167,12 +171,12 @@ describe('contrato RSVP público observado', () => {
     assert.equal(stored.data().editToken, token);
   });
 
-  test('permite actualizar con el mismo editToken', async () => {
+  test('rechaza update directo aunque conserve el mismo editToken', async () => {
     const token = 'd'.repeat(40);
     await environment.withSecurityRulesDisabled(async (context) => {
       await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'same-token'), validRsvp(token));
     });
-    await assertSucceeds(updateDoc(
+    await assertFails(updateDoc(
       doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'same-token'),
       { notes: 'Actualización contractual ficticia', updatedAt: serverTimestamp() }
     ));
@@ -222,14 +226,14 @@ describe('contrato RSVP público observado', () => {
     }
   });
 
-  test('provider y viewer leen y pueden hacer update parcial sin presentar editToken', async () => {
+  test('provider y viewer no leen el secreto ni modifican respuestas directamente', async () => {
     await environment.withSecurityRulesDisabled(async (context) => {
       await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'read-only-role'), validRsvp());
     });
     for (const role of ['provider', 'viewer']) {
       const response = doc(dbFor(role), 'publicRsvp', 'public-token', 'responses', 'read-only-role');
-      await assertSucceeds(getDoc(response));
-      await assertSucceeds(updateDoc(response, { notes: `Actualización observada ${role}` }));
+      await assertFails(getDoc(response));
+      await assertFails(updateDoc(response, { notes: `Intento bloqueado ${role}` }));
     }
   });
 });
@@ -242,10 +246,10 @@ describe('contrato de música observado', () => {
     ));
   });
 
-  test('permite completar un documento de música con RSVP conservando editToken', async () => {
+  test('bloquea completar música mediante update público directo', async () => {
     const response = doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'music-then-rsvp');
     await assertSucceeds(setDoc(response, validMusicOnly()));
-    await assertSucceeds(setDoc(response, {
+    await assertFails(setDoc(response, {
       ...validRsvp(TEST_IDS.editToken),
       customData: validMusicOnly().customData
     }, { merge: true }));
@@ -328,6 +332,5 @@ test('el propietario conserva control de su documento de usuario y otros no', as
   assert.equal((await assertSucceeds(getDoc(own))).data().preference, true);
   await assertFails(getDoc(doc(dbFor('viewer'), 'users', 'owner')));
 });
-
 
 

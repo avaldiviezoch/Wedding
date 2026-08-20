@@ -2,10 +2,9 @@ import { getApp, getApps } from 'https://www.gstatic.com/firebasejs/12.17.1/fire
 import {
   doc,
   getDoc,
-  getFirestore,
-  serverTimestamp,
-  updateDoc
+  getFirestore
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import { savePublicRsvpMusic } from './rsvp-backend-client.js?v=20260820-5b1';
 
 const VERSION = '20260816-1615-rsvp-music-builder1';
 const params = new URLSearchParams(location.search);
@@ -108,7 +107,7 @@ async function saveMusic(section) {
   if(!music.songs.length){setStatus(section,'Agrega al menos una canción para guardar.','pending');if(button){button.disabled=false;button.textContent='Guardar música';}return;}
   try {
     const app=getApps().length?getApp():null; if(!app)throw new Error('firebase-not-ready'); const db=getFirestore(app);
-    await updateDoc(doc(db,'publicRsvp',token,'responses',session.id),{'customData.mgdMusic':serializeMusic(music),updatedAt:serverTimestamp()});
+    await savePublicRsvpMusic({ db, token, responseId: session.id, editToken: session.editToken, music });
     setStatus(section,'Música guardada ✓','success');
   } catch(error) {
     const code=String(error?.code||error?.message||'');

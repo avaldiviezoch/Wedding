@@ -1,6 +1,45 @@
 # Contratos RSVP observados
 
-Estado: descriptivo, basado en el código y las Firestore Rules existentes al iniciar la Tarea 5A. Este documento no prescribe el diseño futuro ni autoriza cambios de datos.
+Estado: la primera parte describe el baseline observado al iniciar la Tarea 5A. La sección «Estado objetivo de la Tarea 5B» documenta la mitigación implementada posteriormente; no autoriza migraciones ni cambios de datos.
+
+## Estado objetivo de la Tarea 5B
+
+La actualización de una respuesta pública existente deja de depender de una comparación imposible de demostrar en Rules. Las Rules solo conservan la creación pública; toda actualización pública pasa por la callable `updatePublicRsvpResponse`, que lee el secreto almacenado en un entorno privilegiado y lo compara con el `editToken` presentado antes de escribir.
+
+La callable admite dos operaciones idempotentes:
+
+- `rsvp`: recibe `token`, `responseId`, `editToken` y los campos RSVP permitidos; conserva `submittedAt`, el secreto almacenado, claves personalizadas preexistentes y `customData.mgdMusic`;
+- `music`: recibe los mismos identificadores y un payload musical; actualiza únicamente `customData.mgdMusic` sin sustituir el resto del RSVP.
+
+Errores públicos: `invalid-argument` para forma inválida, `not-found` para configuración inactiva o respuesta inexistente y `permission-denied` para un secreto incorrecto. Los logs registran código y clase del error, pero no tokens ni payloads. Las callables aceptan CORS para los widgets embebibles, tienen `maxInstances: 10` y no desactivan las validaciones de aplicación mediante una política global.
+
+### Lectura administrativa sanitizada
+
+La callable `listSanitizedRsvpResponses` exige Firebase Auth y obtiene la membresía desde Firestore, sin confiar en roles enviados por el cliente. La política queda así:
+
+| Rol | Lectura directa completa | Lectura sanitizada | Escritura administrativa |
+|---|---:|---:|---:|
+| owner / admin / editor | sí | no necesaria | sí |
+| provider / viewer | no | sí, sin `editToken` | no |
+| usuario ajeno o anónimo | no | no | no |
+
+La lectura sanitizada pagina hasta 100 respuestas por llamada y elimina `editToken` en el servidor. El panel usa sondeo cada 15 segundos para provider/viewer; los roles editables conservan el listener Firestore en tiempo real.
+
+### Compatibilidad y despliegue seguro
+
+La creación pública directa se conserva para no romper sesiones nuevas. Si el backend aún no existe, el cliente solo usa esa vía como compatibilidad para crear una respuesta inexistente; nunca usa el fallback para actualizar una respuesta existente. El orden de despliegue obligatorio es:
+
+1. desplegar las Functions y verificar ambas callables;
+2. publicar los clientes que llaman al backend y comprobar creación/edición/música;
+3. desplegar las Rules que cierran updates y lecturas directas;
+4. verificar owner/admin/editor, provider/viewer y un usuario ajeno;
+5. observar errores antes de retirar cualquier compatibilidad.
+
+No debe invertirse el orden: cerrar Rules antes de publicar backend y clientes impediría actualizaciones legítimas de clientes antiguos. El rollback seguro consiste en restaurar primero las Rules anteriores solo si fuera imprescindible mantener servicio, revertir después los clientes y finalmente la Function; esa reapertura recuperaría temporalmente el riesgo del baseline y debe quedar limitada al incidente.
+
+### Riesgo residual aceptado
+
+No se rotan ni migran secretos históricos. Un provider/viewer que hubiese leído previamente un `editToken` podría conservarlo y usar la callable como poseedor del secreto. La mitigación impide nuevas exposiciones y exige presentar el token, pero no invalida secretos ya divulgados. Se registra como `MGD-DEBT-004`; resolverlo requiere una migración/rotación explícita fuera de esta tarea.
 
 ## Alcance y método
 
@@ -197,4 +236,3 @@ La suite amplía la cobertura sobre:
 ## Primera recomendación de consolidación futura
 
 Antes de centralizar escritores, definir y probar una operación única de actualización parcial que preserve `customData.mgdMusic` y el `editToken`. Debe introducirse en una tarea posterior con prueba de regresión, compatibilidad hacia atrás y rollback claro; este documento no autoriza implementarla.
-

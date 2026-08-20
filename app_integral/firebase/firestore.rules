@@ -305,23 +305,16 @@ service cloud.firestore {
             || validMusicOnlySubmission(token)
           );
 
-        allow update: if (
-            publicRsvpActive(token)
-            && (
-              validRsvpSubmission(token)
-              || validMusicOnlySubmission(token)
-            )
-            && resource.data.editToken is string
-            && request.resource.data.editToken == resource.data.editToken
-          ) || (
-            signedIn()
-            && canEditPlanner(publicRsvpWedding(token))
-          );
+        // Las actualizaciones públicas pasan por Cloud Functions, donde el
+        // editToken presentado se compara de forma explícita con el almacenado.
+        // Firestore directo queda reservado a los roles administrativos editables.
+        allow update: if signedIn()
+          && canEditPlanner(publicRsvpWedding(token));
 
         // Las respuestas nunca son legibles públicamente. El vínculo entre
         // RSVP y Música se realiza mediante token + responseId + editToken.
         allow read: if signedIn()
-          && hasActiveMembership(publicRsvpWedding(token));
+          && canEditPlanner(publicRsvpWedding(token));
 
         allow delete: if signedIn()
           && canEditPlanner(publicRsvpWedding(token));

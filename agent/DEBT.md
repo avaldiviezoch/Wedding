@@ -37,3 +37,15 @@ Este archivo registra soluciones temporales, código heredado y riesgos conocido
 - **Solución recomendada:** mover la sincronización de navegación a un controlador global único en `js/core` y hacer que todos los módulos consuman esa misma fuente de verdad.
 - **Condición para resolverlo:** que ningún módulo individual gestione directamente el estado visual global de la barra superior.
 - **Archivos relacionados:** `app_integral/js/modules/invitaciones/index.js`, `app_integral/js/core/router.js`, `app_integral/js/core/menu-fast.js`.
+
+## MGD-DEBT-004 — Tokens históricos RSVP potencialmente expuestos
+
+- **Área:** RSVP / seguridad y autenticación.
+- **Estado:** mitigado.
+- **Prioridad:** alta.
+- **Qué existe hoy:** las lecturas nuevas para provider/viewer se sanitizan en backend y ya no exponen `editToken`, pero esos roles pudieron leer respuestas completas antes de la Tarea 5B y conservar tokens históricos.
+- **Por qué se aceptó:** rotar tokens exige una migración de datos y coordinación con sesiones públicas existentes; el alcance aprobado acepta expresamente ese riesgo residual y prioriza cerrar nuevas exposiciones sin romper RSVP legítimos.
+- **Riesgo:** quien haya conservado un token anterior puede presentarlo al backend y editar esa respuesta como poseedor válido del secreto.
+- **Solución recomendada:** diseñar una rotación versionada de `editToken`, invalidar secretos antiguos de forma controlada y comunicar/recrear las sesiones públicas afectadas.
+- **Condición para resolverlo:** completar una migración verificada de todas las respuestas, confirmar que los clientes activos usan los nuevos secretos y demostrar que ningún token anterior autoriza una actualización.
+- **Archivos relacionados:** `functions/src/rsvp-core.mjs`, `functions/index.mjs`, `app_integral/firebase/firestore.rules`, `app_integral/js/modules/invitados/rsvp-backend-client.js`, `docs/RSVP_CONTRACTS.md`.

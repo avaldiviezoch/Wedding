@@ -3,10 +3,9 @@ import {
   doc,
   getDoc,
   getFirestore,
-  serverTimestamp,
-  setDoc,
-  updateDoc
+  serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import { savePublicRsvp, savePublicRsvpMusic } from './rsvp-backend-client.js?v=20260820-5b1';
 
 const VERSION = '20260817-2315-shared-session1';
 const firebaseConfig = {
@@ -208,7 +207,7 @@ async function installRsvp(host, token) {
         updatedAt: serverTimestamp()
       };
 
-      await setDoc(doc(db, 'publicRsvp', token, 'responses', session.id), payload, { merge: true });
+      await savePublicRsvp({ db, token, responseId: session.id, editToken: session.editToken, payload });
       host.innerHTML = `<div class="mgd-v2-success"><div class="mgd-v2-success-icon">✓</div><h3>Gracias por confirmar</h3><p>${attendance === 'confirmed' ? '¡Qué alegría! Hemos recibido tu confirmación.' : 'Tu respuesta quedó registrada correctamente.'}</p><button class="mgd-v2-button secondary" type="button" data-edit>Modificar respuesta</button></div>`;
       host.querySelector('[data-edit]')?.addEventListener('click', () => {
         installed.delete(host);
@@ -313,27 +312,8 @@ async function installMusic(host, token) {
     status.textContent = '';
     status.className = 'mgd-v2-status';
 
-    const responseRef = doc(db, 'publicRsvp', token, 'responses', session.id);
-    const musicJson = JSON.stringify(value);
-
     try {
-      try {
-        await updateDoc(responseRef, {
-          'customData.mgdMusic': musicJson,
-          updatedAt: serverTimestamp()
-        });
-      } catch (updateError) {
-        if (updateError?.code !== 'not-found') throw updateError;
-        await setDoc(responseRef, {
-          version: 1,
-          source: 'music-widget',
-          customData: { mgdMusic: musicJson },
-          editToken: session.editToken,
-          clientDate: new Date().toISOString(),
-          submittedAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        }, { merge: true });
-      }
+      await savePublicRsvpMusic({ db, token, responseId: session.id, editToken: session.editToken, music: value });
       status.textContent = '¡Gracias! Tu pedido musical fue registrado ✨';
       status.className = 'mgd-v2-status success';
     } catch (error) {
