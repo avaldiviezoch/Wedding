@@ -160,9 +160,10 @@ describe('contrato RSVP público observado', () => {
     const token = 'c'.repeat(40);
     const response = doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'keeps-token');
     await assertSucceeds(setDoc(response, validRsvp(token)));
-    const stored = await environment.withSecurityRulesDisabled(async (context) =>
-      getDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'keeps-token'))
-    );
+    let stored;
+    await environment.withSecurityRulesDisabled(async (context) => {
+      stored = await getDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'keeps-token'));
+    });
     assert.equal(stored.data().editToken, token);
   });
 
@@ -221,14 +222,14 @@ describe('contrato RSVP público observado', () => {
     }
   });
 
-  test('provider y viewer leen pero no modifican respuestas', async () => {
+  test('provider y viewer leen y pueden hacer update parcial sin presentar editToken', async () => {
     await environment.withSecurityRulesDisabled(async (context) => {
       await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'read-only-role'), validRsvp());
     });
     for (const role of ['provider', 'viewer']) {
       const response = doc(dbFor(role), 'publicRsvp', 'public-token', 'responses', 'read-only-role');
       await assertSucceeds(getDoc(response));
-      await assertFails(updateDoc(response, { notes: `Intento ${role}` }));
+      await assertSucceeds(updateDoc(response, { notes: `Actualización observada ${role}` }));
     }
   });
 });

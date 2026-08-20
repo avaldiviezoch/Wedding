@@ -89,8 +89,10 @@ El contrato de seguridad observado es:
 2. el token se guarda dentro del documento;
 3. para una actualización anónima, el nuevo documento debe conservar exactamente el token anterior;
 4. un token diferente no permite editar;
-5. las Rules no demuestran posesión criptográfica: comparan el valor presentado con el almacenado, que no es legible públicamente;
+5. las Rules no exigen que el request incluya explícitamente el token: comparan el valor del documento resultante con el almacenado;
 6. los roles administrativos editables constituyen la excepción autenticada.
+
+La suite demuestra que un `updateDoc` parcial que omite `editToken` conserva automáticamente el campo existente en `request.resource.data`. Por ello la comparación pasa sin que el cliente haya presentado el secreto. Este comportamiento también alcanza a provider/viewer y, si se conoce la ruta, al flujo público. Es una divergencia riesgosa del objetivo aparente de posesión de `editToken`.
 
 ## Gestión administrativa
 
@@ -130,7 +132,7 @@ Si ya existe RSVP, la música actualiza `customData.mgdMusic`. El documento resu
 | `rsvp-native-widget-v2.js` reproduce el contrato del widget principal pero carece de consumidor productivo demostrado | `REQUIERE INVESTIGACIÓN` | conservar hasta confirmar consumidores y comportamiento en navegador |
 | `token__responseId` no está validado por Rules | `DIVERGENCIA CONTROLADA` | la aplicación mantiene el formato; un escritor administrativo autorizado podría usar IDs arbitrarios |
 | `fields.required` se valida en UI, no dinámicamente en Rules | `COMPATIBLE CON VARIACIÓN` | Rules exige la forma y tipos, pero strings opcionales pueden estar vacíos |
-| Los miembros provider/viewer leen respuestas y gestión, pero no escriben | `COMPATIBLE` | coincide con las Rules actuales de membresía activa |
+| Provider/viewer pueden hacer un update parcial de respuesta sin presentar `editToken` | `DIVERGENCIA RIESGOSA` | el documento resultante conserva el token y satisface la comparación; los roles no editables terminan pasando por la rama pública |
 
 ## Divergencia riesgosa: posible sustitución de música
 
@@ -146,12 +148,23 @@ Secuencia potencial:
 
 Riesgo: pérdida silenciosa del payload musical de esa respuesta. No se corrigió en esta tarea. Antes de consolidar debe reproducirse en emulador o prueba de integración específica y decidirse un único comportamiento de merge.
 
+## Divergencia riesgosa: actualización sin presentar `editToken`
+
+Superficies afectadas: todas las escrituras a `publicRsvp/{token}/responses/{responseId}` y todos los clientes que conozcan esa ruta.
+
+La Rule de update compara `request.resource.data.editToken` con `resource.data.editToken`. En un `updateDoc` parcial que no incluye ese campo, Firestore construye `request.resource.data` conservando el valor anterior. La igualdad es verdadera aunque el cliente no conozca ni presente el token.
+
+La suite confirmó el comportamiento con roles provider y viewer. El mismo camino público no exige autenticación, por lo que el riesgo potencial depende de que un tercero pueda conocer o adivinar token y responseId.
+
+Riesgo: cambio no autorizado de payload, permisos más amplios de lo que sugieren los roles y debilitamiento del contrato `editToken`. No se modificaron Rules. Requiere revisión de seguridad y una corrección posterior con diseño explícito y pruebas de compatibilidad.
+
 ## Cobertura añadida
 
 La suite amplía la cobertura sobre:
 
 - rechazo de campos ausentes y tipos inválidos;
 - persistencia e inmutabilidad pública de `editToken`;
+- comportamiento observado de updates parciales que omiten `editToken`;
 - actualización pública con token correcto o incorrecto;
 - bloqueo de nuevas respuestas cuando el formulario está pausado;
 - lectura de configuración pausada por miembros;
