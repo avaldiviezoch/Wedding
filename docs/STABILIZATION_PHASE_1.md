@@ -77,3 +77,21 @@ La validación es estática: no interpreta referencias construidas dinámicament
 - Ejecución Firestore: no completada en el entorno local de preparación porque no dispone de Java para iniciar Firebase Emulator. Ejecutar `pnpm test:firestore` en CI o en un equipo con Java 21 o superior.
 - No se intentó conectar a un proyecto Firebase real como alternativa.
 
+
+## Tarea 2 — Retiro de workflows históricos
+
+Fecha de retiro: 2026-08-20  
+Rama: `stabilization/task-2-retire-historical-workflows`
+
+Se retiraron los siguientes workflows temporales después de confirmar que apuntaban a rutas raíz inexistentes y que sus objetivos históricos ya estaban incorporados en las invitaciones canónicas:
+
+- `ajuste-nuestra-boda-invitacion-1.yml`;
+- `aplicar-cronograma-final-invitacion-2.yml`;
+- `fix-presentes-3-bank.yml`;
+- `patch-regalos-invitacion-1.yml`.
+
+Los cuatro podían modificar invitaciones, crear commits y ejecutar `git push`; tres forzaban explícitamente el trabajo sobre `main`. Mantenerlos suponía riesgo de reactivar parches históricos contra rutas antiguas o de volver a publicar información de pago embebida en la automatización.
+
+El retiro elimina únicamente los archivos de workflow. No se modificaron invitaciones, HTML, CSS, JavaScript productivo, datos bancarios, reglas Firestore ni contratos de datos. La lógica histórica no se migró, no se corrigieron rutas y ninguno de los workflows fue ejecutado manualmente ni reactivado durante esta tarea.
+
+Deuda histórica pendiente: revisar separadamente si la información de pago conservada en el historial Git requiere una política adicional de minimización o rotación. Esta tarea no reescribe el historial ni modifica los datos productivos.
