@@ -13,6 +13,15 @@ import {
   setDoc,
   updateDoc
 } from 'firebase/firestore';
+import {
+  managementDocumentId,
+  managementPayloadFixture,
+  musicOnlyPayloadFixture,
+  publicConfigFixture,
+  publicRsvpPayloadFixture,
+  surfacePayloadFixtures,
+  TEST_IDS
+} from '../fixtures/rsvp-contracts.mjs';
 
 const projectId = 'demo-mi-gran-dia';
 let environment;
@@ -40,24 +49,19 @@ async function seed() {
 }
 
 function validRsvp(editToken = 'x'.repeat(40)) {
-  return {
-    version: 1,
-    name: 'Invitado de prueba',
-    attendance: 'confirmed',
-    quantity: 1,
-    companions: [],
-    menu: '',
-    email: '',
-    phone: '',
-    restriction: '',
-    notes: '',
-    customData: {},
+  return publicRsvpPayloadFixture({
     editToken,
-    clientDate: new Date(0).toISOString(),
-    source: 'public-rsvp',
     submittedAt: serverTimestamp(),
     updatedAt: serverTimestamp()
-  };
+  });
+}
+
+function validMusicOnly(editToken = TEST_IDS.editToken) {
+  return musicOnlyPayloadFixture({
+    editToken,
+    submittedAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  });
 }
 
 before(async () => {
@@ -139,11 +143,191 @@ describe('RSVP público', () => {
   });
 });
 
+describe('contrato RSVP público observado', () => {
+  test('rechaza una respuesta sin el nombre obligatorio', async () => {
+    const response = doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'missing-name');
+    const payload = validRsvp();
+    delete payload.name;
+    await assertFails(setDoc(response, payload));
+  });
+
+  test('rechaza tipos inválidos en los campos validados por Rules', async () => {
+    const response = doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'invalid-types');
+    await assertFails(setDoc(response, { ...validRsvp(), quantity: '1', companions: {} }));
+  });
+
+  test('conserva editToken después de crear una respuesta', async () => {
+    const token = 'c'.repeat(40);
+    const response = doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'keeps-token');
+    await assertSucceeds(setDoc(response, validRsvp(token)));
+    let stored;
+    await environment.withSecurityRulesDisabled(async (context) => {
+      stored = await getDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'keeps-token'));
+    });
+    assert.equal(stored.data().editToken, token);
+  });
+
+  test('permite actualizar con el mismo editToken', async () => {
+    const token = 'd'.repeat(40);
+    await environment.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'same-token'), validRsvp(token));
+    });
+    await assertSucceeds(updateDoc(
+      doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'same-token'),
+      { notes: 'Actualización contractual ficticia', updatedAt: serverTimestamp() }
+    ));
+  });
+
+  test('rechaza actualizar con editToken incorrecto', async () => {
+    await environment.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'wrong-token'), validRsvp('e'.repeat(40)));
+    });
+    await assertFails(setDoc(
+      doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'wrong-token'),
+      validRsvp('f'.repeat(40))
+    ));
+  });
+
+  test('rechaza sustituir arbitrariamente editToken', async () => {
+    await environment.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'replace-token'), validRsvp('g'.repeat(40)));
+    });
+    await assertFails(updateDoc(
+      doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'replace-token'),
+      { editToken: 'h'.repeat(40), updatedAt: serverTimestamp() }
+    ));
+  });
+
+  test('la configuración pausada bloquea nuevas respuestas públicas', async () => {
+    await assertFails(setDoc(
+      doc(dbFor(), 'publicRsvp', 'paused-token', 'responses', 'paused-response'),
+      validRsvp()
+    ));
+  });
+
+  test('un miembro puede consultar configuración pausada y un invitado no', async () => {
+    await assertSucceeds(getDoc(doc(dbFor('viewer'), 'publicRsvp', 'paused-token')));
+    await assertFails(getDoc(doc(dbFor(), 'publicRsvp', 'paused-token')));
+  });
+
+  test('owner, admin y editor conservan escritura administrativa sobre respuestas', async () => {
+    await environment.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'admin-write'), validRsvp());
+    });
+    for (const role of ['owner', 'admin', 'editor']) {
+      await assertSucceeds(updateDoc(
+        doc(dbFor(role), 'publicRsvp', 'public-token', 'responses', 'admin-write'),
+        { notes: `Revisión ficticia ${role}` }
+      ));
+    }
+  });
+
+  test('provider y viewer leen y pueden hacer update parcial sin presentar editToken', async () => {
+    await environment.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'read-only-role'), validRsvp());
+    });
+    for (const role of ['provider', 'viewer']) {
+      const response = doc(dbFor(role), 'publicRsvp', 'public-token', 'responses', 'read-only-role');
+      await assertSucceeds(getDoc(response));
+      await assertSucceeds(updateDoc(response, { notes: `Actualización observada ${role}` }));
+    }
+  });
+});
+
+describe('contrato de música observado', () => {
+  test('permite que música cree primero un documento mínimo', async () => {
+    await assertSucceeds(setDoc(
+      doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'music-first'),
+      validMusicOnly()
+    ));
+  });
+
+  test('permite completar un documento de música con RSVP conservando editToken', async () => {
+    const response = doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'music-then-rsvp');
+    await assertSucceeds(setDoc(response, validMusicOnly()));
+    await assertSucceeds(setDoc(response, {
+      ...validRsvp(TEST_IDS.editToken),
+      customData: validMusicOnly().customData
+    }, { merge: true }));
+  });
+
+  test('rechaza música con otro editToken sobre una respuesta existente', async () => {
+    await environment.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'music-wrong-token'), validRsvp(TEST_IDS.editToken));
+    });
+    await assertFails(setDoc(
+      doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'music-wrong-token'),
+      validMusicOnly('z'.repeat(40)),
+      { merge: true }
+    ));
+  });
+});
+
+describe('contrato rsvpManagement observado', () => {
+  test('usa y conserva el identificador token__responseId', async () => {
+    const id = managementDocumentId('public-token', 'management-response');
+    assert.equal(id, 'public-token__management-response');
+    const ref = doc(dbFor('editor'), 'weddings', 'wedding-a', 'rsvpManagement', id);
+    await assertSucceeds(setDoc(ref, managementPayloadFixture({
+      token: 'public-token', responseId: 'management-response', weddingId: 'wedding-a', updatedAt: serverTimestamp()
+    })));
+    assert.equal((await assertSucceeds(getDoc(ref))).data().responseId, 'management-response');
+  });
+
+  test('owner, admin y editor escriben gestión; provider y viewer solo leen', async () => {
+    for (const role of ['owner', 'admin', 'editor']) {
+      await assertSucceeds(setDoc(
+        doc(dbFor(role), 'weddings', 'wedding-a', 'rsvpManagement', `public-token__${role}`),
+        managementPayloadFixture({ token: 'public-token', responseId: role, weddingId: 'wedding-a', updatedAt: serverTimestamp() })
+      ));
+    }
+    for (const role of ['provider', 'viewer']) {
+      const ref = doc(dbFor(role), 'weddings', 'wedding-a', 'rsvpManagement', 'public-token__owner');
+      await assertSucceeds(getDoc(ref));
+      await assertFails(setDoc(ref, { reviewed: false }, { merge: true }));
+    }
+  });
+
+  test('usuario ajeno no puede leer ni escribir gestión RSVP', async () => {
+    const ref = doc(dbFor('outsider'), 'weddings', 'wedding-a', 'rsvpManagement', 'public-token__owner');
+    await assertFails(getDoc(ref));
+    await assertFails(setDoc(ref, managementPayloadFixture()));
+  });
+
+  test('Rules no validan la forma token__responseId del ID administrativo', async () => {
+    await assertSucceeds(setDoc(
+      doc(dbFor('editor'), 'weddings', 'wedding-a', 'rsvpManagement', 'id-arbitrario-observado'),
+      managementPayloadFixture({ weddingId: 'wedding-a', updatedAt: serverTimestamp() })
+    ));
+  });
+});
+
+describe('compatibilidad descriptiva de payloads', () => {
+  test('las tres superficies públicas comparten el esquema superior RSVP', () => {
+    const keys = Object.values(surfacePayloadFixtures).map((payload) => Object.keys(payload).sort());
+    assert.deepEqual(keys[1], keys[0]);
+    assert.deepEqual(keys[2], keys[0]);
+  });
+
+  test('widgets nativos incorporan música local y rsvp-public no la incorpora', () => {
+    assert.equal(surfacePayloadFixtures.rsvpPublic.customData.mgdMusic, undefined);
+    assert.equal(typeof surfacePayloadFixtures.nativeWidget.customData.mgdMusic, 'string');
+    assert.equal(typeof surfacePayloadFixtures.nativeWidgetV2.customData.mgdMusic, 'string');
+  });
+
+  test('configuración pública observada conserva weddingId y estado activo', () => {
+    const config = publicConfigFixture();
+    assert.equal(config.weddingId, TEST_IDS.weddingId);
+    assert.equal(config.active, true);
+  });
+});
+
 test('el propietario conserva control de su documento de usuario y otros no', async () => {
   const own = doc(dbFor('owner'), 'users', 'owner');
   await assertSucceeds(setDoc(own, { preference: true }));
   assert.equal((await assertSucceeds(getDoc(own))).data().preference, true);
   await assertFails(getDoc(doc(dbFor('viewer'), 'users', 'owner')));
 });
+
 
 
