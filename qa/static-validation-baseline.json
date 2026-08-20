@@ -3,11 +3,6 @@
   "findings": [
     "missing-reference|app_integral/invitacion_2_rsvp_prueba.html|../invitacion_2.html",
     "missing-reference|invitaciones/invitacion_1/invitacion_1.html|../assets/SOBRE_PROBAR.MP4",
-    "missing-reference|invitaciones/invitacion_3/invitacion_3_base.html|nombre-del-gif.gif",
-    "workflow-missing-path|.github/workflows/ajuste-nuestra-boda-invitacion-1.yml|invitacion_1.html",
-    "workflow-missing-path|.github/workflows/aplicar-cronograma-final-invitacion-2.yml|invitacion_2.html",
-    "workflow-missing-path|.github/workflows/fix-presentes-3-bank.yml|invitacion_3.html",
-    "workflow-missing-path|.github/workflows/patch-regalos-invitacion-1.yml|invitacion_1.html"
+    "missing-reference|invitaciones/invitacion_3/invitacion_3_base.html|nombre-del-gif.gif"
   ]
 }
-
