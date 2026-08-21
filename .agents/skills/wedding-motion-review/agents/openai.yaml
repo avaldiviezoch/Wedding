@@ -1,0 +1,5 @@
+interface:
+  display_name: "Wedding Motion Review"
+  short_description: "Specialist review for Mi Gran Día motion"
+policy:
+  allow_implicit_invocation: false
