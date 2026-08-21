@@ -109,3 +109,18 @@ Antes de dar por terminado un cambio:
 ## Regla de prudencia
 
 Si una refactorización amplia no es necesaria para cumplir la tarea, no hacerla. Preferir el cambio mínimo seguro, no el menor número de líneas a cualquier costo.
+
+## Autoridad de skills de Codex
+
+Las skills de este repositorio viven en `.agents/skills/` y son herramientas auxiliares de desarrollo.
+
+Orden de autoridad:
+
+1. Este `AGENTS.md`, la arquitectura y los contratos de Wedding.
+2. Seguridad, CI, Firestore Rules, política Spark/cero billing y restricciones de datos.
+3. Skills de ingeniería.
+4. Skill UI/UX principal.
+5. Skills de refinamiento visual.
+6. Skills especialistas.
+
+Ante cualquier contradicción, prevalecen los niveles superiores. Una skill nunca amplía el alcance ni autoriza refactors masivos, cambios de framework, Firebase, Rules, producción, billing, contratos o datos. Para trabajo visual, analizar primero la interfaz existente y `design-system/MASTER.md`; usar NORMAL por defecto, REFINE cuando se solicite pulido y REDESIGN solo con autorización explícita.
