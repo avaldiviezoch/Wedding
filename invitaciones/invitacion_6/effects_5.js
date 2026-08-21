@@ -221,13 +221,40 @@
     }
   }
 
+  function installInv6FirstEntrance(doc){
+    const saludo=doc.getElementById('saludoWrap');
+    const phrase=doc.querySelector('.phrase-section');
+    const paper=doc.querySelector('.paper-section');
+    if(!paper) return;
+
+    saludo?.remove();
+    phrase?.remove();
+
+    if(doc.getElementById('inv6PrimeraEntrada')) return;
+
+    const section=doc.createElement('section');
+    section.id='inv6PrimeraEntrada';
+    section.setAttribute('aria-label','Portada de Antonio y Lucero');
+    section.style.cssText='width:100%;margin:0;padding:0;background:transparent;overflow:hidden;';
+
+    const img=doc.createElement('img');
+    img.src='./assets/Primera_entrada_6.png?v=20260821-1';
+    img.alt='Antonio y Lucero';
+    img.decoding='async';
+    img.style.cssText='display:block;width:100%;height:auto;margin:0;padding:0;border:0;background:transparent;box-shadow:none;';
+
+    section.appendChild(img);
+    paper.parentNode.insertBefore(section,paper);
+  }
+
   window.inv5ApplyVisualEffects=(doc)=>{
     try{
+      installInv6FirstEntrance(doc);
       installInvitationBranding(doc);
       prepareTitleEffects(doc);
       expandPetals(doc);
     }catch(e){
-      console.warn('[Invitación 5] No se pudieron aplicar efectos visuales:',e);
+      console.warn('[Invitación 6] No se pudieron aplicar efectos visuales:',e);
     }
   };
 })();
