@@ -1,14 +1,38 @@
 # Design System V2 - Mi Gran Dia
 
-Estado: PROPUESTA / NO IMPLEMENTATION
+Estado: APPROVED FOR IMPLEMENTATION - NOT YET PRODUCTIVE
 Fecha: 2026-08-21
-Rama: `design/task-8-redesign-vision`
+Rama base: `design/task-8-redesign-vision`
+Rama de validacion final: `design/task-8a-editorial-command-validation`
 
 ## Proposito
 
-Design System V2 traduce `design-system/MASTER.md` a una propuesta ejecutable para el rediseño controlado de Mi Gran Dia. Este documento no cambia produccion; define lenguaje, tokens, componentes, estados, responsive, accesibilidad y motion para una implementacion futura.
+Design System V2 traduce `design-system/MASTER.md` a una propuesta ejecutable para el redisenio controlado de Mi Gran Dia. Este documento no cambia produccion; define lenguaje, tokens, componentes, estados, responsive, accesibilidad y motion para una implementacion futura.
 
-Direccion recomendada: `Editorial Command`.
+Direccion aprobada: `Editorial Command`.
+
+## Validacion final 8A
+
+La direccion `Editorial Command` queda aprobada para una implementacion futura y separada. La aprobacion es visual, de sistema y de estrategia CSS; no autoriza cambios productivos automaticos.
+
+Documento de validacion: `docs/UX_UI_EDITORIAL_COMMAND_VALIDATION.md`.
+
+Prototipo aislado: `prototypes/task-8a-editorial-command/`.
+
+Decisiones finales:
+
+- Tipografia base: UI `Segoe UI`, `Arial`, `sans-serif`; editorial `Georgia`, `Times New Roman`, `serif`.
+- Trial 1 (`Georgia + Segoe`) queda aprobado como base por estabilidad, calidez y disponibilidad sin dependencias.
+- Trial 2 (`Cambria + Aptos`) queda como alternativa viable, no base inicial.
+- Trial 3 (`Constantia + Trebuchet`) queda rechazado para base porque baja la densidad operativa.
+- Color: ink, warm surface y olive sostienen producto; rose y gold quedan solo como acentos emocionales.
+- Motion: microfeedback corto, reduced motion obligatorio y celebracion dosificada solo en hitos.
+- CSS: namespace de redisenio, cascade layers, tokens centrales y cero `!important` nuevo salvo excepcion temporal documentada.
+- Implementacion futura: por slices, empezando por foundation/shell/dashboard/componentes base, no por Mesas geometrica.
+
+Gate final:
+
+`EDITORIAL COMMAND APPROVED FOR IMPLEMENTATION: YES`
 
 ## Personalidad
 
@@ -49,13 +73,15 @@ Reglas:
 
 ### Tipografia
 
-- UI/producto: Inter, Segoe UI, Arial, sans-serif.
+Base aprobada:
+
+- UI/producto: Segoe UI, Arial, sans-serif.
 - Editorial/identidad: Georgia, Times New Roman, serif.
 - Decorativa: solo invitaciones o momentos muy acotados, nunca tablas o formularios.
 
 Escala propuesta:
 
-| Token | Tamaño | Uso |
+| Token | Tamanio | Uso |
 | --- | ---: | --- |
 | `--text-xs` | 12px | meta, badges |
 | `--text-sm` | 14px | secundario, controles compactos |
@@ -352,6 +378,12 @@ Propiedades:
 - cancelar timers/observers al desmontar;
 - reduced motion debe apagar desplazamientos largos y loops.
 
+Limitaciones aprobadas:
+
+- No usar celebraciones en errores, login, RSVP critico o Mesas.
+- No usar transiciones largas en navegacion principal.
+- No usar loops decorativos.
+
 ## Responsive
 
 ### 360 / 390 / 430
@@ -377,12 +409,14 @@ Propiedades:
 
 ## CSS Strategy futura
 
-- Usar namespace/capa para rediseño (`body.mgd-redesign` o equivalente).
+- Usar namespace/capa para redisenio (`body.mgd-redesign` o equivalente).
 - Tokens en `css/core`.
 - Componentes en `css/core` con responsabilidades claras.
 - Estilos de modulo en `css/modules`.
 - No sumar bloques grandes al HTML.
 - No limpiar `!important` masivamente sin migrar pantalla por pantalla.
+- Todo `!important` nuevo requiere justificacion temporal y remocion planificada.
+- La validacion 8A demostro que la direccion puede prototiparse con 0 `!important`.
 
 ## Boundaries
 
@@ -407,6 +441,7 @@ No tocar sin autorizacion explicita:
 - Baseline visual comparativo.
 - QA responsive en 360, 390, 430, 768, 1024, 1440.
 - Sin cambios de datos/Firebase/rutas publicas.
+- Sin migrar Mesas geometrica hasta tener tests de persistencia/round-trip.
 
 ## Elementos a conservar
 
@@ -420,4 +455,6 @@ No tocar sin autorizacion explicita:
 
 ## Prototipo asociado
 
-El prototipo aislado vive en `prototypes/task-8-redesign-vision/`. Usa solo HTML, CSS y JS estaticos, sin Firebase, sin datos reales y sin rutas publicas productivas.
+El prototipo inicial de vision vive en `prototypes/task-8-redesign-vision/`.
+
+La validacion final 8A vive en `prototypes/task-8a-editorial-command/`. Usa solo HTML, CSS y JS estaticos, sin Firebase, sin datos reales y sin rutas publicas productivas.
