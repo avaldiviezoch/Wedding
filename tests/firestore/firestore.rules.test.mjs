@@ -251,10 +251,10 @@ describe('contrato de música observado', () => {
   test('música → RSVP preserva mgdMusic', async () => {
     const response = doc(anonymousDb(), 'publicRsvp', 'public-token', 'responses', 'music-then-rsvp');
     await assertSucceeds(setDoc(response, validMusicOnly()));
-    await assertSucceeds(setDoc(response, {
-      ...validRsvp(),
-      customData: validMusicOnly().customData
-    }, { merge: true }));
+    const completedRsvp = validRsvp();
+    delete completedRsvp.ownerUid;
+    delete completedRsvp.submittedAt;
+    await assertSucceeds(updateDoc(response, completedRsvp));
     await environment.withSecurityRulesDisabled(async (context) => {
       const stored = await getDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'music-then-rsvp'));
       assert.equal(stored.data().customData.mgdMusic, validMusicOnly().customData.mgdMusic);
