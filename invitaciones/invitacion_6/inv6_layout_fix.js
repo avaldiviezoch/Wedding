@@ -5,6 +5,17 @@
     const copy=section?.querySelector('.inv6-first-copy');
     if(!section||!copy) return;
 
+    let note=section.querySelector('.inv6-top-note');
+    if(!note){
+      note=doc.createElement('div');
+      note.className='inv6-top-note';
+      note.setAttribute('aria-label','mi presente y todo mi futuro, contigo hasta el Laugh Tale');
+      note.innerHTML=`
+        <span class="inv6-top-note-line inv6-top-note-line-1">mi presente y todo mi futuro, contigo</span>
+        <span class="inv6-top-note-line inv6-top-note-line-2">hasta el Laugh Tale</span>`;
+      section.appendChild(note);
+    }
+
     doc.getElementById('inv6-layout-fix-style')?.remove();
     const style=doc.createElement('style');
     style.id='inv6-layout-fix-style';
@@ -28,6 +39,42 @@
         border:0 !important;
         background:transparent !important;
         box-shadow:none !important;
+      }
+      #inv6PrimeraEntrada .inv6-top-note{
+        position:absolute !important;
+        z-index:5 !important;
+        top:2.2% !important;
+        right:4.8% !important;
+        width:69% !important;
+        color:#4a433d !important;
+        text-align:right !important;
+        font-family:'Amsterdam Four','Great Vibes',cursive !important;
+        font-size:clamp(15px,3.15vw,24px) !important;
+        line-height:1.03 !important;
+        font-weight:400 !important;
+        pointer-events:none !important;
+        filter:drop-shadow(0 1px 0 rgba(255,255,255,.15));
+      }
+      #inv6PrimeraEntrada .inv6-top-note-line{
+        display:block !important;
+        width:max-content !important;
+        max-width:100% !important;
+        margin-left:auto !important;
+        overflow:hidden !important;
+        white-space:nowrap !important;
+        clip-path:inset(0 100% 0 0);
+        will-change:clip-path;
+      }
+      #inv6PrimeraEntrada .inv6-top-note-line-1{
+        animation:inv6InvisibleWriting 2.65s cubic-bezier(.22,.61,.36,1) .45s forwards;
+      }
+      #inv6PrimeraEntrada .inv6-top-note-line-2{
+        margin-top:1px !important;
+        animation:inv6InvisibleWriting 1.75s cubic-bezier(.22,.61,.36,1) 2.85s forwards;
+      }
+      @keyframes inv6InvisibleWriting{
+        from{clip-path:inset(0 100% 0 0);opacity:.72;}
+        to{clip-path:inset(0 0 0 0);opacity:1;}
       }
       #inv6PrimeraEntrada .inv6-first-copy{
         position:relative !important;
@@ -111,6 +158,12 @@
         margin-top:82px !important;
       }
       @media(max-width:540px){
+        #inv6PrimeraEntrada .inv6-top-note{
+          top:2% !important;
+          right:4.4% !important;
+          width:71% !important;
+          font-size:clamp(14px,4.15vw,18px) !important;
+        }
         #inv6PrimeraEntrada .inv6-first-copy{
           margin:-2px 0 0 !important;
           padding:26px 4.5% 78px !important;
@@ -123,6 +176,9 @@
         #inv6PrimeraEntrada .inv6-time strong{font-size:clamp(31px,10.2vw,46px) !important;}
         #inv6PrimeraEntrada .inv6-time span{font-size:clamp(12px,3.6vw,16px) !important;margin-top:8px !important;}
         .paper-section{margin-top:72px !important;}
+      }
+      @media(prefers-reduced-motion:reduce){
+        #inv6PrimeraEntrada .inv6-top-note-line{animation:none !important;clip-path:none !important;}
       }
     `;
     doc.head.appendChild(style);
