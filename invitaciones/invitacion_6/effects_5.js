@@ -1,10 +1,7 @@
 (() => {
   /*
-   * INVITACIÓN 5 — EFECTOS VISUALES
-   * ---------------------------------
-   * Regla: este archivo no modifica geometría de títulos.
-   * El efecto usa únicamente propiedades de pintura (opacity/text-shadow/color)
-   * durante la animación. No toca tamaño, márgenes, ancho, transform ni layout.
+   * INVITACIÓN 6 — EFECTOS VISUALES
+   * Base: Invitación 5.
    */
 
   if(!document.getElementById('inv5-layout-loader')){
@@ -230,21 +227,159 @@
     saludo?.remove();
     phrase?.remove();
 
-    if(doc.getElementById('inv6PrimeraEntrada')) return;
+    let section=doc.getElementById('inv6PrimeraEntrada');
+    if(!section){
+      section=doc.createElement('section');
+      section.id='inv6PrimeraEntrada';
+      section.setAttribute('aria-label','Portada de Antonio y Lucero');
+      section.innerHTML=`
+        <img class="inv6-first-image" src="./assets/Primera_entrada_6.png?v=20260821-2" alt="Antonio y Lucero" decoding="async">
+        <div class="inv6-first-copy" aria-label="Antonio y Lucero se casan el 16 de enero de 2027">
+          <div class="inv6-we-marry">NOS CASAMOS!</div>
+          <div class="inv6-couple">Lucero &amp; Antonio</div>
+          <div class="inv6-date">16.01.2027</div>
+          <div class="inv6-countdown" aria-live="polite">
+            <div class="inv6-time"><strong data-inv6-days>000</strong><span>Días</span></div>
+            <div class="inv6-time"><strong data-inv6-hours>00</strong><span>Horas</span></div>
+            <div class="inv6-time"><strong data-inv6-minutes>00</strong><span>Min.</span></div>
+            <div class="inv6-time"><strong data-inv6-seconds>00</strong><span>Seg.</span></div>
+          </div>
+        </div>`;
+      paper.parentNode.insertBefore(section,paper);
+    }
 
-    const section=doc.createElement('section');
-    section.id='inv6PrimeraEntrada';
-    section.setAttribute('aria-label','Portada de Antonio y Lucero');
-    section.style.cssText='width:100%;margin:0;padding:0;background:transparent;overflow:hidden;';
+    doc.getElementById('inv6-first-style')?.remove();
+    const style=doc.createElement('style');
+    style.id='inv6-first-style';
+    style.textContent=`
+      #inv6PrimeraEntrada{
+        position:relative;
+        width:100%;
+        margin:0;
+        padding:0;
+        background:#efe7d6;
+        overflow:hidden;
+      }
+      #inv6PrimeraEntrada .inv6-first-image{
+        display:block;
+        width:100%;
+        height:auto;
+        margin:0;
+        padding:0;
+        border:0;
+        background:transparent;
+        box-shadow:none;
+      }
+      #inv6PrimeraEntrada .inv6-first-copy{
+        position:absolute;
+        left:50%;
+        top:58.2%;
+        width:90%;
+        transform:translateX(-50%);
+        z-index:3;
+        text-align:center;
+        color:#323744;
+        pointer-events:none;
+      }
+      #inv6PrimeraEntrada .inv6-we-marry{
+        font-family:Georgia,'Times New Roman',serif;
+        font-size:clamp(25px,5.8vw,44px);
+        line-height:1;
+        letter-spacing:.015em;
+        font-weight:400;
+      }
+      #inv6PrimeraEntrada .inv6-couple{
+        margin-top:8px;
+        font-family:'Amsterdam Four','Great Vibes',cursive;
+        font-size:clamp(44px,11vw,82px);
+        line-height:.92;
+        font-weight:400;
+        color:#74794f;
+        white-space:nowrap;
+      }
+      #inv6PrimeraEntrada .inv6-date{
+        margin-top:16px;
+        font-family:Georgia,'Times New Roman',serif;
+        font-size:clamp(27px,6vw,46px);
+        line-height:1;
+        letter-spacing:.025em;
+        color:#303542;
+      }
+      #inv6PrimeraEntrada .inv6-countdown{
+        width:min(92%,560px);
+        margin:16.5% auto 0;
+        display:grid;
+        grid-template-columns:repeat(4,minmax(0,1fr));
+        color:#67704b;
+      }
+      #inv6PrimeraEntrada .inv6-time{
+        position:relative;
+        min-width:0;
+        padding:0 5px;
+      }
+      #inv6PrimeraEntrada .inv6-time + .inv6-time::before{
+        content:'';
+        position:absolute;
+        left:0;
+        top:5%;
+        width:1px;
+        height:68%;
+        background:rgba(103,112,75,.7);
+      }
+      #inv6PrimeraEntrada .inv6-time strong{
+        display:block;
+        font-family:Georgia,'Times New Roman',serif;
+        font-size:clamp(36px,9vw,68px);
+        line-height:.92;
+        font-weight:400;
+        letter-spacing:-.03em;
+      }
+      #inv6PrimeraEntrada .inv6-time span{
+        display:block;
+        margin-top:9px;
+        font-family:Georgia,'Times New Roman',serif;
+        font-size:clamp(13px,3vw,22px);
+        line-height:1;
+        font-weight:400;
+      }
+      .paper-section{
+        margin-top:56px !important;
+      }
+      @media(max-width:540px){
+        #inv6PrimeraEntrada .inv6-first-copy{top:58.6%;width:92%;}
+        #inv6PrimeraEntrada .inv6-we-marry{font-size:clamp(24px,7vw,34px);}
+        #inv6PrimeraEntrada .inv6-couple{margin-top:6px;font-size:clamp(40px,12.5vw,60px);}
+        #inv6PrimeraEntrada .inv6-date{margin-top:12px;font-size:clamp(24px,7vw,34px);}
+        #inv6PrimeraEntrada .inv6-countdown{margin-top:17.5%;width:94%;}
+        #inv6PrimeraEntrada .inv6-time strong{font-size:clamp(31px,10.5vw,48px);}
+        #inv6PrimeraEntrada .inv6-time span{font-size:clamp(12px,3.7vw,17px);margin-top:7px;}
+        .paper-section{margin-top:42px !important;}
+      }
+    `;
+    doc.head.appendChild(style);
 
-    const img=doc.createElement('img');
-    img.src='./assets/Primera_entrada_6.png?v=20260821-1';
-    img.alt='Antonio y Lucero';
-    img.decoding='async';
-    img.style.cssText='display:block;width:100%;height:auto;margin:0;padding:0;border:0;background:transparent;box-shadow:none;';
-
-    section.appendChild(img);
-    paper.parentNode.insertBefore(section,paper);
+    if(!doc.defaultView.__inv6CountdownTimer){
+      const target=new Date('2027-01-16T00:00:00-05:00').getTime();
+      const pad=n=>String(n).padStart(2,'0');
+      const render=()=>{
+        const diff=Math.max(0,target-Date.now());
+        const total=Math.floor(diff/1000);
+        const days=Math.floor(total/86400);
+        const hours=Math.floor((total%86400)/3600);
+        const minutes=Math.floor((total%3600)/60);
+        const seconds=total%60;
+        const d=doc.querySelector('[data-inv6-days]');
+        const h=doc.querySelector('[data-inv6-hours]');
+        const m=doc.querySelector('[data-inv6-minutes]');
+        const s=doc.querySelector('[data-inv6-seconds]');
+        if(d)d.textContent=String(days);
+        if(h)h.textContent=pad(hours);
+        if(m)m.textContent=pad(minutes);
+        if(s)s.textContent=pad(seconds);
+      };
+      render();
+      doc.defaultView.__inv6CountdownTimer=doc.defaultView.setInterval(render,1000);
+    }
   }
 
   window.inv5ApplyVisualEffects=(doc)=>{
