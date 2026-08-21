@@ -48,6 +48,7 @@
     <div id="introHint">Toca para entrar</div>
   </div>
 <script src="./effects_5.js?v=20260821-inv6-textos-contador-1"></script>
+<script src="./inv6_layout_fix.js?v=20260821-1647"></script>
 <script>
 (()=>{
   const frame=document.getElementById('inviteFrame');
@@ -138,6 +139,12 @@
   preview.addEventListener('error',()=>guard.classList.add('fallback'),{once:true});
   setTimeout(()=>{if(!captured&&!drawCoverFrame())guard.classList.add('fallback')},1800);
 
+  function applyInv6(doc){
+    normalizeSectionTitleSizes(doc);
+    window.inv5ApplyVisualEffects?.(doc);
+    window.inv6ApplyLayoutFix?.(doc);
+  }
+
   function resolveChild(){
     try{
       const wrapperDoc=frame.contentDocument||frame.contentWindow.document;
@@ -145,14 +152,8 @@
       if(!inner) return false;
       const doc=inner.contentDocument||inner.contentWindow.document;
       localizeAssets(doc);
-      [0,220,700,1400].forEach(delay=>setTimeout(()=>{
-        normalizeSectionTitleSizes(doc);
-        window.inv5ApplyVisualEffects?.(doc);
-      },delay));
-      if(doc.fonts?.ready) doc.fonts.ready.then(()=>{
-        normalizeSectionTitleSizes(doc);
-        window.inv5ApplyVisualEffects?.(doc);
-      }).catch(()=>{});
+      [0,220,700,1400].forEach(delay=>setTimeout(()=>applyInv6(doc),delay));
+      if(doc.fonts?.ready) doc.fonts.ready.then(()=>applyInv6(doc)).catch(()=>{});
       childEntry=doc.getElementById('entryScreen');
       childVideo=doc.getElementById('entryVideo');
       if(!childVideo||!childEntry) return false;
