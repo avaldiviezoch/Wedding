@@ -14,7 +14,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
 const PUBLIC_RSVP_BASE = 'https://avaldiviezoch.github.io/Wedding/rsvp.html';
-const NATIVE_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2430-rsvp-style1';
+const NATIVE_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260820-5b2';
 const EDITABLE_ROLES = new Set(['owner', 'admin', 'editor']);
 
 export const RSVP_ATTENDANCE = {
@@ -300,3 +300,4 @@ export async function loadPublicRsvpConfig(token) {
   if (data.active !== true) throw new Error('Este formulario RSVP ya no está activo.');
   return normalizeConfig({ ...data, token: cleanToken }, { id: data.weddingId, name: data.weddingName });
 }
+

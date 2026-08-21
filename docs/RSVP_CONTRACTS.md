@@ -1,6 +1,6 @@
 # Contratos RSVP observados
 
-Estado: descriptivo, basado en el código y las Firestore Rules existentes al iniciar la Tarea 5A. Este documento no prescribe el diseño futuro ni autoriza cambios de datos.
+Estado: la observación de Tarea 5A se conserva como historial. La sección "Contrato vigente desde Tarea 5B" al final de este documento es normativa para las respuestas nuevas.
 
 ## Alcance y método
 
@@ -197,4 +197,33 @@ La suite amplía la cobertura sobre:
 ## Primera recomendación de consolidación futura
 
 Antes de centralizar escritores, definir y probar una operación única de actualización parcial que preserve `customData.mgdMusic` y el `editToken`. Debe introducirse en una tarea posterior con prueba de regresión, compatibilidad hacia atrás y rollback claro; este documento no autoriza implementarla.
+
+## Contrato vigente desde Tarea 5B
+
+### Identidad y coste
+
+Las superficies públicas productivas autentican al invitado con Firebase Anonymous Authentication antes de escribir. La solución usa exclusivamente Firebase Authentication, Cloud Firestore y Security Rules compatibles con Spark; no incorpora Functions, Cloud Run, Cloud Build, Artifact Registry ni facturación.
+
+### Respuestas nuevas
+
+- `ownerUid` es obligatorio, coincide con `request.auth.uid` y no puede cambiarse, eliminarse ni transferirse.
+- La creación y actualización pública requieren un token de autenticación cuyo proveedor sea `anonymous`.
+- `editToken` deja de escribirse y no participa en autorización.
+- Solo el mismo UID anónimo puede actualizar su respuesta. Los cambios se limitan a los campos RSVP, `customData`, `source`, `clientDate` y `updatedAt`; `submittedAt` y `ownerUid` permanecen inmutables.
+- Las respuestas siguen sin lectura pública.
+
+### Respuestas históricas
+
+Un documento sin `ownerUid` es legacy. No recibe propietario automáticamente, no puede reclamarse mediante `editToken` y no admite actualización pública. Owner, admin y editor conservan escritura administrativa; provider y viewer conservan lectura sin escritura; un usuario ajeno no tiene acceso.
+
+La pérdida de edición pública legacy es una incompatibilidad aceptada por seguridad. La UI informa al invitado que debe solicitar el cambio a los organizadores sin alterar ni borrar la respuesta existente.
+
+### Música y campos personalizados
+
+`rsvp-public.js`, `rsvp-native-widget.js` y `rsvp-music.js` usan `rsvp-owner-client.js` como frontera única de escritura. Las actualizaciones escriben claves concretas de `customData` y preservan `customData.mgdMusic` y cualquier otra clave legítima no administrada por la superficie actual. Música puede crear primero un documento mínimo con `ownerUid` y completar después el RSVP con el mismo UID.
+
+### Superficie v2
+
+`rsvp-native-widget-v2.js` continúa sin consumidor productivo demostrado y no se promueve ni enlaza. Conserva temporalmente el contrato legacy y sus escrituras son rechazadas por las Rules nuevas. Su retiro o migración requiere confirmar consumidores externos y queda registrado en `MGD-DEBT-004`.
+
 

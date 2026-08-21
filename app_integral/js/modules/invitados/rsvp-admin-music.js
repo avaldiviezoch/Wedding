@@ -14,7 +14,7 @@ import {
 const VERSION = '20260819-2430-rsvp-style1';
 const installedDocs = new WeakMap();
 const PUBLIC_RSVP_BASE = 'https://avaldiviezoch.github.io/Wedding/rsvp.html';
-const NATIVE_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2430-rsvp-style1';
+const NATIVE_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260820-5b2';
 
 const DEFAULT_MUSIC_CONFIG = Object.freeze({
   enabled: true,
@@ -300,3 +300,4 @@ function install(doc) {
 }
 
 function scan(){const docs=[document];document.querySelectorAll('iframe').forEach((frame)=>{try{if(frame.contentDocument)docs.push(frame.contentDocument);}catch(_){}});docs.forEach(install);} const observer=new MutationObserver(scan);observer.observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('load',scan);scan();
+

@@ -37,3 +37,16 @@ Este archivo registra soluciones temporales, código heredado y riesgos conocido
 - **Solución recomendada:** mover la sincronización de navegación a un controlador global único en `js/core` y hacer que todos los módulos consuman esa misma fuente de verdad.
 - **Condición para resolverlo:** que ningún módulo individual gestione directamente el estado visual global de la barra superior.
 - **Archivos relacionados:** `app_integral/js/modules/invitaciones/index.js`, `app_integral/js/core/router.js`, `app_integral/js/core/menu-fast.js`.
+
+## MGD-DEBT-004 — Respuestas RSVP legacy sin propietario autenticado
+
+- **Área:** RSVP / seguridad y autenticación.
+- **Estado:** mitigado.
+- **Prioridad:** alta.
+- **Qué existe hoy:** las respuestas nuevas usan un `ownerUid` inmutable asociado a Firebase Anonymous Auth. Las respuestas históricas carecen de esa identidad y conservan un `editToken` que debe considerarse secreto legacy potencialmente expuesto. `rsvp-native-widget-v2.js`, sin consumidor productivo demostrado, conserva todavía el payload antiguo.
+- **Por qué se aceptó:** asignar propiedad automáticamente o aceptar una primera reclamación por `editToken` permitiría apropiaciones. No se autorizó migración, rotación ni eliminación masiva de datos.
+- **Riesgo:** los invitados históricos ya no pueden editar públicamente su respuesta y deben solicitar cambios al organizador; activar v2 como superficie productiva produciría escrituras rechazadas por las Rules nuevas.
+- **Solución recomendada:** diseñar una migración con verificación externa del invitado, retirar definitivamente `editToken` y eliminar o migrar v2 después de confirmar todos sus consumidores.
+- **Condición para resolverlo:** migración autorizada y verificada de respuestas históricas, nueva identidad entregada a sus titulares y ausencia demostrada de consumidores productivos del contrato antiguo.
+- **Archivos relacionados:** `app_integral/firebase/firestore.rules`, `app_integral/js/modules/invitados/rsvp-owner-client.js`, `app_integral/js/modules/invitados/rsvp-native-widget-v2.js`, `docs/RSVP_CONTRACTS.md`.
+

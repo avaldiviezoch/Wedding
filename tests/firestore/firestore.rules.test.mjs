@@ -16,6 +16,7 @@ import {
 import {
   managementDocumentId,
   managementPayloadFixture,
+  legacyRsvpPayloadFixture,
   musicOnlyPayloadFixture,
   publicConfigFixture,
   publicRsvpPayloadFixture,
@@ -30,6 +31,10 @@ function dbFor(uid = null, token = {}) {
   return uid
     ? environment.authenticatedContext(uid, token).firestore()
     : environment.unauthenticatedContext().firestore();
+}
+
+function anonymousDb(uid = TEST_IDS.ownerUid) {
+  return dbFor(uid, { firebase: { sign_in_provider: 'anonymous' } });
 }
 
 async function seed() {
@@ -48,17 +53,24 @@ async function seed() {
   });
 }
 
-function validRsvp(editToken = 'x'.repeat(40)) {
+function validRsvp(ownerUid = TEST_IDS.ownerUid) {
   return publicRsvpPayloadFixture({
-    editToken,
+    ownerUid,
     submittedAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   });
 }
 
-function validMusicOnly(editToken = TEST_IDS.editToken) {
+function validMusicOnly(ownerUid = TEST_IDS.ownerUid) {
   return musicOnlyPayloadFixture({
-    editToken,
+    ownerUid,
+    submittedAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  });
+}
+
+function legacyRsvp() {
+  return legacyRsvpPayloadFixture({
     submittedAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   });
@@ -118,8 +130,8 @@ describe('RSVP público', () => {
     await assertFails(getDoc(doc(dbFor(), 'publicRsvp', 'paused-token')));
   });
 
-  test('un invitado puede crear una respuesta válida, pero no leerla', async () => {
-    const response = doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'response-a');
+  test('un invitado anónimo puede crear una respuesta propia, pero no leerla', async () => {
+    const response = doc(anonymousDb(), 'publicRsvp', 'public-token', 'responses', 'response-a');
     await assertSucceeds(setDoc(response, validRsvp()));
     await assertFails(getDoc(response));
   });
@@ -132,75 +144,59 @@ describe('RSVP público', () => {
     await assertFails(getDoc(doc(dbFor('outsider'), 'publicRsvp', 'public-token', 'responses', 'response-a')));
   });
 
-  test('una actualización pública exige conservar el editToken', async () => {
-    const originalToken = 'a'.repeat(40);
+  test('el mismo UID anónimo actualiza y otro UID no', async () => {
     await environment.withSecurityRulesDisabled(async (context) => {
-      await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'response-a'), validRsvp(originalToken));
+      await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'response-a'), validRsvp());
     });
-    const response = doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'response-a');
-    await assertSucceeds(setDoc(response, { ...validRsvp(originalToken), notes: 'Actualización válida' }));
-    await assertFails(setDoc(response, validRsvp('b'.repeat(40))));
+    await assertSucceeds(updateDoc(doc(anonymousDb(), 'publicRsvp', 'public-token', 'responses', 'response-a'), { notes: 'Actualización propia' }));
+    await assertFails(updateDoc(doc(anonymousDb('anonymous-other'), 'publicRsvp', 'public-token', 'responses', 'response-a'), { notes: 'Intento ajeno' }));
   });
 });
 
 describe('contrato RSVP público observado', () => {
   test('rechaza una respuesta sin el nombre obligatorio', async () => {
-    const response = doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'missing-name');
+    const response = doc(anonymousDb(), 'publicRsvp', 'public-token', 'responses', 'missing-name');
     const payload = validRsvp();
     delete payload.name;
     await assertFails(setDoc(response, payload));
   });
 
   test('rechaza tipos inválidos en los campos validados por Rules', async () => {
-    const response = doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'invalid-types');
+    const response = doc(anonymousDb(), 'publicRsvp', 'public-token', 'responses', 'invalid-types');
     await assertFails(setDoc(response, { ...validRsvp(), quantity: '1', companions: {} }));
   });
 
-  test('conserva editToken después de crear una respuesta', async () => {
-    const token = 'c'.repeat(40);
-    const response = doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'keeps-token');
-    await assertSucceeds(setDoc(response, validRsvp(token)));
+  test('ownerUid se guarda y editToken no forma parte de una respuesta nueva', async () => {
+    const response = doc(anonymousDb(), 'publicRsvp', 'public-token', 'responses', 'keeps-owner');
+    await assertSucceeds(setDoc(response, validRsvp()));
     let stored;
     await environment.withSecurityRulesDisabled(async (context) => {
-      stored = await getDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'keeps-token'));
+      stored = await getDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'keeps-owner'));
     });
-    assert.equal(stored.data().editToken, token);
+    assert.equal(stored.data().ownerUid, TEST_IDS.ownerUid);
+    assert.equal('editToken' in stored.data(), false);
   });
 
-  test('permite actualizar con el mismo editToken', async () => {
-    const token = 'd'.repeat(40);
-    await environment.withSecurityRulesDisabled(async (context) => {
-      await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'same-token'), validRsvp(token));
-    });
-    await assertSucceeds(updateDoc(
-      doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'same-token'),
-      { notes: 'Actualización contractual ficticia', updatedAt: serverTimestamp() }
-    ));
+  test('crear exige Anonymous Auth y ownerUid igual al UID autenticado', async () => {
+    await assertFails(setDoc(doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'no-auth'), validRsvp()));
+    await assertFails(setDoc(doc(anonymousDb(), 'publicRsvp', 'public-token', 'responses', 'wrong-owner'), validRsvp('anonymous-other')));
+    await assertFails(setDoc(doc(dbFor('provider'), 'publicRsvp', 'public-token', 'responses', 'provider-create'), validRsvp('provider')));
   });
 
-  test('rechaza actualizar con editToken incorrecto', async () => {
+  test('ownerUid no puede cambiarse ni eliminarse', async () => {
     await environment.withSecurityRulesDisabled(async (context) => {
-      await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'wrong-token'), validRsvp('e'.repeat(40)));
+      await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'immutable-owner'), validRsvp());
     });
-    await assertFails(setDoc(
-      doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'wrong-token'),
-      validRsvp('f'.repeat(40))
-    ));
-  });
-
-  test('rechaza sustituir arbitrariamente editToken', async () => {
-    await environment.withSecurityRulesDisabled(async (context) => {
-      await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'replace-token'), validRsvp('g'.repeat(40)));
-    });
-    await assertFails(updateDoc(
-      doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'replace-token'),
-      { editToken: 'h'.repeat(40), updatedAt: serverTimestamp() }
-    ));
+    const ref = doc(anonymousDb(), 'publicRsvp', 'public-token', 'responses', 'immutable-owner');
+    await assertFails(updateDoc(ref, { ownerUid: 'anonymous-other' }));
+    const withoutOwner = validRsvp();
+    delete withoutOwner.ownerUid;
+    await assertFails(setDoc(ref, withoutOwner));
   });
 
   test('la configuración pausada bloquea nuevas respuestas públicas', async () => {
     await assertFails(setDoc(
-      doc(dbFor(), 'publicRsvp', 'paused-token', 'responses', 'paused-response'),
+      doc(anonymousDb(), 'publicRsvp', 'paused-token', 'responses', 'paused-response'),
       validRsvp()
     ));
   });
@@ -212,7 +208,7 @@ describe('contrato RSVP público observado', () => {
 
   test('owner, admin y editor conservan escritura administrativa sobre respuestas', async () => {
     await environment.withSecurityRulesDisabled(async (context) => {
-      await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'admin-write'), validRsvp());
+      await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'admin-write'), legacyRsvp());
     });
     for (const role of ['owner', 'admin', 'editor']) {
       await assertSucceeds(updateDoc(
@@ -222,44 +218,67 @@ describe('contrato RSVP público observado', () => {
     }
   });
 
-  test('provider y viewer leen y pueden hacer update parcial sin presentar editToken', async () => {
+  test('provider y viewer leen pero no escriben respuestas', async () => {
     await environment.withSecurityRulesDisabled(async (context) => {
       await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'read-only-role'), validRsvp());
     });
     for (const role of ['provider', 'viewer']) {
       const response = doc(dbFor(role), 'publicRsvp', 'public-token', 'responses', 'read-only-role');
       await assertSucceeds(getDoc(response));
-      await assertSucceeds(updateDoc(response, { notes: `Actualización observada ${role}` }));
+      await assertFails(updateDoc(response, { notes: `Intento ${role}` }));
     }
+  });
+
+  test('una respuesta legacy no puede actualizarse públicamente ni apropiarse con ownerUid', async () => {
+    await environment.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'legacy'), legacyRsvp());
+    });
+    await assertFails(updateDoc(doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'legacy'), { notes: 'Sin auth' }));
+    await assertFails(updateDoc(doc(anonymousDb(), 'publicRsvp', 'public-token', 'responses', 'legacy'), { ownerUid: TEST_IDS.ownerUid, notes: 'Apropiación' }));
+    await assertFails(updateDoc(doc(anonymousDb(), 'publicRsvp', 'public-token', 'responses', 'legacy'), { editToken: TEST_IDS.editToken, notes: 'Token legacy' }));
+    await assertFails(updateDoc(doc(dbFor('outsider'), 'publicRsvp', 'public-token', 'responses', 'legacy'), { notes: 'Ajeno' }));
   });
 });
 
 describe('contrato de música observado', () => {
   test('permite que música cree primero un documento mínimo', async () => {
     await assertSucceeds(setDoc(
-      doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'music-first'),
+      doc(anonymousDb(), 'publicRsvp', 'public-token', 'responses', 'music-first'),
       validMusicOnly()
     ));
   });
 
-  test('permite completar un documento de música con RSVP conservando editToken', async () => {
-    const response = doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'music-then-rsvp');
+  test('música → RSVP preserva mgdMusic', async () => {
+    const response = doc(anonymousDb(), 'publicRsvp', 'public-token', 'responses', 'music-then-rsvp');
     await assertSucceeds(setDoc(response, validMusicOnly()));
     await assertSucceeds(setDoc(response, {
-      ...validRsvp(TEST_IDS.editToken),
+      ...validRsvp(),
       customData: validMusicOnly().customData
     }, { merge: true }));
+    await environment.withSecurityRulesDisabled(async (context) => {
+      const stored = await getDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'music-then-rsvp'));
+      assert.equal(stored.data().customData.mgdMusic, validMusicOnly().customData.mgdMusic);
+    });
   });
 
-  test('rechaza música con otro editToken sobre una respuesta existente', async () => {
+  test('RSVP → música → RSVP preserva música y campos custom adicionales', async () => {
+    const response = doc(anonymousDb(), 'publicRsvp', 'public-token', 'responses', 'rsvp-music-rsvp');
+    await assertSucceeds(setDoc(response, validRsvp()));
+    await assertSucceeds(updateDoc(response, {
+      'customData.mgdMusic': validMusicOnly().customData.mgdMusic,
+      'customData.transporte': 'bus',
+      updatedAt: serverTimestamp()
+    }));
+    await assertSucceeds(updateDoc(response, { notes: 'Nueva actualización', updatedAt: serverTimestamp() }));
     await environment.withSecurityRulesDisabled(async (context) => {
-      await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'music-wrong-token'), validRsvp(TEST_IDS.editToken));
+      const stored = await getDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'rsvp-music-rsvp'));
+      assert.equal(stored.data().customData.mgdMusic, validMusicOnly().customData.mgdMusic);
+      assert.equal(stored.data().customData.transporte, 'bus');
     });
-    await assertFails(setDoc(
-      doc(dbFor(), 'publicRsvp', 'public-token', 'responses', 'music-wrong-token'),
-      validMusicOnly('z'.repeat(40)),
-      { merge: true }
-    ));
+  });
+
+  test('una respuesta sin música sigue siendo válida', async () => {
+    await assertSucceeds(setDoc(doc(anonymousDb(), 'publicRsvp', 'public-token', 'responses', 'without-music'), validRsvp()));
   });
 });
 
@@ -303,16 +322,18 @@ describe('contrato rsvpManagement observado', () => {
 });
 
 describe('compatibilidad descriptiva de payloads', () => {
-  test('las tres superficies públicas comparten el esquema superior RSVP', () => {
-    const keys = Object.values(surfacePayloadFixtures).map((payload) => Object.keys(payload).sort());
-    assert.deepEqual(keys[1], keys[0]);
-    assert.deepEqual(keys[2], keys[0]);
+  test('las superficies productivas comparten el esquema ownerUid', () => {
+    assert.deepEqual(Object.keys(surfacePayloadFixtures.nativeWidget).sort(), Object.keys(surfacePayloadFixtures.rsvpPublic).sort());
+    assert.equal(surfacePayloadFixtures.rsvpPublic.ownerUid, TEST_IDS.ownerUid);
+    assert.equal('editToken' in surfacePayloadFixtures.rsvpPublic, false);
+    assert.equal('ownerUid' in surfacePayloadFixtures.nativeWidgetV2Legacy, false);
+    assert.equal(typeof surfacePayloadFixtures.nativeWidgetV2Legacy.editToken, 'string');
   });
 
   test('widgets nativos incorporan música local y rsvp-public no la incorpora', () => {
     assert.equal(surfacePayloadFixtures.rsvpPublic.customData.mgdMusic, undefined);
     assert.equal(typeof surfacePayloadFixtures.nativeWidget.customData.mgdMusic, 'string');
-    assert.equal(typeof surfacePayloadFixtures.nativeWidgetV2.customData.mgdMusic, 'string');
+    assert.equal(typeof surfacePayloadFixtures.nativeWidgetV2Legacy.customData.mgdMusic, 'string');
   });
 
   test('configuración pública observada conserva weddingId y estado activo', () => {
@@ -328,6 +349,4 @@ test('el propietario conserva control de su documento de usuario y otros no', as
   assert.equal((await assertSucceeds(getDoc(own))).data().preference, true);
   await assertFails(getDoc(doc(dbFor('viewer'), 'users', 'owner')));
 });
-
-
 

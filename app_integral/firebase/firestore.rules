@@ -6,6 +6,11 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function anonymousRsvpUser() {
+      return signedIn()
+        && request.auth.token.firebase.sign_in_provider == 'anonymous';
+    }
+
     function authEmail() {
       return signedIn() && request.auth.token.email is string
         ? request.auth.token.email.lower()
@@ -113,7 +118,7 @@ service cloud.firestore {
           'restriction',
           'notes',
           'customData',
-          'editToken',
+          'ownerUid',
           'clientDate',
           'source',
           'submittedAt',
@@ -145,9 +150,8 @@ service cloud.firestore {
         && request.resource.data.notes.size() <= 700
         && request.resource.data.customData is map
         && request.resource.data.customData.keys().size() <= 15
-        && request.resource.data.editToken is string
-        && request.resource.data.editToken.size() >= 30
-        && request.resource.data.editToken.size() <= 180
+        && request.resource.data.ownerUid is string
+        && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.clientDate is string
         && request.resource.data.clientDate.size() <= 60
         && request.resource.data.source == 'public-rsvp';
@@ -161,7 +165,7 @@ service cloud.firestore {
           'version',
           'source',
           'customData',
-          'editToken',
+          'ownerUid',
           'clientDate',
           'submittedAt',
           'updatedAt'
@@ -173,9 +177,8 @@ service cloud.firestore {
         && request.resource.data.customData.mgdMusic is string
         && request.resource.data.customData.mgdMusic.size() > 0
         && request.resource.data.customData.mgdMusic.size() <= 8000
-        && request.resource.data.editToken is string
-        && request.resource.data.editToken.size() >= 30
-        && request.resource.data.editToken.size() <= 180
+        && request.resource.data.ownerUid is string
+        && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.clientDate is string
         && request.resource.data.clientDate.size() <= 60;
     }
@@ -299,27 +302,35 @@ service cloud.firestore {
         // RSVP y Música son formularios visualmente independientes, pero usan
         // el mismo responseId. Música puede llegar primero y RSVP completar
         // posteriormente ese mismo documento.
-        allow create: if publicRsvpActive(token)
+        allow create: if anonymousRsvpUser()
+          && publicRsvpActive(token)
           && (
             validRsvpSubmission(token)
             || validMusicOnlySubmission(token)
           );
 
         allow update: if (
-            publicRsvpActive(token)
+            anonymousRsvpUser()
+            && publicRsvpActive(token)
+            && resource.data.ownerUid is string
+            && resource.data.ownerUid == request.auth.uid
+            && request.resource.data.ownerUid == resource.data.ownerUid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'version', 'name', 'attendance', 'quantity', 'companions',
+              'menu', 'email', 'phone', 'restriction', 'notes', 'customData',
+              'clientDate', 'source', 'updatedAt'
+            ])
             && (
               validRsvpSubmission(token)
               || validMusicOnlySubmission(token)
             )
-            && resource.data.editToken is string
-            && request.resource.data.editToken == resource.data.editToken
           ) || (
             signedIn()
             && canEditPlanner(publicRsvpWedding(token))
           );
 
-        // Las respuestas nunca son legibles públicamente. El vínculo entre
-        // RSVP y Música se realiza mediante token + responseId + editToken.
+        // Las respuestas nunca son legibles públicamente. Las nuevas usan
+        // ownerUid; las históricas sin ownerUid solo admiten edición administrativa.
         allow read: if signedIn()
           && hasActiveMembership(publicRsvpWedding(token));
 
@@ -329,3 +340,4 @@ service cloud.firestore {
     }
   }
 }
+

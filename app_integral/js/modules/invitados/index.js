@@ -24,7 +24,7 @@ import {
 
 export const moduleId = 'invitados';
 
-const RSVP_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2430-rsvp-style1';
+const RSVP_WIDGET_URL = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260820-5b2';
 
 function musicEmbedCode(token) {
   const cleanToken = String(token || '').trim();
@@ -1156,3 +1156,4 @@ window.addEventListener('migrandia:wedding-context', () => {
 });
 
 if (document.readyState !== 'loading') scanFrames();
+

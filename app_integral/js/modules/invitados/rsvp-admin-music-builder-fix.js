@@ -3,7 +3,7 @@ import { doc as fsDoc, getDoc, serverTimestamp, writeBatch } from 'https://www.g
 
 const VERSION='20260816-1920-music-fast1';
 const PUBLIC_RSVP_BASE='https://avaldiviezoch.github.io/Wedding/rsvp.html';
-const NATIVE_WIDGET_URL='https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2430-rsvp-style1';
+const NATIVE_WIDGET_URL='https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260820-5b2';
 const done=new WeakSet();
 const DEFAULTS={enabled:true,title:'La música también la eligen ustedes',intro:'Ayúdanos a preparar la fiesta. Déjanos las canciones que te gustaría escuchar para tenerlas en cuenta con el DJ o grupo y que ese día solo tengas que disfrutar.',maxSongs:5,askArtist:true,askMessage:true,messageLabel:'Mensaje o dedicatoria (opcional)'};
 
@@ -38,3 +38,4 @@ function install(doc){
 function scan(){const workspace=document.getElementById('unifiedWorkspace');const docs=[document];workspace?.querySelectorAll('iframe').forEach(frame=>{try{if(frame.contentDocument)docs.push(frame.contentDocument);}catch(_){}});docs.forEach(install);}
 function bind(){const workspace=document.getElementById('unifiedWorkspace');if(workspace&&workspace.dataset.mgdMusicBuilderObserver!==VERSION){workspace.dataset.mgdMusicBuilderObserver=VERSION;new MutationObserver(scan).observe(workspace,{childList:true});workspace.querySelectorAll('iframe').forEach(frame=>frame.addEventListener('load',scan));}scan();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+
