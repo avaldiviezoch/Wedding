@@ -53,6 +53,9 @@
         line-height:1.03 !important;
         font-weight:400 !important;
         pointer-events:none !important;
+        transform:rotate(-4deg) !important;
+        transform-origin:top right !important;
+        text-shadow:0 0 .5px rgba(255,255,255,.95),0 0 1px rgba(255,255,255,.55) !important;
         filter:drop-shadow(0 1px 0 rgba(255,255,255,.15));
       }
       #inv6PrimeraEntrada .inv6-top-note-line{
