@@ -63,6 +63,7 @@
       }
       #inv6PrimeraEntrada .inv6-date{
         margin:20px 0 0 !important;
+        transform:translateY(10px) !important;
         font-family:Georgia,'Times New Roman',serif !important;
         font-size:clamp(27px,5.9vw,45px) !important;
         line-height:1 !important;
