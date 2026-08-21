@@ -107,7 +107,7 @@ async function saveMusic(section) {
   if(!music.songs.length){setStatus(section,'Agrega al menos una canción para guardar.','pending');if(button){button.disabled=false;button.textContent='Guardar música';}return;}
   try {
     const app=getApps().length?getApp():null; if(!app)throw new Error('firebase-not-ready'); const db=getFirestore(app);
-    await saveOwnedRsvpMusic({ app, db, token, responseId: session.id, music: serializeMusic(music) });
+    await saveOwnedRsvpMusic({ app, token, responseId: session.id, music: serializeMusic(music) });
     setStatus(section,'Música guardada ✓','success');
   } catch(error) {
     const code=String(error?.code||error?.message||'');

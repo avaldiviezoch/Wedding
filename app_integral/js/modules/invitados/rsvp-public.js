@@ -248,7 +248,7 @@ async function submitResponse(event) {
   status.className = 'rsvp-status';
 
   try {
-    await saveOwnedRsvp({ app, db, token, responseId: session.id, payload });
+    await saveOwnedRsvp({ app, token, responseId: session.id, payload });
     showSuccess(payload);
   } catch (error) {
     console.error('RSVP submit error:', error);

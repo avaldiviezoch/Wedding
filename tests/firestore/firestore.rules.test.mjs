@@ -136,6 +136,12 @@ describe('RSVP público', () => {
     await assertFails(getDoc(response));
   });
 
+  test('el fallback update inexistente → create permite la primera respuesta', async () => {
+    const response = doc(anonymousDb(), 'publicRsvp', 'public-token', 'responses', 'fallback-create');
+    await assertFails(updateDoc(response, { notes: 'Intento previo' }));
+    await assertSucceeds(setDoc(response, validRsvp()));
+  });
+
   test('un miembro activo puede leer respuestas y un extraño no', async () => {
     await environment.withSecurityRulesDisabled(async (context) => {
       await setDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'response-a'), validRsvp());
