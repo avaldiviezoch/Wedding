@@ -168,7 +168,12 @@
         <span class="auth-google-copy"><span class="auth-google-title">Continuar con Google</span><span class="auth-google-subtitle">Acceso rápido y seguro</span></span>
       </button>
       <div class="auth-divider">o usa tu correo</div>
-      <div class="auth-fields"><input id="authEmail" type="email" autocomplete="email" placeholder="Correo electrónico"><input id="authPassword" type="password" autocomplete="current-password" placeholder="Contraseña · mínimo 6 caracteres"></div>
+      <div class="auth-fields">
+        <label class="auth-field-label" for="authEmail">Correo electrónico</label>
+        <input id="authEmail" type="email" autocomplete="email" placeholder="Correo electrónico" aria-describedby="authStatus">
+        <label class="auth-field-label" for="authPassword">Contraseña</label>
+        <input id="authPassword" type="password" autocomplete="current-password" placeholder="Contraseña · mínimo 6 caracteres" aria-describedby="authStatus">
+      </div>
       <div class="auth-actions"><button class="auth-action" id="emailLoginButton" type="button">Ingresar</button><button class="auth-secondary" id="emailRegisterButton" type="button">Crear cuenta</button></div>
       <p class="auth-status" id="authStatus" role="status"></p>
       <p class="auth-help">Google te permitirá elegir una de las cuentas disponibles en este navegador.</p>
@@ -214,6 +219,7 @@
   <script src="js/modules/invitaciones/index.js?v=20260820163843-invitaciones"></script>
 
 <script src="js/legacy/applu-script-01.js?v=20260820163843-legacy"></script>
+  <script defer src="js/core/auth-dialog-hardening.js?v=20260821-task7b"></script>
   <script type="module" src="js/services/firebase.js?v=20260820163843-auth"></script>
   <script defer src="js/modules/configuracion/invite-direct.js?v=20260819043411-bfdb0fee-direct"></script>
 
