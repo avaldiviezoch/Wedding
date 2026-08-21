@@ -3,9 +3,9 @@ import {
   doc,
   getDoc,
   getFirestore,
-  serverTimestamp,
-  setDoc
+  serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import { LEGACY_RSVP_MESSAGE, saveOwnedRsvp } from './rsvp-owner-client.js?v=20260820-5b2';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDCRuQgMjnm7KcAN_qo8AHPD3ueyis4-LY',
@@ -42,9 +42,9 @@ function getSession() {
   const key = `migrandia_rsvp_session_${token}`;
   try {
     const saved = JSON.parse(localStorage.getItem(key) || 'null');
-    if (saved?.id && saved?.editToken) return saved;
+    if (saved?.id) return { id: saved.id };
   } catch (_) {}
-  const next = { id: makeId(), editToken: `${makeId()}${makeId()}`.replaceAll('-', '') };
+  const next = { id: makeId() };
   localStorage.setItem(key, JSON.stringify(next));
   return next;
 }
@@ -234,7 +234,6 @@ async function submitResponse(event) {
     restriction: String(document.getElementById('rsvpRestriction')?.value || '').trim().slice(0, 160),
     notes: String(document.getElementById('rsvpNotes')?.value || '').trim().slice(0, 700),
     customData: collectCustomData(),
-    editToken: session.editToken,
     clientDate: new Date().toISOString(),
     source: 'public-rsvp',
     submittedAt: serverTimestamp(),
@@ -249,12 +248,12 @@ async function submitResponse(event) {
   status.className = 'rsvp-status';
 
   try {
-    await setDoc(doc(db, 'publicRsvp', token, 'responses', session.id), payload, { merge: true });
+    await saveOwnedRsvp({ app, token, responseId: session.id, payload });
     showSuccess(payload);
   } catch (error) {
     console.error('RSVP submit error:', error);
-    status.textContent = error?.code === 'permission-denied'
-      ? 'El formulario todavía no tiene habilitados los permisos de recepción. Comunícate con los novios.'
+    status.textContent = error?.code === 'rsvp-owner-mismatch'
+      ? LEGACY_RSVP_MESSAGE
       : 'No se pudo enviar tu confirmación. Intenta nuevamente.';
     status.className = 'rsvp-status error';
     button.disabled = false;
@@ -341,3 +340,4 @@ new ResizeObserver(postHeight).observe(document.documentElement);
     renderError(error?.message || 'No fue posible cargar el formulario.');
   }
 })();
+

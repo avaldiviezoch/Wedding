@@ -5,6 +5,7 @@ export const TEST_IDS = Object.freeze({
   activeToken: 'public-contract-token-test',
   pausedToken: 'paused-contract-token-test',
   responseId: 'response-contract-test',
+  ownerUid: 'anonymous-owner',
   editToken: TEST_EDIT_TOKEN
 });
 
@@ -33,7 +34,7 @@ export function publicRsvpPayloadFixture(overrides = {}) {
     restriction: '',
     notes: '',
     customData: {},
-    editToken: TEST_IDS.editToken,
+    ownerUid: TEST_IDS.ownerUid,
     clientDate: '2000-01-01T00:00:00.000Z',
     source: 'public-rsvp',
     submittedAt: null,
@@ -50,7 +51,7 @@ export const surfacePayloadFixtures = Object.freeze({
       mgdMusic: JSON.stringify({ version: 1, songs: [{ title: 'Canción ficticia', artist: 'Artista ficticio' }], message: '' })
     }
   }),
-  nativeWidgetV2: publicRsvpPayloadFixture({
+  nativeWidgetV2Legacy: legacyRsvpPayloadFixture({
     customData: {
       mgdMusic: JSON.stringify({ version: 1, songs: [{ title: 'Canción ficticia', artist: 'Artista ficticio' }], message: '' })
     }
@@ -70,12 +71,18 @@ export function musicOnlyPayloadFixture(overrides = {}) {
         updatedAtClient: '2000-01-01T00:00:00.000Z'
       })
     },
-    editToken: TEST_IDS.editToken,
+    ownerUid: TEST_IDS.ownerUid,
     clientDate: '2000-01-01T00:00:00.000Z',
     submittedAt: null,
     updatedAt: null,
     ...overrides
   };
+}
+
+export function legacyRsvpPayloadFixture(overrides = {}) {
+  const payload = publicRsvpPayloadFixture(overrides);
+  delete payload.ownerUid;
+  return { ...payload, editToken: TEST_IDS.editToken, ...overrides };
 }
 
 export function managementPayloadFixture(overrides = {}) {
@@ -97,4 +104,5 @@ export function managementPayloadFixture(overrides = {}) {
 export function managementDocumentId(token = TEST_IDS.activeToken, responseId = TEST_IDS.responseId) {
   return `${token}__${responseId}`;
 }
+
 

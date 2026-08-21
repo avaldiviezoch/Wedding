@@ -2,10 +2,9 @@ import { getApp, getApps } from 'https://www.gstatic.com/firebasejs/12.17.1/fire
 import {
   doc,
   getDoc,
-  getFirestore,
-  serverTimestamp,
-  updateDoc
+  getFirestore
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import { LEGACY_RSVP_MESSAGE, saveOwnedRsvpMusic } from './rsvp-owner-client.js?v=20260820-5b2';
 
 const VERSION = '20260816-1615-rsvp-music-builder1';
 const params = new URLSearchParams(location.search);
@@ -56,7 +55,7 @@ function getRsvpSession() {
   if (!token) return null;
   try {
     const value = JSON.parse(localStorage.getItem(`migrandia_rsvp_session_${token}`) || 'null');
-    return value?.id && value?.editToken ? value : null;
+    return value?.id ? { id: value.id } : null;
   } catch (_) { return null; }
 }
 
@@ -108,11 +107,12 @@ async function saveMusic(section) {
   if(!music.songs.length){setStatus(section,'Agrega al menos una canción para guardar.','pending');if(button){button.disabled=false;button.textContent='Guardar música';}return;}
   try {
     const app=getApps().length?getApp():null; if(!app)throw new Error('firebase-not-ready'); const db=getFirestore(app);
-    await updateDoc(doc(db,'publicRsvp',token,'responses',session.id),{'customData.mgdMusic':serializeMusic(music),updatedAt:serverTimestamp()});
+    await saveOwnedRsvpMusic({ app, token, responseId: session.id, music: serializeMusic(music) });
     setStatus(section,'Música guardada ✓','success');
   } catch(error) {
     const code=String(error?.code||error?.message||'');
-    if(code.includes('not-found')||code.includes('firebase-not-ready')||code.includes('permission-denied')) setStatus(section, MUSIC_ONLY ? 'Tus canciones quedaron guardadas en este dispositivo. Cuando completes la confirmación desde esta invitación se asociarán automáticamente.' : 'Tus canciones están listas y se guardarán junto con tu confirmación.','pending');
+    if(error?.code === 'rsvp-owner-mismatch') setStatus(section, LEGACY_RSVP_MESSAGE, 'error');
+    else if(code.includes('firebase-not-ready')) setStatus(section, MUSIC_ONLY ? 'Tus canciones quedaron guardadas en este dispositivo. Cuando completes la confirmación desde esta invitación se asociarán automáticamente.' : 'Tus canciones están listas y se guardarán junto con tu confirmación.','pending');
     else { console.error('RSVP music save error:',error); setStatus(section,'No pudimos guardar la música ahora. Tus canciones siguen guardadas en este dispositivo.','error'); }
   } finally { if(button){button.disabled=false;button.textContent='Guardar música';} }
 }
@@ -150,3 +150,4 @@ function installMusicSection(form) {
 
 async function scan() { if(RSVP_ONLY)return; const form=document.getElementById('rsvpPublicForm'); if(!form)return; await loadMusicConfig(); installMusicSection(form); }
 const observer=new MutationObserver(scan);observer.observe(document.documentElement,{childList:true,subtree:true});scan();
+

@@ -1,5 +1,5 @@
 const VERSION='20260816-1918-native-fast1';
-const WIDGET='https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260819-2430-rsvp-style1';
+const WIDGET='https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260820-5b2';
 const done=new WeakSet();
 
 function tokenFrom(doc){
@@ -63,3 +63,4 @@ function bind(){
   scan();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+
