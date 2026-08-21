@@ -254,6 +254,7 @@ describe('contrato de música observado', () => {
     const completedRsvp = validRsvp();
     delete completedRsvp.ownerUid;
     delete completedRsvp.submittedAt;
+    delete completedRsvp.customData;
     await assertSucceeds(updateDoc(response, completedRsvp));
     await environment.withSecurityRulesDisabled(async (context) => {
       const stored = await getDoc(doc(context.firestore(), 'publicRsvp', 'public-token', 'responses', 'music-then-rsvp'));
