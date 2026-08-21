@@ -2,95 +2,196 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#fffdf8">
-  <meta name="description" content="Invitación de boda de Antonio y Lucero">
-  <title>Antonio & Lucero | Invitación</title>
-  <link rel="stylesheet" href="./styles.css">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <meta name="theme-color" content="#f1e5da">
+  <title>Antonio & Lucero</title>
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f1e5da}
+    body{min-height:100svh}
+    #inviteFrame{position:fixed;inset:0;width:100%;height:100%;border:0;background:#f1e5da;opacity:0;transition:opacity .18s ease}
+    #inviteFrame.ready{opacity:1}
+    #introGuard{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#f1e5da;overflow:hidden;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+    #introPreview{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#f1e5da;pointer-events:none;opacity:0!important;visibility:hidden!important}
+    #introPoster{position:absolute;inset:0;display:block;width:100%;height:100%;background:#f1e5da;opacity:0;pointer-events:none}
+    #introGuard.frame-ready #introPoster{opacity:1}
+    #introGuard.hide{opacity:0;pointer-events:none;transition:opacity .16s ease}
+    #introHint{position:absolute;left:50%;bottom:max(28px,env(safe-area-inset-bottom));transform:translateX(-50%);padding:10px 18px;border-radius:999px;background:rgba(241,229,218,.86);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#3d4335;font:600 15px/1.2 Georgia,'Times New Roman',serif;white-space:nowrap;box-shadow:0 6px 24px rgba(61,67,53,.12);opacity:0;transition:opacity .25s ease}
+    #introGuard.frame-ready #introHint{opacity:0}
+    #introGuard.fallback:not(.frame-ready) #introHint{opacity:1}
+    #introPreview::-webkit-media-controls,#introPreview::-webkit-media-controls-enclosure,#introPreview::-webkit-media-controls-panel,#introPreview::-webkit-media-controls-start-playback-button,#introPreview::-webkit-media-controls-overlay-play-button{display:none!important;-webkit-appearance:none!important;opacity:0!important;pointer-events:none!important}
+
+    @media (min-width:768px) and (max-width:1023px){
+      body{background:radial-gradient(circle at 18% 12%,rgba(255,255,255,.45),transparent 30%),radial-gradient(circle at 82% 88%,rgba(109,117,89,.07),transparent 30%),#e8ddd1}
+      #inviteFrame,#introGuard{left:50%;right:auto;width:min(760px,100vw);transform:translateX(-50%)}
+    }
+    @media (min-width:1024px){
+      body{background:radial-gradient(circle at 15% 18%,rgba(255,255,255,.62),transparent 29%),radial-gradient(circle at 86% 78%,rgba(109,117,89,.09),transparent 32%),linear-gradient(135deg,#e7dbcf 0%,#ddd1c5 48%,#e8ddd2 100%)}
+      body::before,body::after{content:"";position:fixed;top:0;bottom:0;width:max(0px,calc((100vw - 760px)/2));pointer-events:none;z-index:0}
+      body::before{left:0;background:linear-gradient(90deg,rgba(61,67,53,.06),transparent 72%)}
+      body::after{right:0;background:linear-gradient(270deg,rgba(61,67,53,.06),transparent 72%)}
+      #inviteFrame,#introGuard{left:50%;right:auto;top:0;bottom:0;width:min(760px,calc(100vw - 96px));height:100%;transform:translateX(-50%);border-left:1px solid rgba(91,82,70,.10);border-right:1px solid rgba(91,82,70,.10);box-shadow:0 0 44px rgba(65,54,43,.13)}
+      #introGuard{background:#f1e5da}
+      #introHint{bottom:max(34px,env(safe-area-inset-bottom))}
+    }
+    @media (min-width:1440px){#inviteFrame,#introGuard{width:780px}}
+    @media (prefers-reduced-motion:reduce){#inviteFrame,#introGuard{transition:none!important}}
+  </style>
 </head>
-<body class="intro-locked">
-  <section id="entryScreen" class="entry-screen" role="button" tabindex="0" aria-label="Toca para entrar a la invitación">
-    <video id="entryVideo" class="entry-video" playsinline webkit-playsinline preload="auto" disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback" aria-hidden="true">
-      <source src="./video_entrada.mp4" type="video/mp4">
+<body>
+  <iframe id="inviteFrame" src="./invitacion_5.html?v=20260819-2520-inv5-music-fields1" title="Invitación Antonio y Lucero" allow="autoplay; fullscreen"></iframe>
+  <div id="introGuard" role="button" tabindex="0" aria-label="Toca para entrar a la invitación">
+    <video id="introPreview" autoplay muted playsinline webkit-playsinline preload="auto" disablepictureinpicture aria-hidden="true">
+      <source src="./video_entrada.mp4#t=0.001" type="video/mp4">
     </video>
-    <div class="entry-hint">Toca para entrar</div>
-  </section>
+    <canvas id="introPoster" aria-hidden="true"></canvas>
+    <div id="introHint">Toca para entrar</div>
+  </div>
+<script src="./effects_5.js?v=20260818-1731"></script>
+<script>
+(()=>{
+  const frame=document.getElementById('inviteFrame');
+  const guard=document.getElementById('introGuard');
+  const preview=document.getElementById('introPreview');
+  const poster=document.getElementById('introPoster');
+  const ctx=poster.getContext('2d',{alpha:false});
+  let armed=false,captured=false,childVideo=null,childEntry=null;
 
-  <main id="app" class="invitation-shell">
-    <section class="hero-image-section" id="inicio" aria-label="Portada de la invitación">
-      <img
-        src="./assets/Primera_entrada_6.png"
-        alt="Portada de la invitación de Antonio y Lucero"
-        class="hero-image"
-      >
-    </section>
+  const localAssets=new Set([
+    'sake_binks.mp3','video_entrada.mp4','video_de_saludo_2.mp4','fecha_regresiva_2.png',
+    'mano_que_viene_de_la_izquierda.png','mano_que_viene_de_la_derecha.png','marco_de_fotos_2.png',
+    'ubicacion_local_2.png','fiesta_chopper_2.gif','itinerario_2.png','dress_code_2.png',
+    'confirmar invitacion_2.gif','musica_2.png','invitacion_confirmacion_2.png','regalo_2.gif',
+    'te_esperamos_2.gif','brook.gif'
+  ]);
 
-    <section class="section" id="contador" aria-labelledby="titulo-contador">
-      <p class="eyebrow">Falta poco</p>
-      <h2 id="titulo-contador">Cuenta regresiva</h2>
-      <div class="countdown" id="countdown" aria-live="polite">
-        <div><strong data-days>--</strong><span>Días</span></div>
-        <div><strong data-hours>--</strong><span>Horas</span></div>
-        <div><strong data-minutes>--</strong><span>Min</span></div>
-        <div><strong data-seconds>--</strong><span>Seg</span></div>
-      </div>
-    </section>
+  function localizeAssets(doc){
+    const changedMedia=new Set();
+    doc.querySelectorAll('[src]').forEach(el=>{
+      const raw=el.getAttribute('src')||'';
+      if(!raw||raw.startsWith('data:')||raw.startsWith('blob:')) return;
+      let clean=raw.split('#')[0].split('?')[0];
+      try{clean=decodeURIComponent(clean);}catch(e){}
+      const name=clean.substring(clean.lastIndexOf('/')+1);
+      if(!localAssets.has(name)) return;
+      const next='./'+encodeURI(name).replace(/#/g,'%23');
+      if(raw!==next){
+        el.setAttribute('src',next);
+        if(el.tagName==='VIDEO'||el.tagName==='AUDIO'||el.tagName==='SOURCE') changedMedia.add(el.closest('video,audio')||el);
+      }
+    });
+    changedMedia.forEach(media=>{try{media.load?.();}catch(e){}});
+  }
 
-    <section class="section placeholder-section" id="historia">
-      <p class="eyebrow">Nuestra historia</p>
-      <h2>Un espacio para contarla</h2>
-      <p>Esta sección queda preparada para el contenido, fotografías, video o animaciones que definamos.</p>
-    </section>
+  function getTitleCandidates(doc){
+    return [...new Set(doc.querySelectorAll([
+      'section h2','.section-title','.photo-story-title','.final-title','.location-title',
+      '.dresscode-title','.inv5-dress-code','.rsvp-title','.faq-title','.gift-title',
+      '.gift-stage-title','.music-title','.confirmation-title','.questions-title',
+      '.itinerary-title','.itinerario-title','.timeline-title'
+    ].join(',')))];
+  }
 
-    <section class="section placeholder-section" id="ubicacion">
-      <p class="eyebrow">Ceremonia y recepción</p>
-      <h2>Casa Acapulco</h2>
-      <p>Calle Acapulco 480</p>
-      <button class="button button-disabled" type="button" disabled>Mapa próximamente</button>
-    </section>
+  function normalizeSectionTitleSizes(doc){
+    const reference=doc.querySelector('.photo-story-title');
+    if(!reference) return false;
+    const size=doc.defaultView.getComputedStyle(reference).fontSize;
+    if(!size) return false;
+    getTitleCandidates(doc).forEach(el=>{
+      const text=(el.textContent||'').trim().toLowerCase();
+      const isProgramming=el.closest('#itinerarySection,.itinerary-section,[aria-label*="Itinerario"],[aria-label*="itinerario"]')||text==='nuestro día'||text==='nuestro dia'||text.includes('programación')||text.includes('programacion');
+      if(isProgramming) return;
+      el.style.setProperty('font-size',size,'important');
+    });
+    return true;
+  }
 
-    <section class="section placeholder-section" id="itinerario">
-      <p class="eyebrow">Nuestro día</p>
-      <h2>Programación</h2>
-      <div class="placeholder-card">Contenido del itinerario por definir.</div>
-    </section>
+  function sizePoster(){
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    const cssW=Math.max(1,guard.clientWidth||innerWidth);
+    const cssH=Math.max(1,guard.clientHeight||innerHeight);
+    const w=Math.max(1,Math.round(cssW*dpr)),h=Math.max(1,Math.round(cssH*dpr));
+    if(poster.width!==w||poster.height!==h){poster.width=w;poster.height=h;}
+    return {w,h};
+  }
 
-    <section class="section placeholder-section" id="dress-code">
-      <p class="eyebrow">Dress code</p>
-      <h2>Vestimenta</h2>
-      <div class="placeholder-card">Paleta, indicaciones y diseño por definir.</div>
-    </section>
+  function drawCoverFrame(){
+    if(captured||preview.readyState<2||!preview.videoWidth||!preview.videoHeight) return false;
+    try{
+      const {w,h}=sizePoster(),vw=preview.videoWidth,vh=preview.videoHeight;
+      const scale=Math.max(w/vw,h/vh),dw=vw*scale,dh=vh*scale;
+      ctx.fillStyle='#f1e5da';ctx.fillRect(0,0,w,h);ctx.drawImage(preview,(w-dw)/2,(h-dh)/2,dw,dh);
+      captured=true;guard.classList.add('frame-ready');guard.classList.remove('fallback');preview.pause();return true;
+    }catch(e){return false;}
+  }
 
-    <section class="section placeholder-section" id="regalo">
-      <p class="eyebrow">Regalos</p>
-      <h2>Un detalle para nosotros</h2>
-      <div class="placeholder-card">Métodos de regalo y texto final por definir.</div>
-    </section>
+  function preparePreview(){
+    preview.muted=true;preview.defaultMuted=true;
+    preview.setAttribute('muted','');preview.setAttribute('playsinline','');preview.setAttribute('webkit-playsinline','');
+    try{preview.currentTime=.001;}catch(e){}
+    const p=preview.play();
+    if(p&&p.then)p.then(()=>{'requestVideoFrameCallback'in preview?preview.requestVideoFrameCallback(drawCoverFrame):setTimeout(drawCoverFrame,80)}).catch(()=>setTimeout(drawCoverFrame,120));
+  }
 
-    <section class="section placeholder-section" id="confirmacion">
-      <p class="eyebrow">RSVP</p>
-      <h2>Confirma tu asistencia</h2>
-      <div class="placeholder-card">La integración definitiva con RSVP se añadirá aquí sin afectar el sistema existente.</div>
-    </section>
+  ['loadeddata','canplay','seeked'].forEach(ev=>preview.addEventListener(ev,()=>setTimeout(drawCoverFrame,0)));
+  preview.addEventListener('loadedmetadata',()=>{try{preview.currentTime=.001;}catch(e){}},{once:true});
+  preview.addEventListener('error',()=>guard.classList.add('fallback'),{once:true});
+  setTimeout(()=>{if(!captured&&!drawCoverFrame())guard.classList.add('fallback')},1800);
 
-    <section class="section placeholder-section" id="musica">
-      <p class="eyebrow">Música</p>
-      <h2>¿Qué canción no puede faltar?</h2>
-      <div class="placeholder-card">Formulario o enlace musical por definir.</div>
-    </section>
+  function resolveChild(){
+    try{
+      const wrapperDoc=frame.contentDocument||frame.contentWindow.document;
+      const inner=wrapperDoc.getElementById('inv5');
+      if(!inner) return false;
+      const doc=inner.contentDocument||inner.contentWindow.document;
+      localizeAssets(doc);
+      [0,220,700,1400].forEach(delay=>setTimeout(()=>{
+        normalizeSectionTitleSizes(doc);
+        window.inv5ApplyVisualEffects?.(doc);
+      },delay));
+      if(doc.fonts?.ready) doc.fonts.ready.then(()=>{
+        normalizeSectionTitleSizes(doc);
+        window.inv5ApplyVisualEffects?.(doc);
+      }).catch(()=>{});
+      childEntry=doc.getElementById('entryScreen');
+      childVideo=doc.getElementById('entryVideo');
+      if(!childVideo||!childEntry) return false;
+      childVideo.setAttribute('playsinline','');childVideo.setAttribute('webkit-playsinline','');childVideo.removeAttribute('controls');childVideo.controls=false;childVideo.preload='auto';
+      const hideNative=doc.createElement('style');
+      hideNative.id='inv5-hide-native-video-ui';
+      hideNative.textContent='#entryVideo::-webkit-media-controls,#entryVideo::-webkit-media-controls-enclosure,#entryVideo::-webkit-media-controls-panel,#entryVideo::-webkit-media-controls-start-playback-button,#entryVideo::-webkit-media-controls-overlay-play-button{display:none!important;-webkit-appearance:none!important;opacity:0!important;pointer-events:none!important}';
+      doc.getElementById(hideNative.id)?.remove();doc.head.appendChild(hideNative);
+      return true;
+    }catch(e){return false;}
+  }
 
-    <section class="section placeholder-section" id="preguntas">
-      <p class="eyebrow">Preguntas frecuentes</p>
-      <h2>Todo lo que necesitas saber</h2>
-      <div class="placeholder-card">Preguntas y respuestas por definir.</div>
-    </section>
+  frame.addEventListener('load',()=>{
+    frame.classList.add('ready');
+    let tries=0;
+    const timer=setInterval(()=>{tries++;if(resolveChild()||tries>40)clearInterval(timer)},100);
+  });
 
-    <footer class="section footer">
-      <p>Antonio & Lucero</p>
-      <small>16 de enero de 2027</small>
-    </footer>
-  </main>
+  function enter(){
+    if(armed)return;
+    armed=true;
+    if(!resolveChild()){armed=false;guard.classList.add('fallback');return;}
+    try{
+      preview.pause();
+      childVideo.pause();childVideo.currentTime=0;childVideo.controls=false;
+      childEntry.click();
+      const p=childVideo.play();
+      if(p&&p.then){
+        p.then(()=>{guard.classList.add('hide');setTimeout(()=>guard.remove(),180)}).catch(()=>{armed=false;guard.classList.add('fallback')});
+      }else{guard.classList.add('hide');setTimeout(()=>guard.remove(),180)}
+    }catch(e){armed=false;guard.classList.add('fallback')}
+  }
 
-  <script src="./app.js" defer></script>
+  guard.addEventListener('click',enter);
+  guard.addEventListener('touchend',e=>{e.preventDefault();enter()},{passive:false});
+  guard.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();enter()}});
+  window.addEventListener('resize',()=>{if(captured){captured=false;drawCoverFrame()}});
+  preparePreview();
+})();
+</script>
 </body>
 </html>
