@@ -16,42 +16,6 @@
       section.appendChild(note);
     }
 
-    if(!doc.getElementById('inv6-inv1-fonts')){
-      const fonts=doc.createElement('link');
-      fonts.id='inv6-inv1-fonts';
-      fonts.rel='stylesheet';
-      fonts.href='https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:wght@400;500;600&family=Montserrat:wght@400;500;600;700&display=swap';
-      doc.head.appendChild(fonts);
-    }
-
-    const second=doc.querySelector('.paper-section');
-    if(second){
-      second.classList.add('inv6-second-section');
-      second.querySelector('.countdown-overlay')?.remove();
-      const imageWrap=second.querySelector('.countdown-image-wrap');
-
-      let secondTop=second.querySelector('.inv6-second-top');
-      if(!secondTop){
-        secondTop=doc.createElement('div');
-        secondTop.className='inv6-second-top';
-        secondTop.innerHTML=`
-          <p class="inv6-second-lead">Nos encantaría que seas parte de este<br>momento tan especial para nosotros!</p>
-          <p class="inv6-second-script">¡Falta poco para el gran día y queremos<br>celebrarlo contigo!</p>`;
-        second.insertBefore(secondTop,imageWrap||second.firstChild);
-      }
-
-      let secondBottom=second.querySelector('.inv6-second-bottom');
-      if(!secondBottom){
-        secondBottom=doc.createElement('div');
-        secondBottom.className='inv6-second-bottom';
-        secondBottom.innerHTML=`
-          <p>Nada nos hará más felices<br>que celebrar nuestro amor rodeado<br>de las personas más importantes de<br>nuestras vidas!</p>
-          <span class="inv6-second-heart" aria-hidden="true">♥</span>`;
-        if(imageWrap) imageWrap.insertAdjacentElement('afterend',secondBottom);
-        else second.appendChild(secondBottom);
-      }
-    }
-
     doc.getElementById('inv6-layout-fix-style')?.remove();
     const style=doc.createElement('style');
     style.id='inv6-layout-fix-style';
@@ -193,82 +157,9 @@
         line-height:1 !important;
         font-weight:400 !important;
       }
-
-      .paper-section.inv6-second-section{
+      .paper-section{
         margin-top:82px !important;
-        padding:0 !important;
-        background:#efe7d6 !important;
-        overflow:visible !important;
       }
-      .inv6-second-section .inv6-second-top{
-        width:100% !important;
-        padding:46px 28px 24px !important;
-        text-align:center !important;
-        color:#242424 !important;
-        background:#efe7d6 !important;
-      }
-      .inv6-second-section .inv6-second-lead{
-        margin:0 auto !important;
-        font-family:'Montserrat',Arial,sans-serif !important;
-        font-size:clamp(15px,3vw,20px) !important;
-        line-height:1.08 !important;
-        font-weight:700 !important;
-        letter-spacing:-.02em !important;
-        color:#242424 !important;
-      }
-      .inv6-second-section .inv6-second-script{
-        margin:11px auto 0 !important;
-        font-family:'Great Vibes','Amsterdam Four',cursive !important;
-        font-size:clamp(23px,5.3vw,36px) !important;
-        line-height:.9 !important;
-        font-weight:400 !important;
-        color:#282828 !important;
-      }
-      .inv6-second-section .countdown-image-wrap{
-        width:76% !important;
-        margin:0 auto !important;
-        padding:0 !important;
-        background:transparent !important;
-        overflow:visible !important;
-      }
-      .inv6-second-section .countdown-image{
-        display:block !important;
-        width:100% !important;
-        height:auto !important;
-        margin:0 !important;
-        object-fit:contain !important;
-        background:transparent !important;
-      }
-      .inv6-second-section .countdown-overlay{
-        display:none !important;
-      }
-      .inv6-second-section .inv6-second-bottom{
-        position:relative !important;
-        width:100% !important;
-        margin:16px 0 0 !important;
-        padding:62px 28px 68px !important;
-        text-align:center !important;
-        color:#fffaf0 !important;
-        background:#626a45 !important;
-        clip-path:polygon(0 8%,8% 5%,17% 8%,27% 3%,36% 7%,46% 4%,57% 8%,68% 5%,79% 8%,90% 5%,100% 8%,100% 100%,0 100%) !important;
-      }
-      .inv6-second-section .inv6-second-bottom p{
-        margin:0 auto !important;
-        font-family:'Great Vibes','Amsterdam Four',cursive !important;
-        font-size:clamp(25px,5.4vw,38px) !important;
-        line-height:.88 !important;
-        font-weight:400 !important;
-        color:#fffaf0 !important;
-      }
-      .inv6-second-section .inv6-second-heart{
-        display:block !important;
-        margin-top:24px !important;
-        font-family:Georgia,'Times New Roman',serif !important;
-        font-size:20px !important;
-        line-height:1 !important;
-        color:#fff !important;
-      }
-
       @media(max-width:540px){
         #inv6PrimeraEntrada .inv6-top-note{
           top:2% !important;
@@ -287,13 +178,7 @@
         #inv6PrimeraEntrada .inv6-time{padding:0 4px !important;}
         #inv6PrimeraEntrada .inv6-time strong{font-size:clamp(31px,10.2vw,46px) !important;}
         #inv6PrimeraEntrada .inv6-time span{font-size:clamp(12px,3.6vw,16px) !important;margin-top:8px !important;}
-        .paper-section.inv6-second-section{margin-top:72px !important;}
-        .inv6-second-section .inv6-second-top{padding:38px 20px 20px !important;}
-        .inv6-second-section .inv6-second-lead{font-size:14px !important;line-height:1.08 !important;}
-        .inv6-second-section .inv6-second-script{font-size:clamp(22px,6.7vw,30px) !important;margin-top:9px !important;}
-        .inv6-second-section .countdown-image-wrap{width:78% !important;}
-        .inv6-second-section .inv6-second-bottom{margin-top:12px !important;padding:54px 22px 58px !important;}
-        .inv6-second-section .inv6-second-bottom p{font-size:clamp(23px,6.3vw,30px) !important;}
+        .paper-section{margin-top:72px !important;}
       }
       @media(prefers-reduced-motion:reduce){
         #inv6PrimeraEntrada .inv6-top-note-line{animation:none !important;clip-path:none !important;}
