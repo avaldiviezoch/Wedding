@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tarea 8A - Editorial Command</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="mgd-8a font-trial-1">
+  <div class="app-shell" data-motion="standard">
+    <aside class="sidebar" aria-label="Navegacion principal">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">MG</span><div><strong>Mi Gran Dia</strong><span>Editorial Command</span></div></div>
+      <div class="wedding-context"><span class="eyebrow">Boda activa</span><strong>Valeria & Mateo</strong><span>21 de noviembre, 2026</span></div>
+      <nav class="nav-groups">
+        <span class="nav-label">Plan</span>
+        <button class="nav-link is-active" type="button" data-view="dashboard">Inicio</button>
+        <button class="nav-link" type="button" data-view="guests">Invitados</button>
+        <button class="nav-link" type="button" data-view="rsvp">RSVP</button>
+        <span class="nav-label">Operacion</span>
+        <button class="nav-link" type="button" data-view="tables">Mesas</button>
+        <button class="nav-link" type="button" data-view="invites">Invitaciones</button>
+        <button class="nav-link" type="button" data-view="system">Sistema</button>
+      </nav>
+      <div class="account"><span class="avatar" aria-hidden="true">AD</span><div><strong>Ana Demo</strong><span>Owner mock</span></div></div>
+    </aside>
+
+    <header class="mobile-topbar">
+      <button class="icon-button" type="button" aria-label="Abrir modulos" data-action="toggle-mobile-nav">Menu</button>
+      <div><strong>Valeria & Mateo</strong><span>Guardado hace 2 min</span></div>
+      <button class="icon-button" type="button" aria-label="Abrir cuenta">AD</button>
+    </header>
+
+    <nav class="mobile-nav" aria-label="Navegacion movil">
+      <button class="mobile-nav-link is-active" type="button" data-view="dashboard">Inicio</button>
+      <button class="mobile-nav-link" type="button" data-view="guests">Invitados</button>
+      <button class="mobile-nav-link" type="button" data-view="rsvp">RSVP</button>
+      <button class="mobile-nav-link" type="button" data-view="tables">Mesas</button>
+      <button class="mobile-nav-link" type="button" data-view="system">Sistema</button>
+    </nav>
+
+    <main class="workspace">
+      <header class="page-header">
+        <div><p class="eyebrow">Validacion visual final</p><h1>Editorial Command</h1><p>Calidez editorial con estructura operativa para planificar sin ruido.</p></div>
+        <div class="header-actions"><span class="sync-state is-saved">Guardado hace 2 min</span><button class="secondary-button" type="button" data-action="show-toast">Probar guardado</button><button class="primary-button" type="button" data-action="open-modal">Nueva decision</button></div>
+      </header>
+
+      <section class="control-strip" aria-label="Controles de validacion">
+        <div class="segmented" aria-label="Pruebas tipograficas">
+          <button class="segment is-active" type="button" data-font="font-trial-1">Georgia + Segoe</button>
+          <button class="segment" type="button" data-font="font-trial-2">Cambria + Aptos</button>
+          <button class="segment" type="button" data-font="font-trial-3">Constantia + Trebuchet</button>
+        </div>
+        <button class="secondary-button" type="button" data-action="toggle-reduced">Reduced motion</button>
+      </section>
+
+      <section class="view is-visible" data-panel="dashboard">
+        <div class="dashboard-hero">
+          <div class="hero-copy"><span class="eyebrow">Hoy necesita atencion</span><h2>Cerrar 3 decisiones mantiene la boda en ritmo.</h2><p>RSVP por revisar, mesas con conflicto y presupuesto de decoracion pendiente.</p></div>
+          <div class="decision-card"><span class="eyebrow">Proxima decision</span><strong>Confirmar menu final</strong><p>Vence en 2 dias. Hay 4 restricciones alimentarias nuevas.</p><button class="primary-button" type="button">Revisar menu</button></div>
+        </div>
+        <section class="metrics-grid" aria-label="Resumen de planificacion">
+          <article class="metric"><span>Progreso</span><strong>68%</strong><p>12 tareas criticas restantes</p></article><article class="metric"><span>Invitados</span><strong>126</strong><p>18 pendientes</p></article><article class="metric"><span>RSVP</span><strong>76%</strong><p>9 respuestas nuevas</p></article><article class="metric"><span>Presupuesto</span><strong>84%</strong><p>Dentro del rango</p></article><article class="metric"><span>Mesas</span><strong>11/14</strong><p>2 conflictos activos</p></article>
+        </section>
+        <div class="content-grid">
+          <section class="panel attention-panel"><div class="panel-header"><h3>Bandeja de atencion</h3><button class="ghost-button" type="button">Ver todo</button></div><ul class="attention-list"><li><span class="badge warning">RSVP</span><strong>Familia Santos confirmo 4 asistentes</strong><small>Necesita vincular grupo y menu infantil.</small></li><li><span class="badge danger">Mesas</span><strong>Mesa Jardin excede capacidad</strong><small>10 de 8 lugares ocupados.</small></li><li><span class="badge info">Invitacion</span><strong>Preview mobile pendiente</strong><small>Revisar 390 y 430 antes de publicar.</small></li></ul></section>
+          <section class="panel timeline-panel"><div class="panel-header"><h3>Hitos cercanos</h3><span class="status success">En ritmo</span></div><ol class="timeline"><li><span>24 ago</span><strong>Menu final</strong></li><li><span>28 ago</span><strong>Distribucion de mesas</strong></li><li><span>31 ago</span><strong>Recordatorio RSVP</strong></li></ol></section>
+        </div>
+      </section>
+
+      <section class="view" data-panel="guests">
+        <div class="module-intro"><div><span class="eyebrow">Invitados</span><h2>Lista densa sin perder calidez.</h2></div><button class="primary-button" type="button">Agregar invitado</button></div>
+        <div class="toolbar"><button class="chip is-active" type="button">Todos</button><button class="chip" type="button">Pendientes</button><button class="chip" type="button">Con conflicto</button><label class="search-field">Buscar<input type="search" value="Familia" aria-label="Buscar invitado"></label></div>
+        <div class="responsive-list guests-list"><div class="list-row list-head"><span>Invitado</span><span>Grupo</span><span>RSVP</span><span>Mesa</span><span>Estado</span></div><article class="list-row"><strong>Familia Santos</strong><span>Familia</span><span>Confirmado 4</span><span>Sin mesa</span><span class="badge warning">Vincular</span></article><article class="list-row"><strong>Lucia Demo</strong><span>Amigos</span><span>Confirmado</span><span>Mesa 2</span><span class="badge success">Listo</span></article><article class="list-row"><strong>Marco Demo</strong><span>Trabajo</span><span>Pendiente</span><span>Sin mesa</span><span class="badge info">Seguir</span></article><article class="list-row"><strong>Camila Demo</strong><span>Familia</span><span>Declina</span><span>-</span><span class="badge muted">Archivado</span></article></div>
+      </section>
+
+      <section class="view" data-panel="rsvp">
+        <div class="module-intro"><div><span class="eyebrow">RSVP admin</span><h2>Responder, revisar y aplicar sin tocar contratos.</h2></div><span class="sync-state">Sincronizado hace 4 min</span></div>
+        <div class="split-layout"><section class="panel"><div class="panel-header"><h3>Respuestas nuevas</h3><span class="badge warning">9 pendientes</span></div><article class="response-card is-selected"><strong>Familia Santos</strong><p>4 asistentes. Una restriccion sin gluten.</p><span class="badge warning">Conflicto de mesa</span></article><article class="response-card"><strong>Daniela Demo</strong><p>No podra asistir. Mensaje personal incluido.</p><span class="badge info">Revisada</span></article></section><section class="panel"><h3>Accion segura</h3><label class="field">Vincular grupo<input value="Familia Santos" aria-describedby="rsvp-help"></label><small id="rsvp-help">Mock visual: no escribe datos ni usa Firebase.</small><label class="field">Resultado<select><option>Aplicar como confirmado</option><option>Dejar pendiente</option><option>Ignorar respuesta</option></select></label><div class="button-row"><button class="primary-button" type="button">Aplicar en prototipo</button><button class="secondary-button" type="button">Revisar despues</button></div></section></div>
+      </section>
+
+      <section class="view" data-panel="tables">
+        <div class="module-intro"><div><span class="eyebrow">Mesas</span><h2>Capa visual segura: asignar por lista antes que geometria real.</h2></div><button class="primary-button" type="button" data-action="open-sheet">Asignar invitado</button></div>
+        <div class="tables-workbench"><section class="panel guest-queue"><h3>Sin mesa</h3><button class="guest-chip" type="button">Familia Santos - 4</button><button class="guest-chip" type="button">Marco Demo</button><button class="guest-chip" type="button">Grupo Norte - 3</button></section><section class="table-grid" aria-label="Mesas mock"><article class="table-card"><strong>Mesa 1</strong><span>8/8</span><small>Completa</small></article><article class="table-card has-conflict"><strong>Mesa Jardin</strong><span>10/8</span><small>Sobrecupo</small></article><article class="table-card"><strong>Mesa 7</strong><span>5/8</span><small>Disponible</small></article><article class="table-card"><strong>Mesa Familia</strong><span>6/10</span><small>Disponible</small></article></section></div>
+      </section>
+
+      <section class="view" data-panel="invites">
+        <div class="module-intro"><div><span class="eyebrow">Invitaciones</span><h2>Preview como apoyo, link real como verdad de QA.</h2></div><button class="primary-button" type="button">Abrir link mock</button></div>
+        <div class="invite-layout"><section class="panel invite-list"><h3>Modelos</h3><button class="invite-item is-active" type="button">Editorial oliva</button><button class="invite-item" type="button">Ceremonia rose</button><button class="invite-item" type="button">Cena nocturna</button></section><section class="panel preview-panel"><div class="panel-header"><h3>Preview seguro</h3><div class="segmented compact"><button class="segment is-active">390</button><button class="segment">430</button><button class="segment">1440</button></div></div><div class="phone-preview"><span class="skeleton"></span><strong>Valeria & Mateo</strong><p>Invitacion lista para revision visual.</p><span class="notice error">Error mock: recurso de portada no disponible.</span></div></section></div>
+      </section>
+
+      <section class="view" data-panel="system">
+        <div class="module-intro"><div><span class="eyebrow">Sistema y estados</span><h2>Componentes minimos para implementar sin caos CSS.</h2></div></div>
+        <div class="system-grid"><section class="panel"><h3>Formulario</h3><label class="field">Nombre<input value="Sofia Demo"></label><label class="field">Rol<select><option>Editor</option><option>Owner</option><option>Viewer</option></select></label><label class="field has-error">Email<input value="correo incompleto" aria-describedby="email-error"><small id="email-error">Escribe un correo valido.</small></label><label class="field">Disabled<input value="Solo lectura" disabled></label><div class="button-row"><button class="primary-button is-loading" type="button">Guardando</button><button class="secondary-button" type="button">Cancelar</button></div></section><section class="panel"><h3>Estados</h3><p class="notice loading"><span class="skeleton-dot"></span>Cargando resumen...</p><p class="notice empty">Aun no hay invitados con este filtro.</p><p class="notice success">Guardado correctamente hace un momento.</p><p class="notice error">No pudimos sincronizar. Reintenta en unos minutos.</p><p class="notice offline">Sin conexion. Conservamos los cambios locales.</p><p class="notice denied">Tu rol permite ver, pero no editar esta seccion.</p><p class="notice pending">Hay 3 respuestas pendientes de revision.</p></section><section class="panel"><h3>Celebracion dosificada</h3><div class="milestone-card"><span class="spark" aria-hidden="true"></span><strong>RSVP alcanzo 75%</strong><p>Buen avance. Sigue revisar respuestas antes de aplicar.</p></div><button class="secondary-button" type="button" data-action="celebrate">Probar micro-momento</button></section></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" role="status" aria-live="polite">Guardado correctamente.</div>
+
+  <div class="modal-backdrop" hidden><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><header class="modal-header"><div><span class="eyebrow">Modal</span><h2 id="modal-title">Nueva decision</h2></div><button class="icon-button" type="button" aria-label="Cerrar modal" data-action="close-modal">x</button></header><p>Este modal valida foco, acciones, contenido y reduced motion sin tocar producto.</p><label class="field">Decision<input value="Confirmar menu final"></label><footer class="button-row"><button class="secondary-button" type="button" data-action="close-modal">Cancelar</button><button class="primary-button" type="button" data-action="close-modal">Guardar mock</button></footer></section></div>
+
+  <div class="bottom-sheet" hidden><section class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title"><header class="modal-header"><div><span class="eyebrow">Mesas mobile</span><h2 id="sheet-title">Asignar invitado</h2></div><button class="icon-button" type="button" aria-label="Cerrar asignacion" data-action="close-sheet">x</button></header><label class="field">Invitado<select><option>Familia Santos</option><option>Marco Demo</option></select></label><label class="field">Mesa<select><option>Mesa Familia</option><option>Mesa 7</option></select></label><button class="primary-button" type="button" data-action="close-sheet">Asignar en prototipo</button></section></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
