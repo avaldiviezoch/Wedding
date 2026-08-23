@@ -13,9 +13,36 @@
       #inv6TornPaperMessage + .location-section{
         margin-top:clamp(22px,4.5vw,36px) !important;
       }
+
+      /* Ajuste exclusivo de la tarjeta de UBICACIÓN. */
+      .location-section .church-overlay-content{
+        padding-top:128px !important;
+        padding-bottom:78px !important;
+      }
+
+      .location-section .church-kicker{
+        margin-top:10px !important;
+        margin-bottom:20px !important;
+        position:relative !important;
+        z-index:3 !important;
+      }
+
+      /* No debe quedar espacio reservado para el botón eliminado. */
+      .location-section .church-note{
+        margin-bottom:0 !important;
+      }
+
       @media(max-width:540px){
         #inv6TornPaperMessage + .location-section{
           margin-top:24px !important;
+        }
+        .location-section .church-overlay-content{
+          padding-top:104px !important;
+          padding-bottom:68px !important;
+        }
+        .location-section .church-kicker{
+          margin-top:12px !important;
+          margin-bottom:18px !important;
         }
       }
     `;
@@ -44,10 +71,9 @@
     // Elimina la segunda tarjeta verde duplicada agregada previamente.
     doc.getElementById(GREEN_BLOCK_ID)?.remove();
 
-    // Elimina únicamente el botón VER UBICACIÓN de la tarjeta principal.
+    // Elimina por completo el botón VER UBICACIÓN del bloque principal.
     if(location){
-      const button=location.querySelector('a.map-button,a[href*="maps"],a[href*="google.com/maps"]');
-      button?.remove();
+      location.querySelectorAll('a.map-button,a.church-map-button,a[href*="maps"],a[href*="google.com/maps"]').forEach(button=>button.remove());
     }
 
     ensureSpacing(doc);
