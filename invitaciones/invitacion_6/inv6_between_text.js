@@ -5,13 +5,39 @@
     const second=doc.querySelector('.paper-section');
     if(!second) return;
 
-    // Mantiene limpia la segunda imagen y evita contenido superpuesto interno.
-    second.querySelector('.countdown-overlay')?.remove();
+    const normalize=value=>(value||'')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g,'')
+      .replace(/\s+/g,' ')
+      .trim()
+      .toLowerCase();
+
+    const forbiddenTexts=[
+      'cuenta regresiva',
+      'cada dia falta menos',
+      '16 de enero',
+      'estamos contando los dias para compartir este momento tan especial contigo.'
+    ];
+
+    // Elimina directamente del DOM cualquier contenido textual superpuesto de la tarjeta.
+    second.querySelectorAll('#countdownOverlay,.countdown-overlay').forEach(el=>el.remove());
 
     const imageWrap=second.querySelector('.countdown-image-wrap');
     if(!imageWrap) return;
 
-    // Garantiza una sola aparición del bloque de texto.
+    // Revierte cualquier bloque/overlay artificial agregado anteriormente.
+    imageWrap.querySelectorAll('.inv6-card-cleaner').forEach(el=>el.remove());
+
+    [...imageWrap.querySelectorAll('*')].forEach(el=>{
+      if(el.matches('img,picture,source')) return;
+      const text=normalize(el.textContent);
+      if(!text) return;
+      if(forbiddenTexts.some(target=>text===target||text.includes(target))){
+        el.remove();
+      }
+    });
+
+    // Garantiza una sola aparición del bloque de texto exterior a la tarjeta.
     second.querySelectorAll('.inv6-between-text').forEach(el=>el.remove());
 
     const block=doc.createElement('div');
@@ -21,14 +47,7 @@
       <p class="inv6-between-script">¡Falta poco para el gran día y queremos<br>celebrarlo contigo!</p>`;
     second.insertBefore(block,imageWrap);
 
-    // Vacía visualmente solo el centro de la tarjeta sin mover ni redimensionar la imagen.
-    imageWrap.querySelectorAll('.inv6-card-cleaner').forEach(el=>el.remove());
-    const cleaner=doc.createElement('div');
-    cleaner.className='inv6-card-cleaner';
-    cleaner.setAttribute('aria-hidden','true');
-    imageWrap.appendChild(cleaner);
-
-    // Conserva el tamaño actual de la segunda imagen.
+    // Conserva exactamente el tamaño actual de la segunda imagen.
     doc.getElementById('inv6-second-image-size-guard')?.remove();
     const sizeStyle=doc.createElement('style');
     sizeStyle.id='inv6-second-image-size-guard';
@@ -49,18 +68,6 @@
         height:auto !important;
         margin:0 !important;
         padding:0 !important;
-      }
-      .paper-section .inv6-card-cleaner{
-        position:absolute !important;
-        z-index:4 !important;
-        left:19% !important;
-        right:19% !important;
-        top:58% !important;
-        height:30% !important;
-        pointer-events:none !important;
-        background:linear-gradient(180deg,rgba(239,233,223,.985),rgba(235,229,219,.985)) !important;
-        border-radius:4px !important;
-        box-shadow:none !important;
       }
     `;
     doc.head.appendChild(sizeStyle);
