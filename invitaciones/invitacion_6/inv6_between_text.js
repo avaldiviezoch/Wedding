@@ -53,7 +53,7 @@
       .paper-section .inv6-between-text{
         width:100% !important;
         margin:0 !important;
-        padding:34px 22px 20px !important;
+        padding:8px 22px 12px !important;
         text-align:center !important;
         background:transparent !important;
         color:#202020 !important;
@@ -79,7 +79,7 @@
       }
       @media(max-width:540px){
         .paper-section .inv6-between-text{
-          padding:30px 18px 18px !important;
+          padding:6px 18px 10px !important;
         }
         .paper-section .inv6-between-lead{
           font-size:clamp(14px,4vw,17px) !important;

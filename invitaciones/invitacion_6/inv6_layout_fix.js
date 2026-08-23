@@ -173,7 +173,7 @@
         font-weight:400 !important;
       }
       .paper-section{
-        margin-top:82px !important;
+        margin-top:28px !important;
       }
       @media(max-width:540px){
         #inv6PrimeraEntrada .inv6-top-note{
@@ -193,7 +193,7 @@
         #inv6PrimeraEntrada .inv6-time{padding:0 4px !important;}
         #inv6PrimeraEntrada .inv6-time strong{font-size:clamp(31px,10.2vw,46px) !important;}
         #inv6PrimeraEntrada .inv6-time span{font-size:clamp(12px,3.6vw,16px) !important;margin-top:8px !important;}
-        .paper-section{margin-top:72px !important;}
+        .paper-section{margin-top:20px !important;}
       }
       @media(prefers-reduced-motion:reduce){
         #inv6PrimeraEntrada .inv6-top-note-line{animation:none !important;clip-path:none !important;}
