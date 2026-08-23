@@ -30,8 +30,8 @@
         position:absolute !important;
         z-index:2 !important;
         left:50% !important;
-        top:55% !important;
-        width:76% !important;
+        top:49% !important;
+        width:68% !important;
         transform:translate(-50%,-50%) !important;
         margin:0 !important;
         padding:0 !important;
@@ -41,33 +41,34 @@
       }
       #${SECTION_ID} .inv6-torn-paper-text{
         margin:0 auto !important;
+        max-width:100% !important;
         font-family:'Amsterdam Four','Great Vibes',cursive !important;
-        font-size:clamp(27px,6.2vw,46px) !important;
-        line-height:1.02 !important;
+        font-size:clamp(19px,4.4vw,32px) !important;
+        line-height:1.08 !important;
         font-weight:400 !important;
         color:#fffdf8 !important;
-        text-shadow:0 1px 1px rgba(0,0,0,.08) !important;
+        text-shadow:0 1px 1px rgba(0,0,0,.06) !important;
       }
       #${SECTION_ID} .inv6-torn-paper-heart{
         display:block !important;
-        margin:26px auto 0 !important;
+        margin:18px auto 0 !important;
         font-family:Georgia,'Times New Roman',serif !important;
-        font-size:clamp(23px,4.6vw,34px) !important;
+        font-size:clamp(17px,3.2vw,24px) !important;
         line-height:1 !important;
         color:#fffdf8 !important;
       }
       @media(max-width:540px){
         #${SECTION_ID} .inv6-torn-paper-copy{
-          top:55% !important;
-          width:80% !important;
+          top:48% !important;
+          width:70% !important;
         }
         #${SECTION_ID} .inv6-torn-paper-text{
-          font-size:clamp(23px,7.2vw,32px) !important;
-          line-height:1.02 !important;
+          font-size:clamp(17px,5vw,23px) !important;
+          line-height:1.1 !important;
         }
         #${SECTION_ID} .inv6-torn-paper-heart{
-          margin-top:20px !important;
-          font-size:clamp(20px,5.7vw,28px) !important;
+          margin-top:15px !important;
+          font-size:clamp(15px,4.2vw,20px) !important;
         }
       }
     `;
