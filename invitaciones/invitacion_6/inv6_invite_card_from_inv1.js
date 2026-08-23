@@ -17,7 +17,8 @@
     style.id=CARD_STYLE_ID;
     style.textContent=`
       .paper-section .countdown-image-wrap.invite-image-wrap.invite-text-layer{
-        width:min(100%,430px) !important;
+        width:100% !important;
+        max-width:none !important;
         margin:0 auto !important;
         position:relative !important;
         overflow:visible !important;
@@ -26,6 +27,7 @@
 
       .paper-section .countdown-image.invite-base-image{
         width:100% !important;
+        max-width:none !important;
         height:auto !important;
         display:block !important;
         margin:0 !important;
@@ -136,7 +138,8 @@
 
       @media(max-width:520px){
         .paper-section .countdown-image-wrap.invite-image-wrap.invite-text-layer{
-          width:min(100%,380px) !important;
+          width:100% !important;
+          max-width:none !important;
         }
         .paper-section .invite-line-top{
           top:44.3% !important;
