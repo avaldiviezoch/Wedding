@@ -20,12 +20,22 @@
     const style=doc.createElement('style');
     style.id='inv6-layout-fix-style';
     style.textContent=`
+      html,
+      body,
+      #mainInvitation,
+      .invitation-shell{
+        background:#fffdf8 !important;
+        background-image:none !important;
+      }
+      .paper-section{
+        background:#fffdf8 !important;
+      }
       #inv6PrimeraEntrada{
         position:relative !important;
         width:100% !important;
         margin:0 !important;
         padding:0 !important;
-        background:#efe7d6 !important;
+        background:#fffdf8 !important;
         overflow:visible !important;
       }
       #inv6PrimeraEntrada .inv6-first-image{
@@ -90,7 +100,7 @@
         padding:30px 5.5% 84px !important;
         text-align:center !important;
         color:#303542 !important;
-        background:#efe7d6 !important;
+        background:#fffdf8 !important;
         pointer-events:none !important;
       }
       #inv6PrimeraEntrada .inv6-we-marry{
