@@ -67,6 +67,7 @@
         font-weight:700 !important;
         letter-spacing:-.025em !important;
         color:#202020 !important;
+        transform:translateY(-18px) !important;
       }
       .paper-section .inv6-between-script{
         margin:11px auto 0 !important;
@@ -83,6 +84,7 @@
         }
         .paper-section .inv6-between-lead{
           font-size:clamp(14px,4vw,17px) !important;
+          transform:translateY(-14px) !important;
         }
         .paper-section .inv6-between-script{
           margin-top:10px !important;
