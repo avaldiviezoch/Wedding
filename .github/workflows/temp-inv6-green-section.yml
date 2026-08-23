@@ -1,0 +1,95 @@
+name: temp-inv6-green-section
+
+on:
+  push:
+    branches:
+      - feat/inv6-green-section
+
+permissions:
+  contents: write
+
+jobs:
+  insert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Insert exact Invitation 1 green image below Invitation 6 location
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+
+          src_file = Path('invitaciones/invitacion_1/invitacion_1.html')
+          dst_file = Path('invitaciones/invitacion_6/invitacion_5_base.html')
+
+          src_text = src_file.read_text(encoding='utf-8')
+          dst_text = dst_file.read_text(encoding='utf-8')
+
+          marker = 'data-inv6-green-copy="church-green-img"'
+          if marker in dst_text:
+              print('Green section already present; nothing to do.')
+              raise SystemExit(0)
+
+          img_tag_match = re.search(
+              r'<img\b[^>]*class=["\'][^"\']*\bchurch-green-img\b[^"\']*["\'][^>]*>',
+              src_text,
+              re.I | re.S,
+          )
+          if not img_tag_match:
+              raise SystemExit('church-green-img tag not found in Invitation 1')
+
+          src_match = re.search(
+              r'src=["\'](data:image/webp;base64,[^"\']+)["\']',
+              img_tag_match.group(0),
+              re.I | re.S,
+          )
+          if not src_match:
+              raise SystemExit('Embedded church-green-img data URI not found')
+
+          exact_src = src_match.group(1)
+
+          location_match = re.search(
+              r'<section\b[^>]*class=["\'][^"\']*\blocation-section\b[^"\']*["\'][^>]*>',
+              dst_text,
+              re.I | re.S,
+          )
+          if not location_match:
+              raise SystemExit('Invitation 6 location-section not found')
+
+          depth = 0
+          section_end = None
+          for token in re.finditer(r'<section\b[^>]*>|</section\s*>', dst_text[location_match.start():], re.I | re.S):
+              raw = token.group(0).lower()
+              if raw.startswith('</section'):
+                  depth -= 1
+                  if depth == 0:
+                      section_end = location_match.start() + token.end()
+                      break
+              else:
+                  depth += 1
+
+          if section_end is None:
+              raise SystemExit('Could not resolve the end of Invitation 6 location-section')
+
+          new_section = f'''\n\n<section class="church-green-section" {marker} aria-hidden="true" style="min-height:0;margin:0;padding:0;display:block;background:transparent;text-align:center;">\n  <img src="{exact_src}" class="church-green-img" alt="" style="display:block;width:100%;max-width:100%;height:auto;margin:0 auto;" />\n</section>'''
+
+          updated = dst_text[:section_end] + new_section + dst_text[section_end:]
+          dst_file.write_text(updated, encoding='utf-8')
+          print('Inserted exact church-green-img data URI below Invitation 6 location-section.')
+          PY
+      - name: Commit only Invitation 6 HTML change
+        run: |
+          if [ -z "$(git status --porcelain -- invitaciones/invitacion_6/invitacion_5_base.html)" ]; then
+            echo "No target changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add invitaciones/invitacion_6/invitacion_5_base.html
+          git commit -m "feat: add Invitation 1 green ornament to Invitation 6"
+          git push origin HEAD:feat/inv6-green-section
