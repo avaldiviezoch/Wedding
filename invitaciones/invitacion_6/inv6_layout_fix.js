@@ -5,6 +5,11 @@
     const copy=section?.querySelector('.inv6-first-copy');
     if(!section||!copy) return;
 
+    document.documentElement.style.setProperty('background','#e9e1cc','important');
+    document.body?.style.setProperty('background','#e9e1cc','important');
+    const outerFrame=document.getElementById('inviteFrame');
+    outerFrame?.style.setProperty('background','#e9e1cc','important');
+
     let note=section.querySelector('.inv6-top-note');
     if(!note){
       note=doc.createElement('div');
@@ -24,18 +29,18 @@
       body,
       #mainInvitation,
       .invitation-shell{
-        background:#fffdf8 !important;
+        background:#e9e1cc !important;
         background-image:none !important;
       }
       .paper-section{
-        background:#fffdf8 !important;
+        background:#e9e1cc !important;
       }
       #inv6PrimeraEntrada{
         position:relative !important;
         width:100% !important;
         margin:0 !important;
         padding:0 !important;
-        background:#fffdf8 !important;
+        background:#e9e1cc !important;
         overflow:visible !important;
       }
       #inv6PrimeraEntrada .inv6-first-image{
@@ -100,7 +105,7 @@
         padding:30px 5.5% 84px !important;
         text-align:center !important;
         color:#303542 !important;
-        background:#fffdf8 !important;
+        background:#e9e1cc !important;
         pointer-events:none !important;
       }
       #inv6PrimeraEntrada .inv6-we-marry{
