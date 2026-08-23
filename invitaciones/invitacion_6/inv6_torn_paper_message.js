@@ -1,8 +1,19 @@
 (() => {
   const STYLE_ID='inv6-torn-paper-message-style';
+  const FONT_ID='inv6-homemade-apple-font';
   const SECTION_ID='inv6TornPaperMessage';
 
+  function ensureFont(doc){
+    if(doc.getElementById(FONT_ID)) return;
+    const link=doc.createElement('link');
+    link.id=FONT_ID;
+    link.rel='stylesheet';
+    link.href='https://fonts.googleapis.com/css2?family=Homemade+Apple&display=swap';
+    doc.head.appendChild(link);
+  }
+
   function ensureStyles(doc){
+    ensureFont(doc);
     doc.getElementById(STYLE_ID)?.remove();
     const style=doc.createElement('style');
     style.id=STYLE_ID;
@@ -42,7 +53,7 @@
       #${SECTION_ID} .inv6-torn-paper-text{
         margin:0 auto !important;
         max-width:100% !important;
-        font-family:'Amsterdam Four','Great Vibes',cursive !important;
+        font-family:'Homemade Apple',cursive !important;
         font-size:clamp(19px,4.4vw,32px) !important;
         line-height:1.08 !important;
         font-weight:400 !important;
