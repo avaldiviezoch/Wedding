@@ -1,6 +1,19 @@
 (() => {
+  let lastDoc=null;
+
+  if(!document.getElementById('inv6-invite-card-from-inv1-loader')){
+    const script=document.createElement('script');
+    script.id='inv6-invite-card-from-inv1-loader';
+    script.src='./inv6_invite_card_from_inv1.js?v=20260823-card-inv1-1';
+    script.onload=()=>{
+      if(lastDoc) window.inv6ApplyInviteCardFromInv1?.(lastDoc);
+    };
+    document.head.appendChild(script);
+  }
+
   function apply(doc){
     if(!doc) return;
+    lastDoc=doc;
 
     const second=doc.querySelector('.paper-section');
     if(!second) return;
@@ -119,6 +132,8 @@
       }
     `;
     doc.head.appendChild(style);
+
+    window.inv6ApplyInviteCardFromInv1?.(doc);
   }
 
   window.inv6ApplyBetweenText=apply;
