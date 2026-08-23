@@ -27,7 +27,6 @@
         z-index:3 !important;
       }
 
-      /* No debe quedar espacio reservado para el botón eliminado. */
       .location-section .church-note{
         margin-bottom:0 !important;
       }
@@ -68,14 +67,10 @@
       }
     }
 
-    // Elimina la segunda tarjeta verde duplicada agregada previamente.
+    // Mantiene eliminada únicamente la segunda tarjeta verde duplicada.
     doc.getElementById(GREEN_BLOCK_ID)?.remove();
 
-    // Elimina por completo el botón VER UBICACIÓN del bloque principal.
-    if(location){
-      location.querySelectorAll('a.map-button,a.church-map-button,a[href*="maps"],a[href*="google.com/maps"]').forEach(button=>button.remove());
-    }
-
+    // El botón original que está ARRIBA del fondo verde se conserva intacto.
     ensureSpacing(doc);
   }
 
