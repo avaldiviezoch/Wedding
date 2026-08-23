@@ -22,7 +22,7 @@ jobs:
       - run: python scripts/extract_inv1_location_bg.py
       - name: Commit extracted PNG
         run: |
-          if git diff --quiet -- invitaciones/invitacion_1/assets/invitacion_1/fondo_ubicacion_1.png; then
+          if [ -z "$(git status --porcelain -- invitaciones/invitacion_1/assets/invitacion_1/fondo_ubicacion_1.png)" ]; then
             echo "No changes"
             exit 0
           fi
