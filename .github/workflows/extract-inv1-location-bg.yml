@@ -1,0 +1,33 @@
+name: extract-inv1-location-bg
+
+on:
+  push:
+    branches:
+      - chore/extract-inv1-location-png
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow
+      - run: python scripts/extract_inv1_location_bg.py
+      - name: Commit extracted PNG
+        run: |
+          if git diff --quiet -- invitaciones/invitacion_1/assets/invitacion_1/fondo_ubicacion_1.png; then
+            echo "No changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add invitaciones/invitacion_1/assets/invitacion_1/fondo_ubicacion_1.png
+          git commit -m "chore: add invitation 1 location background PNG"
+          git push origin HEAD:chore/extract-inv1-location-png
