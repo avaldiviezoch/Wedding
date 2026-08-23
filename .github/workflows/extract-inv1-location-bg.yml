@@ -3,6 +3,7 @@ name: extract-inv1-location-bg
 on:
   push:
     branches:
+      - main
       - chore/extract-inv1-location-png
 
 permissions:
