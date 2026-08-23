@@ -21,6 +21,13 @@
       <p class="inv6-between-script">¡Falta poco para el gran día y queremos<br>celebrarlo contigo!</p>`;
     second.insertBefore(block,imageWrap);
 
+    // Vacía visualmente solo el centro de la tarjeta sin mover ni redimensionar la imagen.
+    imageWrap.querySelectorAll('.inv6-card-cleaner').forEach(el=>el.remove());
+    const cleaner=doc.createElement('div');
+    cleaner.className='inv6-card-cleaner';
+    cleaner.setAttribute('aria-hidden','true');
+    imageWrap.appendChild(cleaner);
+
     // Conserva el tamaño actual de la segunda imagen.
     doc.getElementById('inv6-second-image-size-guard')?.remove();
     const sizeStyle=doc.createElement('style');
@@ -42,6 +49,18 @@
         height:auto !important;
         margin:0 !important;
         padding:0 !important;
+      }
+      .paper-section .inv6-card-cleaner{
+        position:absolute !important;
+        z-index:4 !important;
+        left:19% !important;
+        right:19% !important;
+        top:58% !important;
+        height:30% !important;
+        pointer-events:none !important;
+        background:linear-gradient(180deg,rgba(239,233,223,.985),rgba(235,229,219,.985)) !important;
+        border-radius:4px !important;
+        box-shadow:none !important;
       }
     `;
     doc.head.appendChild(sizeStyle);
@@ -67,7 +86,7 @@
         font-weight:700 !important;
         letter-spacing:-.025em !important;
         color:#202020 !important;
-        transform:translateY(-18px) !important;
+        transform:translateY(-26px) !important;
       }
       .paper-section .inv6-between-script{
         margin:11px auto 0 !important;
@@ -84,7 +103,7 @@
         }
         .paper-section .inv6-between-lead{
           font-size:clamp(14px,4vw,17px) !important;
-          transform:translateY(-14px) !important;
+          transform:translateY(-22px) !important;
         }
         .paper-section .inv6-between-script{
           margin-top:10px !important;
