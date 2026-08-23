@@ -14,6 +14,13 @@
     document.head.appendChild(layoutScript);
   }
 
+  if(!document.getElementById('inv5-inv1-card-loader')){
+    const cardScript=document.createElement('script');
+    cardScript.id='inv5-inv1-card-loader';
+    cardScript.src='./inv5_invite_card_from_inv1.js?v=20260823-card1';
+    document.head.appendChild(cardScript);
+  }
+
   const TITLE_SELECTORS = [
     'section h2',
     '.section-title',
@@ -226,6 +233,7 @@
       installInvitationBranding(doc);
       prepareTitleEffects(doc);
       expandPetals(doc);
+      window.inv5ApplyInviteCardFromInv1?.(doc);
     }catch(e){
       console.warn('[Invitación 5] No se pudieron aplicar efectos visuales:',e);
     }
