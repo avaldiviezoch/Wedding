@@ -11,96 +11,98 @@
   </style>
 </head>
 <body>
-  <iframe id="preview" title="Invitación 6 con cambios" allow="autoplay; fullscreen"></iframe>
+  <iframe id="preview" src="./index.html?v=20260823-restore-green-overlay-1" title="Invitación 6 con cambios" allow="autoplay; fullscreen"></iframe>
   <script>
-  (async()=>{
+  (()=>{
     const preview=document.getElementById('preview');
-    const safeReplacement=`<script>
-    (()=>{
-      const STYLE_ID='inv6-paper-to-location-style';
-      const GREEN_BLOCK_ID='inv6-green-location-from-inv1';
+    const OVERLAY_ID='inv6-preview-restored-green-overlay';
+    const STYLE_ID='inv6-preview-restored-green-style';
 
-      function apply(doc){
-        if(!doc) return;
-
-        // NO borrar handsSection ni photoStorySection: deben permanecer visibles.
-        // Solo se elimina la segunda tarjeta verde duplicada.
-        doc.getElementById(GREEN_BLOCK_ID)?.remove();
-
-        let style=doc.getElementById(STYLE_ID);
-        if(!style){
-          style=doc.createElement('style');
-          style.id=STYLE_ID;
-          doc.head.appendChild(style);
-        }
-        style.textContent=\`
-          #inv6TornPaperMessage + .location-section{
-            margin-top:clamp(22px,4.5vw,36px) !important;
-          }
-          .location-section .church-overlay-content{
-            padding-top:128px !important;
-            padding-bottom:78px !important;
-          }
-          .location-section .church-kicker{
-            margin-top:10px !important;
-            margin-bottom:20px !important;
-            position:relative !important;
-            z-index:3 !important;
-          }
-          .location-section .church-note{
-            margin-bottom:0 !important;
-          }
-          .hands-caption{
-            font-family:'Cormorant Garamond',serif !important;
-            font-weight:600 !important;
-          }
-          @media(max-width:540px){
-            #inv6TornPaperMessage + .location-section{
-              margin-top:24px !important;
-            }
-            .location-section .church-overlay-content{
-              padding-top:104px !important;
-              padding-bottom:68px !important;
-            }
-            .location-section .church-kicker{
-              margin-top:12px !important;
-              margin-bottom:18px !important;
-            }
-          }
-        \`;
-
-        if(!doc.getElementById('inv6-preview-cormorant-font')){
-          const link=doc.createElement('link');
-          link.id='inv6-preview-cormorant-font';
-          link.rel='stylesheet';
-          link.href='https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&display=swap';
-          doc.head.appendChild(link);
-        }
-
-        // El botón original de ubicación se conserva: no se elimina ningún enlace de mapas.
-      }
-
-      window.inv6RemoveBetweenPaperAndLocation=apply;
-    })();
-    <\/script>`;
-
-    try{
-      const response=await fetch('./index.html?v=20260823-preview-restore-2',{cache:'no-store'});
-      let html=await response.text();
-      const openTag='<scr'+'ipt src="./inv6_remove_between_paper_location.js';
-      const closeTag='</scr'+'ipt>';
-      const start=html.indexOf(openTag);
-      if(start>=0){
-        const end=html.indexOf(closeTag,start);
-        if(end>=0){
-          html=html.slice(0,start)+safeReplacement+html.slice(end+closeTag.length);
-        }
-      }
-      html=html.replace('<head>','<head><base href="./">');
-      preview.srcdoc=html;
-    }catch(e){
-      preview.src='./index.html?v=20260823-preview-fallback-2';
+    function deepestDoc(){
+      try{
+        const indexDoc=preview.contentDocument||preview.contentWindow.document;
+        const inviteFrame=indexDoc.getElementById('inviteFrame');
+        if(!inviteFrame) return null;
+        const wrapperDoc=inviteFrame.contentDocument||inviteFrame.contentWindow.document;
+        const inv5=wrapperDoc.getElementById('inv5');
+        if(!inv5) return null;
+        return inv5.contentDocument||inv5.contentWindow.document;
+      }catch(e){return null;}
     }
+
+    function ensureFonts(doc){
+      if(doc.getElementById('inv6-preview-restored-fonts')) return;
+      const link=doc.createElement('link');
+      link.id='inv6-preview-restored-fonts';
+      link.rel='stylesheet';
+      link.href='https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@400;500;600&display=swap';
+      doc.head.appendChild(link);
+    }
+
+    function ensureStyle(doc){
+      let style=doc.getElementById(STYLE_ID);
+      if(!style){style=doc.createElement('style');style.id=STYLE_ID;doc.head.appendChild(style);}
+      style.textContent=`
+        #${OVERLAY_ID}{position:absolute!important;inset:0!important;z-index:30!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;text-align:center!important;padding:105px 32px 120px!important;box-sizing:border-box!important;color:#FBF8EF!important;pointer-events:none!important;}
+        #${OVERLAY_ID} .church-kicker{margin:0 0 16px!important;font-family:'Cormorant Garamond',serif!important;font-size:13px!important;line-height:1.2!important;letter-spacing:5px!important;font-weight:400!important;color:#D9D6B9!important;text-transform:uppercase!important;white-space:nowrap!important;}
+        #${OVERLAY_ID} .church-title{margin:0 0 24px!important;font-family:'Great Vibes',cursive!important;font-size:clamp(52px,11vw,72px)!important;line-height:.90!important;font-weight:400!important;color:#FBF8EF!important;text-align:center!important;width:100%!important;max-width:520px!important;}
+        #${OVERLAY_ID} .church-title span{display:block!important;white-space:nowrap!important;}
+        #${OVERLAY_ID} .church-main-copy{margin:0 0 34px!important;font-family:'Cormorant Garamond',serif!important;font-size:clamp(18px,4.5vw,25px)!important;line-height:1.35!important;font-weight:400!important;color:#FBF8EF!important;max-width:320px!important;width:100%!important;}
+        #${OVERLAY_ID} .church-place-name{margin:0 0 14px!important;font-family:'Great Vibes',cursive!important;font-size:clamp(46px,10vw,64px)!important;line-height:1!important;font-weight:400!important;color:#F2E4AB!important;width:100%!important;white-space:nowrap!important;}
+        #${OVERLAY_ID} .church-address{margin:0 0 34px!important;font-family:'Cormorant Garamond',serif!important;font-size:clamp(18px,4.6vw,24px)!important;line-height:1.4!important;font-weight:400!important;color:#FBF8EF!important;border-bottom:1px solid rgba(217,214,185,.45)!important;padding:0 4px 6px!important;max-width:390px!important;width:auto!important;white-space:nowrap!important;}
+        #${OVERLAY_ID} .church-note{margin:0 0 28px!important;font-family:'Cormorant Garamond',serif!important;font-size:clamp(17px,4.2vw,22px)!important;line-height:1.45!important;font-weight:400!important;color:rgba(251,248,239,.88)!important;max-width:330px!important;width:100%!important;}
+        #${OVERLAY_ID} .church-map-button{display:inline-flex!important;align-items:center!important;justify-content:center!important;padding:13px 28px!important;border-radius:999px!important;background:#FBF8EF!important;color:#3F482E!important;text-decoration:none!important;font-family:'Montserrat',sans-serif!important;font-size:11px!important;line-height:1!important;letter-spacing:2.8px!important;font-weight:500!important;white-space:nowrap!important;pointer-events:auto!important;border:0!important;box-shadow:none!important;}
+        .hands-caption{font-family:'Cormorant Garamond',serif!important;font-weight:600!important;}
+        @media(max-width:540px){#${OVERLAY_ID}{padding:82px 20px 95px!important;}}
+        @media(max-width:390px){#${OVERLAY_ID}{padding-left:16px!important;padding-right:16px!important;}#${OVERLAY_ID} .church-title{font-size:clamp(48px,13vw,58px)!important;}#${OVERLAY_ID} .church-place-name{font-size:clamp(42px,11vw,52px)!important;}#${OVERLAY_ID} .church-address{font-size:clamp(16px,4.35vw,19px)!important;letter-spacing:-.01em!important;}}
+      `;
+    }
+
+    function findGreenHost(doc){
+      const direct=doc.querySelector('.church-green-wrap,.inv6-green-location-wrap,[class*="green"][class*="location"]');
+      if(direct) return direct;
+      const greenImg=doc.querySelector('img.church-green-img,img.inv6-green-location-img,img[class*="green"]');
+      if(greenImg) return greenImg.parentElement||greenImg;
+      const location=doc.querySelector('section.location-section');
+      if(location){
+        const imgs=[...location.querySelectorAll('img')];
+        const candidate=imgs.find(img=>{const r=img.getBoundingClientRect();return r.width>280&&r.height>420;});
+        if(candidate) return candidate.parentElement||candidate;
+      }
+      return null;
+    }
+
+    function findMapHref(doc){
+      const links=[...doc.querySelectorAll('a[href]')];
+      const map=links.find(a=>/google\.com\/maps|maps\.app|maps\/search/i.test(a.getAttribute('href')||''));
+      return map?.getAttribute('href')||'https://www.google.com/maps/search/?api=1&query=Casa+Acapulco+Calle+Acapulco+480+La+Molina+Lima';
+    }
+
+    function apply(){
+      const doc=deepestDoc();
+      if(!doc?.head) return false;
+      ensureFonts(doc);ensureStyle(doc);
+      const host=findGreenHost(doc);
+      if(!host) return false;
+      const cs=doc.defaultView.getComputedStyle(host);
+      if(cs.position==='static') host.style.setProperty('position','relative','important');
+      let overlay=host.querySelector('#'+OVERLAY_ID);
+      if(!overlay){
+        overlay=doc.createElement('div');
+        overlay.id=OVERLAY_ID;
+        overlay.innerHTML=`<div class="church-kicker">UBICACIÓN</div><div class="church-title"><span>Ceremonia</span><span>&amp; Recepción</span></div><p class="church-main-copy">La boda y la recepción se realizarán en el mismo lugar.</p><div class="church-place-name">Residencia Privada</div><div class="church-address">Calle Acapulco 480, La Molina</div><p class="church-note">Te esperamos para compartir juntos cada momento de este día tan especial.</p><a class="church-map-button" target="_blank" rel="noopener noreferrer">VER UBICACIÓN</a>`;
+        host.appendChild(overlay);
+      }
+      const button=overlay.querySelector('.church-map-button');
+      if(button) button.href=findMapHref(doc);
+      return true;
+    }
+
+    preview.addEventListener('load',()=>{
+      [100,300,700,1200,1800,2600,4000,6500].forEach(ms=>setTimeout(apply,ms));
+      const timer=setInterval(apply,500);
+      setTimeout(()=>clearInterval(timer),15000);
+    });
   })();
   </script>
 </body>
