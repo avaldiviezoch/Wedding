@@ -11,12 +11,13 @@
   </style>
 </head>
 <body>
-  <iframe id="preview" src="./invitacion_6_base_final.html?v=20260823-final-base-1" title="Invitación Antonio y Lucero" allow="autoplay; fullscreen"></iframe>
+  <iframe id="preview" src="./invitacion_6_base_final.html?v=20260823-final-base-2" title="Invitación Antonio y Lucero" allow="autoplay; fullscreen"></iframe>
   <script>
   (()=>{
     const preview=document.getElementById('preview');
     const OVERLAY_ID='inv6-preview-restored-green-overlay';
     const STYLE_ID='inv6-preview-restored-green-style';
+    const UPPER_MAP_BUTTON_ID='inv6-final-upper-map-button';
 
     function deepestDoc(){
       try{
@@ -85,11 +86,54 @@
       return map?.getAttribute('href')||'https://www.google.com/maps/search/?api=1&query=Casa+Acapulco+Calle+Acapulco+480+La+Molina+Lima';
     }
 
+    function ensureUpperMapButton(doc){
+      const location=doc.querySelector('section.location-section');
+      if(!location) return false;
+      const cs=doc.defaultView.getComputedStyle(location);
+      if(cs.position==='static') location.style.setProperty('position','relative','important');
+
+      let button=doc.getElementById(UPPER_MAP_BUTTON_ID);
+      if(!button){
+        button=doc.createElement('a');
+        button.id=UPPER_MAP_BUTTON_ID;
+        button.textContent='VER UBICACIÓN';
+        button.target='_blank';
+        button.rel='noopener noreferrer';
+        location.appendChild(button);
+      }
+      button.href=findMapHref(doc);
+      button.style.setProperty('position','absolute','important');
+      button.style.setProperty('left','50%','important');
+      button.style.setProperty('bottom','clamp(48px,8vw,72px)','important');
+      button.style.setProperty('transform','translateX(-50%)','important');
+      button.style.setProperty('z-index','40','important');
+      button.style.setProperty('display','inline-flex','important');
+      button.style.setProperty('align-items','center','important');
+      button.style.setProperty('justify-content','center','important');
+      button.style.setProperty('width','min(72%,360px)','important');
+      button.style.setProperty('padding','13px 24px','important');
+      button.style.setProperty('border','1px solid rgba(80,91,62,.55)','important');
+      button.style.setProperty('border-radius','999px','important');
+      button.style.setProperty('background','#f7efe3','important');
+      button.style.setProperty('color','#4f5d41','important');
+      button.style.setProperty('text-decoration','none','important');
+      button.style.setProperty('font-family',"'Cormorant Garamond',serif",'important');
+      button.style.setProperty('font-size','clamp(16px,4.2vw,22px)','important');
+      button.style.setProperty('font-weight','600','important');
+      button.style.setProperty('letter-spacing','.08em','important');
+      button.style.setProperty('line-height','1','important');
+      button.style.setProperty('white-space','nowrap','important');
+      button.style.setProperty('box-sizing','border-box','important');
+      button.style.setProperty('pointer-events','auto','important');
+      return true;
+    }
+
     function apply(){
       const doc=deepestDoc();
       if(!doc?.head) return false;
       removeDiscardedSections(doc);
       ensureFonts(doc);ensureStyle(doc);
+      ensureUpperMapButton(doc);
       const host=findGreenHost(doc);
       if(!host) return false;
       const cs=doc.defaultView.getComputedStyle(host);
