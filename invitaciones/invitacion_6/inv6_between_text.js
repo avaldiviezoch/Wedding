@@ -32,13 +32,11 @@
       'estamos contando los dias para compartir este momento tan especial contigo.'
     ];
 
-    // Elimina directamente del DOM cualquier contenido textual superpuesto de la tarjeta.
     second.querySelectorAll('#countdownOverlay,.countdown-overlay').forEach(el=>el.remove());
 
     const imageWrap=second.querySelector('.countdown-image-wrap');
     if(!imageWrap) return;
 
-    // Revierte cualquier bloque/overlay artificial agregado anteriormente.
     imageWrap.querySelectorAll('.inv6-card-cleaner').forEach(el=>el.remove());
 
     [...imageWrap.querySelectorAll('*')].forEach(el=>{
@@ -50,7 +48,6 @@
       }
     });
 
-    // Garantiza una sola aparición del bloque de texto exterior a la tarjeta.
     second.querySelectorAll('.inv6-between-text').forEach(el=>el.remove());
 
     const block=doc.createElement('div');
@@ -60,7 +57,6 @@
       <p class="inv6-between-script">¡Falta poco para el gran día y queremos<br>celebrarlo contigo!</p>`;
     second.insertBefore(block,imageWrap);
 
-    // Conserva exactamente el tamaño actual de la segunda imagen.
     doc.getElementById('inv6-second-image-size-guard')?.remove();
     const sizeStyle=doc.createElement('style');
     sizeStyle.id='inv6-second-image-size-guard';
@@ -116,6 +112,10 @@
         line-height:.92 !important;
         font-weight:400 !important;
         color:#252525 !important;
+      }
+      .hands-caption{
+        font-family:'Cormorant Garamond',serif !important;
+        font-weight:600 !important;
       }
       @media(max-width:540px){
         .paper-section .inv6-between-text{
