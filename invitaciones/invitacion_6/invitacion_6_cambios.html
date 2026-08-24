@@ -85,16 +85,21 @@
     <\/script>`;
 
     try{
-      const response=await fetch('./index.html?v=20260823-preview-restore-1',{cache:'no-store'});
+      const response=await fetch('./index.html?v=20260823-preview-restore-2',{cache:'no-store'});
       let html=await response.text();
-      html=html.replace(
-        /<script src="\.\/inv6_remove_between_paper_location\.js[^\"]*"><\/script>/,
-        safeReplacement
-      );
+      const openTag='<scr'+'ipt src="./inv6_remove_between_paper_location.js';
+      const closeTag='</scr'+'ipt>';
+      const start=html.indexOf(openTag);
+      if(start>=0){
+        const end=html.indexOf(closeTag,start);
+        if(end>=0){
+          html=html.slice(0,start)+safeReplacement+html.slice(end+closeTag.length);
+        }
+      }
       html=html.replace('<head>','<head><base href="./">');
       preview.srcdoc=html;
     }catch(e){
-      preview.src='./index.html?v=20260823-preview-fallback-1';
+      preview.src='./index.html?v=20260823-preview-fallback-2';
     }
   })();
   </script>
