@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <meta name="theme-color" content="#fffdf8">
+  <title>Antonio & Lucero - Invitación 6 cambios</title>
+  <style>
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#fffdf8}
+    #preview{position:fixed;inset:0;width:100%;height:100%;border:0;background:#fffdf8}
+  </style>
+</head>
+<body>
+  <iframe id="preview" src="./index.html?v=20260823-crew-preview-1" title="Invitación 6 con cambios" allow="autoplay; fullscreen"></iframe>
+  <script>
+  (()=>{
+    const preview=document.getElementById('preview');
+
+    function deepestDoc(){
+      try{
+        const indexDoc=preview.contentDocument||preview.contentWindow.document;
+        const inviteFrame=indexDoc.getElementById('inviteFrame');
+        if(!inviteFrame) return null;
+        const wrapperDoc=inviteFrame.contentDocument||inviteFrame.contentWindow.document;
+        const inv5=wrapperDoc.getElementById('inv5');
+        if(!inv5) return null;
+        return inv5.contentDocument||inv5.contentWindow.document;
+      }catch(e){return null;}
+    }
+
+    function applyCrewFont(){
+      const doc=deepestDoc();
+      if(!doc?.head) return false;
+      if(!doc.getElementById('inv6-preview-cormorant-font')){
+        const link=doc.createElement('link');
+        link.id='inv6-preview-cormorant-font';
+        link.rel='stylesheet';
+        link.href='https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&display=swap';
+        doc.head.appendChild(link);
+      }
+      let style=doc.getElementById('inv6-preview-crew-font-style');
+      if(!style){
+        style=doc.createElement('style');
+        style.id='inv6-preview-crew-font-style';
+        doc.head.appendChild(style);
+      }
+      style.textContent=`
+        .hands-caption{
+          font-family:'Cormorant Garamond',serif !important;
+          font-weight:600 !important;
+        }
+      `;
+      return true;
+    }
+
+    preview.addEventListener('load',()=>{
+      [100,300,700,1200,2000,3500,6000].forEach(ms=>setTimeout(applyCrewFont,ms));
+      const timer=setInterval(applyCrewFont,500);
+      setTimeout(()=>clearInterval(timer),12000);
+    });
+  })();
+  </script>
+</body>
+</html>
