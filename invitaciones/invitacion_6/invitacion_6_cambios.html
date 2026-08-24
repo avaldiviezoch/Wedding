@@ -11,7 +11,7 @@
   </style>
 </head>
 <body>
-  <iframe id="preview" src="./index.html?v=20260823-restore-green-overlay-1" title="Invitación 6 con cambios" allow="autoplay; fullscreen"></iframe>
+  <iframe id="preview" src="./index.html?v=20260823-remove-story-again-1" title="Invitación 6 con cambios" allow="autoplay; fullscreen"></iframe>
   <script>
   (()=>{
     const preview=document.getElementById('preview');
@@ -58,6 +58,13 @@
       `;
     }
 
+    function removeDiscardedSections(doc){
+      const hands=doc.getElementById('handsSection')||doc.querySelector('section.hands-section');
+      const story=doc.getElementById('photoStorySection')||doc.querySelector('section.photo-story-section');
+      hands?.remove();
+      story?.remove();
+    }
+
     function findGreenHost(doc){
       const direct=doc.querySelector('.church-green-wrap,.inv6-green-location-wrap,[class*="green"][class*="location"]');
       if(direct) return direct;
@@ -81,6 +88,7 @@
     function apply(){
       const doc=deepestDoc();
       if(!doc?.head) return false;
+      removeDiscardedSections(doc);
       ensureFonts(doc);ensureStyle(doc);
       const host=findGreenHost(doc);
       if(!host) return false;
