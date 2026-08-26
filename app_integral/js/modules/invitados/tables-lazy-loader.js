@@ -14,7 +14,12 @@
   }
 
   function finalStyleLoaded(view) {
-    if (!view?.querySelector('#mgdTablesEditor')) return false;
+    const editor = view?.querySelector('#mgdTablesEditor');
+    if (!editor) return false;
+    if (editor.dataset.oldTableLook !== '1') return false;
+    if (!editor.dataset.stableRuntime) return false;
+    if (!view.ownerDocument?.getElementById('mgdTablesFinalFix')) return false;
+    if (!view.ownerDocument?.getElementById('mgdTablesStablePolish')) return false;
     const link = view.ownerDocument?.querySelector('link[data-mgd-tables-old-look]');
     if (!link) return false;
     try { return Boolean(link.sheet); } catch (_) { return false; }
@@ -38,7 +43,7 @@
       const link = doc?.querySelector('link[data-mgd-tables-old-look]');
       if (link && !link.dataset.mgdRevealBound) {
         link.dataset.mgdRevealBound = VERSION;
-        link.addEventListener('load', () => setReady(view, true), { once: true });
+        link.addEventListener('load', check, { once: true });
       }
       attempts += 1;
       if (attempts < 30) setTimeout(check, 50);
