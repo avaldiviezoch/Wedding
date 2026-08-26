@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Editorial Command — dirección de arte</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body class="ec">
+    <a class="skip" href="#workspace">Saltar al contenido</a>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Navegación principal">
+        <div class="brand"><span class="brand-mark">MGD</span><span>Mi Gran Día</span></div>
+        <div class="wedding-context"><span>La boda de</span><strong>Valeria &amp; Mateo</strong><small>14 de noviembre · Lima</small></div>
+        <nav class="side-nav">
+          <button class="nav-item is-active" data-view="home" aria-current="page"><span>01</span>Hoy</button>
+          <button class="nav-item" data-view="guests"><span>02</span>Invitados</button>
+          <button class="nav-item" data-view="rsvp"><span>03</span>RSVP</button>
+          <button class="nav-item" data-view="tables"><span>04</span>Mesas</button>
+          <button class="nav-item" data-view="invites"><span>05</span>Invitaciones</button>
+        </nav>
+        <div class="side-footer"><span class="sync-dot"></span> Todo está guardado</div>
+      </aside>
+
+      <header class="mobile-header">
+        <div><span class="eyebrow">Mi Gran Día</span><strong>Valeria &amp; Mateo</strong></div>
+        <button class="icon-button" type="button" aria-label="Abrir herramientas" data-open-modal>•••</button>
+      </header>
+
+      <main id="workspace" tabindex="-1">
+        <nav class="mobile-nav" aria-label="Módulos">
+          <button class="nav-item is-active" data-view="home">Hoy</button><button class="nav-item" data-view="guests">Invitados</button><button class="nav-item" data-view="rsvp">RSVP</button><button class="nav-item" data-view="tables">Mesas</button><button class="nav-item" data-view="invites">Invitaciones</button>
+        </nav>
+        <section class="view is-visible" id="home" aria-labelledby="home-title">
+          <header class="page-header"><div><p class="eyebrow">Viernes, 12 de septiembre</p><h1 id="home-title">Todo empieza<br><em>por lo que importa hoy.</em></h1></div><button class="button secondary" type="button" data-open-modal>Ver plan semanal</button></header>
+          <section class="today-line" aria-label="Decisión principal"><div><p class="eyebrow">Decisión de hoy</p><h2>Confirma el último grupo<br>antes de cerrar las mesas.</h2><p>Once invitados esperan una ubicación. Resolverlo ahora mantiene el plano en calma.</p></div><button class="button primary" type="button" data-view="tables">Revisar mesas <span>→</span></button></section>
+          <section class="health-grid" aria-label="Salud de la boda"><article><span>Invitados</span><strong>184 <small>/ 210</small></strong><p>26 por confirmar</p></article><article><span>RSVP recibidos</span><strong>78<small>%</small></strong><p>12 respuestas nuevas</p></article><article><span>Mesas listas</span><strong>14 <small>/ 18</small></strong><p>4 requieren decisión</p></article></section>
+          <section class="split-section"><div class="attention"><div class="section-heading"><div><p class="eyebrow">Para mirar</p><h2>Atención pendiente</h2></div><button class="text-button" data-view="rsvp">Ver todo</button></div><ol class="rule-list"><li><span class="list-index">01</span><div><strong>Respuesta de la familia Cárdenas</strong><p>Confirmaron 4 personas; falta asignación.</p></div><button class="row-action" data-open-modal aria-label="Revisar familia Cárdenas">Revisar</button></li><li><span class="list-index">02</span><div><strong>Dos mesas superan su capacidad</strong><p>La distribución necesita una decisión breve.</p></div><button class="row-action" data-view="tables">Resolver</button></li><li><span class="list-index">03</span><div><strong>Prueba final de invitación</strong><p>El enlace está listo para revisión en móvil.</p></div><button class="row-action" data-view="invites">Abrir</button></li></ol></div><aside class="milestone"><p class="eyebrow">Próximo hito</p><h2>62 días</h2><p>hasta celebrar con quienes más quieren.</p><div class="milestone-rule"></div><span>Última actualización · hace 1 min</span></aside></section>
+        </section>
+
+        <section class="view" id="guests" aria-labelledby="guests-title">
+          <header class="page-header compact"><div><p class="eyebrow">Personas y grupos</p><h1 id="guests-title">Invitados</h1><p>La lista se lee como una conversación, no como una planilla.</p></div><button class="button primary" data-open-sheet>Añadir invitado</button></header>
+          <div class="filter-row" aria-label="Filtros de invitados"><button class="filter active">Todos <b>184</b></button><button class="filter">Por confirmar <b>26</b></button><button class="filter">Sin mesa <b>11</b></button><button class="filter">Conflicto <b>2</b></button></div>
+          <div class="directory" role="table" aria-label="Invitados de ejemplo"><div class="directory-head" role="row"><span>Invitado</span><span>Respuesta</span><span>Mesa</span><span>Acción</span></div><div class="guest-row" role="row"><div><strong>Ana Torres</strong><span>Familia Torres · 2 personas</span></div><div><b class="status yes">Confirmada</b><span>respondió ayer</span></div><div>Mesa 04</div><button class="row-action" data-open-modal>Ver</button></div><div class="guest-row" role="row"><div><strong>Familia Cárdenas</strong><span>4 personas · respuesta nueva</span></div><div><b class="status pending">Por revisar</b><span>requiere asignación</span></div><div>Sin mesa</div><button class="row-action" data-open-modal>Revisar</button></div><div class="guest-row" role="row"><div><strong>Diego Paredes</strong><span>Amigos de Mateo · 1 persona</span></div><div><b class="status no">No asistirá</b><span>respuesta aplicada</span></div><div>—</div><button class="row-action" data-open-modal>Ver</button></div></div>
+        </section>
+
+        <section class="view" id="rsvp" aria-labelledby="rsvp-title"><header class="page-header compact"><div><p class="eyebrow">Bandeja de respuestas</p><h1 id="rsvp-title">RSVP que necesitan criterio</h1><p>Las respuestas se revisan antes de aplicarse.</p></div><span class="saved-state"><span class="sync-dot"></span> Guardado hace 1 min</span></header><div class="review-stack"><article class="review-item"><div class="review-meta"><span class="status pending">Nueva respuesta</span><span>Hace 18 min</span></div><h2>Familia Cárdenas · 4 personas</h2><p>“Nos encantará acompañarlos. Una persona requiere opción vegetariana.”</p><div class="review-actions"><button class="button primary" data-open-modal>Revisar y aplicar</button><button class="button secondary">Mantener pendiente</button></div></article><article class="review-item warning"><div class="review-meta"><span class="status conflict">Conflicto</span><span>Hace 1 h</span></div><h2>Lucía Rojas · 2 personas</h2><p>La respuesta indica dos asistentes, pero el grupo tiene un cupo registrado.</p><button class="text-button" data-open-modal>Resolver diferencia →</button></article></div></section>
+
+        <section class="view" id="tables" aria-labelledby="tables-title"><header class="page-header compact"><div><p class="eyebrow">Distribución conceptual</p><h1 id="tables-title">Mesas sin tensión</h1><p>En móvil la asignación empieza por personas; el plano queda para pantallas amplias.</p></div><button class="button primary" data-open-sheet>Asignar 11 invitados</button></header><div class="table-layout"><section class="unassigned"><div class="section-heading"><div><p class="eyebrow">Pendientes</p><h2>Sin mesa</h2></div><span>11 personas</span></div><ul class="person-list"><li><span>MC</span><div><strong>María Cárdenas</strong><small>Vegetariana · familia</small></div><button class="row-action" data-open-sheet>Asignar</button></li><li><span>JC</span><div><strong>Javier Cárdenas</strong><small>Familia · 4 personas</small></div><button class="row-action" data-open-sheet>Asignar</button></li><li><span>LR</span><div><strong>Lucía Rojas</strong><small>Confirmación en revisión</small></div><button class="row-action" data-open-sheet>Revisar</button></li></ul></section><section class="tables-board"><div class="section-heading"><div><p class="eyebrow">Vista amplia</p><h2>Plano por decisiones</h2></div><span class="desktop-only">14 de 18 listas</span></div><div class="table-grid"><article><span>Mesa 04</span><strong>8 / 8</strong><small>Completa</small></article><article class="needs-attention"><span>Mesa 07</span><strong>9 / 8</strong><small>Revisar capacidad</small></article><article><span>Mesa 09</span><strong>6 / 8</strong><small>2 lugares</small></article><article class="needs-attention"><span>Mesa 12</span><strong>7 / 6</strong><small>Revisar capacidad</small></article></div></section></div></section>
+
+        <section class="view" id="invites" aria-labelledby="invites-title"><header class="page-header compact"><div><p class="eyebrow">Revisión antes de enviar</p><h1 id="invites-title">Invitaciones</h1><p>La experiencia pública se preserva; aquí solo se ordena su preparación.</p></div><button class="button primary" data-open-modal>Abrir enlace de prueba</button></header><div class="invite-layout"><section class="invite-list"><article class="invite-row selected"><div><span class="eyebrow">Modelo 01</span><h2>Jardín al atardecer</h2><p>Revisión completa · 390 px validado</p></div><button class="row-action" data-open-modal>Ver</button></article><article class="invite-row"><div><span class="eyebrow">Modelo 02</span><h2>Casa familiar</h2><p>Falta revisión de texto</p></div><button class="row-action" data-open-modal>Ver</button></article></section><aside class="preview-note"><p class="eyebrow">Checklist de enlace</p><ul><li>✓ Título y fecha legibles</li><li>✓ Acción principal visible</li><li>✓ No hay scroll lateral</li><li>○ Revisar música en dispositivo</li></ul><p>El preview es referencia. El enlace real sigue siendo la verdad de QA.</p></aside></div></section>
+      </main>
+    </div>
+    <div class="toast" role="status" aria-live="polite">Vista conceptual · datos de ejemplo</div>
+    <div class="overlay" hidden></div>
+    <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title" hidden><button class="close" aria-label="Cerrar diálogo">×</button><p class="eyebrow">Decisión guiada</p><h2 id="dialog-title" tabindex="-1">Revisa antes de aplicar</h2><p>Este diálogo representa una decisión futura. No escribe datos, no conecta a RSVP y no cambia ninguna mesa real.</p><div class="dialog-actions"><button class="button primary close">Entendido</button><button class="button secondary close">Volver</button></div></section>
+    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden><div class="sheet-handle"></div><button class="close" aria-label="Cerrar panel">×</button><p class="eyebrow">Asignación conceptual</p><h2 id="sheet-title" tabindex="-1">Elige una mesa con calma</h2><p>En una implementación posterior, esta secuencia conservará IDs, capacidad, persistencia y contratos existentes.</p><button class="button primary close">Cerrar ejemplo</button></section>
+    <script src="app.js"></script>
+  </body>
+</html>
