@@ -10,6 +10,38 @@
   const musicToggle = $('#musicToggle');
   let entered = false;
   let musicWanted = true;
+  let musicUnlocked = false;
+
+  function syncMusicButton(playing) {
+    musicToggle?.classList.toggle('is-playing', playing);
+    musicToggle?.setAttribute('aria-pressed', String(playing));
+    musicToggle?.setAttribute('aria-label', playing ? 'Pausar música' : 'Reproducir música');
+  }
+
+  async function unlockMusicFromGesture() {
+    if (!music || musicUnlocked) return;
+    try {
+      music.muted = false;
+      music.volume = 0;
+      await music.play();
+      musicUnlocked = true;
+    } catch (_) {
+      musicUnlocked = false;
+    }
+  }
+
+  async function playMusic() {
+    if (!music) return;
+    try {
+      music.muted = false;
+      music.volume = .62;
+      if (music.paused) await music.play();
+      musicUnlocked = true;
+      syncMusicButton(true);
+    } catch (_) {
+      syncMusicButton(false);
+    }
+  }
 
   function finishEntry() {
     if (!entry || entered) return;
@@ -22,27 +54,13 @@
     if (musicWanted) playMusic();
   }
 
-  async function playMusic() {
-    if (!music) return;
-    try {
-      music.muted = false;
-      music.volume = .62;
-      await music.play();
-      musicToggle?.classList.add('is-playing');
-      musicToggle?.setAttribute('aria-pressed','true');
-      musicToggle?.setAttribute('aria-label','Pausar música');
-    } catch (_) {
-      musicToggle?.classList.remove('is-playing');
-      musicToggle?.setAttribute('aria-pressed','false');
-    }
-  }
-
   async function startEntry() {
     if (!entryVideo || entered) return finishEntry();
     enterButton.disabled = true;
     entryStatus.textContent = '';
     entry.classList.add('is-playing');
     skipIntro.hidden = false;
+    await unlockMusicFromGesture();
     try {
       entryVideo.currentTime = 0;
       entryVideo.muted = false;
@@ -73,9 +91,7 @@
     } else {
       musicWanted = false;
       music.pause();
-      musicToggle.classList.remove('is-playing');
-      musicToggle.setAttribute('aria-pressed','false');
-      musicToggle.setAttribute('aria-label','Reproducir música');
+      syncMusicButton(false);
     }
   });
 
@@ -120,13 +136,6 @@
     } catch (_) {
       window.prompt('Copia este dato:', value);
     }
-  });
-
-  window.addEventListener('mgd:rsvp-attendance', (event) => {
-    const attendance = event?.detail?.attendance;
-    const musicHost = document.querySelector('[data-mgd-music-token]');
-    if (!musicHost) return;
-    musicHost.dataset.rsvpAttendance = attendance || '';
   });
 
   document.querySelectorAll('img').forEach(img => {
