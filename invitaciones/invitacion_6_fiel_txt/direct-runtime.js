@@ -69,3 +69,4 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
   else start();
 })();
+// Fiel al código maduro: este runtime solo aplana documentos, no redefine diseño ni contenido.
