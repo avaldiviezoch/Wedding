@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f1e5da">
+  <meta name="description" content="Invitación de boda de Antonio y Lucero — 16 de enero de 2027">
+  <title>Antonio & Lucero — 16.01.2027</title>
+  <link rel="preload" href="../invitacion_6/assets/Primera_entrada_6.png" as="image">
+  <link rel="stylesheet" href="./styles.css?v=20260826-mb1">
+</head>
+<body>
+  <noscript><div class="noscript">Activa JavaScript para usar la confirmación de asistencia y los pedidos musicales.</div></noscript>
+
+  <div class="entry" id="entry" aria-label="Entrada a la invitación">
+    <img class="entry__poster" src="../invitacion_6/assets/Primera_entrada_6.png" alt="Antonio y Lucero">
+    <video class="entry__video" id="entryVideo" playsinline webkit-playsinline preload="metadata" poster="../invitacion_6/assets/Primera_entrada_6.png" aria-hidden="true">
+      <source src="../invitacion_6/video_entrada.mp4?v=20260826-mb1" type="video/mp4">
+    </video>
+    <div class="entry__shade"></div>
+    <div class="entry__actions">
+      <p>16 · 01 · 2027</p>
+      <button class="button button--light" id="enterButton" type="button">Abrir invitación</button>
+      <button class="entry__skip" id="skipIntro" type="button" hidden>Saltar introducción</button>
+      <span class="entry__status" id="entryStatus" role="status" aria-live="polite"></span>
+    </div>
+  </div>
+
+  <button class="music-toggle" id="musicToggle" type="button" aria-pressed="false" aria-label="Pausar o reproducir música">♫</button>
+  <audio id="backgroundMusic" preload="none" loop>
+    <source src="../invitacion_6/sake_binks.mp3?v=20260826-mb1" type="audio/mpeg">
+  </audio>
+
+  <main id="invitation" class="invitation" tabindex="-1">
+    <section class="hero section section--paper" aria-labelledby="heroTitle">
+      <p class="eyebrow">NOS CASAMOS</p>
+      <h1 id="heroTitle" class="script-title">Antonio <span>&amp;</span> Lucero</h1>
+      <p class="hero__date">16 de enero de 2027</p>
+      <p class="lead">Nada nos hará más felices que celebrar nuestro amor rodeados de las personas que forman parte de nuestra historia.</p>
+      <img class="hat" src="../invitacion_6/assets/entrada_sombrero_6_2.gif" alt="" aria-hidden="true">
+      <div class="countdown" id="countdown" aria-label="Cuenta regresiva">
+        <div><strong data-days>—</strong><span>Días</span></div>
+        <div><strong data-hours>—</strong><span>Horas</span></div>
+        <div><strong data-minutes>—</strong><span>Min</span></div>
+        <div><strong data-seconds>—</strong><span>Seg</span></div>
+      </div>
+    </section>
+
+    <section class="location section section--green" aria-labelledby="locationTitle">
+      <img class="location__bg" src="../invitacion_6/assets/church_green_6.webp" alt="" loading="eager" decoding="async">
+      <div class="location__content">
+        <p class="eyebrow">UBICACIÓN</p>
+        <h2 id="locationTitle" class="script-title script-title--light">Ceremonia <span>&amp; Recepción</span></h2>
+        <p>La boda y la recepción se realizarán en el mismo lugar.</p>
+        <h3>Residencia Privada</h3>
+        <p class="location__address">Calle Acapulco 480, La Molina</p>
+        <p>Te esperamos para compartir juntos cada momento de este día tan especial.</p>
+        <a class="button button--light" href="https://www.google.com/maps/search/?api=1&query=Calle+Acapulco+480+La+Molina+Lima" target="_blank" rel="noopener noreferrer">Ver ubicación</a>
+      </div>
+    </section>
+
+    <section class="photos section" aria-label="Antonio y Lucero">
+      <img src="../invitacion_6/assets/foto_pareja_6_1.png" alt="Antonio y Lucero" loading="lazy" decoding="async">
+      <img src="../invitacion_6/assets/foto_pareja_6_2png.png" alt="Antonio y Lucero" loading="lazy" decoding="async">
+    </section>
+
+    <section class="crew section section--paper" aria-labelledby="crewTitle">
+      <h2 id="crewTitle">Toda gran aventura necesita una buena tripulación</h2>
+      <p>Y nos encantaría que formaras parte de la nuestra.</p>
+      <p>Ahora que ya conoces el rumbo, queremos contarte algunos detalles para que disfrutes este día tan especial junto a nosotros.</p>
+      <img class="wide-art" src="../invitacion_6/assets/foto_cortada_superior_6_1.png" alt="" loading="lazy" decoding="async">
+    </section>
+
+    <section class="dress section section--paper" aria-labelledby="dressTitle">
+      <p class="eyebrow">DRESS CODE</p>
+      <h2 id="dressTitle" class="script-title">Formal</h2>
+      <p>Colores de primavera en tonos pasteles.</p>
+      <div class="palette" aria-label="Paleta de colores sugerida">
+        <span style="--swatch:#f3e3e4"></span><span style="--swatch:#f3acad"></span><span style="--swatch:#ed9b8c"></span>
+        <span style="--swatch:#e7b181"></span><span style="--swatch:#f2e4ab"></span><span style="--swatch:#d5c1da"></span>
+        <span style="--swatch:#c7dbfa"></span><span style="--swatch:#bfc7be"></span><span style="--swatch:#acb580"></span>
+      </div>
+      <p><strong>Reservamos el color blanco para los novios.</strong></p>
+      <p><em>Elige un look que te haga sentir cómodo, auténtico y listo para disfrutar cada momento.</em></p>
+      <img class="feature-gif" src="../invitacion_6/assets/dress_code_6_2.gif" alt="" loading="lazy" decoding="async">
+    </section>
+
+    <section class="program section section--paper" aria-labelledby="programTitle">
+      <div class="section-heading">
+        <p class="eyebrow">PROGRAMA</p>
+        <h2 id="programTitle" class="script-title">del día</h2>
+      </div>
+      <ol class="timeline">
+        <li><div><time>02:00</time><span>Recepción</span></div></li>
+        <li><div><time>03:00</time><span>Ceremonia de Boda</span></div><img src="../invitacion_6/assets/inicio_de_boda_6_3.gif" alt="" loading="lazy" decoding="async"></li>
+        <li><img src="../invitacion_6/assets/brindis_6_3.gif" alt="" loading="lazy" decoding="async"><div><time>04:00</time><span>Brindis</span></div></li>
+        <li><div><time>05:00</time><span>Inicio del Banquete</span></div><img src="../invitacion_6/assets/comida_6_2.gif" alt="" loading="lazy" decoding="async"></li>
+        <li><img src="../invitacion_6/assets/fiesta_6_2.gif" alt="" loading="lazy" decoding="async"><div><time>06:00</time><span>Fiesta</span></div></li>
+        <li><div><time>00:00</time><span>Fin de la Celebración</span></div><img src="../invitacion_6/assets/fin_boda_6_2.gif" alt="" loading="lazy" decoding="async"></li>
+      </ol>
+    </section>
+
+    <section class="rsvp section section--paper" id="rsvpSection" aria-labelledby="rsvpTitle">
+      <p class="eyebrow">CONFIRMA</p>
+      <h2 id="rsvpTitle" class="script-title">tu asistencia</h2>
+      <p>Agradecemos confirmar tu asistencia antes del <strong>15 de octubre</strong>.</p>
+      <div class="native-shell" data-mgd-rsvp-token="8c7e5b5c261e4b85ad15a220ca70e0cc66d1336feee740c08027d0c324646167" data-mgd-attendance-style="buttons" data-mgd-quantity-style="counter"></div>
+    </section>
+
+    <section class="gift section section--green-simple" aria-labelledby="giftTitle">
+      <p class="eyebrow">REGALO</p>
+      <h2 id="giftTitle" class="script-title script-title--light">Un detalle</h2>
+      <p>Tu presencia es nuestro mejor regalo. Si además deseas tener un detalle con nosotros, aquí encontrarás algunas opciones.</p>
+      <button class="button button--light" id="giftToggle" type="button" aria-expanded="false" aria-controls="giftDetails">Ver opciones</button>
+      <div class="gift__details" id="giftDetails" hidden>
+        <div class="gift-card"><h3>BCP</h3><p>Cuenta: <span id="bcpAccount">19335282760050</span> <button class="copy" data-copy-target="bcpAccount" type="button">Copiar</button></p><p>CCI: <span id="bcpCci">00219313528276005017</span> <button class="copy" data-copy-target="bcpCci" type="button">Copiar</button></p></div>
+        <div class="gift-card"><h3>Yape</h3><img class="qr" src="../invitacion_6/assets/qr_yape.jpg" alt="Código QR de Yape" loading="lazy" decoding="async"></div>
+        <div class="gift-card"><h3>Regalo físico</h3><p id="giftAddress">Urb. Alameda de la Rivera Mz. G Lt. 45, Ate</p><button class="copy button button--ghost" data-copy-target="giftAddress" type="button">Copiar dirección</button></div>
+      </div>
+    </section>
+
+    <section class="music section section--paper" aria-labelledby="musicTitle">
+      <p class="eyebrow">PEDIDOS MUSICALES</p>
+      <h2 id="musicTitle" class="script-title">para celebrar</h2>
+      <p>¿Hay una canción que te gustaría escuchar durante la recepción o la fiesta? Déjanos tu pedido aquí para considerarlo con anticipación.</p>
+      <img class="music__art" src="../invitacion_6/assets/brindis_6_3.gif" alt="" loading="lazy" decoding="async">
+      <div class="native-shell" data-mgd-music-token="8c7e5b5c261e4b85ad15a220ca70e0cc66d1336feee740c08027d0c324646167" data-mgd-music-message="false"></div>
+      <p class="notice">El DJ no aceptará pedidos musicales durante la celebración, así que este es tu momento para compartirnos tu canción.</p>
+    </section>
+
+    <section class="faq section section--paper" aria-labelledby="faqTitle">
+      <p class="eyebrow">PREGUNTAS</p>
+      <h2 id="faqTitle" class="script-title">Frecuentes</h2>
+      <div class="accordion">
+        <details><summary>¿La ceremonia de boda y la recepción serán en el mismo lugar?</summary><p>Sí. Ambas se realizarán en la Residencia Privada, Calle Acapulco 480, La Molina.</p></details>
+        <details><summary>¿Hasta qué fecha puedo confirmar mi asistencia?</summary><p>Por favor, confirma tu asistencia hasta el 15 de octubre.</p></details>
+        <details><summary>¿Puedo informar de alguna alergia o restricción alimentaria?</summary><p>Sí. Indícala al momento de confirmar tu asistencia para que podamos tenerla en cuenta.</p></details>
+        <details><summary>¿Alguna recomendación para el lugar?</summary><p>Usa calzado cómodo: el césped será parte de la celebración.</p></details>
+      </div>
+    </section>
+
+    <section class="thanks section" aria-labelledby="thanksTitle">
+      <img class="thanks__photo" src="../invitacion_6/assets/foto_pareja_final_6_1.png" alt="Antonio y Lucero en la playa" loading="lazy" decoding="async">
+      <div class="thanks__center">
+        <img class="brook" src="../invitacion_6/brook.gif" alt="Brook" loading="lazy" decoding="async">
+        <h2 id="thanksTitle">¡GRACIAS!</h2>
+        <p class="script-title">Por ser parte de nuestro comienzo</p>
+        <img class="logo" src="../invitacion_6/assets/logo_6_2.png" alt="Antonio y Lucero" loading="lazy" decoding="async">
+        <p class="names">Lucero y Antonio</p>
+        <small>Antonio Valdiviezo © · Music — Sake de Binks (One Piece – Oda)</small>
+      </div>
+      <img class="thanks__photo" src="../invitacion_6/assets/foto_pareja_final_6_2.png" alt="Antonio y Lucero en la playa" loading="lazy" decoding="async">
+    </section>
+  </main>
+
+  <script type="module" src="https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260820-5b2"></script>
+  <script src="./app.js?v=20260826-mb1" defer></script>
+</body>
+</html>
