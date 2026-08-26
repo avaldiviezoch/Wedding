@@ -1,3 +1,5 @@
+import { TABLES_FINAL_STYLE_VERSION, tablesFinalStyleReady, tablesFinalStyleState, trackTablesFinalStyle } from './tables-style-readiness.js';
+
 (() => {
   'use strict';
 
@@ -14,10 +16,15 @@
   }
 
   function finalStyleLoaded(view) {
-    if (!view?.querySelector('#mgdTablesEditor')) return false;
+    const editor = view?.querySelector('#mgdTablesEditor');
+    if (!editor) return false;
+    if (editor.dataset.oldTableLook !== '1') return false;
+    if (!editor.dataset.stableRuntime) return false;
+    if (!view.ownerDocument?.getElementById('mgdTablesFinalFix')) return false;
+    if (!view.ownerDocument?.getElementById('mgdTablesStablePolish')) return false;
     const link = view.ownerDocument?.querySelector('link[data-mgd-tables-old-look]');
     if (!link) return false;
-    try { return Boolean(link.sheet); } catch (_) { return false; }
+    return tablesFinalStyleReady(link);
   }
 
   function revealWhenReady(view) {
@@ -28,23 +35,18 @@
     }
     setReady(view, false);
     const doc = view.ownerDocument;
-    let attempts = 0;
-    const check = () => {
-      if (!view.isConnected) return;
-      if (finalStyleLoaded(view)) {
-        setReady(view, true);
-        return;
-      }
-      const link = doc?.querySelector('link[data-mgd-tables-old-look]');
-      if (link && !link.dataset.mgdRevealBound) {
-        link.dataset.mgdRevealBound = VERSION;
-        link.addEventListener('load', () => setReady(view, true), { once: true });
-      }
-      attempts += 1;
-      if (attempts < 30) setTimeout(check, 50);
-      else if (view.querySelector('#mgdTablesEditor')) setReady(view, true);
-    };
-    check();
+    const link = doc?.querySelector('link[data-mgd-tables-old-look]');
+    if (!link) return;
+    trackTablesFinalStyle(link);
+    if (link.dataset.mgdRevealBound !== TABLES_FINAL_STYLE_VERSION) {
+      link.dataset.mgdRevealBound = TABLES_FINAL_STYLE_VERSION;
+      link.addEventListener('load', () => {
+        if (finalStyleLoaded(view)) setReady(view, true);
+      });
+      link.addEventListener('error', () => {
+        if (tablesFinalStyleState(link) === 'error' && view.querySelector('#mgdTablesEditor')) setReady(view, true);
+      });
+    }
   }
 
   function prepare(doc) {

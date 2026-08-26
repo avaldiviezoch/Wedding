@@ -1,8 +1,10 @@
+import { TABLES_FINAL_STYLE_VERSION, setTablesFinalStyleHref, trackTablesFinalStyle } from './tables-style-readiness.js';
+
 (() => {
   'use strict';
 
   const VERSION = '20260816-1545-fast-tables1';
-  const CSS_HREF = new URL(`css/modules/invitados-tables-old-look.css?v=${VERSION}`, document.baseURI).href;
+  const CSS_HREF = new URL(`css/modules/invitados-tables-old-look.css?v=${TABLES_FINAL_STYLE_VERSION}`, document.baseURI).href;
   let timer = 0;
   let attempts = 0;
 
@@ -57,9 +59,10 @@
       link = doc.createElement('link');
       link.rel = 'stylesheet';
       link.dataset.mgdTablesOldLook = VERSION;
+      setTablesFinalStyleHref(link, CSS_HREF);
       doc.head.appendChild(link);
     }
-    if (link.href !== CSS_HREF) link.href = CSS_HREF;
+    setTablesFinalStyleHref(link, CSS_HREF);
     ensureFinalFix(doc);
   }
 
