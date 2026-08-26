@@ -1,6 +1,6 @@
 # Design System V2 - Mi Gran Dia
 
-Estado: VISUAL LANGUAGE FROZEN — NOT YET PRODUCTIVE
+Estado: PRODUCTIVE FOUNDATION IMPLEMENTED — MODULE MIGRATION NOT STARTED
 Fecha: 2026-08-21
 Rama base: `design/task-8-redesign-vision`
 Rama de validacion final: `design/task-8a-editorial-command-validation`
@@ -10,6 +10,8 @@ Rama de validacion final: `design/task-8a-editorial-command-validation`
 Design System V2 traduce `design-system/MASTER.md` a una propuesta ejecutable para el redisenio controlado de Mi Gran Dia. Este documento no cambia produccion; define lenguaje, tokens, componentes, estados, responsive, accesibilidad y motion para una implementacion futura.
 
 Direccion aprobada: `Editorial Command`.
+
+La foundation productiva aislada está en `app_integral/css/v2/mgd-v2.css`; solo actúa dentro de `body.mgd-v2`. Inventario, uso y límites: `docs/DESIGN_SYSTEM_V2_IMPLEMENTATION.md`.
 
 ## Lock de dirección de arte 9A
 

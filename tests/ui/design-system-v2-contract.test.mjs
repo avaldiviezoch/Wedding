@@ -1,0 +1,3 @@
+import test from 'node:test'; import assert from 'node:assert/strict'; import { readFile } from 'node:fs/promises';
+const css = await readFile(new URL('../../app_integral/css/v2/mgd-v2.css', import.meta.url), 'utf8');
+test('V2 remains namespaced and accessible', () => { for (const token of ['body.mgd-v2','--mgd-color-canvas','--mgd-font-editorial',':focus-visible','prefers-reduced-motion','.mgd-button','.mgd-modal','.mgd-sheet']) assert.match(css, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))); assert.equal(css.includes('!important'), false); assert.equal(css.includes('linear-gradient'), false); assert.equal(css.includes('@import'), false); });
