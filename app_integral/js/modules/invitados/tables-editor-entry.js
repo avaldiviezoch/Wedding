@@ -1,4 +1,4 @@
-const FINAL_STYLE_VERSION = '20260819-empty-onboarding1';
+const FINAL_STYLE_VERSION = '20260816-1545-fast-tables1';
 const FINAL_STYLE_URL = new URL(`css/modules/invitados-tables-old-look.css?v=${FINAL_STYLE_VERSION}`, document.baseURI).href;
 
 function preloadFinalStyle() {
