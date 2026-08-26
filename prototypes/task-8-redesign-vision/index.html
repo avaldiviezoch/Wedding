@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tarea 8 - Redesign Vision Prototype</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="direction-a">
+  <div class="prototype-shell">
+    <aside class="sidebar" aria-label="Navegacion de prototipo">
+      <div class="brand-block">
+        <span class="brand-mark" aria-hidden="true">MG</span>
+        <div>
+          <strong>Mi Gran Dia</strong>
+          <span>Prototype V2</span>
+        </div>
+      </div>
+      <nav class="main-nav">
+        <button class="nav-item is-active" data-view="dashboard">Inicio</button>
+        <button class="nav-item" data-view="guests">Invitados</button>
+        <button class="nav-item" data-view="rsvp">RSVP</button>
+        <button class="nav-item" data-view="tables">Mesas</button>
+        <button class="nav-item" data-view="components">Sistema</button>
+      </nav>
+      <div class="sidebar-note">
+        <span class="status-dot"></span>
+        Mock local. Sin Firebase, sin datos reales.
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Boda activa</p>
+          <h1>Antonio & Lucero</h1>
+        </div>
+        <div class="topbar-actions">
+          <span class="save-state">Guardado hace 2 min</span>
+          <button class="icon-button" type="button" aria-label="Abrir notificaciones">!</button>
+          <button class="primary-action" type="button">Nueva tarea</button>
+        </div>
+      </header>
+
+      <section class="direction-switcher" aria-label="Comparar direcciones visuales">
+        <button class="pill is-active" data-direction="direction-a">A Editorial Elegante</button>
+        <button class="pill" data-direction="direction-b">B Calm Command Center</button>
+        <button class="pill" data-direction="direction-c">C Celebration OS</button>
+      </section>
+
+      <section class="view view-dashboard is-visible" data-panel="dashboard">
+        <div class="hero-band">
+          <div>
+            <p class="eyebrow">Hoy requiere atencion</p>
+            <h2>7 decisiones mantienen la boda en ritmo.</h2>
+            <p>Revisar RSVP pendientes, cerrar 2 mesas y confirmar musica antes del domingo.</p>
+          </div>
+          <button class="primary-action" type="button">Ver pendientes</button>
+        </div>
+
+        <div class="metric-grid">
+          <article class="metric-card">
+            <span>Invitados</span>
+            <strong>124</strong>
+            <p>18 sin confirmar</p>
+          </article>
+          <article class="metric-card">
+            <span>RSVP</span>
+            <strong>72%</strong>
+            <p>9 respuestas nuevas</p>
+          </article>
+          <article class="metric-card">
+            <span>Mesas</span>
+            <strong>11/14</strong>
+            <p>3 con sobrecupo</p>
+          </article>
+          <article class="metric-card">
+            <span>Presupuesto</span>
+            <strong>86%</strong>
+            <p>Dentro del rango</p>
+          </article>
+        </div>
+
+        <div class="two-column">
+          <section class="panel">
+            <div class="panel-header">
+              <h3>Bandeja de pendientes</h3>
+              <button class="ghost-action" type="button">Filtrar</button>
+            </div>
+            <ul class="task-list">
+              <li><span class="tag warning">RSVP</span><strong>Aplicar respuesta de familia Rios</strong><small>Requiere vincular 3 invitados</small></li>
+              <li><span class="tag danger">Mesas</span><strong>Mesa 6 excede capacidad</strong><small>10 de 8 lugares ocupados</small></li>
+              <li><span class="tag info">Invitacion</span><strong>Probar enlace real en mobile</strong><small>430px y 390px pendientes</small></li>
+            </ul>
+          </section>
+
+          <section class="panel timeline-panel">
+            <div class="panel-header">
+              <h3>Proximos hitos</h3>
+              <button class="ghost-action" type="button">Abrir agenda</button>
+            </div>
+            <ol class="timeline">
+              <li><span>22 ago</span>Confirmar menu final</li>
+              <li><span>25 ago</span>Cerrar distribucion de mesas</li>
+              <li><span>31 ago</span>Enviar recordatorio RSVP</li>
+            </ol>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" data-panel="guests">
+        <div class="page-intro">
+          <div><p class="eyebrow">Invitados</p><h2>Personas, grupos y estados en una sola lectura.</h2></div>
+          <button class="primary-action" type="button">Agregar invitado</button>
+        </div>
+        <div class="table-shell" role="region" aria-label="Lista mock de invitados">
+          <div class="table-row table-head"><span>Invitado</span><span>Grupo</span><span>RSVP</span><span>Mesa</span><span>Estado</span></div>
+          <div class="table-row"><strong>Lucia Demo</strong><span>Familia</span><span>Confirmado</span><span>Mesa 4</span><span class="tag success">Listo</span></div>
+          <div class="table-row"><strong>Marco Demo</strong><span>Amigos</span><span>Pendiente</span><span>Sin mesa</span><span class="tag warning">Revisar</span></div>
+          <div class="table-row"><strong>Camila Demo</strong><span>Trabajo</span><span>Declina</span><span>-</span><span class="tag info">Archivado</span></div>
+        </div>
+      </section>
+
+      <section class="view" data-panel="rsvp">
+        <div class="page-intro">
+          <div><p class="eyebrow">RSVP admin</p><h2>Bandeja para revisar antes de aplicar.</h2></div>
+          <button class="primary-action" type="button">Sincronizar</button>
+        </div>
+        <div class="split-workbench">
+          <section class="panel">
+            <h3>Respuestas nuevas</h3>
+            <article class="response-card is-selected"><strong>Familia Rios</strong><p>3 asistentes, menu vegetariano para 1.</p><span class="tag warning">Sin vincular</span></article>
+            <article class="response-card"><strong>Daniela Demo</strong><p>No podra asistir. Nota personal incluida.</p><span class="tag info">Revisada</span></article>
+          </section>
+          <section class="panel form-panel">
+            <h3>Aplicar respuesta</h3>
+            <label>Vincular a invitado<input value="Familia Rios" aria-describedby="link-help"></label>
+            <small id="link-help">Mock local: esta accion no escribe datos.</small>
+            <label>Estado<select><option>Confirmado</option><option>Pendiente</option><option>Declina</option></select></label>
+            <button class="primary-action" type="button">Aplicar en prototipo</button>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" data-panel="tables">
+        <div class="page-intro">
+          <div><p class="eyebrow">Mesas</p><h2>Asignacion segura por lista antes que canvas obligatorio.</h2></div>
+          <button class="primary-action" type="button">Resolver conflictos</button>
+        </div>
+        <div class="tables-layout">
+          <section class="panel guest-queue">
+            <h3>Sin mesa</h3>
+            <button class="guest-chip" type="button">Marco Demo</button>
+            <button class="guest-chip" type="button">Ana Demo</button>
+            <button class="guest-chip" type="button">Grupo Soto</button>
+          </section>
+          <section class="table-map" aria-label="Mapa mock de mesas">
+            <article class="table-card"><strong>Mesa 1</strong><span>8/8</span></article>
+            <article class="table-card has-warning"><strong>Mesa 6</strong><span>10/8</span></article>
+            <article class="table-card"><strong>Mesa 9</strong><span>5/8</span></article>
+            <article class="table-card"><strong>Mesa 12</strong><span>6/10</span></article>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" data-panel="components">
+        <div class="page-intro">
+          <div><p class="eyebrow">Sistema V2</p><h2>Componentes y estados minimos antes de migrar.</h2></div>
+        </div>
+        <div class="component-grid">
+          <section class="panel"><h3>Botones</h3><button class="primary-action">Primario</button><button class="ghost-action">Secundario</button><button class="danger-action">Peligro</button></section>
+          <section class="panel"><h3>Estados</h3><p class="notice success">Guardado correctamente.</p><p class="notice warning">Hay cambios pendientes.</p><p class="notice danger">No se pudo sincronizar.</p></section>
+          <section class="panel"><h3>Empty</h3><div class="empty-state"><strong>No hay invitados filtrados</strong><span>Ajusta filtros o agrega una persona.</span></div></section>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="./app.js"></script>
+</body>
+</html>
