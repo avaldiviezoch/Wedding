@@ -3,7 +3,7 @@
   const ROOT='/Wedding/invitaciones/invitacion_6_fiel_txt/';
 
   async function text(name){
-    const response=await fetch(ROOT+name+'?v=20260826-fiel1',{cache:'no-store'});
+    const response=await fetch(ROOT+name+'?v=20260826-fiel2',{cache:'no-store'});
     if(!response.ok)throw new Error('No se pudo cargar '+name);
     return response.text();
   }
@@ -49,14 +49,10 @@
 
   async function start(){
     try{
-      const wrapperHtml=await text('wrapper_snapshot.html');
+      const wrapperHtml=await text('wrapper_snapshot.txt');
       const wrapperCode=directWrapper(inlineScripts(wrapperHtml));
       run(wrapperCode,'wrapper-direct.js');
-
-      // El wrapper original programa sus cambios al evento load. Esperamos un ciclo
-      // para conservar exactamente ese orden antes de aplicar el parche maduro.
       await new Promise(resolve=>setTimeout(resolve,0));
-
       const mature=directMature(await text('mature_patch_snapshot.js'));
       run(mature,'mature-direct.js');
       window.dispatchEvent(new Event('inv6-local-ready'));
