@@ -20,7 +20,9 @@ Tokens semánticos de color, tipografía Georgia/Segoe UI, spacing, radios, elev
 
 ## Accesibilidad y motion
 
-Focus `:focus-visible` contrastado, controles de 44px, labels persistentes, errores asociados y `aria` en markup de ejemplo. Motion usa transform/opacity y tokens 140/200/280ms; `prefers-reduced-motion` reduce transiciones y animaciones. Modal/sheet son foundation visual: la futura migración debe reutilizar el contrato existente de foco, Escape y restore focus, sin reimplementar auth.
+Focus `:focus-visible` contrastado, controles de 44px, labels persistentes, errores asociados y `aria` en markup de ejemplo. Motion usa transform/opacity y tokens 140/200/280ms; `prefers-reduced-motion` reduce transiciones y animaciones. La galería incluye un Sheet estático visible para revisar backdrop tonal, header, cierre, cuerpo, footer, safe-area, radio, elevación, altura máxima y overflow.
+
+Modal y Sheet de 9B son foundations visuales/estructurales. El runtime de overlays reutilizará e integrará el contrato existente durante 9C: Escape, focus trap, restore focus, `inert` y `aria` cuando aplique. Se prueba al migrar overlays reales; no es lógica faltante dentro del alcance de 9B y aquí no se crea un sistema JS global.
 
 ## Límites conocidos
 
