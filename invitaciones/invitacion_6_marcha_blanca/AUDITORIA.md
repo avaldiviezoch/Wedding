@@ -48,3 +48,6 @@ Reconstruir la Invitación 6 como una página autónoma, sin iframes ni parches 
 8. Scroll, FAQ, regalo y mapa funcionan en móvil.
 9. No hay cambios a Firestore Rules, esquema, tokens, autenticación ni datos.
 10. Revisión visual final aprobada.
+
+## Validación
+La PR #100 se mantiene sin fusionar durante la marcha blanca; cualquier ajuste se realiza únicamente en esta carpeta paralela hasta la aprobación final.
