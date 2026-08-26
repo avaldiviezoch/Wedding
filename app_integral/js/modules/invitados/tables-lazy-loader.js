@@ -16,7 +16,12 @@ import { TABLES_FINAL_STYLE_VERSION, tablesFinalStyleReady, tablesFinalStyleStat
   }
 
   function finalStyleLoaded(view) {
-    if (!view?.querySelector('#mgdTablesEditor')) return false;
+    const editor = view?.querySelector('#mgdTablesEditor');
+    if (!editor) return false;
+    if (editor.dataset.oldTableLook !== '1') return false;
+    if (!editor.dataset.stableRuntime) return false;
+    if (!view.ownerDocument?.getElementById('mgdTablesFinalFix')) return false;
+    if (!view.ownerDocument?.getElementById('mgdTablesStablePolish')) return false;
     const link = view.ownerDocument?.querySelector('link[data-mgd-tables-old-look]');
     if (!link) return false;
     return tablesFinalStyleReady(link);
