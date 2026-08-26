@@ -1,6 +1,6 @@
 # Design System V2 - Mi Gran Dia
 
-Estado: APPROVED FOR IMPLEMENTATION - NOT YET PRODUCTIVE
+Estado: VISUAL LANGUAGE FROZEN — NOT YET PRODUCTIVE
 Fecha: 2026-08-21
 Rama base: `design/task-8-redesign-vision`
 Rama de validacion final: `design/task-8a-editorial-command-validation`
@@ -10,6 +10,10 @@ Rama de validacion final: `design/task-8a-editorial-command-validation`
 Design System V2 traduce `design-system/MASTER.md` a una propuesta ejecutable para el redisenio controlado de Mi Gran Dia. Este documento no cambia produccion; define lenguaje, tokens, componentes, estados, responsive, accesibilidad y motion para una implementacion futura.
 
 Direccion aprobada: `Editorial Command`.
+
+## Lock de dirección de arte 9A
+
+La definición visual se congela en `docs/EDITORIAL_COMMAND_ART_DIRECTION.md` (2026-08-26). Ese documento refina la firma visual, densidad, superficies, navegación, estados, motion, accesibilidad y estrategia CSS sin cambiar producto. La congelación no autoriza una implementación automática ni cambios de Firebase, Firestore, RSVP, Mesas, rutas, datos o deploy.
 
 ## Validacion final 8A
 
