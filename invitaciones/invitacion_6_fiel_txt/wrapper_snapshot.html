@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Antonio & Lucero</title>
+  <style>
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f1e5da}
+    #inv5{display:block;width:100%;height:100%;border:0;background:#f1e5da;opacity:0;transition:opacity .15s ease}
+    #inv5.ready{opacity:1}
+  </style>
+</head>
+<body>
+  <iframe id="inv5" src="./invitacion_5_base.html?v=20260817-2152" title="Invitación 5" allow="autoplay; fullscreen"></iframe>
+  <script>
+    const frame=document.getElementById('inv5');
+
+    frame.addEventListener('load',()=>{
+      try{
+        const doc=frame.contentDocument||frame.contentWindow.document;
+
+        doc.getElementById('inv5PrimerFondo')?.remove();
+
+        const img=doc.querySelector('.countdown-image');
+        if(img){
+          img.src='./imagen_de_fecha_5.png?v=20260816-2';
+          img.removeAttribute('srcset');
+        }
+
+        const programacionImg=[...doc.querySelectorAll('img')].find(el=>
+          decodeURIComponent(el.getAttribute('src')||'').includes('itinerario_2.png')
+        );
+        if(programacionImg){
+          programacionImg.src='./programacion_5.gif?v=20260816-1';
+          programacionImg.removeAttribute('srcset');
+          programacionImg.style.transform='translateY(14px)';
+        }
+
+        const nuestroDia=[...doc.querySelectorAll('h1,h2,h3,.section-title,.itinerary-title,.itinerario-title,.timeline-title')].find(el=>{
+          const t=(el.textContent||'').trim().toLowerCase();
+          return t==='nuestro día'||t==='nuestro dia';
+        });
+        if(nuestroDia) nuestroDia.style.transform='translateY(14px)';
+
+        const shiftedSchedule=[
+          '02:00 PM –<br>03:00 PM',
+          '03:00 PM –<br>04:00 PM',
+          '04:00 PM –<br>05:00 PM',
+          '05:00 PM –<br>05:30 PM',
+          '05:30 PM –<br>06:30 PM',
+          '06:30 PM –<br>07:00 PM',
+          '07:00 PM<br>en adelante'
+        ];
+        [...doc.querySelectorAll('.itinerary-time')].forEach((el,i)=>{
+          if(shiftedSchedule[i]) el.innerHTML=shiftedSchedule[i];
+        });
+
+        const dressSection=[...doc.querySelectorAll('section')].find(section=>{
+          const t=(section.textContent||'').toLowerCase();
+          return t.includes('dress code')||t.includes('elegante')||t.includes('formal');
+        });
+        if(dressSection){
+          const colors=['#f3e3e4','#f3acad','#ed9b8c','#e7b181','#f2e4ab','#d5c1da','#c7dbfa','#bfc7be','#acb580'];
+          dressSection.id='dressCodeSection';
+          dressSection.className='inv5-dress-section';
+          dressSection.innerHTML=`
+            <div class="inv5-dress-card">
+              <div class="inv5-dress-content">
+                <div class="inv5-dress-heading">
+                  <span class="inv5-dress-code">Dress Code</span>
+                  <span class="inv5-dress-formal">Formal</span>
+                </div>
+                <p class="inv5-dress-subtitle">Colores de primavera en tonos pasteles</p>
+                <div class="inv5-dress-palette" aria-label="Paleta de colores sugerida">
+                  ${colors.map(color=>`<span class="inv5-dress-dot" style="background:${color}"></span>`).join('')}
+                </div>
+                <p class="inv5-dress-white">Reservaremos el color blanco para los novios.</p>
+                <p class="inv5-dress-text inv5-dress-lower-1"><em>Elige un look que te haga sentir cómodo, auténtico y listo para disfrutar cada momento.</em></p>
+                <p class="inv5-dress-text inv5-dress-last"><strong><em>Tu mejor accesorio será una sonrisa y muchas ganas de celebrar.</em></strong></p>
+              </div>
+            </div>`;
+        }
+
+        // CONFIRMACIÓN + REGALO EN UNA SOLA TARJETA
+        const rsvpSection=doc.querySelector('#rsvpSection');
+        const rsvpCard=rsvpSection?.querySelector('.final-card');
+        if(rsvpCard&&!rsvpCard.querySelector('.inv5-rsvp-title')){
+          const title=doc.createElement('h2');
+          title.className='final-title inv5-rsvp-title';
+          title.textContent='Confirmar tu asistencia';
+          rsvpCard.insertBefore(title,rsvpCard.firstChild);
+        }
+
+        const confirmationMedia=doc.querySelector('#rsvpSection .rsvp-main-image');
+        if(confirmationMedia){
+          confirmationMedia.style.clipPath='inset(4px)';
+          confirmationMedia.style.webkitClipPath='inset(4px)';
+        }
+
+        // RSVP nativo de la boda vinculada: conserva el GIF y abre el formulario dentro de la invitación.
+        const linkedRsvpToken='8c7e5b5c261e4b85ad15a220ca70e0cc66d1336feee740c08027d0c324646167';
+        const rsvpPanel=doc.getElementById('rsvp-panel');
+        if(rsvpPanel){
+          rsvpPanel.innerHTML=`<div class="inv5-native-widget-shell" data-mgd-rsvp-token="${linkedRsvpToken}" data-mgd-attendance-style="buttons" data-mgd-quantity-style="counter" style="--mgd-accent:#6d7559;--mgd-surface:rgba(255,255,255,.12);--mgd-border:rgba(109,117,89,.24);"></div>`;
+        }
+
+        const giftMedia=doc.getElementById('giftMainMedia');
+        if(giftMedia){
+          const giftGif='./regalo_5_1.gif?v=20260817-2219';
+          giftMedia.src=giftGif;
+          giftMedia.dataset.gifSrc=giftGif;
+          giftMedia.alt='Regalo';
+          giftMedia.style.clipPath='none';
+          giftMedia.style.webkitClipPath='none';
+          giftMedia.style.background='transparent';
+        }
+
+        const giftSection=doc.getElementById('giftSection');
+        const giftExperience=doc.getElementById('giftExperience');
+        if(rsvpCard&&giftExperience){
+          let giftInRsvp=doc.getElementById('inv5GiftInRsvp');
+          if(!giftInRsvp){
+            giftInRsvp=doc.createElement('div');
+            giftInRsvp.id='inv5GiftInRsvp';
+            giftInRsvp.className='inv5-gift-in-rsvp';
+            giftInRsvp.setAttribute('aria-label','Regalo');
+            giftInRsvp.appendChild(giftExperience);
+            rsvpCard.appendChild(giftInRsvp);
+          }
+
+          // El título de Regalo siempre debe estar físicamente arriba del GIF.
+          const giftHeading=giftExperience.querySelector('.gift-stage-heading');
+          const giftStage=giftExperience.querySelector('.gift-animation-stage');
+          if(giftHeading&&giftStage){
+            giftExperience.insertBefore(giftHeading,giftStage);
+          }
+
+          giftSection?.remove();
+        }
+
+        const musicSection=doc.querySelector('#musicSection');
+        if(musicSection){
+          const musicText=musicSection.querySelector('.music-copy .final-text');
+          const musicWarning=musicSection.querySelector('.music-warning');
+          if(musicText) musicText.textContent='¿Hay una canción que te gustaría escuchar durante la recepción o la fiesta? Déjanos tu pedido aquí para considerarlo con anticipación.';
+          if(musicWarning) musicWarning.textContent='El DJ no aceptará pedidos musicales durante la celebración, así que este es tu momento para compartirnos tu canción.';
+          const musicPanel=doc.getElementById('music-request-panel');
+          if(musicPanel){
+            musicPanel.innerHTML=`<div class="inv5-native-widget-shell" data-mgd-music-token="${linkedRsvpToken}" data-mgd-music-message="false" style="--mgd-accent:#6d7559;--mgd-surface:rgba(255,255,255,.12);--mgd-border:rgba(109,117,89,.24);"></div>`;
+          }
+        }
+
+        // Un solo script atiende Confirmación y Música; no crea iframe ni duplica la aplicación.
+        if(!doc.getElementById('inv5NativeRsvpWidget')){
+          const nativeWidgetScript=doc.createElement('script');
+          nativeWidgetScript.id='inv5NativeRsvpWidget';
+          nativeWidgetScript.type='module';
+          nativeWidgetScript.src='https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260820-5b2';
+          doc.head.appendChild(nativeWidgetScript);
+        }
+
+        [...doc.querySelectorAll('details.faq-item')].forEach(item=>{
+          const summary=item.querySelector('summary');
+          const answer=item.querySelector('.faq-answer');
+          if(!summary) return;
+          const question=(summary.textContent||'').trim().toLowerCase();
+
+          if(question.includes('hasta cuándo puedo confirmar mi asistencia')||question.includes('hasta cuando puedo confirmar mi asistencia')){
+            summary.textContent='¿Hasta qué fecha puedo confirmar mi asistencia?';
+            if(answer) answer.textContent='Por favor, confirma tu asistencia hasta el 15 de octubre.';
+          }
+          if(question.includes('podemos llevar un regalo')||question.includes('puedo dejar un regalo')){
+            summary.textContent='¿Puedo informar de alguna alergia o restricción alimentaria?';
+            if(answer) answer.textContent='Sí, es muy importante por la comida que se repartirá y los bocaditos.';
+          }
+          if(question.includes('solicitar canciones')||question.includes('música')||question.includes('musica')||question.includes('dj')){
+            item.remove();
+            return;
+          }
+
+          const finalQuestion=(summary.textContent||'').trim().toLowerCase();
+          let faqImage='';
+          let faqAlt='';
+          if(finalQuestion.includes('estacionamiento')){
+            faqImage='./pic_preguntas_5_1.png?v=20260817-1633'; faqAlt='Ilustración de estacionamiento';
+          }else if(finalQuestion.includes('alergia')||finalQuestion.includes('restricción')||finalQuestion.includes('restriccion')){
+            faqImage='./pic_preguntas_5_2.png?v=20260817-1633'; faqAlt='Ilustración de alergias o restricciones alimentarias';
+          }else if(finalQuestion.includes('confirmar')||finalQuestion.includes('asistencia')){
+            faqImage='./pic_preguntas_5_3.png?v=20260817-1633'; faqAlt='Ilustración de fecha de confirmación';
+          }else if((finalQuestion.includes('ceremonia')&&finalQuestion.includes('recepción'))||finalQuestion.includes('mismo lugar')){
+            faqImage='./pic_preguntas_5_4.png?v=20260817-1633'; faqAlt='Ilustración de ceremonia y recepción en el mismo lugar';
+          }
+
+          if(faqImage){
+            item.classList.add('inv5-animated-faq');
+            item.querySelectorAll('.faq-illustration,.inv5-faq-illustration').forEach(el=>el.remove());
+            const illustration=doc.createElement('div');
+            illustration.className='faq-illustration inv5-faq-illustration';
+            const faqImg=doc.createElement('img');
+            faqImg.src=faqImage; faqImg.alt=faqAlt; faqImg.loading='lazy'; faqImg.decoding='async';
+            faqImg.onerror=()=>faqImg.classList.add('media-error');
+            illustration.appendChild(faqImg);
+            item.appendChild(illustration);
+          }
+        });
+
+        const finalCard=doc.querySelector('#esperamosSection .final-card');
+        if(finalCard){
+          finalCard.querySelector('.te-esperamos-gif')?.remove();
+          finalCard.querySelector('.wait-message')?.remove();
+          finalCard.querySelector('.wait-signature')?.remove();
+          finalCard.querySelector('.wait-date')?.remove();
+          const title=finalCard.querySelector('.final-title');
+          const brook=doc.createElement('img');
+          brook.className='te-esperamos-gif brook-final-gif';
+          brook.src='https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/invitaciones/invitacion_1/brook.gif?v=20260816-1728';
+          brook.alt='Brook'; brook.loading='eager'; brook.decoding='async';
+          if(title) title.insertAdjacentElement('afterend',brook); else finalCard.appendChild(brook);
+        }
+
+        const style=doc.createElement('style');
+        style.id='inv5-amsterdam-four';
+        style.textContent=`
+          @font-face{font-family:'Amsterdam Four';src:url('./Amsterdam%20Four_ttf%20400.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+
+          h1,h2,h3,.section-title,.photo-story-title,.rsvp-title,.faq-title,.gift-title,.music-title,.dress-title,.location-title,.itinerary-title,.confirmation-title,.questions-title,[class*="section-title"],[class*="-title"]{font-family:'Amsterdam Four',cursive !important;font-weight:400 !important}
+
+          body,p,li,a,label,input,textarea,select,button,summary,small,
+          .final-text,.faq-answer,.music-warning,.gift-hint,.regalo-hint,.tap-text,
+          .photo-story-subtitle,.countdown-subtitle,.countdown-text,
+          .itinerary-time,.itinerary-content p,.schedule-intro,
+          .church-main-copy,.church-address,.church-note,
+          .location-text,.location-copy,.gift-text,.regalo-text,
+          .rsvp-copy,.music-copy,.final-copy,.wait-message,.wait-signature,.wait-date,
+          .inv5-dress-subtitle,.inv5-dress-white,.inv5-dress-text{font-family:Georgia,'Times New Roman',serif !important}
+          input::placeholder,textarea::placeholder{font-family:Georgia,'Times New Roman',serif !important}
+
+          hr,.divider,.separator,.section-divider,.line-divider,.section-line,[class*="divider"],[class*="separator"]{display:none !important;border:0 !important;height:0 !important;min-height:0 !important;background:transparent !important;box-shadow:none !important}
+          hr::before,hr::after,.divider::before,.divider::after,.separator::before,.separator::after,.section-divider::before,.section-divider::after,.line-divider::before,.line-divider::after,.section-line::before,.section-line::after{display:none !important;content:none !important}
+
+          #rsvpSection .rsvp-image-card{overflow:visible !important;border:0 !important;box-shadow:none !important;background:transparent !important}
+          #rsvpSection .rsvp-image-card::before,#rsvpSection .rsvp-image-card::after{content:none !important;display:none !important;width:0 !important;height:0 !important;background:none !important;border:0 !important}
+
+          #inv5GiftInRsvp{width:100% !important;margin:48px auto 64px !important;padding:0 !important;border:0 !important;background:transparent !important;background-image:none !important;box-shadow:none !important;overflow:visible !important}
+          #inv5GiftInRsvp::before,#inv5GiftInRsvp::after{content:none !important;display:none !important}
+
+          #inv5GiftInRsvp .gift-experience{position:relative !important;display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:flex-start !important;gap:0 !important;width:100% !important;height:auto !important;min-height:0 !important;aspect-ratio:auto !important;margin:0 auto !important;overflow:visible !important;background:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important}
+
+          #inv5GiftInRsvp .gift-stage-heading{position:relative !important;inset:auto !important;top:auto !important;right:auto !important;bottom:auto !important;left:auto !important;transform:none !important;display:block !important;order:1 !important;width:min(100%,320px) !important;max-width:320px !important;margin:0 auto 24px !important;padding:0 12px !important;z-index:3 !important;text-align:center !important;border:0 !important;border-top:0 !important;border-bottom:0 !important;box-shadow:none !important;background:transparent !important;background-image:none !important}
+          #inv5GiftInRsvp .gift-stage-title,#inv5GiftInRsvp .gift-stage-subtitle{position:relative !important;inset:auto !important;transform:none !important;display:block !important;width:100% !important;margin-left:auto !important;margin-right:auto !important;text-align:center !important;border:0 !important;border-top:0 !important;border-bottom:0 !important;box-shadow:none !important;background:transparent !important;background-image:none !important}
+          #inv5GiftInRsvp .gift-stage-heading::before,#inv5GiftInRsvp .gift-stage-heading::after,#inv5GiftInRsvp .gift-stage-title::before,#inv5GiftInRsvp .gift-stage-title::after,#inv5GiftInRsvp .gift-stage-subtitle::before,#inv5GiftInRsvp .gift-stage-subtitle::after{content:none !important;display:none !important}
+
+          #inv5GiftInRsvp .gift-animation-stage{position:relative !important;inset:auto !important;display:block !important;order:2 !important;width:100% !important;height:auto !important;min-height:0 !important;margin:0 auto !important;background:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important}
+          #inv5GiftInRsvp .gift-main-media{position:relative !important;inset:auto !important;display:block !important;width:min(76%,420px) !important;max-width:420px !important;height:auto !important;min-height:0 !important;margin:0 auto !important;object-fit:contain !important;object-position:center !important;background:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important;filter:none !important}
+          #inv5GiftInRsvp .gift-animation-stage::after{display:none !important;content:none !important}
+
+          #inv5GiftInRsvp .gift-experience.is-revealed .gift-animation-stage{position:absolute !important;inset:0 !important}
+          #inv5GiftInRsvp .gift-experience.is-revealed .gift-reveal-content{position:relative !important;inset:auto !important;width:100% !important;height:auto !important;min-height:0 !important;padding:36px 28px 30px !important;overflow:visible !important;justify-content:flex-start !important;background:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important}
+          #inv5GiftInRsvp .gift-vintage-panel{width:min(100%,440px) !important;max-height:0 !important;overflow:hidden !important;background:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important}
+          #inv5GiftInRsvp .gift-vintage-panel.open{max-height:none !important;height:auto !important;overflow:visible !important;opacity:1 !important;margin-top:18px !important;background:transparent !important;background-image:none !important}
+          #inv5GiftInRsvp .gift-yape-box,#inv5GiftInRsvp .gift-bank-data,#inv5GiftInRsvp .gift-data-row{position:relative !important;height:auto !important;max-height:none !important;overflow:visible !important}
+          #inv5GiftInRsvp .gift-bank-data{display:grid !important;width:min(100%,430px) !important;margin:18px auto 0 !important;gap:10px !important}
+          #inv5GiftInRsvp .gift-data-row{display:flex !important;flex-direction:column !important;align-items:center !important}
+
+          .inv5-faq-illustration{padding:8px 0 20px !important;display:flex !important;justify-content:center !important;align-items:center !important;background:transparent !important;border:0 !important;box-shadow:none !important;will-change:transform,opacity;transform-origin:center center}
+          .inv5-faq-illustration img{display:block !important;width:min(100%,250px) !important;max-width:250px !important;height:auto !important;margin:0 auto !important;object-fit:contain !important;background:transparent !important;border:0 !important;border-radius:0 !important;box-shadow:none !important;transform-origin:50% 80%;will-change:transform}
+          .inv5-animated-faq:not([open]) .inv5-faq-illustration{opacity:0;transform:translateY(14px) scale(.97)}
+          .inv5-animated-faq[open] .inv5-faq-illustration{animation:inv5FaqPicIn .68s cubic-bezier(.22,.86,.28,1.12) both}
+          .inv5-animated-faq[open] .inv5-faq-illustration img{animation:inv5FaqPicIdle 4.4s ease-in-out .72s infinite}
+          .inv5-faq-illustration img.media-error{display:none !important}
+          @keyframes inv5FaqPicIn{0%{opacity:0;transform:translateY(17px) scale(.97) rotate(1.8deg)}70%{opacity:1;transform:translateY(-2px) scale(1.01) rotate(-.7deg)}100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}}
+          @keyframes inv5FaqPicIdle{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-4px) rotate(1deg)}}
+          @media(prefers-reduced-motion:reduce){.inv5-faq-illustration,.inv5-faq-illustration img{animation:none !important;opacity:1 !important;transform:none !important}}
+
+          .photo-story-kicker{margin-bottom:14px !important}
+          .photo-story-title{margin-top:4px !important;margin-bottom:20px !important;line-height:1.18 !important}
+          .photo-story-subtitle{margin-top:8px !important;line-height:1.5 !important}
+          .itinerary-title,.itinerario-title,.timeline-title,[class*="itinerario"] h2,[class*="itinerary"] h2{margin-bottom:24px !important;line-height:1.18 !important}
+          .timeline-wrap,.itinerario-wrap,.itinerary-wrap,.timeline-content{margin-top:10px !important}
+          .gift-title,.regalo-title,[class*="gift"] h2,[class*="regalo"] h2{margin-bottom:20px !important;line-height:1.22 !important}
+          .gift-hint,.regalo-hint,.tap-text,[class*="gift"] .tap-text,[class*="regalo"] .tap-text{margin-top:10px !important;line-height:1.45 !important}
+
+          #itinerarySection,.itinerary-section,[class*="itinerary-section"],[class*="itinerario-section"]{padding-bottom:62px !important;margin-bottom:34px !important;overflow:visible !important}
+
+          #dressCodeSection.inv5-dress-section{margin:10px auto 8px !important;padding:0 !important;position:relative !important;z-index:1 !important;background:transparent !important;overflow:visible !important;width:100% !important}
+          .inv5-dress-card{position:relative;width:120%;max-width:none;aspect-ratio:911/1727;min-height:0;margin-left:-10%;margin-right:-10%;background:url('./fondo_dress_code_5.png?v=20260816-2004') center/100% 100% no-repeat;display:flex;align-items:flex-start;justify-content:center}
+          .inv5-dress-content{width:62%;margin:0 auto;padding:42% 6px 8%;text-align:center;color:#5f6652;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;transform:translateY(76px)}
+          .inv5-dress-heading{margin:0 0 18px;line-height:1;text-align:center;width:100%}
+          .inv5-dress-code{display:block;font-family:'Amsterdam Four',cursive !important;font-weight:400 !important;font-size:clamp(25px,5.3vw,41px) !important;line-height:1 !important;color:#5f6652 !important;text-align:center}
+          .inv5-dress-formal{display:block;margin-top:4px;font-family:Georgia,'Times New Roman',serif !important;font-size:clamp(30px,5.8vw,46px) !important;font-weight:400 !important;font-style:italic !important;line-height:1 !important;letter-spacing:.01em;color:#595548 !important;text-align:center}
+          .inv5-dress-subtitle{margin:0 0 18px;font-size:clamp(13px,2.5vw,17px);line-height:1.3;color:#66695a;text-align:center}
+          .inv5-dress-palette{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;margin:0 auto 22px;max-width:520px}
+          .inv5-dress-dot{width:42px;height:26px;border-radius:7px;border:1px solid rgba(48,56,39,.08);box-shadow:0 4px 10px rgba(48,56,39,.08);flex:0 0 auto;transform:rotate(-3deg)}
+          .inv5-dress-dot:nth-child(even){transform:rotate(3deg)}
+          .inv5-dress-white{max-width:270px;margin:0 auto 22px;font-size:clamp(13px,2.4vw,16px);line-height:1.35;font-weight:600;color:#5f6652;text-align:center}
+          .inv5-dress-text{max-width:280px;margin:0 auto;font-size:clamp(12px,2.2vw,15px);line-height:1.42;color:#626757;text-align:center}
+          .inv5-dress-lower-1{margin-top:0;margin-bottom:20px}
+          .inv5-dress-last{margin-top:0;margin-bottom:0}
+
+          #rsvpSection .inv5-rsvp-title{font-family:'Amsterdam Four',cursive !important;font-size:clamp(38px,8vw,58px) !important;line-height:1.15 !important;margin:0 auto 18px !important;text-align:center !important}
+
+          /* Los widgets conservan Firebase y el token, pero visualmente pertenecen a Invitación 5. */
+          .inv5-native-widget-shell{width:min(100%,470px) !important;margin:0 auto !important;padding:18px 17px !important;border:1px solid rgba(109,117,89,.15) !important;border-radius:21px !important;background:rgba(255,253,248,.25) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.24) !important;color:#4f5745 !important}
+          .inv5-native-widget-shell .mgd-native-form{gap:14px !important}
+          .inv5-native-widget-shell .mgd-native-label{font-family:Georgia,'Times New Roman',serif !important;font-size:13px !important;font-weight:400 !important;color:#69705c !important;text-align:center !important}
+          .inv5-native-widget-shell .mgd-native-input,.inv5-native-widget-shell .mgd-native-select,.inv5-native-widget-shell .mgd-native-textarea{min-height:46px !important;padding:12px 16px !important;border:1px solid rgba(109,117,89,.28) !important;border-radius:999px !important;background:rgba(255,253,248,.52) !important;color:#4f5745 !important;font-family:Georgia,'Times New Roman',serif !important;font-size:14px !important;text-align:center !important;box-shadow:none !important}
+          .inv5-native-widget-shell .mgd-native-textarea{min-height:88px !important;border-radius:20px !important;text-align:left !important}
+          .inv5-native-widget-shell .mgd-native-choices,.inv5-native-widget-shell .mgd-native-choices.is-buttons,.inv5-native-widget-shell .mgd-native-choices.is-buttons.has-tentative{display:flex !important;justify-content:center !important;gap:10px !important;flex-wrap:wrap !important}
+          .inv5-native-widget-shell .mgd-native-choice{flex:0 1 auto !important}
+          .inv5-native-widget-shell .mgd-native-choice span{min-height:0 !important;padding:10px 15px !important;border:1px solid rgba(109,117,89,.30) !important;border-radius:999px !important;background:rgba(255,253,248,.42) !important;color:#5e6652 !important;font-family:Georgia,'Times New Roman',serif !important;font-size:13px !important;font-weight:400 !important;box-shadow:none !important}
+          .inv5-native-widget-shell .mgd-native-choice input:checked+span{background:#78835d !important;border-color:#78835d !important;color:#fffdf8 !important;transform:translateY(-1px) !important}
+          .inv5-native-widget-shell .mgd-native-counter{grid-template-columns:38px 46px 38px !important;gap:17px !important}
+          .inv5-native-widget-shell .mgd-native-counter button{width:38px !important;height:38px !important;padding:0 !important;border:1px solid rgba(109,117,89,.30) !important;border-radius:999px !important;background:rgba(255,253,248,.42) !important;color:#5e6652 !important;font-family:Georgia,'Times New Roman',serif !important;font-size:20px !important;box-shadow:none !important}
+          .inv5-native-widget-shell .mgd-native-counter output{height:auto !important;min-width:30px !important;border:0 !important;background:transparent !important;color:#657050 !important;font-family:'Caveat','Patrick Hand',cursive !important;font-size:29px !important;box-shadow:none !important}
+          .inv5-native-widget-shell .mgd-native-button{width:auto !important;min-height:0 !important;margin:3px auto 0 !important;padding:11px 20px !important;border:0 !important;border-radius:999px !important;background:#78835d !important;color:#fffdf8 !important;font-family:Georgia,'Times New Roman',serif !important;font-size:13px !important;font-weight:400 !important;letter-spacing:.08em !important;box-shadow:0 6px 13px rgba(96,107,75,.16) !important}
+          .inv5-native-widget-shell .mgd-native-button.secondary{border:1px solid rgba(109,117,89,.30) !important;background:rgba(255,253,248,.52) !important;color:#5e6652 !important;box-shadow:none !important}
+          .inv5-native-widget-shell .mgd-native-music-row{padding:10px !important;border:1px solid rgba(109,117,89,.16) !important;border-radius:20px !important;background:rgba(255,253,248,.20) !important}
+          .inv5-native-widget-shell .mgd-native-remove{border-radius:999px !important;background:rgba(255,253,248,.52) !important;color:#78835d !important}
+          .inv5-native-widget-shell .mgd-native-success{padding:12px 4px !important;color:#687552 !important}
+          .inv5-native-widget-shell .mgd-native-success-icon{color:#78835d !important}
+          #esperamosSection{padding-top:18px !important}
+          #esperamosSection .final-card{min-height:235px !important;padding:24px 18px 22px !important;border-radius:24% 24% 22px 22px / 9% 9% 22px 22px !important}
+          #esperamosSection .brook-final-gif{display:block !important;width:min(31%,140px) !important;max-width:140px !important;height:auto !important;margin:12px auto 0 !important;object-fit:contain !important}
+
+          @media(max-width:540px){
+            #inv5GiftInRsvp{margin:46px auto 58px !important}
+            #inv5GiftInRsvp .gift-stage-heading{width:min(100%,240px) !important;max-width:240px !important;margin:0 auto 20px !important;padding:0 8px !important}
+            #inv5GiftInRsvp .gift-main-media{width:min(80%,340px) !important;max-width:340px !important}
+            #inv5GiftInRsvp .gift-experience.is-revealed .gift-reveal-content{padding:32px 18px 26px !important}
+            #inv5GiftInRsvp .gift-bank-data{gap:8px !important}
+            #itinerarySection,.itinerary-section,[class*="itinerary-section"],[class*="itinerario-section"]{padding-bottom:70px !important;margin-bottom:42px !important}
+            #dressCodeSection.inv5-dress-section{margin-top:12px !important;padding:0 !important;overflow:visible !important}
+            .inv5-dress-card{width:124%;max-width:none;margin-left:-12%;margin-right:-12%;align-items:flex-start;justify-content:center}
+            .inv5-dress-content{width:61%;padding:41% 4px 8%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;transform:translateY(76px)}
+            .inv5-dress-heading{margin-bottom:16px}
+            .inv5-dress-code{font-size:31px !important}
+            .inv5-dress-formal{font-size:34px !important}
+            .inv5-dress-subtitle{font-size:13px;margin-bottom:16px}
+            .inv5-dress-palette{gap:10px;margin-bottom:20px}
+            .inv5-dress-dot{width:36px;height:24px;border-radius:7px}
+            .inv5-dress-white{font-size:13px;max-width:245px;margin-bottom:20px}
+            .inv5-dress-text{font-size:12px;line-height:1.38;max-width:250px}
+            .inv5-dress-lower-1{margin-bottom:18px}
+            .inv5-dress-last{margin-top:0}
+            .inv5-faq-illustration img{width:min(100%,250px) !important;max-width:250px !important}
+            #rsvpSection .inv5-rsvp-title{font-size:clamp(34px,10vw,48px) !important;margin-bottom:14px !important}
+            #esperamosSection{padding-top:16px !important}
+            #esperamosSection .final-card{min-height:215px !important;padding:22px 16px 20px !important;border-radius:20% 20% 20px 20px / 8% 8% 20px 20px !important}
+            #esperamosSection .brook-final-gif{width:min(31%,112px) !important;max-width:112px !important;margin-top:10px !important}
+          }
+        `;
+
+        doc.getElementById('inv5-amsterdam-four')?.remove();
+        doc.head.appendChild(style);
+      }catch(e){
+        console.warn('No se pudieron aplicar los ajustes de Invitación 5',e);
+      }
+      frame.classList.add('ready');
+    });
+  </script>
+</body>
+</html>
+
