@@ -156,6 +156,59 @@
     setTimeout(()=>guard.remove(),180);
   }
 
+  function bindRobustEntry(doc){
+    if(!childEntry||!childVideo||childEntry.dataset.inv6RobustEntryBound) return;
+    childEntry.dataset.inv6RobustEntryBound='1';
+
+    const robustStart=(event)=>{
+      event.preventDefault?.();
+      event.stopImmediatePropagation?.();
+      if(childVideo.dataset.inv6PlayPending==='1') return;
+
+      const bgMusic=doc.getElementById('bgMusic');
+      const saludoVideo=doc.getElementById('saludoVideo');
+      childVideo.controls=false;
+      childVideo.muted=false;
+      childVideo.volume=1;
+      childVideo.setAttribute('playsinline','');
+      childVideo.setAttribute('webkit-playsinline','');
+      if(saludoVideo){saludoVideo.controls=false;saludoVideo.muted=true;}
+
+      if(bgMusic){
+        try{
+          bgMusic.currentTime=0;
+          bgMusic.volume=0;
+          const audioPromise=bgMusic.play();
+          if(audioPromise&&audioPromise.catch) audioPromise.catch(()=>{});
+        }catch(e){}
+      }
+
+      childVideo.dataset.inv6PlayPending='1';
+      try{
+        const playPromise=childVideo.play();
+        if(playPromise&&playPromise.then){
+          playPromise.then(()=>{
+            childVideo.dataset.inv6PlayPending='0';
+            releaseGuard();
+          }).catch(()=>{
+            childVideo.dataset.inv6PlayPending='0';
+          });
+        }else{
+          childVideo.dataset.inv6PlayPending='0';
+          releaseGuard();
+        }
+      }catch(e){
+        childVideo.dataset.inv6PlayPending='0';
+      }
+    };
+
+    childEntry.addEventListener('touchstart',robustStart,{capture:true,passive:false});
+    childEntry.addEventListener('click',robustStart,true);
+    childEntry.addEventListener('keydown',event=>{
+      if(event.key==='Enter'||event.key===' ') robustStart(event);
+    },true);
+  }
+
   function resolveChild(){
     try{
       const wrapperDoc=frame.contentDocument||frame.contentWindow.document;
@@ -173,6 +226,7 @@
       hideNative.id='inv5-hide-native-video-ui';
       hideNative.textContent='#entryVideo::-webkit-media-controls,#entryVideo::-webkit-media-controls-enclosure,#entryVideo::-webkit-media-controls-panel,#entryVideo::-webkit-media-controls-start-playback-button,#entryVideo::-webkit-media-controls-overlay-play-button{display:none!important;-webkit-appearance:none!important;opacity:0!important;pointer-events:none!important}';
       doc.getElementById(hideNative.id)?.remove();doc.head.appendChild(hideNative);
+      bindRobustEntry(doc);
       if(!childVideo.dataset.inv6DirectEntryBound){
         childVideo.dataset.inv6DirectEntryBound='1';
         childVideo.addEventListener('playing',releaseGuard,{once:true});
