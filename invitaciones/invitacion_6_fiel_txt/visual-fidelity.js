@@ -130,7 +130,7 @@
         #sat-inv6-rsvp-heading-section{padding:20px 18px 14px!important}
         #sat-inv6-rsvp-heading-section .sat-inv6-rsvp-kicker{font-size:46px!important}
         #sat-inv6-rsvp-heading-section .sat-inv6-rsvp-title{font-size:36px!important}
-        #sat-inv6-countdown-hat img{width:clamp(84px,24vw,118px)!important;max-width:118px!important;height:auto!important;object-fit:contain!important}
+        #sat-inv6-countdown-hat img{width:clamp(84px,24vw,118px)!important;max-width:118px!important}
 
         #sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-text{top:23.5%!important;width:88%!important}
         #sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-kicker{font-size:clamp(26px,7.4vw,34px)!important;letter-spacing:.05em!important}
