@@ -5,30 +5,20 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f1e5da">
   <title>Antonio & Lucero</title>
-  <style>html,body{margin:0;min-height:100%;background:#f1e5da}#boot{position:fixed;inset:0;display:grid;place-items:center;font:16px Georgia,serif;color:#5d644f;background:#f1e5da}#boot.error{padding:28px;text-align:center}</style>
+  <meta http-equiv="refresh" content="0; url=/Wedding/invitaciones/invitacion_6/">
+  <style>
+    html,body{margin:0;min-height:100%;background:#f1e5da}
+    body{display:grid;place-items:center;font:16px Georgia,serif;color:#5d644f;text-align:center;padding:24px}
+    a{color:#5d644f}
+  </style>
 </head>
 <body>
-<div id="boot">Cargando invitación…</div>
-<script>
-(async()=>{
-  const boot=document.getElementById('boot');
-  try{
-    const response=await fetch('./base_snapshot.txt?v=20260826-fiel2',{cache:'no-store'});
-    if(!response.ok)throw new Error('No se pudo cargar la base de la invitación.');
-    let html=await response.text();
-    const base='<base href="/Wedding/invitaciones/invitacion_6/">';
-    const runtime='<script>(()=>{const s=document.createElement("script");s.src=location.origin+"/Wedding/invitaciones/invitacion_6_fiel_txt/direct-runtime.js?v=20260826-fiel2";document.head.appendChild(s)})()<\/script>';
-    html=html.replace(/<head(\s[^>]*)?>/i,m=>m+base);
-    html=html.replace(/<\/body>/i,runtime+'</body>');
-    document.open();
-    document.write(html);
-    document.close();
-  }catch(error){
-    console.error(error);
-    boot.className='error';
-    boot.textContent='No pudimos abrir la invitación. Recarga la página para intentarlo nuevamente.';
-  }
-})();
-</script>
+  <div>
+    <p>Abriendo la invitación…</p>
+    <p><a href="/Wedding/invitaciones/invitacion_6/">Toca aquí si no abre automáticamente</a></p>
+  </div>
+  <script>
+    location.replace('/Wedding/invitaciones/invitacion_6/');
+  </script>
 </body>
 </html>
