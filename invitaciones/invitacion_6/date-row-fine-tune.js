@@ -26,10 +26,10 @@
 
     style.textContent=`
       .paper-section .invite-date-row > span:first-child{
-        transform:translateX(10px)!important;
+        transform:translateX(22px)!important;
       }
       .paper-section .invite-date-row > span:last-child{
-        transform:translateX(-10px)!important;
+        transform:translateX(-22px)!important;
       }
     `;
     return true;
