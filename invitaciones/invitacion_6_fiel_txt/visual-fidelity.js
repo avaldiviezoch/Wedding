@@ -54,10 +54,12 @@
       #dressCodeSection .inv5-dress-white{font-family:Georgia,'Times New Roman',serif!important;font-size:13px!important;line-height:1.38!important;font-weight:400!important}
       #sat-inv6-dress-gif img{width:clamp(150px,42vw,240px)!important;max-width:240px!important;height:auto!important;object-fit:contain!important}
 
+      /* PROGRAMA: definición única y completa según el TXT */
       #sat-inv6-paper-bottom-section{width:100%!important;max-width:680px!important;margin:0 auto!important}
       #sat-inv6-paper-bottom-section .sat-inv6-paper-logo{width:30%!important;margin-right:9%!important;height:auto!important;object-fit:contain!important}
-      #sat-inv6-paper-bottom-section .sat-inv6-program-title{font-family:'Inv6 The Seasons',Georgia,serif!important;font-size:clamp(34px,8.5vw,62px)!important;line-height:.9!important;font-weight:500!important}
-      #sat-inv6-paper-bottom-section .sat-inv6-program-script{font-family:'Inv6 Eyesome',cursive!important;font-size:clamp(42px,10.5vw,78px)!important;line-height:.82!important;font-weight:400!important}
+      #sat-inv6-paper-bottom-section .sat-inv6-program-text{position:relative!important;flex:1!important;text-align:left!important;color:#fff!important;transform:translateY(0)!important}
+      #sat-inv6-paper-bottom-section .sat-inv6-program-title{margin:0!important;font-family:'Inv6 The Seasons',Georgia,serif!important;font-size:clamp(34px,8.5vw,62px)!important;line-height:.9!important;font-weight:500!important;letter-spacing:.01em!important;white-space:nowrap!important;color:#fff!important}
+      #sat-inv6-paper-bottom-section .sat-inv6-program-script{margin:3px 0 0 14%!important;font-family:'Inv6 Eyesome',cursive!important;font-size:clamp(42px,10.5vw,78px)!important;line-height:.82!important;font-weight:400!important;letter-spacing:0!important;white-space:nowrap!important;color:#fff!important}
 
       #sat-inv6-program-timeline-section{width:100%!important;max-width:680px!important;padding:22px 24px 54px!important;margin:0 auto!important}
       #sat-inv6-program-timeline-section .sat-inv6-program-item{grid-template-columns:minmax(0,1fr) 32px minmax(0,1fr)!important;column-gap:12px!important;min-height:132px!important}
@@ -65,10 +67,11 @@
       #sat-inv6-program-timeline-section .sat-inv6-program-label{font-family:'Open Sans',Arial,sans-serif!important;font-size:clamp(14px,2.55vw,19px)!important;line-height:1.15!important;font-weight:400!important}
       #sat-inv6-program-timeline-section .sat-inv6-program-fiesta-gif,#sat-inv6-program-timeline-section .sat-inv6-program-brindis-gif,#sat-inv6-program-timeline-section .sat-inv6-program-comida-gif,#sat-inv6-program-timeline-section .sat-inv6-program-ceremonia-gif,#sat-inv6-program-timeline-section .sat-inv6-program-fin-gif{width:clamp(92px,24vw,150px)!important;max-width:150px!important;height:auto!important;object-fit:contain!important}
 
-      #sat-inv6-rsvp-heading-section{max-width:680px!important;padding:26px 24px 18px!important;margin:0 auto!important}
+      /* RSVP: definición única y completa según el TXT */
+      #sat-inv6-rsvp-heading-section{position:relative!important;width:100%!important;max-width:680px!important;margin:0 auto!important;padding:26px 24px 18px!important;box-sizing:border-box!important;text-align:center!important;background:transparent!important}
       #sat-inv6-rsvp-heading-section .sat-inv6-gaviota-regalo{width:105px!important;top:-70px!important;left:calc(50% + 74px)!important;height:auto!important}
-      #sat-inv6-rsvp-heading-section .sat-inv6-rsvp-kicker{font-family:'Inv6 The Seasons',Georgia,serif!important;font-size:clamp(48px,10vw,82px)!important;line-height:.9!important;font-weight:400!important}
-      #sat-inv6-rsvp-heading-section .sat-inv6-rsvp-title{font-family:'Inv6 Eyesome',cursive!important;font-size:clamp(34px,7vw,58px)!important;line-height:.9!important;font-weight:400!important}
+      #sat-inv6-rsvp-heading-section .sat-inv6-rsvp-kicker{margin:0 0 2px!important;font-family:'Inv6 The Seasons',Georgia,serif!important;font-size:clamp(48px,10vw,82px)!important;line-height:.9!important;font-weight:400!important;letter-spacing:.01em!important;color:#5D644F!important;text-transform:uppercase!important}
+      #sat-inv6-rsvp-heading-section .sat-inv6-rsvp-title{margin:0!important;font-family:'Inv6 Eyesome',cursive!important;font-size:clamp(34px,7vw,58px)!important;line-height:.9!important;font-weight:400!important;letter-spacing:0!important;color:#6D7559!important}
       #rsvpSection .rsvp-tap-hint{font-family:Georgia,'Times New Roman',serif!important;font-size:14px!important;line-height:1.45!important;font-style:italic!important}
       #rsvpSection .sat-inv6-rsvp-button{font-family:Georgia,'Times New Roman',serif!important;font-size:11px!important;padding:15px 28px!important}
 
@@ -118,7 +121,7 @@
         #sat-inv6-dress-gif img{width:clamp(140px,46vw,210px)!important;max-width:210px!important}
         #sat-inv6-paper-bottom-section .sat-inv6-paper-logo{width:31%!important}
         #sat-inv6-paper-bottom-section .sat-inv6-program-title{font-size:clamp(32px,8.2vw,46px)!important}
-        #sat-inv6-paper-bottom-section .sat-inv6-program-script{font-size:clamp(40px,10.2vw,58px)!important}
+        #sat-inv6-paper-bottom-section .sat-inv6-program-script{font-size:clamp(40px,10.2vw,58px)!important;margin-left:14%!important}
         #sat-inv6-program-timeline-section{padding:18px 18px 42px!important}
         #sat-inv6-program-timeline-section .sat-inv6-program-item{grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr)!important;column-gap:9px!important;min-height:126px!important}
         #sat-inv6-program-timeline-section .sat-inv6-program-time{font-size:clamp(28px,7.7vw,38px)!important}
@@ -127,7 +130,7 @@
         #sat-inv6-rsvp-heading-section{padding:20px 18px 14px!important}
         #sat-inv6-rsvp-heading-section .sat-inv6-rsvp-kicker{font-size:46px!important}
         #sat-inv6-rsvp-heading-section .sat-inv6-rsvp-title{font-size:36px!important}
-        #sat-inv6-countdown-hat img{width:clamp(84px,24vw,118px)!important;max-width:118px!important}
+        #sat-inv6-countdown-hat img{width:clamp(84px,24vw,118px)!important;max-width:118px!important;height:auto!important;object-fit:contain!important}
 
         #sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-text{top:23.5%!important;width:88%!important}
         #sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-kicker{font-size:clamp(26px,7.4vw,34px)!important;letter-spacing:.05em!important}
