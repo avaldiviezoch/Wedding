@@ -66,17 +66,31 @@
       #rsvpSection .rsvp-tap-hint{font-family:Georgia,'Times New Roman',serif!important;font-size:14px!important;line-height:1.45!important;font-style:italic!important}
       #rsvpSection .sat-inv6-rsvp-button{font-family:Georgia,'Times New Roman',serif!important;font-size:11px!important;padding:15px 28px!important}
 
-      #sat-inv6-gift-paper-wrap{position:relative!important;width:100%!important;max-width:680px!important;margin:0 auto!important;padding:0!important;overflow:visible!important}
-      #sat-inv6-gift-paper-bottom{display:block!important;width:100%!important;max-width:680px!important;height:auto!important;margin:0 auto!important;transform:translateY(-15%)!important;object-fit:contain!important}
-      #sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-text{position:absolute!important;left:50%!important;top:24%!important;transform:translate(-50%,-50%)!important;width:88%!important;text-align:center!important;z-index:10!important}
-      #sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-kicker{display:block!important;margin:0!important;font-family:Georgia,'Times New Roman',serif!important;font-size:clamp(30px,6vw,44px)!important;line-height:1!important;font-weight:600!important;letter-spacing:.055em!important;text-transform:uppercase!important;color:#fff!important}
-      #sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-script{display:block!important;margin:5px 0 0!important;font-family:'Inv6EyesomeReal','Great Vibes',cursive!important;font-size:clamp(34px,7vw,52px)!important;line-height:.9!important;font-weight:400!important;color:#fff!important}
-      #sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-copy{display:block!important;width:78%!important;max-width:390px!important;margin:15px auto 0!important;font-family:Georgia,'Times New Roman',serif!important;font-size:13px!important;line-height:1.36!important;text-align:center!important;color:#fff!important}
-      #sat-inv6-gift-paper-wrap .sat-inv6-gift-toggle-wrap{display:block!important;width:82%!important;max-width:420px!important;margin:18px auto 0!important;text-align:center!important}
-      #sat-inv6-gift-paper-wrap .sat-inv6-gift-toggle{font-family:Georgia,'Times New Roman',serif!important;font-size:10px!important;padding:12px 23px!important;letter-spacing:1.25px!important}
-      #sat-inv6-gift-paper-wrap .sat-inv6-gift-details{width:84%!important;max-width:350px!important}
-      #sat-inv6-gift-paper-wrap .sat-inv6-gift-method-title{font-family:Georgia,'Times New Roman',serif!important;font-size:16px!important;font-weight:600!important}
-      #sat-inv6-gift-paper-wrap .sat-inv6-gift-qr{width:98px!important;max-width:38%!important;height:auto!important;object-fit:contain!important}
+      /* REGALO — métricas completas del TXT */
+      #sat-inv6-gift-paper-wrap{position:relative!important;display:block!important;width:100%!important;max-width:680px!important;margin:0 auto!important;padding:0!important;overflow:visible!important;z-index:5!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-stage{position:relative!important;display:block!important;width:100%!important;margin:0!important;padding:0!important;overflow:visible!important}
+      #sat-inv6-gift-paper-bottom{position:relative!important;display:block!important;width:100%!important;max-width:680px!important;height:auto!important;margin:0 auto!important;padding:0!important;transform:translateY(-15%)!important;object-fit:contain!important;opacity:1!important;visibility:visible!important;border:0!important;background:transparent!important;box-shadow:none!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-text{position:absolute!important;left:50%!important;top:25%!important;transform:translate(-50%,-50%)!important;width:90%!important;margin:0!important;padding:0!important;text-align:center!important;z-index:10!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-kicker{display:block!important;margin:0!important;font-family:'Inv6SeasonsReal',Georgia,serif!important;font-size:clamp(38px,8vw,62px)!important;line-height:.9!important;font-weight:400!important;letter-spacing:.01em!important;text-transform:uppercase!important;color:#fff!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-script{display:block!important;margin:3px 0 0!important;font-family:'Inv6EyesomeReal',cursive!important;font-size:clamp(42px,9vw,70px)!important;line-height:.85!important;font-weight:400!important;color:#fff!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-copy{display:block!important;width:82%!important;max-width:420px!important;margin:14px auto 0!important;font-family:Georgia,'Times New Roman',serif!important;font-size:13px!important;line-height:1.32!important;font-weight:400!important;text-align:center!important;color:#fff!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-toggle-wrap{display:block!important;width:82%!important;max-width:420px!important;margin:16px auto 0!important;text-align:center!important;pointer-events:auto!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-toggle{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;margin:0 auto!important;padding:12px 23px!important;border:1px solid rgba(109,117,89,.35)!important;border-radius:999px!important;background:#F1E5DA!important;color:#5D644F!important;font-family:Georgia,'Times New Roman',serif!important;font-size:10px!important;line-height:1!important;font-weight:700!important;letter-spacing:1.25px!important;text-transform:uppercase!important;cursor:pointer!important;box-shadow:none!important;pointer-events:auto!important;-webkit-tap-highlight-color:transparent!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-toggle-arrow{display:inline-block!important;font-size:15px!important;line-height:1!important;transition:transform .2s ease!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-toggle.is-open .sat-inv6-gift-toggle-arrow{transform:rotate(180deg)!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-details{display:none!important;position:relative!important;width:84%!important;max-width:350px!important;margin:-82px auto 22px!important;padding:10px!important;box-sizing:border-box!important;background:#F1E5DA!important;color:#5D644F!important;border:1px solid rgba(109,117,89,.16)!important;border-radius:16px!important;box-shadow:0 8px 18px rgba(63,72,46,.07)!important;z-index:12!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-details.is-open{display:block!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-details-intro{margin:0 0 6px!important;padding:0!important;font-family:Georgia,'Times New Roman',serif!important;font-size:9px!important;line-height:1.3!important;font-style:italic!important;text-align:center!important;color:#687052!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-method{margin:0!important;padding:8px 0!important;border-top:1px solid rgba(109,117,89,.14)!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-method:first-of-type{border-top:0!important;padding-top:3px!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-method-title{margin:0 0 5px!important;font-family:'Inv6SeasonsReal',Georgia,serif!important;font-size:16px!important;line-height:1!important;font-weight:500!important;text-align:center!important;color:#5D644F!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-data-row{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important;width:100%!important;margin:5px 0 0!important;padding:7px 8px!important;box-sizing:border-box!important;background:rgba(255,255,255,.30)!important;border:1px solid rgba(109,117,89,.12)!important;border-radius:11px!important;text-align:left!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-data-text{flex:1!important;min-width:0!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-data-label{display:block!important;margin:0 0 2px!important;font-family:Georgia,'Times New Roman',serif!important;font-size:7.5px!important;line-height:1.1!important;font-weight:700!important;letter-spacing:.65px!important;text-transform:uppercase!important;color:#7A806A!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-data-value{display:block!important;margin:0!important;font-family:Georgia,'Times New Roman',serif!important;font-size:10px!important;line-height:1.22!important;font-weight:600!important;color:#525A46!important;overflow-wrap:anywhere!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-copy-btn{flex:0 0 auto!important;min-width:52px!important;margin:0!important;padding:6px 7px!important;border:1px solid rgba(109,117,89,.25)!important;border-radius:999px!important;background:#FBF8EF!important;color:#5D644F!important;font-family:Georgia,'Times New Roman',serif!important;font-size:7.5px!important;line-height:1!important;font-weight:700!important;letter-spacing:.55px!important;cursor:pointer!important;box-shadow:none!important;-webkit-tap-highlight-color:transparent!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-qr{display:block!important;width:98px!important;max-width:38%!important;height:auto!important;margin:4px auto 0!important;padding:4px!important;box-sizing:border-box!important;object-fit:contain!important;background:#fff!important;border:1px solid rgba(109,117,89,.12)!important;border-radius:10px!important;box-shadow:none!important}
+      #sat-inv6-gift-paper-wrap .sat-inv6-gift-address{font-size:9px!important;line-height:1.25!important}
 
       .sat-inv6-music-free-host{max-width:680px!important;padding:28px 16px 0!important;margin:0 auto!important}
       .sat-inv6-music-free-host .sat-inv6-music-free-title-main{font-family:'Inv6SeasonsReal',Georgia,serif!important;font-size:clamp(50px,14vw,78px)!important;line-height:.9!important;font-weight:400!important}
@@ -133,9 +147,6 @@
         #sat-inv6-rsvp-heading-section{padding:20px 18px 14px!important}
         #sat-inv6-rsvp-heading-section .sat-inv6-rsvp-kicker{font-size:46px!important}
         #sat-inv6-rsvp-heading-section .sat-inv6-rsvp-title{font-size:36px!important}
-        #sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-text{top:23.5%!important;width:88%!important}
-        #sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-kicker{font-size:clamp(26px,7.4vw,34px)!important}
-        #sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-script{font-size:clamp(30px,8.6vw,40px)!important}
         .sat-inv6-music-free-host{padding:24px 12px 0!important}
         .sat-inv6-music-free-host .sat-inv6-music-free-title-main{font-size:clamp(50px,14.2vw,78px)!important}
         .sat-inv6-music-free-host .sat-inv6-music-free-title-script{font-size:clamp(30px,9.2vw,48px)!important}
@@ -164,6 +175,9 @@
         #sat-inv6-paper-bottom-section .sat-inv6-program-script{font-size:40px!important}
         #sat-inv6-rsvp-heading-section .sat-inv6-rsvp-kicker{font-size:43px!important}
         #sat-inv6-rsvp-heading-section .sat-inv6-rsvp-title{font-size:34px!important}
+        #sat-inv6-gift-paper-wrap .sat-inv6-gift-details{width:86%!important;max-width:320px!important;margin-top:-72px!important;padding:9px!important}
+        #sat-inv6-gift-paper-wrap .sat-inv6-gift-method-title{font-size:15px!important}
+        #sat-inv6-gift-paper-wrap .sat-inv6-gift-qr{width:92px!important}
         .sat-inv6-music-free-host .sat-inv6-music-free-title-main{font-size:46px!important}
         .sat-inv6-music-free-host .sat-inv6-music-free-title-script{font-size:28px!important}
       }
@@ -211,12 +225,36 @@
       set('.sat-inv6-faq-title-script','font-size','clamp(34px,7vw,58px)');
     }
 
-    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-kicker','font-family',"Georgia, 'Times New Roman', serif");
+    /* Regalo: neutraliza cualquier estilo tardío del código maduro con las métricas exactas del TXT. */
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-text','top','25%');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-text','width','90%');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-kicker','font-family',seasons);
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-kicker','font-size','clamp(38px,8vw,62px)');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-kicker','font-weight','400');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-kicker','letter-spacing','.01em');
     set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-script','font-family',eyesome);
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-script','font-size','clamp(42px,9vw,70px)');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-script','margin','3px 0 0');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-copy','width','82%');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-copy','max-width','420px');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-copy','margin','14px auto 0');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-copy','line-height','1.32');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-toggle-wrap','margin','16px auto 0');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-details','width',w<=390?'86%':'84%');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-details','max-width',w<=390?'320px':'350px');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-details','margin',w<=390?'-72px auto 22px':'-82px auto 22px');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-details','padding',w<=390?'9px':'10px');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-method-title','font-family',seasons);
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-method-title','font-size',w<=390?'15px':'16px');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-method-title','font-weight','500');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-qr','width',w<=390?'92px':'98px');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-qr','margin','4px auto 0');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-address','font-size','9px');
+    set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-address','line-height','1.25');
+
     set('.sat-inv6-music-free-title-main','font-family',seasons);
     set('.sat-inv6-music-free-title-script','font-family',eyesome);
 
-    /* El cierre tiene reglas inline/tardías en el código maduro: esta es la única normalización final. */
     set('#sat-inv6-final-thanks-section .sat-inv6-final-center','width','100%');
     set('#sat-inv6-final-thanks-section .sat-inv6-final-center','margin','0 auto');
     set('#sat-inv6-final-thanks-section .sat-inv6-final-center','text-align','center');
