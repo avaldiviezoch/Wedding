@@ -25,99 +25,42 @@
     const guard=document.getElementById('tapGuard');
     const status=document.getElementById('tapStatus');
     let target=null;
-
     function resolve(){
       try{
         const level1=frame.contentDocument||frame.contentWindow.document;
         const inviteFrame=level1.getElementById('inviteFrame');
-        if(!inviteFrame) return null;
+        if(!inviteFrame)return null;
         const level2=inviteFrame.contentDocument||inviteFrame.contentWindow.document;
         const inv5=level2.getElementById('inv5');
-        if(!inv5) return null;
+        if(!inv5)return null;
         const doc=inv5.contentDocument||inv5.contentWindow.document;
         const video=doc.getElementById('entryVideo');
         const entry=doc.getElementById('entryScreen');
-        if(!video||!entry) return null;
+        if(!video||!entry)return null;
         return {doc,video,entry};
       }catch(e){return null;}
     }
-
-    function markReady(){
-      target=resolve();
-      if(!target) return false;
-      guard.classList.add('ready');
-      status.textContent='Toca para entrar';
-      return true;
-    }
-
+    function markReady(){target=resolve();if(!target)return false;guard.classList.add('ready');status.textContent='Toca para entrar';return true;}
     function startFromTrustedTap(event){
-      event?.preventDefault?.();
-      event?.stopPropagation?.();
-      target=resolve();
-      if(!target){
-        guard.classList.add('busy');
-        status.textContent='Cargando invitación…';
-        return;
-      }
-
-      const {doc,video}=target;
-      guard.classList.add('busy');
-      status.textContent='Abriendo…';
-
-      video.controls=false;
-      video.muted=false;
-      video.volume=1;
-      video.setAttribute('playsinline','');
-      video.setAttribute('webkit-playsinline','');
-
+      event?.preventDefault?.();event?.stopPropagation?.();target=resolve();
+      if(!target){guard.classList.add('busy');status.textContent='Cargando invitación…';return;}
+      const {doc,video}=target;guard.classList.add('busy');status.textContent='Abriendo…';
+      video.controls=false;video.muted=false;video.volume=1;video.setAttribute('playsinline','');video.setAttribute('webkit-playsinline','');
       const music=doc.getElementById('bgMusic');
-      if(music){
-        try{
-          music.currentTime=0;
-          music.volume=0;
-          const unlock=music.play();
-          unlock?.catch?.(()=>{});
-        }catch(e){}
-      }
-
+      if(music){try{music.currentTime=0;music.volume=0;const unlock=music.play();unlock?.catch?.(()=>{});}catch(e){}}
       try{
         const p=video.play();
-        if(p?.then){
-          p.then(()=>{
-            guard.remove();
-          }).catch(()=>{
-            guard.classList.remove('busy');
-            guard.classList.add('ready');
-            status.textContent='Toca nuevamente para entrar';
-          });
-        }else{
-          guard.remove();
-        }
-      }catch(e){
-        guard.classList.remove('busy');
-        guard.classList.add('ready');
-        status.textContent='Toca nuevamente para entrar';
-      }
+        if(p?.then){p.then(()=>guard.remove()).catch(()=>{guard.classList.remove('busy');guard.classList.add('ready');status.textContent='Toca nuevamente para entrar';});}
+        else guard.remove();
+      }catch(e){guard.classList.remove('busy');guard.classList.add('ready');status.textContent='Toca nuevamente para entrar';}
     }
-
-    frame.addEventListener('load',()=>{
-      let tries=0;
-      const timer=setInterval(()=>{
-        tries++;
-        if(markReady()||tries>=80) clearInterval(timer);
-      },100);
-    });
-
+    frame.addEventListener('load',()=>{let tries=0;const timer=setInterval(()=>{tries++;if(markReady()||tries>=80)clearInterval(timer);},100);});
     guard.addEventListener('pointerup',startFromTrustedTap,{passive:false});
-    guard.addEventListener('click',e=>{
-      if(e.detail===0) startFromTrustedTap(e);
-    });
-    guard.addEventListener('keydown',e=>{
-      if(e.key==='Enter'||e.key===' '){e.preventDefault();startFromTrustedTap(e);}
-    });
+    guard.addEventListener('click',e=>{if(e.detail===0)startFromTrustedTap(e);});
+    guard.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();startFromTrustedTap(e);}});
   })();
   </script>
-  <script src="./visual-fidelity.js?v=20260827-regalo1"></script>
+  <script src="./visual-fidelity.js?v=20260827-faqfonts1"></script>
   <script src="./music-fidelity.js?v=20260827-musica1"></script>
 </body>
 </html>
