@@ -291,3 +291,29 @@
   window.addEventListener('resize',()=>setTimeout(apply,50));
   schedule();
 })();
+
+// Corrige el día de la semana mostrado en la tarjeta de fecha.
+(() => {
+  const patchWeddingDay = () => {
+    const firstDoc = document.querySelector('#invite')?.contentDocument;
+    const secondDoc = firstDoc?.querySelector('#inviteFrame')?.contentDocument;
+    const invitationDoc = secondDoc?.querySelector('#inv5')?.contentDocument;
+    if (!invitationDoc?.body) return false;
+
+    const walker = invitationDoc.createTreeWalker(invitationDoc.body, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      if (node.nodeValue?.trim() === 'Viernes') {
+        node.nodeValue = node.nodeValue.replace('Viernes', 'Sábado');
+      }
+    }
+    return true;
+  };
+
+  let attempts = 0;
+  const timer = setInterval(() => {
+    attempts += 1;
+    if (patchWeddingDay() || attempts >= 100) clearInterval(timer);
+  }, 250);
+  window.addEventListener('load', patchWeddingDay, { once: true });
+})();
