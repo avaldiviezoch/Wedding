@@ -317,3 +317,29 @@
   }, 250);
   window.addEventListener('load', patchWeddingDay, { once: true });
 })();
+
+
+// Mantiene la corrección activa hasta que el contenido de la fecha esté renderizado.
+(() => {
+  let attempts = 0;
+  const timer = setInterval(() => {
+    attempts += 1;
+    let changed = false;
+    try {
+      const firstDoc = document.querySelector('#invite')?.contentDocument;
+      const secondDoc = firstDoc?.querySelector('#inviteFrame')?.contentDocument;
+      const invitationDoc = secondDoc?.querySelector('#inv5')?.contentDocument;
+      const walker = invitationDoc?.body
+        ? invitationDoc.createTreeWalker(invitationDoc.body, NodeFilter.SHOW_TEXT)
+        : null;
+      let node;
+      while (walker && (node = walker.nextNode())) {
+        if (node.nodeValue?.trim() === 'Viernes') {
+          node.nodeValue = node.nodeValue.replace('Viernes', 'Sábado');
+          changed = true;
+        }
+      }
+    } catch (_) {}
+    if (changed || attempts >= 160) clearInterval(timer);
+  }, 250);
+})();
