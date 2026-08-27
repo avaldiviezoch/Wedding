@@ -3,22 +3,119 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f1e5da">
+  <meta name="theme-color" content="#fffdf8">
   <title>Antonio & Lucero</title>
-  <meta http-equiv="refresh" content="0; url=/Wedding/invitaciones/invitacion_6/">
   <style>
-    html,body{margin:0;min-height:100%;background:#f1e5da}
-    body{display:grid;place-items:center;font:16px Georgia,serif;color:#5d644f;text-align:center;padding:24px}
-    a{color:#5d644f}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#fffdf8}
+    #invite{position:fixed;inset:0;width:100%;height:100%;border:0;background:#fffdf8}
+    #tapGuard{position:fixed;inset:0;z-index:999999;background:transparent;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+    #tapStatus{position:absolute;left:50%;bottom:max(28px,env(safe-area-inset-bottom));transform:translateX(-50%);padding:10px 18px;border-radius:999px;background:rgba(255,253,248,.88);color:#3d4335;font:600 15px/1.2 Georgia,'Times New Roman',serif;white-space:nowrap;box-shadow:0 6px 24px rgba(61,67,53,.12);opacity:0;transition:opacity .2s ease}
+    #tapGuard.ready #tapStatus{opacity:1}
+    #tapGuard.busy #tapStatus{opacity:1}
   </style>
 </head>
 <body>
-  <div>
-    <p>Abriendo la invitación…</p>
-    <p><a href="/Wedding/invitaciones/invitacion_6/">Toca aquí si no abre automáticamente</a></p>
+  <iframe id="invite" src="/Wedding/invitaciones/invitacion_6/invitacion_6_base_final.html?v=20260827-firsttap1" title="Invitación Antonio y Lucero" allow="autoplay; fullscreen"></iframe>
+  <div id="tapGuard" role="button" tabindex="0" aria-label="Toca para entrar a la invitación">
+    <div id="tapStatus">Cargando invitación…</div>
   </div>
   <script>
-    location.replace('/Wedding/invitaciones/invitacion_6/');
+  (()=>{
+    const frame=document.getElementById('invite');
+    const guard=document.getElementById('tapGuard');
+    const status=document.getElementById('tapStatus');
+    let target=null;
+
+    function resolve(){
+      try{
+        const level1=frame.contentDocument||frame.contentWindow.document;
+        const inviteFrame=level1.getElementById('inviteFrame');
+        if(!inviteFrame) return null;
+        const level2=inviteFrame.contentDocument||inviteFrame.contentWindow.document;
+        const inv5=level2.getElementById('inv5');
+        if(!inv5) return null;
+        const doc=inv5.contentDocument||inv5.contentWindow.document;
+        const video=doc.getElementById('entryVideo');
+        const entry=doc.getElementById('entryScreen');
+        if(!video||!entry) return null;
+        return {doc,video,entry};
+      }catch(e){return null;}
+    }
+
+    function markReady(){
+      target=resolve();
+      if(!target) return false;
+      guard.classList.add('ready');
+      status.textContent='Toca para entrar';
+      return true;
+    }
+
+    function startFromTrustedTap(event){
+      event?.preventDefault?.();
+      event?.stopPropagation?.();
+      target=resolve();
+      if(!target){
+        guard.classList.add('busy');
+        status.textContent='Cargando invitación…';
+        return;
+      }
+
+      const {doc,video}=target;
+      guard.classList.add('busy');
+      status.textContent='Abriendo…';
+
+      video.controls=false;
+      video.muted=false;
+      video.volume=1;
+      video.setAttribute('playsinline','');
+      video.setAttribute('webkit-playsinline','');
+
+      const music=doc.getElementById('bgMusic');
+      if(music){
+        try{
+          music.currentTime=0;
+          music.volume=0;
+          const unlock=music.play();
+          unlock?.catch?.(()=>{});
+        }catch(e){}
+      }
+
+      try{
+        const p=video.play();
+        if(p?.then){
+          p.then(()=>{
+            guard.remove();
+          }).catch(()=>{
+            guard.classList.remove('busy');
+            guard.classList.add('ready');
+            status.textContent='Toca nuevamente para entrar';
+          });
+        }else{
+          guard.remove();
+        }
+      }catch(e){
+        guard.classList.remove('busy');
+        guard.classList.add('ready');
+        status.textContent='Toca nuevamente para entrar';
+      }
+    }
+
+    frame.addEventListener('load',()=>{
+      let tries=0;
+      const timer=setInterval(()=>{
+        tries++;
+        if(markReady()||tries>=80) clearInterval(timer);
+      },100);
+    });
+
+    guard.addEventListener('pointerup',startFromTrustedTap,{passive:false});
+    guard.addEventListener('click',e=>{
+      if(e.detail===0) startFromTrustedTap(e);
+    });
+    guard.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();startFromTrustedTap(e);}
+    });
+  })();
   </script>
 </body>
 </html>
