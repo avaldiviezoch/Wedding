@@ -48,7 +48,6 @@
       #dressCodeSection .inv5-dress-subtitle,#dressCodeSection .inv5-dress-white{font-family:Georgia,'Times New Roman',serif!important;font-size:13px!important;line-height:1.35!important;font-weight:400!important}
       #sat-inv6-dress-gif img{width:clamp(150px,42vw,240px)!important;max-width:240px!important;height:auto!important;object-fit:contain!important}
 
-      /* PROGRAMA / del día — TXT */
       #sat-inv6-paper-bottom-section{width:100%!important;max-width:680px!important;margin:0 auto!important}
       #sat-inv6-paper-bottom-section .sat-inv6-paper-logo{width:30%!important;margin-right:9%!important;height:auto!important;object-fit:contain!important}
       #sat-inv6-paper-bottom-section .sat-inv6-program-text{position:relative!important;flex:1!important;text-align:left!important;color:#fff!important;transform:translateY(0)!important}
@@ -60,7 +59,6 @@
       #sat-inv6-program-timeline-section .sat-inv6-program-label{font-family:'Open Sans',Arial,sans-serif!important;font-size:clamp(14px,2.55vw,19px)!important;line-height:1.15!important;font-weight:400!important}
       #sat-inv6-program-timeline-section .sat-inv6-program-fiesta-gif,#sat-inv6-program-timeline-section .sat-inv6-program-brindis-gif,#sat-inv6-program-timeline-section .sat-inv6-program-comida-gif,#sat-inv6-program-timeline-section .sat-inv6-program-ceremonia-gif,#sat-inv6-program-timeline-section .sat-inv6-program-fin-gif{width:clamp(92px,24vw,150px)!important;max-width:150px!important;height:auto!important;object-fit:contain!important}
 
-      /* CONFIRMA / tu asistencia — TXT */
       #sat-inv6-rsvp-heading-section{position:relative!important;width:100%!important;max-width:680px!important;margin:0 auto!important;padding:26px 24px 18px!important;box-sizing:border-box!important;text-align:center!important;background:transparent!important}
       #sat-inv6-rsvp-heading-section .sat-inv6-gaviota-regalo{width:105px!important;top:-70px!important;left:calc(50% + 74px)!important;height:auto!important}
       #sat-inv6-rsvp-heading-section .sat-inv6-rsvp-kicker{margin:0 0 2px!important;font-family:'Inv6SeasonsReal',Georgia,serif!important;font-size:clamp(48px,10vw,82px)!important;line-height:.9!important;font-weight:400!important;letter-spacing:.01em!important;color:#5D644F!important;text-transform:uppercase!important}
@@ -88,7 +86,6 @@
       .sat-inv6-music-stage-holder img{width:100%!important;height:auto!important;object-fit:contain!important}
       .sat-inv6-music-free-host .music-request-panel{width:min(94%,500px)!important}
 
-      /* PREGUNTAS FRECUENTES — copia de métricas del TXT */
       .sat-inv6-faq-host{width:100%!important;max-width:680px!important;margin:0 auto!important;padding:0 16px!important;box-sizing:border-box!important;background:transparent!important}
       .sat-inv6-faq-title-wrap{width:100%!important;margin:0 auto 22px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important}
       .sat-inv6-faq-title-main{display:block!important;width:auto!important;max-width:100%!important;margin:0 auto!important;padding:0!important;font-family:'Inv6SeasonsReal',Georgia,serif!important;font-size:clamp(48px,10vw,82px)!important;line-height:.9!important;font-weight:400!important;font-style:normal!important;letter-spacing:.01em!important;text-transform:uppercase!important;color:#5D644F!important;white-space:nowrap!important;transform:none!important}
@@ -103,13 +100,19 @@
       .sat-inv6-faq-item.is-open .sat-inv6-faq-a{display:block!important}
       .sat-inv6-faq-note{cursor:default!important}
 
-      #sat-inv6-final-thanks-section{max-width:680px!important;margin:0 auto!important;padding:0 16px 26px!important}
-      #sat-inv6-final-thanks-section .sat-inv6-final-fullbleed{width:calc(100% + 32px)!important;max-width:none!important;height:auto!important;margin:0 -16px!important;object-fit:cover!important}
-      #sat-inv6-final-thanks-section .sat-inv6-final-brook{width:86px!important;max-width:28%!important;height:auto!important;object-fit:contain!important}
-      #sat-inv6-final-thanks-section .sat-inv6-final-title{font-family:'Inv6SeasonsReal',Georgia,serif!important;font-size:clamp(48px,10vw,82px)!important;line-height:1!important;font-weight:400!important}
-      #sat-inv6-final-thanks-section .sat-inv6-final-script{font-family:'Inv6EyesomeReal',cursive!important;font-size:clamp(34px,7vw,58px)!important;line-height:1!important;font-weight:400!important}
-      #sat-inv6-final-thanks-section .sat-inv6-final-logo{width:78px!important;max-width:28%!important;height:auto!important;object-fit:contain!important}
-      #sat-inv6-final-thanks-section .sat-inv6-final-names{font-family:'Inv6EyesomeReal',cursive!important;font-size:clamp(34px,10vw,62px)!important;line-height:1!important;font-weight:400!important}
+      /* CIERRE FINAL / GRACIAS — métricas completas del TXT */
+      #sat-inv6-final-thanks-section{position:relative!important;width:100%!important;max-width:680px!important;margin:0 auto!important;padding:0 16px 26px!important;box-sizing:border-box!important;background:transparent!important;overflow:hidden!important}
+      #sat-inv6-final-thanks-section .sat-inv6-final-fullbleed{display:block!important;width:calc(100% + 32px)!important;max-width:none!important;height:auto!important;margin:0 -16px!important;padding:0!important;border:0!important;object-fit:cover!important}
+      #sat-inv6-final-thanks-section .sat-inv6-final-center{display:block!important;width:100%!important;margin:0 auto!important;padding:20px 12px 20px!important;box-sizing:border-box!important;text-align:center!important;background:transparent!important}
+      #sat-inv6-final-thanks-section .sat-inv6-final-brook{display:block!important;width:86px!important;max-width:28%!important;height:auto!important;margin:0 auto 10px!important;padding:0!important;object-fit:contain!important;background:transparent!important;border:0!important;box-shadow:none!important}
+      #sat-inv6-final-thanks-section .sat-inv6-final-title{display:block!important;width:100%!important;margin:0 auto!important;font-family:'Inv6SeasonsReal',Georgia,serif!important;font-size:clamp(48px,10vw,82px)!important;line-height:1!important;font-weight:400!important;color:#5D644F!important;text-transform:uppercase!important;letter-spacing:.01em!important;text-align:center!important}
+      #sat-inv6-final-thanks-section .sat-inv6-final-script{display:block!important;width:100%!important;margin:2px auto 16px!important;font-family:'Inv6EyesomeReal',cursive!important;font-size:clamp(34px,7vw,58px)!important;line-height:1!important;font-weight:400!important;color:#6D7559!important;text-align:center!important}
+      #sat-inv6-final-thanks-section .sat-inv6-final-logo{display:block!important;width:78px!important;max-width:28%!important;height:auto!important;margin:0 auto 14px!important;object-fit:contain!important;opacity:1!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;filter:drop-shadow(0 0 3px rgba(91,72,48,.32)) drop-shadow(0 0 8px rgba(255,253,248,.72))!important}
+      #sat-inv6-final-thanks-section .sat-inv6-final-names{display:block!important;width:100%!important;margin:0 auto 18px!important;font-family:'Inv6EyesomeReal',cursive!important;font-size:clamp(34px,10vw,62px)!important;line-height:1!important;font-weight:400!important;color:#6D7559!important;white-space:nowrap!important;text-align:center!important}
+      #sat-inv6-final-thanks-section .sat-inv6-final-credits{display:block!important;width:min(100%,260px)!important;margin:0 auto!important;padding:10px 12px!important;box-sizing:border-box!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;text-align:center!important}
+      #sat-inv6-final-thanks-section .sat-inv6-final-credits-kicker{display:block!important;width:100%!important;margin:0 0 6px!important;font-family:Georgia,'Times New Roman',serif!important;font-size:9px!important;line-height:1.2!important;font-weight:700!important;letter-spacing:.18em!important;text-transform:uppercase!important;color:#A08F7E!important;text-align:center!important}
+      #sat-inv6-final-thanks-section .sat-inv6-final-credits-line{display:block!important;width:100%!important;margin:0!important;font-family:Georgia,'Times New Roman',serif!important;font-size:10px!important;line-height:1.5!important;color:#6B6A63!important;text-align:center!important}
+
       #sat-inv6-countdown-hat img{width:clamp(92px,22vw,138px)!important;max-width:138px!important;height:auto!important;object-fit:contain!important}
 
       @media(max-width:540px){
@@ -143,9 +146,19 @@
         .sat-inv6-faq-title-script{margin-top:-5px!important;font-size:clamp(27px,8.5vw,40px)!important;transform:translateX(8%)!important}
         .sat-inv6-faq-q,.sat-inv6-faq-note{font-size:clamp(13px,3.8vw,18px)!important;padding:16px 4px!important;padding-right:24px!important}
         .sat-inv6-faq-a{font-size:13px!important;padding:0 4px 16px!important}
-        #sat-inv6-final-thanks-section .sat-inv6-final-title{font-size:clamp(28px,8.8vw,42px)!important}
-        #sat-inv6-final-thanks-section .sat-inv6-final-script{font-size:clamp(19px,6.2vw,30px)!important}
+
+        #sat-inv6-final-thanks-section{padding:0 12px 22px!important}
+        #sat-inv6-final-thanks-section .sat-inv6-final-fullbleed{width:calc(100% + 24px)!important;margin:0 -12px!important}
+        #sat-inv6-final-thanks-section .sat-inv6-final-center{padding:18px 8px 18px!important;text-align:center!important}
+        #sat-inv6-final-thanks-section .sat-inv6-final-brook{width:76px!important;margin:0 auto 8px!important}
+        #sat-inv6-final-thanks-section .sat-inv6-final-title{font-size:clamp(28px,8.8vw,42px)!important;margin:0 auto!important;text-align:center!important}
+        #sat-inv6-final-thanks-section .sat-inv6-final-script{margin:2px auto 14px!important;font-size:clamp(19px,6.2vw,30px)!important;text-align:center!important}
+        #sat-inv6-final-thanks-section .sat-inv6-final-logo{width:68px!important;margin:0 auto 12px!important}
+        #sat-inv6-final-thanks-section .sat-inv6-final-names{font-size:clamp(30px,9.2vw,48px)!important;margin:0 auto 16px!important;text-align:center!important}
+        #sat-inv6-final-thanks-section .sat-inv6-final-credits{width:min(100%,240px)!important;margin:0 auto!important;padding:9px 10px!important;text-align:center!important}
+        #sat-inv6-final-thanks-section .sat-inv6-final-credits-line{font-size:9px!important;text-align:center!important}
       }
+
       @media(max-width:390px){
         #sat-inv6-paper-bottom-section .sat-inv6-program-title{font-size:31px!important}
         #sat-inv6-paper-bottom-section .sat-inv6-program-script{font-size:40px!important}
@@ -165,8 +178,6 @@
 
     set('#dressCodeSection .inv5-dress-code','font-family',seasons);
     set('#dressCodeSection .inv5-dress-formal','font-family',eyesome);
-
-    /* Estos tres bloques tienen estilos inline heredados: aquí se reemplazan, no se apilan. */
     set('#sat-inv6-paper-bottom-section .sat-inv6-program-title','font-family',seasons);
     set('#sat-inv6-paper-bottom-section .sat-inv6-program-script','font-family',eyesome);
     set('#sat-inv6-paper-bottom-section .sat-inv6-program-script','margin-left','14%');
@@ -204,8 +215,36 @@
     set('#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-script','font-family',eyesome);
     set('.sat-inv6-music-free-title-main','font-family',seasons);
     set('.sat-inv6-music-free-title-script','font-family',eyesome);
+
+    /* El cierre tiene reglas inline/tardías en el código maduro: esta es la única normalización final. */
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-center','width','100%');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-center','margin','0 auto');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-center','text-align','center');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-brook','display','block');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-brook','margin',w<=540?'0 auto 8px':'0 auto 10px');
     set('#sat-inv6-final-thanks-section .sat-inv6-final-title','font-family',seasons);
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-title','width','100%');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-title','margin','0 auto');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-title','text-align','center');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-title','font-size',w<=540?'clamp(28px,8.8vw,42px)':'clamp(48px,10vw,82px)');
     set('#sat-inv6-final-thanks-section .sat-inv6-final-script','font-family',eyesome);
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-script','width','100%');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-script','margin',w<=540?'2px auto 14px':'2px auto 16px');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-script','text-align','center');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-script','font-size',w<=540?'clamp(19px,6.2vw,30px)':'clamp(34px,7vw,58px)');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-logo','display','block');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-logo','margin',w<=540?'0 auto 12px':'0 auto 14px');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-names','font-family',eyesome);
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-names','width','100%');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-names','margin',w<=540?'0 auto 16px':'0 auto 18px');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-names','text-align','center');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-names','font-size',w<=540?'clamp(30px,9.2vw,48px)':'clamp(34px,10vw,62px)');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-credits','width',w<=540?'min(100%,240px)':'min(100%,260px)');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-credits','margin','0 auto');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-credits','text-align','center');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-credits-kicker','text-align','center');
+    set('#sat-inv6-final-thanks-section .sat-inv6-final-credits-line','text-align','center');
+    if(w<=540)set('#sat-inv6-final-thanks-section .sat-inv6-final-credits-line','font-size','9px');
   }
 
   function apply(){const doc=deepestDoc();if(!doc?.head)return false;ensureStyle(doc);fixInlineOverrides(doc);return true;}
