@@ -124,9 +124,12 @@
             giftInRsvp.id='inv5GiftInRsvp';
             giftInRsvp.className='inv5-gift-in-rsvp';
             giftInRsvp.setAttribute('aria-label','Regalo');
-            giftInRsvp.appendChild(giftExperience);
-            rsvpCard.appendChild(giftInRsvp);
           }
+
+          // Una sola regla de montaje: exista o no el host, el regalo original
+          // siempre termina dentro de #inv5GiftInRsvp y éste dentro de RSVP.
+          if(giftInRsvp.parentNode!==rsvpCard)rsvpCard.appendChild(giftInRsvp);
+          if(giftExperience.parentNode!==giftInRsvp)giftInRsvp.appendChild(giftExperience);
 
           // El título de Regalo siempre debe estar físicamente arriba del GIF.
           const giftHeading=giftExperience.querySelector('.gift-stage-heading');
@@ -135,7 +138,10 @@
             giftExperience.insertBefore(giftHeading,giftStage);
           }
 
-          giftSection?.remove();
+          // El legacy se elimina únicamente después de comprobar el montaje correcto.
+          if(giftExperience.parentNode===giftInRsvp&&giftInRsvp.parentNode===rsvpCard){
+            giftSection?.remove();
+          }
         }
 
         const musicSection=doc.querySelector('#musicSection');
@@ -360,4 +366,3 @@
   </script>
 </body>
 </html>
-
