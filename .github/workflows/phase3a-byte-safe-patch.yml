@@ -1,0 +1,90 @@
+name: Phase 3A byte-safe patch
+
+on:
+  push:
+    branches:
+      - perf/invitacion6-phase3a-legacy-timers
+
+permissions:
+  contents: write
+
+jobs:
+  byte-safe-patch:
+    if: github.ref == 'refs/heads/perf/invitacion6-phase3a-legacy-timers'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: perf/invitacion6-phase3a-legacy-timers
+          fetch-depth: 0
+
+      - name: Apply exact byte-safe timer patch and self-remove workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE='invitaciones/invitacion_6/invitacion_5_base.html'
+          WF='.github/workflows/phase3a-byte-safe-patch.yml'
+          EXPECTED_BLOB='b86e480558b6b129ebe0632f1b9a8186c7dc381c'
+
+          actual_blob="$(git hash-object "$FILE")"
+          echo "BASE_BLOB=$actual_blob"
+          test "$actual_blob" = "$EXPECTED_BLOB"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+
+          p = Path('invitaciones/invitacion_6/invitacion_5_base.html')
+          data = p.read_bytes()
+          base = data
+
+          def metrics(label, b):
+              print(f'{label}_SHA256={hashlib.sha256(b).hexdigest()}')
+              print(f'{label}_SIZE={len(b)}')
+              print(f'{label}_CRLF={b.count(bytes([13,10]))}')
+              print(f'{label}_LF={b.count(bytes([10]))}')
+              print(f'{label}_BOM={b.startswith(bytes([0xef,0xbb,0xbf]))}')
+
+          metrics('BASE', base)
+
+          old_countdown = b'''    actualizarCuenta();\n    const timer = setInterval(actualizarCuenta, 1000);'''
+          new_countdown = b'''    actualizarCuenta();\n    const timer = setInterval(() => {\n      if (!overlay.isConnected) {\n        clearInterval(timer);\n        return;\n      }\n      actualizarCuenta();\n    }, 1000);'''
+
+          old_carousel = b'''  function restart(){if(timer)clearInterval(timer);timer=setInterval(()=>showPhoto(current+1),4300);}'''
+          new_carousel = b'''  function restart(){\n    if(timer)clearInterval(timer);\n    if(!carousel.isConnected){timer=null;return;}\n    timer=setInterval(()=>{\n      if(!carousel.isConnected){clearInterval(timer);timer=null;return;}\n      showPhoto(current+1);\n    },4300);\n  }'''
+
+          c1 = base.count(old_countdown)
+          c2 = base.count(old_carousel)
+          print(f'COUNTDOWN_PATTERN_COUNT={c1}')
+          print(f'CAROUSEL_PATTERN_COUNT={c2}')
+          if c1 != 1 or c2 != 1:
+              raise SystemExit('Expected each original byte pattern exactly once; refusing to write')
+
+          expected = base.replace(old_countdown, new_countdown, 1)
+          expected = expected.replace(old_carousel, new_carousel, 1)
+          p.write_bytes(expected)
+          head = p.read_bytes()
+          metrics('HEAD', head)
+          print(f'EXPECTED_BYTES_EQ_HEAD_BYTES={head == expected}')
+          print(f'BOM_IDENTICAL={head.startswith(bytes([0xef,0xbb,0xbf])) == base.startswith(bytes([0xef,0xbb,0xbf]))}')
+          if head != expected:
+              raise SystemExit('HEAD bytes differ from expected bytes')
+          reconstructed = base.replace(old_countdown, new_countdown, 1).replace(old_carousel, new_carousel, 1)
+          print(f'RECONSTRUCTED_BASE_PLUS_TWO_EQ_HEAD={reconstructed == head}')
+          if reconstructed != head:
+              raise SystemExit('Unauthorized bytes detected')
+          print('BYTES_CHANGED_OUTSIDE_AUTHORIZED_REGIONS=0')
+          PY
+
+          git diff --check
+          git diff --numstat -- "$FILE"
+          git diff -- "$FILE"
+          git rm "$WF"
+          echo 'FINAL_STAGED_STATUS_BEFORE_COMMIT:'
+          git status --short
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$FILE"
+          git commit -m 'perf(inv6): stop disconnected legacy timers'
+          git push origin HEAD:perf/invitacion6-phase3a-legacy-timers
