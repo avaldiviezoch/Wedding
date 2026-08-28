@@ -44,7 +44,7 @@
         width:100%!important;
         margin:0!important;
         padding:66px 34px 70px!important;
-        background:#66715A!important;
+        background:#5d6140!important;
         color:#fff!important;
         text-align:center!important;
         overflow:hidden!important;
