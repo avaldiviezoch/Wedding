@@ -325,6 +325,7 @@
   const timer = setInterval(() => {
     attempts += 1;
     let changed = false;
+    let hasSaturday = false;
     try {
       const firstDoc = document.querySelector('#invite')?.contentDocument;
       const secondDoc = firstDoc?.querySelector('#inviteFrame')?.contentDocument;
@@ -334,12 +335,16 @@
         : null;
       let node;
       while (walker && (node = walker.nextNode())) {
-        if (node.nodeValue?.trim() === 'Viernes') {
+        const value = node.nodeValue?.trim();
+        if (value === 'Sábado') {
+          hasSaturday = true;
+        } else if (value === 'Viernes') {
           node.nodeValue = node.nodeValue.replace('Viernes', 'Sábado');
           changed = true;
+          hasSaturday = true;
         }
       }
     } catch (_) {}
-    if (changed || attempts >= 160) clearInterval(timer);
+    if (changed || hasSaturday || attempts >= 160) clearInterval(timer);
   }, 250);
 })();

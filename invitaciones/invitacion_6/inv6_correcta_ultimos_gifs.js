@@ -3065,6 +3065,51 @@ rsvpHeadingSection.innerHTML=`
     }
   }
 
+  function hasCanonicalLocationBlock(location,block){
+    if(!block||block.tagName!=='SECTION'||location.nextElementSibling!==block)return false;
+    const doc=location.ownerDocument;
+    if(doc.querySelectorAll(`#${BLOCK_ID}`).length!==1)return false;
+    const wrap=block.firstElementChild;
+    if(!wrap||block.children.length!==1||wrap.className!=='church-green-wrap')return false;
+    const image=wrap.children[0];
+    const overlay=wrap.children[1];
+    if(
+      wrap.children.length!==2 ||
+      image?.tagName!=='IMG' ||
+      image.className!=='green-img' ||
+      image.getAttribute('src')!=='./assets/church_green_6.webp' ||
+      overlay?.tagName!=='DIV' ||
+      overlay.className!=='church-overlay-content'
+    )return false;
+    const [kicker,title,mainCopy,place,address,note]=overlay.children;
+    const titleSpans=title?[...title.children]:[];
+    return overlay.children.length===6 &&
+      kicker?.tagName==='DIV' && kicker.className==='church-kicker' && kicker.children.length===0 && kicker.textContent.trim()==='UBICACIÓN' &&
+      title?.tagName==='DIV' && title.className==='church-title' && titleSpans.length===2 &&
+      titleSpans[0].tagName==='SPAN' && titleSpans[0].children.length===0 && titleSpans[0].textContent.trim()==='Ceremonia' &&
+      titleSpans[1].tagName==='SPAN' && titleSpans[1].children.length===0 && titleSpans[1].textContent.trim()==='& Recepción' &&
+      mainCopy?.tagName==='P' && mainCopy.className==='church-main-copy' && mainCopy.children.length===0 && mainCopy.textContent.trim()==='La boda y la recepción se realizarán en el mismo lugar.' &&
+      place?.tagName==='DIV' && place.className==='church-place-name' && place.children.length===0 && place.textContent.trim()==='Residencia Privada' &&
+      address?.tagName==='DIV' && address.className==='church-address' && address.children.length===0 && address.textContent.trim()==='Calle Acapulco 480, La Molina' &&
+      note?.tagName==='P' && note.className==='church-note' && note.children.length===0 && note.textContent.trim()==='Te esperamos para compartir juntos cada momento de este día tan especial.';
+  }
+
+  function hasCanonicalPhotoCollage(block,photos){
+    if(!photos||photos.tagName!=='SECTION'||block.nextElementSibling!==photos)return false;
+    const doc=photos.ownerDocument;
+    if(doc.querySelectorAll(`#${PHOTO_ID}`).length!==1)return false;
+    const children=[...photos.children];
+    const images=[...photos.querySelectorAll('img')];
+    const first=children[0];
+    const second=children[1];
+    return children.length===2 && images.length===2 &&
+      photos.querySelectorAll('.photo-1').length===1 &&
+      photos.querySelectorAll('.photo-2').length===1 &&
+      first?.tagName==='IMG' && first.className==='photo-1' && first.getAttribute('src')==='./assets/foto_pareja_6_1.png' &&
+      second?.tagName==='IMG' && second.className==='photo-2' && second.getAttribute('src')==='./assets/foto_pareja_6_2png.png' &&
+      [...photos.childNodes].every(node=>node.nodeType===1||!(node.textContent||'').trim());
+  }
+
   async function apply(){
 
     const doc=deepestDoc();
@@ -3085,93 +3130,97 @@ rsvpHeadingSection.innerHTML=`
     insertDressCodeGif(doc);
     removeDuplicate(doc);
 
-    doc.getElementById(BLOCK_ID)?.remove();
+    let block=doc.getElementById(BLOCK_ID);
 
-    const block=
-      doc.createElement('section');
+    if(!hasCanonicalLocationBlock(location,block)){
+      block?.remove();
 
-    block.id=BLOCK_ID;
+      block=doc.createElement('section');
 
-    block.innerHTML=`
-      <div class="church-green-wrap">
+      block.id=BLOCK_ID;
 
+      block.innerHTML=`
+        <div class="church-green-wrap">
+
+          <img
+            class="green-img"
+            alt=""
+          >
+
+          <div class="church-overlay-content">
+
+            <div class="church-kicker">
+              UBICACIÓN
+            </div>
+
+            <div class="church-title">
+              <span>Ceremonia</span>
+              <span>&amp; Recepción</span>
+            </div>
+
+            <p class="church-main-copy">
+              La boda y la recepción se realizarán en el mismo lugar.
+            </p>
+
+            <div class="church-place-name">
+              Residencia Privada
+            </div>
+
+            <div class="church-address">
+              Calle Acapulco 480, La Molina
+            </div>
+
+            <p class="church-note">
+              Te esperamos para compartir juntos cada momento de este día tan especial.
+            </p>
+
+          </div>
+
+        </div>
+      `;
+
+      location.insertAdjacentElement(
+        'afterend',
+        block
+      );
+
+      try{
+        block.querySelector(
+          '.green-img'
+        ).src=await greenSrc();
+      }catch(e){
+        console.warn(e);
+      }
+    }
+
+    let photos=doc.getElementById(PHOTO_ID);
+
+    if(!hasCanonicalPhotoCollage(block,photos)){
+      photos?.remove();
+
+      photos=doc.createElement('section');
+
+      photos.id=PHOTO_ID;
+
+      photos.innerHTML=`
         <img
-          class="green-img"
+          class="photo-1"
+          src="./assets/foto_pareja_6_1.png"
           alt=""
         >
 
-        <div class="church-overlay-content">
+        <img
+          class="photo-2"
+          src="./assets/foto_pareja_6_2png.png"
+          alt=""
+        >
+      `;
 
-          <div class="church-kicker">
-            UBICACIÓN
-          </div>
-
-          <div class="church-title">
-            <span>Ceremonia</span>
-            <span>&amp; Recepción</span>
-          </div>
-
-          <p class="church-main-copy">
-            La boda y la recepción se realizarán en el mismo lugar.
-          </p>
-
-          <div class="church-place-name">
-            Residencia Privada
-          </div>
-
-          <div class="church-address">
-            Calle Acapulco 480, La Molina
-          </div>
-
-          <p class="church-note">
-            Te esperamos para compartir juntos cada momento de este día tan especial.
-          </p>
-
-        </div>
-
-      </div>
-    `;
-
-    location.insertAdjacentElement(
-      'afterend',
-      block
-    );
-
-    try{
-      block.querySelector(
-        '.green-img'
-      ).src=await greenSrc();
-    }catch(e){
-      console.warn(e);
+      block.insertAdjacentElement(
+        'afterend',
+        photos
+      );
     }
-
-    doc.getElementById(
-      PHOTO_ID
-    )?.remove();
-
-    const photos=
-      doc.createElement('section');
-
-    photos.id=PHOTO_ID;
-
-    photos.innerHTML=`
-      <img
-        class="photo-1"
-        src="./assets/foto_pareja_6_1.png"
-        alt=""
-      >
-
-      <img
-        class="photo-2"
-        src="./assets/foto_pareja_6_2png.png"
-        alt=""
-      >
-    `;
-
-    block.insertAdjacentElement(
-      'afterend',
-      photos
-    );
 
     following(photos);
     restyleMusicSection(doc);
@@ -3223,26 +3272,6 @@ rsvpHeadingSection.innerHTML=`
   outer.addEventListener(
     'load',
     ()=>{
-
-      setTimeout(
-        pauseInvitationMusic,
-        50
-      );
-
-      setTimeout(
-        pauseInvitationMusic,
-        250
-      );
-
-      setTimeout(
-        pauseInvitationMusic,
-        700
-      );
-
-      setTimeout(
-        pauseInvitationMusic,
-        1500
-      );
 
       setTimeout(
         start,
