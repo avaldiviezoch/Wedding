@@ -1,4 +1,4 @@
-name: QA PR149 Friday Saturday routed
+name: QA PR149 date artifact timing
 
 on:
   pull_request:
@@ -6,107 +6,32 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
-  qa:
+  timing:
     if: github.event.pull_request.number == 149
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 5
     steps:
-      - name: Checkout BASE
-        uses: actions/checkout@v4
-        with:
-          ref: 4356e7dbcaa389c0f8f3efdf93415b8885626080
-          path: qa/base
-      - name: Checkout PR HEAD under test
-        uses: actions/checkout@v4
-        with:
-          ref: 31c70fb5477b121ebcd50f0ab86d7b5168316fd3
-          path: qa/head
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Install ephemeral Chromium
+      - name: Download prior routed QA artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p qa-run && cd qa-run
-          npm init -y >/dev/null
-          npm install --no-save playwright
-          npx playwright install --with-deps chromium
-      - name: Serve BASE and PR in runner
+          gh run download 33172178942 -R avaldiviezoch/Wedding -n pr149-friday-saturday-routed-qa-v2 -D qa-artifact
+
+      - name: Print exact date race timing
         run: |
-          python3 -m http.server 4173 --directory qa/base >/tmp/base-http.log 2>&1 &
-          python3 -m http.server 4174 --directory qa/head >/tmp/head-http.log 2>&1 &
-          sleep 2
-      - name: Certify Friday Saturday with verified local asset routing
-        working-directory: qa-run
-        run: |
-          cat > qa.mjs <<'EOF'
-          import { chromium } from 'playwright';
-          import fs from 'node:fs';
-          import path from 'node:path';
-          import crypto from 'node:crypto';
-          const OUT=path.resolve('artifacts');fs.mkdirSync(OUT,{recursive:true});
-          const roots={base:path.resolve('../qa/base'),pr:path.resolve('../qa/head')};
-          const urls={base:'http://127.0.0.1:4173/invitaciones/invitacion_6/',pr:'http://127.0.0.1:4174/invitaciones/invitacion_6/'};
-          const shas={base:'4356e7dbcaa389c0f8f3efdf93415b8885626080',pr:'31c70fb5477b121ebcd50f0ab86d7b5168316fd3'};
-          const vps={desktop:{width:1366,height:768},mobile:{width:390,height:844}};
-          const names=['fecha_regresiva_2.png','marco_de_fotos_2.png','video_entrada.mp4','video_de_saludo_2.mp4','sake_binks.mp3'];
-          const mime={'.png':'image/png','.mp4':'video/mp4','.mp3':'audio/mpeg'};
-          const hash=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
-          const rel=n=>'invitaciones/invitacion_6/'+n;
-          const report={preflight:[],originalFailures:{},runs:{}};
-          for(const n of names){
-            const b=path.join(roots.base,rel(n)),p=path.join(roots.pr,rel(n));
-            const bw=fs.readFileSync(path.join(roots.base,'invitaciones/invitacion_6/invitacion_6_base_final.html'),'utf8');
-            const pw=fs.readFileSync(path.join(roots.pr,'invitaciones/invitacion_6/invitacion_6_base_final.html'),'utf8');
-            const rec={name:n,repoPath:rel(n),baseExists:fs.existsSync(b),prExists:fs.existsSync(p),declaredLocalAssetBase:bw.includes(`'${n}'`),declaredLocalAssetPr:pw.includes(`'${n}'`),baseHash:fs.existsSync(b)?hash(b):null,prHash:fs.existsSync(p)?hash(p):null,mime:mime[path.extname(n)]};
-            rec.verified=rec.baseExists&&rec.prExists&&rec.declaredLocalAssetBase&&rec.declaredLocalAssetPr&&rec.baseHash===rec.prHash;
-            report.preflight.push(rec);
-            if(!rec.verified)throw new Error('Unverified mapping '+JSON.stringify(rec));
-          }
-          const browser=await chromium.launch({headless:true});
-          async function enter(page){
-            await page.locator('#tapGuard').waitFor({state:'attached',timeout:15000});
-            await page.locator('#tapGuard').click({position:{x:20,y:20}}).catch(()=>{});
-            await page.waitForTimeout(700);
-            await page.evaluate(()=>{try{const d1=document.querySelector('#invite')?.contentDocument,d2=d1?.querySelector('#inviteFrame')?.contentDocument,d3=d2?.querySelector('#inv5')?.contentDocument,v=d3?.getElementById('entryVideo');if(v){try{if(Number.isFinite(v.duration)&&v.duration>0)v.currentTime=Math.max(0,v.duration-.05)}catch(_){}v.dispatchEvent(new Event('ended'));}}catch(_){}});
-          }
-          async function probeOriginal(kind){
-            const c=await browser.newContext({viewport:vps.desktop,reducedMotion:'reduce'}),p=await c.newPage(),fails=[];
-            p.on('requestfailed',r=>{if(r.url().startsWith('https://raw.githubusercontent.com/'))fails.push({url:r.url(),failure:r.failure()?.errorText||''});});
-            await p.goto(urls[kind],{waitUntil:'domcontentloaded'});await enter(p).catch(()=>{});await p.waitForTimeout(4500);
-            report.originalFailures[kind]=[...new Map(fails.map(x=>[x.url,x])).values()];await c.close();
-          }
-          function instrument(page){return page.addInitScript(()=>{
-            const t0=performance.now(),si=window.setInterval.bind(window),ci=window.clearInterval.bind(window);
-            window.__dateQA={t0,registered:false,registerAt:null,callbacks:0,cleared:false,clearAt:null,callbacksAtClear:null,id:null,events:[]};
-            const state=()=>{try{const d1=document.querySelector('#invite')?.contentDocument,d2=d1?.querySelector('#inviteFrame')?.contentDocument,d=d2?.querySelector('#inv5')?.contentDocument;if(!d?.body)return{friday:0,saturday:0};let f=0,s=0,w=d.createTreeWalker(d.body,NodeFilter.SHOW_TEXT),n;while((n=w.nextNode())){const v=n.nodeValue?.trim(),p=n.parentElement;if(v!=='Viernes'&&v!=='Sábado'||!p||['SCRIPT','STYLE','NOSCRIPT','TEMPLATE'].includes(p.tagName))continue;const cs=d.defaultView.getComputedStyle(p);if(cs.display==='none'||cs.visibility==='hidden'||Number(cs.opacity)===0||p.getClientRects().length===0)continue;if(v==='Viernes')f++;else s++;}return{friday:f,saturday:s};}catch(e){return{friday:0,saturday:0,error:String(e)}}};
-            window.__visibleDateState=state;
-            window.setInterval=(fn,ms,...a)=>{const src=String(fn),second=ms===250&&src.includes('createTreeWalker')&&src.includes('Viernes')&&src.includes('attempts >= 160')&&!src.includes('patchWeddingDay()');if(!second)return si(fn,ms,...a);window.__dateQA.registered=true;window.__dateQA.registerAt=performance.now()-t0;const wrap=(...x)=>{const no=++window.__dateQA.callbacks,at=performance.now()-t0,before=state();try{return fn(...x)}finally{window.__dateQA.events.push({type:'callback',no,at,before,after:state()})}};const id=si(wrap,ms,...a);window.__dateQA.id=id;return id};
-            window.clearInterval=id=>{if(id===window.__dateQA.id&&!window.__dateQA.cleared){window.__dateQA.cleared=true;window.__dateQA.clearAt=performance.now()-t0;window.__dateQA.callbacksAtClear=window.__dateQA.callbacks;window.__dateQA.events.push({type:'clearInterval',at:window.__dateQA.clearAt,callbacks:window.__dateQA.callbacks,state:state()});}return ci(id)};
-          })}
-          async function run(kind,vpName){
-            const c=await browser.newContext({viewport:vps[vpName],reducedMotion:'reduce'}),p=await c.newPage();await instrument(p);
-            const intercepted=[];
-            await p.route('https://raw.githubusercontent.com/**',async r=>{const u=new URL(r.request().url()),parts=u.pathname.split('/').filter(Boolean).map(decodeURIComponent);const [owner,repo,ref,...rest]=parts;const n=rest.at(-1),pre=report.preflight.find(x=>x.name===n);if(owner==='avaldiviezoch'&&repo==='Wedding'&&ref==='main'&&pre?.verified){const local=path.join(roots[kind],pre.repoPath),body=fs.readFileSync(local);intercepted.push({url:r.request().url(),repoPath:pre.repoPath,mime:pre.mime,hash:hash(local)});return r.fulfill({status:200,contentType:pre.mime,body,headers:{'access-control-allow-origin':'*','cache-control':'no-store'}})}return r.continue()});
-            const ev={consoleError:[],pageerror:[],requestfailed:[],http:[]};p.on('console',m=>{if(m.type()==='error')ev.consoleError.push(m.text())});p.on('pageerror',e=>ev.pageerror.push(String(e)));p.on('requestfailed',r=>ev.requestfailed.push({url:r.url(),failure:r.failure()?.errorText||''}));p.on('response',r=>{if(r.status()>=400)ev.http.push({status:r.status(),url:r.url()})});
-            await p.goto(urls[kind],{waitUntil:'domcontentloaded',timeout:30000});await enter(p);
-            const samples=[];for(let i=0;i<120;i++){const x=await p.evaluate(()=>({at:performance.now()-window.__dateQA.t0,state:window.__visibleDateState(),callbacks:window.__dateQA.callbacks,cleared:window.__dateQA.cleared})),z=samples.at(-1);if(!z||JSON.stringify(x)!==JSON.stringify(z))samples.push(x);await p.waitForTimeout(100)}
-            const before=await p.evaluate(()=>({state:window.__visibleDateState(),qa:structuredClone(window.__dateQA)}));await p.waitForTimeout(1500);const after=await p.evaluate(()=>({state:window.__visibleDateState(),callbacks:window.__dateQA.callbacks,cleared:window.__dateQA.cleared}));
-            const deep=p.frameLocator('#invite').frameLocator('#inviteFrame').frameLocator('#inv5'),txt=after.state.saturday?'Sábado':'Viernes',loc=deep.getByText(txt,{exact:true}).first(),dir=path.join(OUT,'screenshots');fs.mkdirSync(dir,{recursive:true});if(await loc.count())await loc.screenshot({path:path.join(dir,`${kind}-${vpName}-date.png`),animations:'disabled'}).catch(()=>{});
-            report.runs[`${kind}-${vpName}`]={sha:shas[kind],viewport:vps[vpName],intercepted:[...new Map(intercepted.map(x=>[x.url,x])).values()],samples,before,after,events:ev};await c.close();
-          }
-          for(const k of ['base','pr'])await probeOriginal(k);for(const vp of ['desktop','mobile'])for(const k of ['base','pr'])await run(k,vp);await browser.close();
-          fs.writeFileSync(path.join(OUT,'report.json'),JSON.stringify(report,null,2));
-          const L=[];for(const x of report.preflight)L.push(`MAP|verified=${x.verified}|${x.name}|${x.repoPath}|mime=${x.mime}|baseHash=${x.baseHash}|prHash=${x.prHash}`);for(const k of ['base','pr'])for(const x of report.originalFailures[k])L.push(`ORB_ORIGINAL|${k}|${x.failure}|${x.url}`);for(const [k,r] of Object.entries(report.runs)){const q=r.before.qa,s=r.after.state;L.push(`RESULT|${k}|friday=${s.friday}|saturday=${s.saturday}|registered=${q.registered}|callbacks=${r.after.callbacks}|cleared=${r.after.cleared}|callbacksAtClear=${q.callbacksAtClear}|clearAtMs=${q.clearAt}|stableAfter1500=${q.callbacksAtClear===r.after.callbacks}|consoleError=${r.events.consoleError.length}|pageerror=${r.events.pageerror.length}|requestfailed=${r.events.requestfailed.length}|http=${r.events.http.length}`);for(const x of r.intercepted)L.push(`INTERCEPTED|${k}|${x.url}|${x.repoPath}|${x.mime}|${x.hash}`);for(const e of q.events)if(e.type==='clearInterval'||e.after?.friday||e.after?.saturday)L.push(`DATE_EVENT|${k}|${JSON.stringify(e)}`);for(const x of r.events.requestfailed)L.push(`FAIL_AFTER_ROUTE|${k}|${x.failure}|${x.url}`)}
-          fs.writeFileSync(path.join(OUT,'summary.txt'),L.join('\n')+'\n');console.log('===== PR149 ROUTED DATE QA =====\n'+L.join('\n')+'\n===== END =====');
-          EOF
-          node qa.mjs
-      - name: Upload QA evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pr149-friday-saturday-routed-qa-v2
-          path: qa-run/artifacts
-          if-no-files-found: error
-          retention-days: 30
+          python3 - <<'PY'
+          import json
+          p='qa-artifact/report.json'
+          with open(p,encoding='utf-8') as f: r=json.load(f)
+          for key,v in r['runs'].items():
+              q=v['before']['qa']
+              samples=v['samples']
+              first_friday=next((s for s in samples if s.get('state',{}).get('friday',0)>0),None)
+              first_saturday=next((s for s in samples if s.get('state',{}).get('saturday',0)>0),None)
+              print(f"TIMING|{key}|registerAtMs={q.get('registerAt')}|clearAtMs={q.get('clearAt')}|callbacksAtClear={q.get('callbacksAtClear')}|finalCallbacks={v['after'].get('callbacks')}|firstFridayMs={first_friday.get('at') if first_friday else 'NONE'}|firstSaturdayMs={first_saturday.get('at') if first_saturday else 'NONE'}|finalFriday={v['after']['state'].get('friday')}|finalSaturday={v['after']['state'].get('saturday')}")
+              for e in q.get('events',[]):
+                  print(f"EVENT|{key}|{json.dumps(e,separators=(',',':'))}")
+          PY
