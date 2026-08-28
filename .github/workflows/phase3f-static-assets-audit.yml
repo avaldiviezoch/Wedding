@@ -1,0 +1,172 @@
+name: Phase 3F static assets audit
+on:
+  push:
+    branches: [perf/invitacion6-phase3f-static-assets]
+    paths: ['.github/workflows/phase3f-static-assets-audit.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: f1fa0a031e0bc4d1070371e872195ddea6716a51
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify exact BASE
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "f1fa0a031e0bc4d1070371e872195ddea6716a51"
+          test -z "$(git status --porcelain)"
+          test ! -e package-lock.json
+          echo BASE_SHA=$(git rev-parse HEAD)
+      - name: Install audit tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y >/dev/null
+          sudo apt-get install -y python3-pil oxipng pngcrush libjpeg-turbo-progs >/dev/null
+          rm -rf /tmp/phase3f-playwright
+          mkdir -p /tmp/phase3f-playwright
+          cd /tmp/phase3f-playwright
+          npm init -y >/dev/null
+          npm install playwright@1.55.0 >/dev/null
+          npx playwright install --with-deps chrome >/dev/null
+          test ! -e "$GITHUB_WORKSPACE/package-lock.json"
+      - name: Static inventory references duplicates and lossless candidates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import os,re,hashlib,json,subprocess,tempfile,shutil
+          from pathlib import Path
+          from PIL import Image,ImageChops
+          root=Path('.')
+          inv6=root/'invitaciones'/'invitacion_6'
+          exts={'.png','.jpg','.jpeg'}
+          exclude_names={'inicio_de_boda_6_3.gif','brindis_6_3.gif','comida_6_2.gif','fiesta_6_2.gif','fin_boda_6_2.gif','brook.gif','dress_code_6_2.gif','sake_binks.mp3','video_entrada.mp4','video_de_saludo_2.mp4'}
+          text_exts={'.html','.htm','.css','.js','.json','.md','.aspx','.cs'}
+          text_files=[p for p in root.rglob('*') if p.is_file() and p.suffix.lower() in text_exts and '.git' not in p.parts and 'node_modules' not in p.parts]
+          texts={}
+          for p in text_files:
+            try:texts[p]=p.read_text('utf-8',errors='ignore')
+            except:pass
+          assets=[p for p in root.rglob('*') if p.is_file() and p.suffix.lower() in exts]
+          def sha(p):
+            h=hashlib.sha256();
+            with open(p,'rb') as f:
+              for b in iter(lambda:f.read(1<<20),b''):h.update(b)
+            return h.hexdigest()
+          shas={p:sha(p) for p in assets}
+          dup={}
+          for p,h in shas.items():dup.setdefault(h,[]).append(p)
+          ref_rows=[]
+          used=set()
+          for p in assets:
+            rel=p.as_posix(); base=p.name
+            refs=[]
+            for tf,t in texts.items():
+              if base in t or rel in t:
+                n=t.count(base)+t.count(rel)
+                if n: refs.append({'file':tf.as_posix(),'count':n})
+            if refs: used.add(p)
+            try:
+              im=Image.open(p); dims=list(im.size); fmt=im.format; alpha='A' in im.getbands() or ('transparency' in im.info)
+            except Exception:
+              dims=[None,None];fmt=p.suffix.lower().lstrip('.').upper();alpha=None
+            ref_rows.append({'asset':base,'path':rel,'bytes':p.stat().st_size,'format':fmt,'dimensions':dims,'references':refs,'number_of_references':sum(x['count'] for x in refs),'duplicate_copies':[q.as_posix() for q in dup[shas[p]] if q!=p],'sha256':shas[p],'alpha':alpha})
+          # candidates actually referenced by invite6-related files or paths inside invitation_6 + known reused legacy trees
+          relevant=[]
+          rel_tokens=('invitaciones/invitacion_6/','invitaciones/invitacion_5/','invitaciones/invitacion_2/','invitaciones/invitacion_1/')
+          for r in ref_rows:
+            if r['path'].startswith('invitaciones/invitacion_6/') or any(any(tok in x['file'] for tok in rel_tokens) for x in r['references']): relevant.append(r)
+          relevant.sort(key=lambda x:x['bytes'],reverse=True)
+          print('PHASE3F_INVENTORY_TOTAL='+str(len(relevant)))
+          print('PHASE3F_TOP20='+json.dumps(relevant[:20],ensure_ascii=False))
+          dups=[]
+          for h,ps in dup.items():
+            if len(ps)>1 and any(any(r['path']==p.as_posix() for r in relevant) for p in ps):
+              dups.append({'sha256':h,'bytes':ps[0].stat().st_size,'canonical_path':ps[0].as_posix(),'copy_paths':[p.as_posix() for p in ps],'references':{p.as_posix():next((r['references'] for r in ref_rows if r['path']==p.as_posix()),[]) for p in ps}})
+          print('PHASE3F_DUPLICATES='+json.dumps(dups,ensure_ascii=False))
+          # external refs from relevant source files
+          ext=[]
+          urlre=re.compile(r'https?://[^\s\"\'<>)]+' )
+          for tf,t in texts.items():
+            if any(tok in tf.as_posix() for tok in rel_tokens):
+              for u in urlre.findall(t):
+                if any(x in u.lower() for x in ['.png','.jpg','.jpeg','githubusercontent']): ext.append({'file':tf.as_posix(),'url':u})
+          print('PHASE3F_EXTERNAL_REFS='+json.dumps(ext,ensure_ascii=False))
+          # lossless optimization on referenced >500KB; skip protected names
+          cand=[]
+          for r in relevant:
+            p=Path(r['path'])
+            if r['bytes']<500_000 or p.name in exclude_names: continue
+            td=Path(tempfile.mkdtemp(prefix='p3f_')); out=td/p.name
+            try:
+              if p.suffix.lower()=='.png':
+                shutil.copy2(p,out)
+                subprocess.run(['oxipng','-o','4','--strip','safe',str(out)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True)
+              else:
+                out=td/(p.stem+'.jpg')
+                subprocess.run(['jpegtran','-copy','all','-optimize','-progressive','-outfile',str(out),str(p)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True)
+              base=Image.open(p).convert('RGBA'); opt=Image.open(out).convert('RGBA')
+              same_dims=base.size==opt.size
+              diff=ImageChops.difference(base,opt); bbox=diff.getbbox(); pixel_equal=bbox is None
+              alpha_equal=base.getchannel('A').tobytes()==opt.getchannel('A').tobytes() if same_dims else False
+              cb=out.stat().st_size; sav=r['bytes']-cb; pct=(sav/r['bytes']*100 if r['bytes'] else 0)
+              impact=(sav>=300_000 or pct>=15)
+              cls='SAFE_HIGH_IMPACT' if (impact and same_dims and pixel_equal and alpha_equal) else ('SAFE_LOW_IMPACT' if (same_dims and pixel_equal and alpha_equal and sav>0) else 'UNSAFE')
+              cand.append({'path':r['path'],'base_bytes':r['bytes'],'candidate_bytes':cb,'savings_bytes':sav,'savings_percent':round(pct,4),'pixel_equivalence':pixel_equal,'alpha_preserved':alpha_equal,'dimensions_equal':same_dims,'classification':cls})
+            except Exception as e:
+              cand.append({'path':r['path'],'error':str(e),'classification':'UNSAFE'})
+            finally: shutil.rmtree(td,ignore_errors=True)
+          print('PHASE3F_LOSSLESS='+json.dumps(cand,ensure_ascii=False))
+          print('PHASE3F_SAFE_TOTAL='+str(sum(x.get('savings_bytes',0) for x in cand if x.get('classification')=='SAFE_HIGH_IMPACT')))
+          PY
+      - name: Real network audit Desktop and Mobile
+        shell: bash
+        env:
+          NODE_PATH: /tmp/phase3f-playwright/node_modules
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 >/tmp/phase3f-http.log 2>&1 & PID=$!; trap 'kill $PID || true' EXIT; sleep 2
+          node <<'NODE'
+          const {chromium}=require('playwright');
+          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+          const ext=/\.(png|jpe?g)(?:[?#]|$)/i;
+          async function run(label,w,h){
+            const browser=await chromium.launch({channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']});
+            const context=await browser.newContext({viewport:{width:w,height:h},serviceWorkers:'block'});const page=await context.newPage();
+            let stage='T0';const events=[],fails=[];page.on('request',r=>{if(ext.test(r.url()))events.push({event:'request',stage,url:r.url(),frame:r.frame()?.url()||'',type:r.resourceType(),ts:Date.now()})});page.on('response',async r=>{if(ext.test(r.url()))events.push({event:'response',stage,url:r.url(),frame:r.request().frame()?.url()||'',status:r.status(),type:r.request().resourceType(),ts:Date.now()})});page.on('requestfailed',r=>{if(ext.test(r.url()))fails.push({stage,url:r.url(),error:r.failure()?.errorText||''})});
+            await page.goto('http://127.0.0.1:4173/invitaciones/invitacion_6/',{waitUntil:'domcontentloaded'});await sleep(1500);stage='T1';
+            const frames=page.frames();let ef=null;for(const f of frames){try{if(await f.locator('#entryScreen').count()){ef=f;break}}catch{}} if(!ef) throw new Error('entry frame missing');
+            const guard=ef.locator('#tapGuard');stage='T2'; if(await guard.count())await guard.click();else await ef.locator('#entryScreen').click({force:true});await sleep(6500);stage='T3';
+            const dims=[];for(const f of page.frames()){try{const arr=await f.evaluate(()=>[...document.images].map(i=>({src:i.currentSrc||i.src,naturalWidth:i.naturalWidth,naturalHeight:i.naturalHeight,renderedWidth:i.getBoundingClientRect().width,renderedHeight:i.getBoundingClientRect().height,visible:!!(i.offsetWidth||i.offsetHeight||i.getClientRects().length)})).filter(x=>/\.(png|jpe?g)(?:[?#]|$)/i.test(x.src)));dims.push(...arr.map(x=>({frame:f.url(),...x})))}catch{}}
+            for(const f of page.frames()){try{await f.evaluate(async()=>{let max=document.body.scrollHeight;scrollTo(0,max*.5);await new Promise(r=>setTimeout(r,1000))})}catch{}}stage='T4';await sleep(1200);
+            for(const f of page.frames()){try{await f.evaluate(async()=>{scrollTo(0,document.body.scrollHeight);await new Promise(r=>setTimeout(r,1000))})}catch{}}stage='T5';await sleep(1200);
+            const perf=[];for(const f of page.frames()){try{const p=await f.evaluate(()=>performance.getEntriesByType('resource').map(r=>({name:r.name,initiatorType:r.initiatorType,startTime:r.startTime,transferSize:r.transferSize,encodedBodySize:r.encodedBodySize,decodedBodySize:r.decodedBodySize})).filter(x=>/\.(png|jpe?g)(?:[?#]|$)/i.test(x.name)));perf.push(...p.map(x=>({frame:f.url(),...x})))}catch{}}
+            const all=[];for(const f of page.frames()){try{const p=await f.evaluate(()=>performance.getEntriesByType('resource').map(r=>({name:r.name,startTime:r.startTime,transferSize:r.transferSize,encodedBodySize:r.encodedBodySize})));all.push(...p)}catch{}}
+            const sum=(a,k)=>a.reduce((s,x)=>s+(x[k]||0),0);const out={label,url:page.url(),frameCount:page.frames().length,events,failures:fails,perf,dims,metrics:{requests:all.length,totalTransfer:sum(all,'transferSize'),totalEncoded:sum(all,'encodedBodySize'),first3Transfer:sum(all.filter(x=>x.startTime<=3000),'transferSize'),first5Transfer:sum(all.filter(x=>x.startTime<=5000),'transferSize')}};console.log('PHASE3F_NETWORK='+JSON.stringify(out));await browser.close();
+          }
+          (async()=>{await run('desktop',1366,768);await run('mobile',390,844)})().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+      - name: Repository tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm test
+          test ! -e package-lock.json
+      - name: Confirm BASE tree untouched
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "f1fa0a031e0bc4d1070371e872195ddea6716a51"
+          test -z "$(git status --porcelain)"
+          test ! -e package-lock.json
