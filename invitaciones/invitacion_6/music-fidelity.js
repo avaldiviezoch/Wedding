@@ -167,6 +167,15 @@
         margin:12px auto 0!important;
         text-align:center!important;
       }
+
+      /* Encuesta de música: usar The Seasons en el encabezado interno.
+         El párrafo conserva su tipografía actual. */
+      body .sat-inv6-music-free-host .mgd-native-success h3{
+        font-family:'Inv6 The Seasons','The Seasons Regular',Georgia,serif!important;
+        font-style:normal!important;
+        font-weight:400!important;
+      }
+
       body .sat-inv6-music-free-band{display:none!important;}
 
       @media(max-width:540px){
