@@ -1,0 +1,81 @@
+name: Phase 3E BASE network audit
+on:
+  push:
+    branches: [perf/invitacion6-phase3e-audio-video-network]
+    paths: ['.github/workflows/phase3e-base-network.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 0b393b4ec8792f4dec13516fefb8cb54eb204494
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Direct HTTP and local metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo BASE_SHA=$(git rev-parse HEAD)
+          for n in sake_binks.mp3 video_entrada.mp4 video_de_saludo_2.mp4; do
+            echo "=== RAW_HTTP $n ==="
+            curl -sS -L -o /dev/null -D - "https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/$n" | grep -iE '^(HTTP/|content-type:|content-length:)' || true
+            echo "=== LOCAL_FILE $n ==="
+            stat -c 'bytes=%s' "invitaciones/invitacion_6/$n"
+            file "invitaciones/invitacion_6/$n"
+          done
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Browser BASE audit desktop and mobile
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 >/tmp/phase3e-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          sleep 2
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          const targets=['sake_binks.mp3','video_entrada.mp4','video_de_saludo_2.mp4'];
+          const path='invitaciones/invitacion_6/invitacion_6_base_final.html';
+          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+          async function run(label,width,height){
+            const browser=await chromium.launch({headless:true});
+            const context=await browser.newContext({viewport:{width,height},serviceWorkers:'block'});
+            const page=await context.newPage();
+            let stage='T0'; const rows=[]; const failures=[]; const consoleErrors=[];
+            page.on('console',m=>{if(m.type()==='error') consoleErrors.push(m.text())});
+            page.on('request',req=>{if(targets.some(x=>req.url().includes(x))) rows.push({stage,event:'request',url:req.url(),raw:req.url().includes('raw.githubusercontent.com'),ts:Date.now(),initiator:req.frame()?.url()||'',type:req.resourceType()})});
+            page.on('requestfailed',req=>{if(targets.some(x=>req.url().includes(x))) failures.push({stage,url:req.url(),error:req.failure()?.errorText||''})});
+            page.on('response',async res=>{const u=res.url(); if(targets.some(x=>u.includes(x))){let h=await res.allHeaders().catch(()=>({})); rows.push({stage,event:'response',url:u,raw:u.includes('raw.githubusercontent.com'),ts:Date.now(),status:res.status(),type:res.request().resourceType(),contentLength:h['content-length']||null,contentType:h['content-type']||null})}});
+            const cdp=await context.newCDPSession(page); await cdp.send('Network.enable'); const perf=[];
+            cdp.on('Network.loadingFinished',e=>perf.push({id:e.requestId,encodedDataLength:e.encodedDataLength,ts:e.timestamp}));
+            await page.goto('http://127.0.0.1:4173/'+path,{waitUntil:'domcontentloaded'}); await sleep(1200); stage='T1'; await sleep(500);
+            stage='T2'; await page.mouse.click(Math.floor(width/2),Math.floor(height/2)); await sleep(300);
+            stage='T3'; await sleep(2500);
+            stage='T4'; await sleep(3500);
+            stage='T5'; await page.evaluate(async()=>{for(let y=0;y<document.body.scrollHeight;y+=Math.max(400,innerHeight*.8)){scrollTo(0,y);await new Promise(r=>setTimeout(r,120))}scrollTo(0,document.body.scrollHeight)}); await sleep(1200);
+            const nav=await page.evaluate(()=>performance.getEntriesByType('resource').map(r=>({name:r.name,initiatorType:r.initiatorType,transferSize:r.transferSize,encodedBodySize:r.encodedBodySize,decodedBodySize:r.decodedBodySize,startTime:r.startTime,duration:r.duration})).filter(r=>['sake_binks.mp3','video_entrada.mp4','video_de_saludo_2.mp4'].some(x=>r.name.includes(x))));
+            const all=await page.evaluate(()=>performance.getEntriesByType('resource').map(r=>({transferSize:r.transferSize,encodedBodySize:r.encodedBodySize,startTime:r.startTime}))); const sum=(a,k)=>a.reduce((s,x)=>s+(x[k]||0),0);
+            const metrics={requests:all.length,totalTransfer:sum(all,'transferSize'),totalEncoded:sum(all,'encodedBodySize'),first3Transfer:sum(all.filter(x=>x.startTime<=3000),'transferSize'),first5Transfer:sum(all.filter(x=>x.startTime<=5000),'transferSize')};
+            const state=await page.evaluate(()=>({entry:!!document.querySelector('#entryScreen'),main:!!document.querySelector('#mainInvitation'),bgMusic:(()=>{let e=document.querySelector('#bgMusic');return e?{preload:e.preload,loop:e.loop,currentTime:e.currentTime,paused:e.paused,readyState:e.readyState}:null})(),entryVideo:(()=>{let e=document.querySelector('#entryVideo, #entryScreen video');return e?{preload:e.preload,muted:e.muted,playsInline:e.playsInline,currentTime:e.currentTime,paused:e.paused,readyState:e.readyState}:null})(),saludo:(()=>{let e=document.querySelector('#saludoVideo');return e?{preload:e.preload,muted:e.muted,playsInline:e.playsInline,currentTime:e.currentTime,paused:e.paused,readyState:e.readyState}:null})()}));
+            console.log('PHASE3E_BASE='+JSON.stringify({label,viewport:{width,height},rows,failures,nav,metrics,state,consoleErrors,cdpFinished:perf.length}));
+            await browser.close();
+          }
+          (async()=>{await run('desktop',1366,768);await run('mobile',390,844)})().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+      - name: Local HTTP headers
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4174 >/tmp/phase3e-http2.log 2>&1 & PID=$!; trap 'kill $PID || true' EXIT; sleep 1
+          for n in sake_binks.mp3 video_entrada.mp4 video_de_saludo_2.mp4; do
+            echo "=== LOCAL_HTTP $n ==="
+            curl -sS -I "http://127.0.0.1:4174/invitaciones/invitacion_6/$n" | grep -iE '^(HTTP/|content-type:|content-length:)' || true
+          done
