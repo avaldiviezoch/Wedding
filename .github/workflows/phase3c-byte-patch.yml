@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   patch:
-    if: github.event.head_commit.message == 'chore(qa): add temporary phase3c byte-safe patch'
+    if: github.event.head_commit.message == 'chore(qa): trigger phase3c byte-safe patch'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
