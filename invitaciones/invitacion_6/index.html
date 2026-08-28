@@ -63,7 +63,35 @@
   <script src="./hide-legacy-gift.js?v=20260827-legacy-gift-cleanup-1"></script>
   <script src="./date-row-fine-tune.js?v=20260827-date-row-2"></script>
   <script src="./visual-fidelity.js?v=20260827-fiel-official-1"></script>
-  <script src="./music-fidelity.js?v=20260827-fiel-official-1"></script>
+  <script src="./music-fidelity.js?v=20260827-music-seasons-real-1"></script>
   <script src="./timeline-type-fidelity.js?v=20260827-timeline-type-1"></script>
+  <script>
+  (()=>{
+    const outer=document.getElementById('invite');
+    const STYLE_ID='inv6-music-real-seasons-title-fix';
+    function apply(){
+      try{
+        const d1=outer?.contentDocument||outer?.contentWindow?.document;
+        const f1=d1?.getElementById('inviteFrame');
+        const d2=f1?(f1.contentDocument||f1.contentWindow.document):null;
+        const f2=d2?.getElementById('inv5');
+        const doc=f2?(f2.contentDocument||f2.contentWindow.document):null;
+        if(!doc?.head)return false;
+        let style=doc.getElementById(STYLE_ID);
+        if(!style){style=doc.createElement('style');style.id=STYLE_ID;doc.head.appendChild(style);}
+        style.textContent=`
+          body .sat-inv6-music-free-host .mgd-native-success h3{
+            font-family:'Inv6SeasonsReal',Georgia,'Times New Roman',serif!important;
+            font-style:normal!important;
+            font-weight:400!important;
+          }
+        `;
+        return true;
+      }catch(e){return false;}
+    }
+    outer?.addEventListener('load',()=>[150,400,800,1400,2400,4000,6500].forEach(ms=>setTimeout(apply,ms)));
+    [0,300,900,1800,3200,5200].forEach(ms=>setTimeout(apply,ms));
+  })();
+  </script>
 </body>
 </html>
