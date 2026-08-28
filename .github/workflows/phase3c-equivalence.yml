@@ -1,0 +1,34 @@
+name: Phase 3C media equivalence
+
+on:
+  push:
+    branches:
+      - perf/invitacion6-phase3c-multimedia-loading
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: perf/invitacion6-phase3c-multimedia-loading
+          fetch-depth: 0
+      - name: Verify exact asset hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== BROOK COPIES ==='
+          sha256sum invitaciones/invitacion_1/brook.gif invitaciones/invitacion_6/brook.gif
+          cmp -s invitaciones/invitacion_1/brook.gif invitaciones/invitacion_6/brook.gif && echo BROOK_BYTES_IDENTICAL=true || echo BROOK_BYTES_IDENTICAL=false
+          echo '=== ROOT VS INV6 LOCAL COPIES ==='
+          for n in sake_binks.mp3 video_entrada.mp4 video_de_saludo_2.mp4; do
+            if [ -f "$n" ] && [ -f "invitaciones/invitacion_6/$n" ]; then
+              sha256sum "$n" "invitaciones/invitacion_6/$n"
+              cmp -s "$n" "invitaciones/invitacion_6/$n" && echo "$n BYTES_IDENTICAL=true" || echo "$n BYTES_IDENTICAL=false"
+            else
+              echo "$n COPY_MISSING"
+            fi
+          done
