@@ -1,0 +1,110 @@
+name: Phase 3D GIF binary optimization
+on:
+  push:
+    branches: [perf/invitacion6-phase3d-heavy-assets]
+    paths: ['.github/workflows/phase3d-gif-binary-optimization.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  optimize:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: perf/invitacion6-phase3d-heavy-assets
+          fetch-depth: 0
+      - name: Verify exact starting point
+        run: |
+          test "$(git rev-parse HEAD^)" = "0b393b4ec8792f4dec13516fefb8cb54eb204494" || { echo "Unexpected branch ancestry"; exit 1; }
+          git status --short
+      - name: Install temporary binary tooling
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gifsicle imagemagick
+          python -m pip install --disable-pip-version-check pillow
+          gifsicle --version | head -1
+          magick -version 2>/dev/null | head -1 || convert -version | head -1
+      - name: Audit, losslessly optimize, and gate five timeline GIFs
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/phase3d
+          files=(
+            "invitaciones/invitacion_6/assets/inicio_de_boda_6_3.gif"
+            "invitaciones/invitacion_6/assets/brindis_6_3.gif"
+            "invitaciones/invitacion_6/assets/comida_6_2.gif"
+            "invitaciones/invitacion_6/assets/fiesta_6_2.gif"
+            "invitaciones/invitacion_6/assets/fin_boda_6_2.gif"
+          )
+          for f in "${files[@]}"; do
+            test -f "$f"
+            echo "=== PHYSICAL $f ==="
+            stat -c 'bytes=%s' "$f"
+            file "$f"
+            sha256sum "$f"
+            out="/tmp/phase3d/$(basename "$f")"
+            gifsicle -O3 "$f" -o "$out"
+          done
+          python <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import hashlib, json, shutil
+          files = [
+            Path('invitaciones/invitacion_6/assets/inicio_de_boda_6_3.gif'),
+            Path('invitaciones/invitacion_6/assets/brindis_6_3.gif'),
+            Path('invitaciones/invitacion_6/assets/comida_6_2.gif'),
+            Path('invitaciones/invitacion_6/assets/fiesta_6_2.gif'),
+            Path('invitaciones/invitacion_6/assets/fin_boda_6_2.gif'),
+          ]
+          def inspect(p):
+            im=Image.open(p)
+            frames=[]; durations=[]; alpha_counts=[]
+            for i in range(im.n_frames):
+              im.seek(i)
+              rgba=im.convert('RGBA').copy()
+              frames.append(rgba.tobytes())
+              durations.append(int(im.info.get('duration',0)))
+              alpha_counts.append(sum(1 for a in rgba.getchannel('A').getdata() if a<255))
+            return dict(size=p.stat().st_size, sha=hashlib.sha256(p.read_bytes()).hexdigest(), width=im.size[0], height=im.size[1], frames=im.n_frames, durations=durations, duration=sum(durations), loop=im.info.get('loop'), transparent=any(x>0 for x in alpha_counts), alpha_counts=alpha_counts, rgba=frames)
+          accepted=[]
+          summary=[]
+          for src in files:
+            cand=Path('/tmp/phase3d')/src.name
+            b=inspect(src); c=inspect(cand)
+            structural=(b['width']==c['width'] and b['height']==c['height'] and b['frames']==c['frames'] and b['durations']==c['durations'] and b['duration']==c['duration'] and b['loop']==c['loop'] and b['transparent']==c['transparent'])
+            visual=(len(b['rgba'])==len(c['rgba']) and all(x==y for x,y in zip(b['rgba'],c['rgba'])))
+            alpha=(b['alpha_counts']==c['alpha_counts'])
+            saved=b['size']-c['size']; pct=(saved*100/b['size']) if b['size'] else 0
+            impact=(pct>=20 or saved>=512000)
+            safe=structural and visual and alpha and impact and saved>0
+            row=dict(asset=str(src),base_bytes=b['size'],candidate_bytes=c['size'],saved_bytes=saved,saved_percent=round(pct,4),width_base=b['width'],width_candidate=c['width'],height_base=b['height'],height_candidate=c['height'],frames_base=b['frames'],frames_candidate=c['frames'],duration_base_ms=b['duration'],duration_candidate_ms=c['duration'],loop_base=b['loop'],loop_candidate=c['loop'],transparency_base=b['transparent'],transparency_candidate=c['transparent'],timings_equal=b['durations']==c['durations'],alpha_equal=alpha,pixel_equal_all_frames=visual,structural=structural,impact_gate=impact,status='SAFE' if safe else ('LOW_IMPACT' if structural and visual and alpha and not impact else 'UNSAFE'))
+            summary.append(row)
+            print('PHASE3D_RESULT='+json.dumps(row,separators=(',',':')))
+            if safe:
+              shutil.copy2(cand,src); accepted.append(str(src))
+          total_base=sum(r['base_bytes'] for r in summary); total_head=sum((r['candidate_bytes'] if r['status']=='SAFE' else r['base_bytes']) for r in summary)
+          print('PHASE3D_TOTAL='+json.dumps({'base_bytes':total_base,'head_bytes':total_head,'saved_bytes':total_base-total_head,'saved_percent':round((total_base-total_head)*100/total_base,4),'accepted':accepted},separators=(',',':')))
+          Path('/tmp/phase3d/summary.json').write_text(json.dumps({'results':summary,'total':{'base_bytes':total_base,'head_bytes':total_head,'saved_bytes':total_base-total_head,'saved_percent':round((total_base-total_head)*100/total_base,4),'accepted':accepted}},indent=2))
+          PY
+      - name: Commit only approved GIF binaries
+        run: |
+          set -euo pipefail
+          git status --short
+          changed=$(git diff --name-only -- 'invitaciones/invitacion_6/assets/*.gif')
+          if [ -z "$changed" ]; then
+            echo "PHASE3D_NO_SAFE_CANDIDATES=1"
+            exit 0
+          fi
+          bad=$(git diff --name-only | grep -v '^invitaciones/invitacion_6/assets/.*\.gif$' || true)
+          test -z "$bad" || { echo "Unexpected product diff: $bad"; exit 1; }
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add invitaciones/invitacion_6/assets/*.gif
+          git commit -m "perf(inv6): losslessly optimize transparent timeline GIFs"
+          git push origin HEAD:perf/invitacion6-phase3d-heavy-assets
+      - name: Repository tests on optimized checkout
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm test
