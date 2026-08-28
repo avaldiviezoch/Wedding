@@ -3066,19 +3066,48 @@ rsvpHeadingSection.innerHTML=`
   }
 
   function hasCanonicalLocationBlock(location,block){
-    if(!block||location.nextElementSibling!==block)return false;
-    const wrap=block.querySelector('.church-green-wrap');
-    const image=block.querySelector('.green-img');
-    const overlay=block.querySelector('.church-overlay-content');
-    return !!(wrap&&overlay&&image?.getAttribute('src'));
+    if(!block||block.tagName!=='SECTION'||location.nextElementSibling!==block)return false;
+    const doc=location.ownerDocument;
+    if(doc.querySelectorAll(`#${BLOCK_ID}`).length!==1)return false;
+    const wrap=block.firstElementChild;
+    if(!wrap||block.children.length!==1||wrap.className!=='church-green-wrap')return false;
+    const image=wrap.children[0];
+    const overlay=wrap.children[1];
+    if(
+      wrap.children.length!==2 ||
+      image?.tagName!=='IMG' ||
+      image.className!=='green-img' ||
+      image.getAttribute('src')!=='./assets/church_green_6.webp' ||
+      overlay?.tagName!=='DIV' ||
+      overlay.className!=='church-overlay-content'
+    )return false;
+    const [kicker,title,mainCopy,place,address,note]=overlay.children;
+    const titleSpans=title?[...title.children]:[];
+    return overlay.children.length===6 &&
+      kicker?.tagName==='DIV' && kicker.className==='church-kicker' && kicker.children.length===0 && kicker.textContent.trim()==='UBICACIÓN' &&
+      title?.tagName==='DIV' && title.className==='church-title' && titleSpans.length===2 &&
+      titleSpans[0].tagName==='SPAN' && titleSpans[0].children.length===0 && titleSpans[0].textContent.trim()==='Ceremonia' &&
+      titleSpans[1].tagName==='SPAN' && titleSpans[1].children.length===0 && titleSpans[1].textContent.trim()==='& Recepción' &&
+      mainCopy?.tagName==='P' && mainCopy.className==='church-main-copy' && mainCopy.children.length===0 && mainCopy.textContent.trim()==='La boda y la recepción se realizarán en el mismo lugar.' &&
+      place?.tagName==='DIV' && place.className==='church-place-name' && place.children.length===0 && place.textContent.trim()==='Residencia Privada' &&
+      address?.tagName==='DIV' && address.className==='church-address' && address.children.length===0 && address.textContent.trim()==='Calle Acapulco 480, La Molina' &&
+      note?.tagName==='P' && note.className==='church-note' && note.children.length===0 && note.textContent.trim()==='Te esperamos para compartir juntos cada momento de este día tan especial.';
   }
 
   function hasCanonicalPhotoCollage(block,photos){
-    if(!photos||block.nextElementSibling!==photos)return false;
-    const first=photos.querySelector('.photo-1');
-    const second=photos.querySelector('.photo-2');
-    return first?.getAttribute('src')==='./assets/foto_pareja_6_1.png' &&
-      second?.getAttribute('src')==='./assets/foto_pareja_6_2png.png';
+    if(!photos||photos.tagName!=='SECTION'||block.nextElementSibling!==photos)return false;
+    const doc=photos.ownerDocument;
+    if(doc.querySelectorAll(`#${PHOTO_ID}`).length!==1)return false;
+    const children=[...photos.children];
+    const images=[...photos.querySelectorAll('img')];
+    const first=children[0];
+    const second=children[1];
+    return children.length===2 && images.length===2 &&
+      photos.querySelectorAll('.photo-1').length===1 &&
+      photos.querySelectorAll('.photo-2').length===1 &&
+      first?.tagName==='IMG' && first.className==='photo-1' && first.getAttribute('src')==='./assets/foto_pareja_6_1.png' &&
+      second?.tagName==='IMG' && second.className==='photo-2' && second.getAttribute('src')==='./assets/foto_pareja_6_2png.png' &&
+      [...photos.childNodes].every(node=>node.nodeType===1||!(node.textContent||'').trim());
   }
 
   async function apply(){
