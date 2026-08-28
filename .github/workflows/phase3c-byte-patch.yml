@@ -1,0 +1,43 @@
+name: Phase 3C byte-safe patch
+
+on:
+  push:
+    branches:
+      - perf/invitacion6-phase3c-multimedia-loading
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.head_commit.message == 'chore(qa): add temporary phase3c byte-safe patch'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: perf/invitacion6-phase3c-multimedia-loading
+          fetch-depth: 0
+      - name: Replace only byte-identical legacy Brook URL
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('invitaciones/invitacion_6/invitacion_5.html')
+          b=p.read_bytes()
+          old=b"brook.src='https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/invitaciones/invitacion_1/brook.gif?v=20260816-1728';"
+          new=b"brook.src='./brook.gif?v=20260816-1728';"
+          assert b.count(old)==1, f'old pattern count={b.count(old)}'
+          out=b.replace(old,new,1)
+          assert out.count(new)==1
+          p.write_bytes(out)
+          print('BROOK_URL_REPLACEMENTS=1')
+          print('BYTES_CHANGED=', len(b)-len(out))
+          PY
+          git diff --check
+          git diff -- invitaciones/invitacion_6/invitacion_5.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add invitaciones/invitacion_6/invitacion_5.html
+          git commit -m 'perf(inv6): reuse local Brook asset'
+          git push origin HEAD:perf/invitacion6-phase3c-multimedia-loading
