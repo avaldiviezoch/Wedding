@@ -681,6 +681,301 @@ function ensureStyle(doc){
   text-transform:none!important;
 }
 
+/* =====================================================
+   FONDO VERDE FINAL DEL REGALO
+   ===================================================== */
+
+#sat-inv6-gift-paper-wrap{
+  position:relative!important;
+  display:block!important;
+  width:100%!important;
+  max-width:680px!important;
+  margin:0 auto!important;
+  padding:0!important;
+  overflow:visible!important;
+  z-index:5!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-stage{
+  position:relative!important;
+  display:block!important;
+  width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:visible!important;
+}
+
+#sat-inv6-gift-paper-bottom{
+  position:relative!important;
+  display:block!important;
+  width:100%!important;
+  max-width:680px!important;
+  height:auto!important;
+  margin:0 auto!important;
+  padding:0!important;
+  transform:translateY(-15%)!important;
+  object-fit:contain!important;
+  opacity:1!important;
+  visibility:visible!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-text{
+  position:absolute!important;
+  left:50%!important;
+  top:25%!important;
+  transform:translate(-50%,-50%)!important;
+  width:90%!important;
+  margin:0!important;
+  padding:0!important;
+  text-align:center!important;
+  z-index:10!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-kicker{
+  display:block!important;
+  margin:0!important;
+  font-family:'The Seasons Regular',serif!important;
+  font-size:clamp(38px,8vw,62px)!important;
+  line-height:.9!important;
+  font-weight:400!important;
+  letter-spacing:.01em!important;
+  text-transform:uppercase!important;
+  color:#FFFFFF!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-script{
+  display:block!important;
+  margin:3px 0 0!important;
+  font-family:'Eyesome Script',cursive!important;
+  font-size:clamp(42px,9vw,70px)!important;
+  line-height:.85!important;
+  font-weight:400!important;
+  color:#FFFFFF!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-paper-copy{
+  display:block!important;
+  width:82%!important;
+  max-width:420px!important;
+  margin:14px auto 0!important;
+  font-family:Georgia,'Times New Roman',serif!important;
+  font-size:13px!important;
+  line-height:1.32!important;
+  font-weight:400!important;
+  text-align:center!important;
+  color:#FFFFFF!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-toggle-wrap{
+  display:block!important;
+  width:82%!important;
+  max-width:420px!important;
+  margin:16px auto 0!important;
+  text-align:center!important;
+  pointer-events:auto!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-toggle{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+  margin:0 auto!important;
+  padding:12px 23px!important;
+  border:1px solid rgba(109,117,89,.35)!important;
+  border-radius:999px!important;
+  background:#F1E5DA!important;
+  color:#5D644F!important;
+  font-family:Georgia,'Times New Roman',serif!important;
+  font-size:10px!important;
+  line-height:1!important;
+  font-weight:700!important;
+  letter-spacing:1.25px!important;
+  text-transform:uppercase!important;
+  cursor:pointer!important;
+  box-shadow:none!important;
+  pointer-events:auto!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-toggle-arrow{
+  display:inline-block!important;
+  font-size:15px!important;
+  line-height:1!important;
+  transition:transform .2s ease!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-toggle.is-open .sat-inv6-gift-toggle-arrow{
+  transform:rotate(180deg)!important;
+}
+
+/* PANEL AUTÓNOMO EN FLUJO NORMAL: nunca tapa la sección siguiente */
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-details{
+  display:none!important;
+  position:relative!important;
+  width:84%!important;
+  max-width:350px!important;
+  margin:-82px auto 22px!important;
+  padding:10px!important;
+  box-sizing:border-box!important;
+  background:#F1E5DA!important;
+  color:#5D644F!important;
+  border:1px solid rgba(109,117,89,.16)!important;
+  border-radius:16px!important;
+  box-shadow:0 8px 18px rgba(63,72,46,.07)!important;
+  z-index:12!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-details.is-open{
+  display:block!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-details-intro{
+  margin:0 0 6px!important;
+  padding:0!important;
+  font-family:Georgia,'Times New Roman',serif!important;
+  font-size:9px!important;
+  line-height:1.3!important;
+  font-style:italic!important;
+  text-align:center!important;
+  color:#687052!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-method{
+  margin:0!important;
+  padding:8px 0!important;
+  border-top:1px solid rgba(109,117,89,.14)!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-method:first-of-type{
+  border-top:0!important;
+  padding-top:3px!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-method-title{
+  margin:0 0 5px!important;
+  font-family:'The Seasons Regular',Georgia,serif!important;
+  font-size:16px!important;
+  line-height:1!important;
+  font-weight:500!important;
+  text-align:center!important;
+  color:#5D644F!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-data-row{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:7px!important;
+  width:100%!important;
+  margin:5px 0 0!important;
+  padding:7px 8px!important;
+  box-sizing:border-box!important;
+  background:rgba(255,255,255,.30)!important;
+  border:1px solid rgba(109,117,89,.12)!important;
+  border-radius:11px!important;
+  text-align:left!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-data-text{
+  flex:1!important;
+  min-width:0!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-data-label{
+  display:block!important;
+  margin:0 0 2px!important;
+  font-family:Georgia,'Times New Roman',serif!important;
+  font-size:7.5px!important;
+  line-height:1.1!important;
+  font-weight:700!important;
+  letter-spacing:.65px!important;
+  text-transform:uppercase!important;
+  color:#7A806A!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-data-value{
+  display:block!important;
+  margin:0!important;
+  font-family:Georgia,'Times New Roman',serif!important;
+  font-size:10px!important;
+  line-height:1.22!important;
+  font-weight:600!important;
+  color:#525A46!important;
+  overflow-wrap:anywhere!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-copy-btn{
+  flex:0 0 auto!important;
+  min-width:52px!important;
+  margin:0!important;
+  padding:6px 7px!important;
+  border:1px solid rgba(109,117,89,.25)!important;
+  border-radius:999px!important;
+  background:#FBF8EF!important;
+  color:#5D644F!important;
+  font-family:Georgia,'Times New Roman',serif!important;
+  font-size:7.5px!important;
+  line-height:1!important;
+  font-weight:700!important;
+  letter-spacing:.55px!important;
+  cursor:pointer!important;
+  box-shadow:none!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-qr{
+  display:block!important;
+  width:98px!important;
+  max-width:38%!important;
+  height:auto!important;
+  margin:4px auto 0!important;
+  padding:4px!important;
+  box-sizing:border-box!important;
+  object-fit:contain!important;
+  background:#FFFFFF!important;
+  border:1px solid rgba(109,117,89,.12)!important;
+  border-radius:10px!important;
+  box-shadow:none!important;
+}
+
+#sat-inv6-gift-paper-wrap .sat-inv6-gift-address{
+  font-size:9px!important;
+  line-height:1.25!important;
+}
+
+@media(max-width:390px){
+  #sat-inv6-gift-paper-wrap .sat-inv6-gift-details{
+    width:86%!important;
+    max-width:320px!important;
+    margin-top:-72px!important;
+    padding:9px!important;
+  }
+  #sat-inv6-gift-paper-wrap .sat-inv6-gift-method-title{font-size:15px!important;}
+  #sat-inv6-gift-paper-wrap .sat-inv6-gift-qr{width:92px!important;}
+}
+
+#inv5GiftInRsvp{
+  overflow:visible!important;
+}
+
+#inv5GiftInRsvp .gift-experience{
+  width:100%!important;
+  max-width:none!important;
+  overflow:visible!important;
+}
+
+/* OCULTAR "TOCA EL REGALO PARA DESCUBRIRLO" */
+#inv5GiftInRsvp .gift-play-hint{
+  display:none!important;
+}
+
     @media(max-width:540px){
       #sat-inv6-rsvp-heading-section{
         padding:20px 18px 14px!important
