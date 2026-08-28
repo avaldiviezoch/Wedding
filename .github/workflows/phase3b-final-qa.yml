@@ -1,0 +1,56 @@
+name: Phase 3B final QA
+
+on:
+  push:
+    branches:
+      - perf/invitacion6-phase3b-assets-loading
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: perf/invitacion6-phase3b-assets-loading
+          fetch-depth: 0
+      - name: Prepare isolated browser
+        shell: bash
+        run: |
+          set -euo pipefail
+          git worktree add --detach /tmp/base 60a05f1e4325714bc91b8fa0026f6d4c49aba9f7
+          mkdir -p /tmp/pw && cd /tmp/pw
+          npm init -y >/dev/null
+          npm install --no-save playwright@1.55.0 pngjs@7.0.0
+          npx playwright install --with-deps chromium
+      - name: Start servers
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4174 --bind 127.0.0.1 >/tmp/head.log 2>&1 &
+          (cd /tmp/base && python3 -m http.server 4175 --bind 127.0.0.1 >/tmp/base.log 2>&1 &)
+          sleep 2
+      - name: Validate lazy loading functional flow and pixels
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat >/tmp/pw/qa.cjs <<'NODE'
+          const {chromium}=require('/tmp/pw/node_modules/playwright');
+          const {PNG}=require('/tmp/pw/node_modules/pngjs');
+          const fs=require('fs');
+          const P='/invitaciones/invitacion_6/index.html';
+          const G=['inicio_de_boda_6_3.gif','brindis_6_3.gif','comida_6_2.gif','fiesta_6_2.gif','fin_boda_6_2.gif'];
+          const sleep=m=>new Promise(r=>setTimeout(r,m));
+          async function waitDeep(p){await p.waitForFunction(()=>{try{let d=document.querySelector('#invite')?.contentDocument;d=d?.querySelector('#inviteFrame')?.contentDocument;d=d?.querySelector('#inv5')?.contentDocument;return !!d?.querySelector('#sat-inv6-program-timeline-section')}catch{return false}},null,{timeout:15000})}
+          async function deep(p,fn,arg=null){return p.evaluate(({s,a})=>{let d=document.querySelector('#invite').contentDocument;d=d.querySelector('#inviteFrame').contentDocument;d=d.querySelector('#inv5').contentDocument;return (0,eval)(`(${s})`)(d,a)},{s:fn.toString(),a:arg})}
+          async function enter(p){await p.locator('#tapGuard').dispatchEvent('pointerup');await sleep(150);await deep(p,d=>{const v=d.querySelector('#entryVideo');if(!v)throw Error('entryVideo missing');v.dispatchEvent(new Event('ended'))});await sleep(1250);const s=await deep(p,d=>({mainHidden:d.querySelector('#mainInvitation')?.classList.contains('hidden'),entryHidden:d.querySelector('#entryScreen')?.classList.contains('hidden'),height:d.documentElement.scrollHeight}));console.log('ENTRY='+JSON.stringify(s));if(s.mainHidden||!s.entryHidden||s.height<2000)throw Error('entry flow failed')}
+          async function lazy(browser,label,w,h){const c=await browser.newContext({viewport:{width:w,height:h},serviceWorkers:'block',reducedMotion:'reduce'}),p=await c.newPage(),req=new Set(),fin=new Set();p.on('request',r=>req.add(r.url()));p.on('requestfinished',r=>fin.add(r.url()));await p.goto('http://127.0.0.1:4174'+P,{waitUntil:'load'});await waitDeep(p);await sleep(5200);const b=Object.fromEntries(G.map(n=>[n,[...req].some(u=>u.includes('/'+n))]));console.log('LAZY_BEFORE_ENTRY_'+label+'='+JSON.stringify(b));if(Object.values(b).some(Boolean))throw Error('premature gif');await enter(p);const pre=Object.fromEntries(G.map(n=>[n,[...req].some(u=>u.includes('/'+n))]));const g=await deep(p,d=>{const s=d.querySelector('#sat-inv6-program-timeline-section');return{top:s.offsetTop,rect:s.getBoundingClientRect().top,h:s.getBoundingClientRect().height,scrollHeight:d.documentElement.scrollHeight,innerHeight:d.defaultView.innerHeight}});console.log('LAZY_AFTER_ENTRY_BEFORE_SCROLL_'+label+'='+JSON.stringify(pre));console.log('GEOM_BEFORE_'+label+'='+JSON.stringify(g));if(Object.values(pre).some(Boolean))throw Error('gif loaded before scroll');await deep(p,d=>{const s=d.querySelector('#sat-inv6-program-timeline-section');d.defaultView.scrollTo(0,Math.max(0,s.offsetTop-d.defaultView.innerHeight*.25))});await sleep(300);console.log('GEOM_AFTER_'+label+'='+JSON.stringify(await deep(p,d=>{const s=d.querySelector('#sat-inv6-program-timeline-section');return{scrollY:d.defaultView.scrollY,rect:s.getBoundingClientRect().top,bottom:s.getBoundingClientRect().bottom}})));let until=Date.now()+20000;while(Date.now()<until&&!G.every(n=>[...fin].some(u=>u.includes('/'+n))))await sleep(250);const a=Object.fromEntries(G.map(n=>[n,{requested:[...req].some(u=>u.includes('/'+n)),finished:[...fin].some(u=>u.includes('/'+n))}]));const st=await deep(p,(d,names)=>Object.fromEntries(names.map(n=>{const i=[...d.images].find(x=>(x.getAttribute('src')||'').includes(n));return[n,i?{complete:i.complete,nw:i.naturalWidth,nh:i.naturalHeight,w:i.getBoundingClientRect().width,h:i.getBoundingClientRect().height}:null]})),G);console.log('LAZY_AFTER_SCROLL_'+label+'='+JSON.stringify(a));console.log('LAZY_STATE_'+label+'='+JSON.stringify(st));if(Object.values(a).some(x=>!x.requested||!x.finished)||Object.values(st).some(x=>!x||!x.complete||x.nw<=0||x.w<=0||x.h<=0))throw Error('lazy post-scroll failed');await c.close()}
+          async function functional(browser,label,port){const c=await browser.newContext({viewport:{width:1366,height:768},serviceWorkers:'block',reducedMotion:'reduce'}),p=await c.newPage();await p.goto(`http://127.0.0.1:${port}${P}`,{waitUntil:'load'});await waitDeep(p);await enter(p);const s=await deep(p,d=>({countdown:!!d.querySelector('#countdownOverlay'),carousel:!!d.querySelector('#fixedFrameCarousel'),location:!!d.querySelector('#sat-inv6-green-location-exact'),collage:!!d.querySelector('#sat-inv6-photo-collage'),dress:!!d.querySelector('#dressCodeSection'),program:!!d.querySelector('#sat-inv6-program-timeline-section'),rsvp:!!d.querySelector('#rsvpSection'),gift:!!d.querySelector('#sat-inv6-gift-paper-wrap,#inv5GiftInRsvp'),music:!!d.querySelector('.sat-inv6-music-free-host,#musicSection'),faq:!!d.querySelector('.sat-inv6-faq-host,#faqSection'),closing:!!d.querySelector('#sat-inv6-final-thanks-section,#esperamosSection')}));console.log('FUNCTIONAL_'+label+'='+JSON.stringify(s));if(Object.values(s).some(v=>!v))throw Error('functional section missing');await c.close()}
+          function pd(a,b){const A=PNG.sync.read(fs.readFileSync(a)),B=PNG.sync.read(fs.readFileSync(b));if(A.width!==B.width||A.height!==B.height)return{sizeMismatch:true};let n=0,minX=A.width,minY=A.height,maxX=-1,maxY=-1;for(let y=0;y<A.height;y++)for(let x=0;x<A.width;x++){let i=(y*A.width+x)*4,d=false;for(let q=0;q<4;q++)if(A.data[i+q]!==B.data[i+q]){d=true;break}if(d){n++;minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y)}}return{width:A.width,height:A.height,differentPixels:n,percentage:n/(A.width*A.height)*100,bbox:n?{minX,minY,maxX,maxY}:null}}
+          async function shot(browser,port,w,h,state,out){const c=await browser.newContext({viewport:{width:w,height:h},serviceWorkers:'block',reducedMotion:'reduce'}),p=await c.newPage();await p.addInitScript(()=>{const R=Date,f=Date.parse('2026-08-28T20:00:00Z');class D extends R{constructor(...a){super(...(a.length?a:[f]))}static now(){return f}}D.parse=R.parse;D.UTC=R.UTC;window.Date=D});await p.goto(`http://127.0.0.1:${port}${P}`,{waitUntil:'load'});await waitDeep(p);if(state==='first')await sleep(2200);else{await enter(p);const sel=state==='mid'?'#sat-inv6-green-location-exact':'#sat-inv6-program-timeline-section';await deep(p,(d,s)=>{const e=d.querySelector(s);d.defaultView.scrollTo(0,Math.max(0,e.offsetTop-d.defaultView.innerHeight*.25))},sel);await sleep(state==='lazy'?6500:1500);if(state==='lazy')await deep(p,(d,n)=>{const s=d.createElement('style');s.textContent=n.map(x=>`img[src*="${x}"]`).join(',')+'{visibility:hidden!important}';d.head.appendChild(s)},G)}await p.screenshot({path:out});await c.close()}
+          async function visual(browser,w,h,tag){for(const state of ['first','mid','lazy']){let a=`/tmp/b-${tag}-${state}.png`,b=`/tmp/h-${tag}-${state}.png`;await shot(browser,4175,w,h,state,a);await shot(browser,4174,w,h,state,b);let d=pd(a,b);console.log('PIXEL_'+tag.toUpperCase()+'_'+state.toUpperCase()+'='+JSON.stringify(d));if(d.sizeMismatch||d.differentPixels!==0)throw Error('pixel diff '+tag+' '+state)}}
+          (async()=>{const b=await chromium.launch({headless:true});await lazy(b,'DESKTOP',1366,768);await lazy(b,'MOBILE',390,844);await functional(b,'BASE',4175);await functional(b,'HEAD',4174);await visual(b,1366,768,'desktop');await visual(b,390,844,'mobile');await b.close()})().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+          node /tmp/pw/qa.cjs
