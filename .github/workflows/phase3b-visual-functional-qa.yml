@@ -1,0 +1,51 @@
+name: Phase 3B visual functional QA
+
+on:
+  push:
+    branches:
+      - perf/invitacion6-phase3b-assets-loading
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: perf/invitacion6-phase3b-assets-loading
+          fetch-depth: 0
+      - name: Prepare isolated browser and BASE
+        shell: bash
+        run: |
+          set -euo pipefail
+          git worktree add --detach /tmp/base 60a05f1e4325714bc91b8fa0026f6d4c49aba9f7
+          mkdir -p /tmp/pw && cd /tmp/pw
+          npm init -y >/dev/null
+          npm install --no-save playwright@1.55.0 pngjs@7.0.0
+          npx playwright install --with-deps chromium
+          cd "$GITHUB_WORKSPACE"
+          python3 -m http.server 4174 --bind 127.0.0.1 >/tmp/head.log 2>&1 &
+          (cd /tmp/base && python3 -m http.server 4175 --bind 127.0.0.1 >/tmp/base.log 2>&1 &)
+          sleep 2
+      - name: Functional parity and pixel diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat >/tmp/pw/qa.cjs <<'NODE'
+          const {chromium}=require('/tmp/pw/node_modules/playwright');
+          const {PNG}=require('/tmp/pw/node_modules/pngjs');
+          const fs=require('fs');
+          const P='/invitaciones/invitacion_6/index.html',G=['inicio_de_boda_6_3.gif','brindis_6_3.gif','comida_6_2.gif','fiesta_6_2.gif','fin_boda_6_2.gif'];
+          const sleep=m=>new Promise(r=>setTimeout(r,m));
+          async function waitDeep(p){await p.waitForFunction(()=>{try{let d=document.querySelector('#invite')?.contentDocument;d=d?.querySelector('#inviteFrame')?.contentDocument;d=d?.querySelector('#inv5')?.contentDocument;return !!d?.querySelector('#sat-inv6-program-timeline-section')}catch{return false}},null,{timeout:15000})}
+          async function deep(p,fn,arg=null){return p.evaluate(({s,a})=>{let d=document.querySelector('#invite').contentDocument;d=d.querySelector('#inviteFrame').contentDocument;d=d.querySelector('#inv5').contentDocument;return(0,eval)(`(${s})`)(d,a)},{s:fn.toString(),a:arg})}
+          async function enter(p){await p.locator('#tapGuard').dispatchEvent('pointerup');await sleep(150);await deep(p,d=>d.querySelector('#entryVideo').dispatchEvent(new Event('ended')));await sleep(1250)}
+          async function state(browser,port,label){const c=await browser.newContext({viewport:{width:1366,height:768},serviceWorkers:'block',reducedMotion:'reduce'}),p=await c.newPage();await p.goto(`http://127.0.0.1:${port}${P}`,{waitUntil:'load'});await waitDeep(p);await enter(p);const s=await deep(p,d=>({mainVisible:!d.querySelector('#mainInvitation')?.classList.contains('hidden'),location:!!d.querySelector('#sat-inv6-green-location-exact'),collage:!!d.querySelector('#sat-inv6-photo-collage'),dress:!!d.querySelector('#dressCodeSection'),program:!!d.querySelector('#sat-inv6-program-timeline-section'),rsvp:!!d.querySelector('#rsvpSection'),gift:!!d.querySelector('#sat-inv6-gift-paper-wrap,#inv5GiftInRsvp'),music:!!d.querySelector('.sat-inv6-music-free-host,#musicSection'),faq:!!d.querySelector('.sat-inv6-faq-host,#faqSection'),closing:!!d.querySelector('#sat-inv6-final-thanks-section,#esperamosSection'),countdownNodes:[...d.querySelectorAll('[id*=countdown],[class*=countdown]')].map(x=>x.id||x.className).slice(0,20),carouselNodes:[...d.querySelectorAll('[id*=Carousel],[id*=carousel],[class*=carousel]')].map(x=>x.id||x.className).slice(0,30)}));console.log('FUNCTIONAL_'+label+'='+JSON.stringify(s));for(const k of ['mainVisible','location','collage','dress','program','rsvp','gift','music','faq','closing'])if(!s[k])throw Error('missing '+k+' '+label);await c.close();return s}
+          function diff(a,b){const A=PNG.sync.read(fs.readFileSync(a)),B=PNG.sync.read(fs.readFileSync(b));if(A.width!==B.width||A.height!==B.height)return{sizeMismatch:true};let n=0,minX=A.width,minY=A.height,maxX=-1,maxY=-1;for(let y=0;y<A.height;y++)for(let x=0;x<A.width;x++){let i=(y*A.width+x)*4,d=false;for(let q=0;q<4;q++)if(A.data[i+q]!==B.data[i+q]){d=true;break}if(d){n++;minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y)}}return{width:A.width,height:A.height,differentPixels:n,percentage:n/(A.width*A.height)*100,bbox:n?{minX,minY,maxX,maxY}:null}}
+          async function shot(browser,port,w,h,zone,out){const c=await browser.newContext({viewport:{width:w,height:h},serviceWorkers:'block',reducedMotion:'reduce'}),p=await c.newPage();await p.addInitScript(()=>{const R=Date,f=Date.parse('2026-08-28T20:00:00Z');class D extends R{constructor(...a){super(...(a.length?a:[f]))}static now(){return f}}D.parse=R.parse;D.UTC=R.UTC;window.Date=D});await p.goto(`http://127.0.0.1:${port}${P}`,{waitUntil:'load'});await waitDeep(p);if(zone==='entry'){await p.evaluate(()=>document.querySelectorAll('video').forEach(v=>{try{v.pause();v.currentTime=.001}catch{}}));await sleep(350)}else{await enter(p);await deep(p,d=>d.querySelectorAll('video').forEach(v=>{try{v.pause()}catch{}}));const sel=zone==='mid'?'#sat-inv6-green-location-exact':'#sat-inv6-program-timeline-section';await deep(p,(d,s)=>{const e=d.querySelector(s);d.defaultView.scrollTo(0,Math.max(0,e.offsetTop-d.defaultView.innerHeight*.25))},sel);await sleep(zone==='lazy'?6500:1200);if(zone==='lazy')await deep(p,(d,names)=>{const s=d.createElement('style');s.textContent=names.map(n=>`img[src*="${n}"]`).join(',')+'{visibility:hidden!important}';d.head.appendChild(s)},G)}await p.screenshot({path:out,animations:'disabled'});await c.close()}
+          async function visual(browser,w,h,tag){for(const zone of ['entry','mid','lazy']){const a=`/tmp/base-${tag}-${zone}.png`,b=`/tmp/head-${tag}-${zone}.png`;await shot(browser,4175,w,h,zone,a);await shot(browser,4174,w,h,zone,b);const d=diff(a,b);console.log(`PIXEL_${tag.toUpperCase()}_${zone.toUpperCase()}=`+JSON.stringify(d));if(d.sizeMismatch||d.differentPixels!==0)throw Error('pixel mismatch '+tag+' '+zone)}}
+          (async()=>{const b=await chromium.launch({headless:true});const bs=await state(b,4175,'BASE'),hs=await state(b,4174,'HEAD');if(JSON.stringify(bs)!==JSON.stringify(hs))throw Error('functional BASE HEAD mismatch');console.log('FUNCTIONAL_PARITY=true');await visual(b,1366,768,'desktop');await visual(b,390,844,'mobile');await b.close()})().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+          node /tmp/pw/qa.cjs
