@@ -6,54 +6,39 @@ on:
       - perf/invitacion6-phase3c-multimedia-loading
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  audit:
+  patch:
+    if: github.event.head_commit.message == 'chore(qa): trigger phase3c Brook patch'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
           ref: perf/invitacion6-phase3c-multimedia-loading
           fetch-depth: 0
-
-      - name: Static multimedia inventory
+      - name: Replace only byte-identical legacy Brook URL
         shell: bash
         run: |
           set -euo pipefail
-          echo "HEAD=$(git rev-parse HEAD)"
-          echo "BASE=cc371acee837aa0bf7ebe89189605907fcf2230d"
-          echo '=== MULTIMEDIA OVER 1 MB UNDER INVITACION 6 ==='
-          git ls-tree -rl HEAD invitaciones/invitacion_6/ | awk '$4 >= 1000000 {print $4"\t"$5}' | sort -nr
-          echo '=== TARGET REFERENCES ==='
-          grep -RInE 'sake_binks\.mp3|video_entrada\.mp4|video_de_saludo_2\.mp4|brook\.gif|dress_code_6_2\.gif|programacion_5\.gif|fiesta_chopper_2\.gif|regalo_2\.gif|regalo_5_1\.gif' invitaciones/invitacion_6 --include='*.html' --include='*.js' || true
-
-      - name: Prepare isolated browser
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p /tmp/pw && cd /tmp/pw
-          npm init -y >/dev/null
-          npm install --no-save playwright@1.55.0
-          npx playwright install --with-deps chromium
-          cd "$GITHUB_WORKSPACE"
-          python3 -m http.server 4174 --bind 127.0.0.1 >/tmp/server.log 2>&1 &
-          sleep 2
-          curl -fsS http://127.0.0.1:4174/invitaciones/invitacion_6/index.html >/dev/null
-
-      - name: Measure BASE multimedia loading
-        shell: bash
-        run: |
-          set -euo pipefail
-          cat >/tmp/pw/audit.cjs <<'NODE'
-          const {chromium}=require('/tmp/pw/node_modules/playwright');
-          const P='/invitaciones/invitacion_6/index.html';
-          const TARGETS=['sake_binks.mp3','video_entrada.mp4','video_de_saludo_2.mp4','brook.gif','dress_code_6_2.gif','programacion_5.gif','fiesta_chopper_2.gif','regalo_2.gif','regalo_5_1.gif'];
-          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-          async function waitDeep(page){await page.waitForFunction(()=>{try{let d=document.querySelector('#invite')?.contentDocument;d=d?.querySelector('#inviteFrame')?.contentDocument;d=d?.querySelector('#inv5')?.contentDocument;return !!d?.body}catch{return false}},null,{timeout:15000});}
-          async function deep(page,fn,arg=null){return page.evaluate(({src,arg})=>{let d=document.querySelector('#invite').contentDocument;d=d.querySelector('#inviteFrame').contentDocument;d=d.querySelector('#inv5').contentDocument;return (0,eval)(`(${src})`)(d,arg);},{src:fn.toString(),arg});}
-          function summarize(rows,t){const sum=a=>a.reduce((n,x)=>n+(x.bytes||0),0);const http=rows.filter(x=>x.url.startsWith('http'));return {requests:http.length,bytes:sum(http),audioBytes:sum(http.filter(x=>x.mime.startsWith('audio/')||x.type==='Media'&&/\.(mp3|wav|ogg)(\?|$)/i.test(x.url))),videoBytes:sum(http.filter(x=>x.mime.startsWith('video/')||x.type==='Media'&&/\.(mp4|webm|mov)(\?|$)/i.test(x.url))),imageBytes:sum(http.filter(x=>x.type==='Image'||x.mime.startsWith('image/'))),requests3s:http.filter(x=>x.start<=3000).length,bytes3s:sum(http.filter(x=>x.start<=3000)),requests5s:http.filter(x=>x.start<=5000).length,bytes5s:sum(http.filter(x=>x.start<=5000)),targets:Object.fromEntries(TARGETS.map(n=>{const z=http.filter(x=>x.url.includes(n));return [n,z.map(x=>({url:x.url,start:Math.round(x.start),bytes:x.bytes,type:x.type,mime:x.mime,failed:x.failed,error:x.error||null}))]}))};}
-          async function run(browser,label,w,h){const ctx=await browser.newContext({viewport:{width:w,height:h},serviceWorkers:'block',reducedMotion:'reduce'});const page=await ctx.newPage();const cdp=await ctx.newCDPSession(page);await cdp.send('Network.enable');let t0=null;const m=new Map();const issues=[];cdp.on('Network.requestWillBeSent',e=>{if(t0===null)t0=e.timestamp;m.set(e.requestId,{url:e.request.url,start:(e.timestamp-t0)*1000,type:e.type,bytes:0,mime:'',failed:false});});cdp.on('Network.responseReceived',e=>{const x=m.get(e.requestId);if(x)x.mime=e.response.mimeType||''});cdp.on('Network.loadingFinished',e=>{const x=m.get(e.requestId);if(x)x.bytes=e.encodedDataLength||0});cdp.on('Network.loadingFailed',e=>{const x=m.get(e.requestId);if(x){x.failed=true;x.error=e.errorText}});page.on('console',x=>{if(['warning','error'].includes(x.type()))issues.push(`console.${x.type()}:${x.text()}`)});page.on('pageerror',e=>issues.push('pageerror:'+e.message));page.on('requestfailed',r=>issues.push(`requestfailed:${r.url()}:${r.failure()?.errorText}`));await page.goto('http://127.0.0.1:4174'+P,{waitUntil:'load',timeout:60000});await waitDeep(page);await sleep(5200);const media=await deep(page,(d,names)=>{const all=[...d.querySelectorAll('audio,video,img')];const info=el=>{const r=el.getBoundingClientRect(),cs=d.defaultView.getComputedStyle(el);return{tag:el.tagName,id:el.id||'',cls:typeof el.className==='string'?el.className:'',src:el.currentSrc||el.src||el.getAttribute('src')||'',attrSrc:el.getAttribute('src'),preload:el.getAttribute('preload'),autoplay:!!el.autoplay,muted:!!el.muted,loop:!!el.loop,playsinline:el.hasAttribute('playsinline'),loading:el.getAttribute('loading'),decoding:el.getAttribute('decoding'),paused:'paused'in el?el.paused:null,readyState:'readyState'in el?el.readyState:null,networkState:'networkState'in el?el.networkState:null,complete:'complete'in el?el.complete:null,naturalWidth:'naturalWidth'in el?el.naturalWidth:null,rect:{top:Math.round(r.top),bottom:Math.round(r.bottom),width:Math.round(r.width),height:Math.round(r.height)},display:cs.display,visibility:cs.visibility,opacity:cs.opacity,connected:el.isConnected};};return Object.fromEntries(names.map(n=>[n,all.filter(el=>(el.currentSrc||el.src||el.getAttribute('src')||'').includes(n)).map(info)]));},TARGETS);console.log('BASE_MEASURE_'+label+'='+JSON.stringify(summarize([...m.values()])));console.log('BASE_DOM_'+label+'='+JSON.stringify(media));console.log('BASE_ISSUES_'+label+'='+JSON.stringify([...new Set(issues)].sort()));await ctx.close();}
-          (async()=>{const b=await chromium.launch({headless:true});await run(b,'DESKTOP',1366,768);await run(b,'MOBILE',390,844);await b.close()})().catch(e=>{console.error(e);process.exit(1)});
-          NODE
-          node /tmp/pw/audit.cjs
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('invitaciones/invitacion_6/invitacion_5.html')
+          b=p.read_bytes()
+          old=b"brook.src='https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/invitaciones/invitacion_1/brook.gif?v=20260816-1728';"
+          new=b"brook.src='./brook.gif?v=20260816-1728';"
+          assert b.count(old)==1, f'old pattern count={b.count(old)}'
+          out=b.replace(old,new,1)
+          assert out.count(new)==1
+          p.write_bytes(out)
+          print('BROOK_URL_REPLACEMENTS=1')
+          print('SIZE_BEFORE=',len(b))
+          print('SIZE_AFTER=',len(out))
+          PY
+          git diff --check
+          git diff -- invitaciones/invitacion_6/invitacion_5.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add invitaciones/invitacion_6/invitacion_5.html
+          git commit -m 'perf(inv6): reuse local Brook asset'
+          git push origin HEAD:perf/invitacion6-phase3c-multimedia-loading
