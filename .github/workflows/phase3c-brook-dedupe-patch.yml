@@ -1,0 +1,44 @@
+name: Phase 3C Brook dedupe patch
+
+on:
+  push:
+    branches:
+      - perf/invitacion6-phase3c-multimedia-loading
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.head_commit.message == 'chore(qa): add temporary Brook dedupe patch'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: perf/invitacion6-phase3c-multimedia-loading
+          fetch-depth: 0
+      - name: Make legacy Brook reuse exact final URL
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('invitaciones/invitacion_6/invitacion_5.html')
+          before=p.read_bytes()
+          old=b"brook.src='./brook.gif?v=20260816-1728';"
+          new=b"brook.src='./brook.gif';"
+          assert before.count(old)==1, f'old count={before.count(old)}'
+          after=before.replace(old,new,1)
+          assert after.count(new)==1
+          p.write_bytes(after)
+          print('BROOK_EXACT_URL_REPLACEMENTS=1')
+          print('BEFORE_SIZE='+str(len(before)))
+          print('AFTER_SIZE='+str(len(after)))
+          PY
+          git diff --check
+          git diff -- invitaciones/invitacion_6/invitacion_5.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add invitaciones/invitacion_6/invitacion_5.html
+          git commit -m 'perf(inv6): dedupe Brook request'
+          git push origin HEAD:perf/invitacion6-phase3c-multimedia-loading
