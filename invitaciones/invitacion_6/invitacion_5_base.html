@@ -3855,7 +3855,13 @@
     }
 
     actualizarCuenta();
-    const timer = setInterval(actualizarCuenta, 1000);
+    const timer = setInterval(() => {
+      if (!overlay.isConnected) {
+        clearInterval(timer);
+        return;
+      }
+      actualizarCuenta();
+    }, 1000);
   
     // =========================
     // CARRUSEL DE FOTOS
@@ -3949,7 +3955,14 @@
     current=next;
     dots.forEach((dot,i)=>dot.classList.toggle('is-active',i===current));
   }
-  function restart(){if(timer)clearInterval(timer);timer=setInterval(()=>showPhoto(current+1),4300);}
+  function restart(){
+    if(timer)clearInterval(timer);
+    if(!carousel.isConnected){timer=null;return;}
+    timer=setInterval(()=>{
+      if(!carousel.isConnected){clearInterval(timer);timer=null;return;}
+      showPhoto(current+1);
+    },4300);
+  }
   dots.forEach((dot,i)=>dot.addEventListener('click',()=>{showPhoto(i);restart();}));
   restart();
 })();
