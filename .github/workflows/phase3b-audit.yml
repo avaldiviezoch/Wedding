@@ -17,7 +17,16 @@ jobs:
           ref: perf/invitacion6-phase3b-assets-loading
           fetch-depth: 0
 
-      - name: Prepare BASE and isolated browser
+      - name: Repository tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@11.19.0 --activate
+          pnpm install --frozen-lockfile
+          pnpm test
+
+      - name: Prepare immutable BASE and isolated browser
         shell: bash
         run: |
           set -euo pipefail
@@ -25,96 +34,168 @@ jobs:
           mkdir -p /tmp/phase3b-playwright
           cd /tmp/phase3b-playwright
           npm init -y >/dev/null
-          npm install --no-save playwright@1.55.0
+          npm install --no-save playwright@1.55.0 pngjs@7.0.0
           npx playwright install --with-deps chromium
 
-      - name: Start BASE server
+      - name: Start identical HEAD and BASE servers
         shell: bash
         run: |
           set -euo pipefail
+          python3 -m http.server 4174 --bind 127.0.0.1 >/tmp/phase3b-head-http.log 2>&1 &
           (cd /tmp/phase3b-base && python3 -m http.server 4175 --bind 127.0.0.1 >/tmp/phase3b-base-http.log 2>&1 &)
           sleep 2
+          curl -fsS http://127.0.0.1:4174/invitaciones/invitacion_6/index.html >/dev/null
           curl -fsS http://127.0.0.1:4175/invitaciones/invitacion_6/index.html >/dev/null
 
-      - name: Static asset inventory
+      - name: BASE HEAD network lazy functional and visual QA
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          import json,re
-          root=Path('/tmp/phase3b-base')
-          inv=root/'invitaciones'/'invitacion_6'
-          exts={'.png','.jpg','.jpeg','.webp','.gif','.svg','.mp4','.webm','.mp3','.wav','.ogg','.ttf','.otf','.woff','.woff2','.css','.js','.html'}
-          rows=[]
-          for p in inv.rglob('*'):
-              if p.is_file() and p.suffix.lower() in exts:
-                  rows.append({'path':str(p.relative_to(root)),'ext':p.suffix.lower(),'bytes':p.stat().st_size})
-          rows.sort(key=lambda x:x['bytes'],reverse=True)
-          print('STATIC_TOP20='+json.dumps(rows[:20],ensure_ascii=False))
-          print('STATIC_ASSET_COUNT='+str(len(rows)))
-          targets=['fecha_regresiva_2.png','marco_de_fotos_2.png','video_de_saludo_2.mp4','sake_binks.mp3','video_entrada.mp4']
-          for t in targets:
-              found=[r for r in rows if Path(r['path']).name==t]
-              print('RAW_TARGET_LOCAL_'+t+'='+json.dumps(found,ensure_ascii=False))
-          # references in invitation_6 text files
-          for t in targets:
-              refs=[]
-              for p in inv.rglob('*'):
-                  if p.is_file() and p.suffix.lower() in {'.html','.js','.css'}:
-                      try:s=p.read_text('utf-8',errors='ignore')
-                      except:continue
-                      if t in s:
-                          refs.append(str(p.relative_to(root)))
-              print('RAW_TARGET_REFS_'+t+'='+json.dumps(refs,ensure_ascii=False))
-          PY
-
-      - name: Measure BASE desktop mobile and deployed Pages
-        shell: bash
-        run: |
-          set -euo pipefail
-          cat >/tmp/phase3b-playwright/audit.cjs <<'NODE'
+          cat >/tmp/phase3b-playwright/qa.cjs <<'NODE'
           const { chromium } = require('/tmp/phase3b-playwright/node_modules/playwright');
-          const path='/invitaciones/invitacion_6/index.html';
+          const { PNG } = require('/tmp/phase3b-playwright/node_modules/pngjs');
+          const fs = require('fs');
+          const PATH='/invitaciones/invitacion_6/index.html';
+          const LAZY=['inicio_de_boda_6_3.gif','brindis_6_3.gif','comida_6_2.gif','fiesta_6_2.gif','fin_boda_6_2.gif'];
           const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-          function originKind(u){if(u.includes('raw.githubusercontent.com'))return 'raw.githubusercontent.com';if(u.startsWith('http://127.0.0.1'))return 'local';if(u.includes('avaldiviezoch.github.io'))return 'github-pages';return 'external'}
-          async function measure(browser,label,url,w,h){
-            const context=await browser.newContext({viewport:{width:w,height:h},serviceWorkers:'block'});
+          const norm=s=>String(s).replace(/http:\/\/127\.0\.0\.1:417[45]/g,'LOCAL');
+          const unique=a=>[...new Set(a.map(norm))].sort();
+          const classify=(base,head)=>{const B=new Set(unique(base)),H=new Set(unique(head));return {BASE_ONLY:[...B].filter(x=>!H.has(x)),HEAD_ONLY:[...H].filter(x=>!B.has(x)),COMMON:[...B].filter(x=>H.has(x))};};
+
+          async function waitDeep(page){
+            await page.waitForFunction(()=>{
+              try{
+                const a=document.getElementById('invite'); const d1=a?.contentDocument;
+                const b=d1?.getElementById('inviteFrame'); const d2=b?.contentDocument;
+                const c=d2?.getElementById('inv5'); const d3=c?.contentDocument;
+                return !!(d3?.body && d3.getElementById('sat-inv6-program-timeline-section'));
+              }catch(e){return false}
+            },null,{timeout:15000});
+          }
+
+          async function deepEval(page,fn,arg){
+            return page.evaluate(({src,arg})=>{
+              const a=document.getElementById('invite'); const d1=a.contentDocument;
+              const b=d1.getElementById('inviteFrame'); const d2=b.contentDocument;
+              const c=d2.getElementById('inv5'); const d3=c.contentDocument;
+              return (0,eval)(`(${src})`)(d3,arg);
+            },{src:fn.toString(),arg});
+          }
+
+          async function measure(browser,label,port,w,h){
+            const context=await browser.newContext({viewport:{width:w,height:h},serviceWorkers:'block',reducedMotion:'reduce'});
             const page=await context.newPage();
             const cdp=await context.newCDPSession(page);
-            await cdp.send('Network.enable',{maxTotalBufferSize:100000000,maxResourceBufferSize:50000000});
-            const req=new Map(), issues=[];
-            let navStart=0,dcl=null,load=null;
-            cdp.on('Network.requestWillBeSent',e=>{if(!navStart)navStart=e.timestamp;req.set(e.requestId,{url:e.request.url,start:(e.timestamp-navStart)*1000,type:e.type,frameId:e.frameId,bytes:0,status:null,mime:null,failed:false})});
-            cdp.on('Network.responseReceived',e=>{const x=req.get(e.requestId);if(x){x.status=e.response.status;x.mime=e.response.mimeType;x.fromDiskCache=e.response.fromDiskCache;x.fromServiceWorker=e.response.fromServiceWorker}});
+            await cdp.send('Network.enable',{maxTotalBufferSize:120000000,maxResourceBufferSize:60000000});
+            const req=new Map(), issues=[]; let navStart=null;
+            cdp.on('Network.requestWillBeSent',e=>{if(navStart===null)navStart=e.timestamp;req.set(e.requestId,{url:e.request.url,start:(e.timestamp-navStart)*1000,type:e.type,bytes:0,status:null,mime:'',failed:false})});
+            cdp.on('Network.responseReceived',e=>{const x=req.get(e.requestId);if(x){x.status=e.response.status;x.mime=e.response.mimeType||''}});
             cdp.on('Network.loadingFinished',e=>{const x=req.get(e.requestId);if(x)x.bytes=e.encodedDataLength||0});
             cdp.on('Network.loadingFailed',e=>{const x=req.get(e.requestId);if(x){x.failed=true;x.error=e.errorText}});
             page.on('console',m=>{if(m.type()==='error'||m.type()==='warning')issues.push(`console.${m.type()}:${m.text()}`)});
             page.on('pageerror',e=>issues.push(`pageerror:${e.message}`));
             page.on('requestfailed',r=>issues.push(`requestfailed:${r.url()}:${r.failure()?.errorText}`));
-            page.once('domcontentloaded',()=>dcl=Date.now()); page.once('load',()=>load=Date.now());
-            const wall=Date.now();
-            await page.goto(url,{waitUntil:'load',timeout:60000}).catch(()=>{});
+            await page.goto(`http://127.0.0.1:${port}${PATH}`,{waitUntil:'load',timeout:60000});
+            await waitDeep(page);
             await sleep(5200);
-            const perf=await page.evaluate(()=>({dcl:performance.timing.domContentLoadedEventEnd-performance.timing.navigationStart,load:performance.timing.loadEventEnd-performance.timing.navigationStart,fcp:performance.getEntriesByName('first-contentful-paint')[0]?.startTime||null,lcp:(()=>{const e=performance.getEntriesByType('largest-contentful-paint');return e.length?e[e.length-1].startTime:null})()})).catch(()=>({}));
+            const perf=await page.evaluate(()=>({
+              dcl:performance.timing.domContentLoadedEventEnd-performance.timing.navigationStart,
+              load:performance.timing.loadEventEnd-performance.timing.navigationStart,
+              fcp:performance.getEntriesByName('first-contentful-paint')[0]?.startTime||null
+            }));
             const rows=[...req.values()].filter(x=>x.url.startsWith('http'));
             const sum=xs=>xs.reduce((a,x)=>a+(x.bytes||0),0);
-            const byType=t=>rows.filter(x=>(x.type||'').toLowerCase()===t.toLowerCase());
-            const summary={label,viewport:[w,h],requests:rows.length,bytes:sum(rows),imageBytes:sum(byType('Image')),mediaBytes:sum(byType('Media')),scriptBytes:sum(byType('Script')),stylesheetBytes:sum(byType('Stylesheet')),requests3s:rows.filter(x=>x.start<=3000).length,bytes3s:sum(rows.filter(x=>x.start<=3000)),requests5s:rows.filter(x=>x.start<=5000).length,bytes5s:sum(rows.filter(x=>x.start<=5000)),failed:rows.filter(x=>x.failed).length,perf};
-            const top=rows.slice().sort((a,b)=>b.bytes-a.bytes).slice(0,30).map(x=>({...x,origin:originKind(x.url)}));
-            const raw=rows.filter(x=>x.url.includes('raw.githubusercontent.com')).map(x=>({...x,origin:originKind(x.url)}));
+            const images=rows.filter(x=>x.type==='Image'), media=rows.filter(x=>x.type==='Media');
+            const summary={label,viewport:[w,h],requests:rows.length,bytes:sum(rows),imageBytes:sum(images),videoBytes:sum(media.filter(x=>x.mime.startsWith('video/'))),audioBytes:sum(media.filter(x=>x.mime.startsWith('audio/'))),mediaBytes:sum(media),scriptBytes:sum(rows.filter(x=>x.type==='Script')),cssBytes:sum(rows.filter(x=>x.type==='Stylesheet')),requestsDCL:rows.filter(x=>x.start<=perf.dcl).length,requestsLoad:rows.filter(x=>x.start<=perf.load).length,requests3s:rows.filter(x=>x.start<=3000).length,bytes3s:sum(rows.filter(x=>x.start<=3000)),requests5s:rows.filter(x=>x.start<=5000).length,bytes5s:sum(rows.filter(x=>x.start<=5000)),failed:rows.filter(x=>x.failed).length,perf};
+            const lazyReq={}; for(const n of LAZY){const r=rows.find(x=>x.url.includes('/'+n));lazyReq[n]=r?{requested:true,start:r.start,bytes:r.bytes,status:r.status}: {requested:false};}
+            const rects=await deepEval(page,(doc,names)=>{const out={};for(const n of names){const img=[...doc.images].find(i=>(i.getAttribute('src')||'').includes(n));out[n]=img?{top:img.getBoundingClientRect().top,bottom:img.getBoundingClientRect().bottom,loading:img.loading,decoding:img.decoding,complete:img.complete,naturalWidth:img.naturalWidth}:null;}return out;},LAZY);
             console.log('MEASURE_'+label+'='+JSON.stringify(summary));
-            console.log('TOP_'+label+'='+JSON.stringify(top));
-            console.log('RAW_'+label+'='+JSON.stringify(raw));
-            console.log('ISSUES_'+label+'='+JSON.stringify([...new Set(issues)]));
+            console.log('INITIAL_LAZY_'+label+'='+JSON.stringify(lazyReq));
+            console.log('INITIAL_LAZY_RECTS_'+label+'='+JSON.stringify(rects));
+            console.log('ISSUES_'+label+'='+JSON.stringify(unique(issues)));
+            await context.close();
+            return {summary,issues:unique(issues),lazyReq};
+          }
+
+          async function lazyScrollQA(browser,label,port,w,h){
+            const context=await browser.newContext({viewport:{width:w,height:h},serviceWorkers:'block',reducedMotion:'reduce'});
+            const page=await context.newPage(); const requested=new Set(), finished=new Set();
+            page.on('request',r=>requested.add(r.url())); page.on('requestfinished',r=>finished.add(r.url()));
+            await page.goto(`http://127.0.0.1:${port}${PATH}`,{waitUntil:'load',timeout:60000}); await waitDeep(page); await sleep(5200);
+            const before={}; for(const n of LAZY) before[n]=[...requested].some(u=>u.includes('/'+n));
+            console.log('LAZY_BEFORE_SCROLL_'+label+'='+JSON.stringify(before));
+            if(label.startsWith('HEAD') && Object.values(before).some(Boolean)) throw new Error('HEAD lazy candidate requested before scroll');
+            await deepEval(page,(doc)=>{doc.getElementById('sat-inv6-program-timeline-section')?.scrollIntoView({block:'center'});},null);
+            const deadline=Date.now()+15000;
+            while(Date.now()<deadline && !LAZY.every(n=>[...finished].some(u=>u.includes('/'+n)))) await sleep(250);
+            const after={}; for(const n of LAZY) after[n]={requested:[...requested].some(u=>u.includes('/'+n)),finished:[...finished].some(u=>u.includes('/'+n))};
+            const imgs=await deepEval(page,(doc,names)=>{const o={};for(const n of names){const i=[...doc.images].find(x=>(x.getAttribute('src')||'').includes(n));o[n]=i?{complete:i.complete,naturalWidth:i.naturalWidth,naturalHeight:i.naturalHeight,rect:{w:i.getBoundingClientRect().width,h:i.getBoundingClientRect().height}}:null;}return o;},LAZY);
+            console.log('LAZY_AFTER_SCROLL_'+label+'='+JSON.stringify(after)); console.log('LAZY_IMAGE_STATE_'+label+'='+JSON.stringify(imgs));
+            if(label.startsWith('HEAD')){
+              if(Object.values(after).some(x=>!x.requested||!x.finished)) throw new Error('lazy asset failed to request/finish after scroll');
+              if(Object.values(imgs).some(x=>!x||!x.complete||x.naturalWidth<=0||x.rect.w<=0||x.rect.h<=0)) throw new Error('lazy image not visually ready after scroll');
+            }
+            await context.close(); return {before,after,imgs};
+          }
+
+          async function functionalQA(browser,label,port){
+            const context=await browser.newContext({viewport:{width:1366,height:768},serviceWorkers:'block',reducedMotion:'reduce'}); const page=await context.newPage();
+            await page.goto(`http://127.0.0.1:${port}${PATH}`,{waitUntil:'load',timeout:60000}); await waitDeep(page); await sleep(2500);
+            const state=await deepEval(page,(doc)=>{
+              const q=s=>!!doc.querySelector(s);
+              return {countdown:q('#countdownOverlay'),countdownText:(doc.querySelector('#countdownOverlay')?.textContent||'').trim().length>0,carousel:q('#fixedFrameCarousel'),location:q('#sat-inv6-green-location-exact'),collage:q('#sat-inv6-photo-collage'),dress:q('#dressCodeSection'),program:q('#sat-inv6-program-timeline-section'),rsvp:q('#rsvpSection .sat-inv6-rsvp-button'),rsvpBound:doc.querySelector('#rsvpSection .sat-inv6-rsvp-button')?.getAttribute('data-sat-rsvp-bound')==='1',gift:q('#sat-inv6-gift-paper-wrap'),music:q('.sat-inv6-music-free-host'),faq:q('.sat-inv6-faq-host'),closing:q('#sat-inv6-final-thanks-section')};
+            },null);
+            const faq=await deepEval(page,(doc)=>{const b=doc.querySelector('.sat-inv6-faq-q');if(!b)return false;const item=b.closest('.sat-inv6-faq-item');b.click();const opened=item.classList.contains('is-open');b.click();return opened&&!item.classList.contains('is-open');},null);
+            console.log('FUNCTIONAL_'+label+'='+JSON.stringify({...state,faqToggle:faq}));
+            if(Object.values({...state,faqToggle:faq}).some(v=>v!==true)) throw new Error('functional selector/listener regression '+label);
             await context.close();
           }
+
+          function pixelDiff(a,b){
+            const A=PNG.sync.read(fs.readFileSync(a)),B=PNG.sync.read(fs.readFileSync(b));
+            if(A.width!==B.width||A.height!==B.height)return {sizeMismatch:true,widthA:A.width,heightA:A.height,widthB:B.width,heightB:B.height};
+            let d=0,minX=A.width,minY=A.height,maxX=-1,maxY=-1;
+            for(let y=0;y<A.height;y++)for(let x=0;x<A.width;x++){const i=(y*A.width+x)*4;let diff=false;for(let c=0;c<4;c++)if(A.data[i+c]!==B.data[i+c]){diff=true;break;}if(diff){d++;minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);}}
+            return {width:A.width,height:A.height,differentPixels:d,percentage:d/(A.width*A.height)*100,bbox:d?{minX,minY,maxX,maxY}:null};
+          }
+
+          async function capture(browser,label,port,w,h,state,out){
+            const context=await browser.newContext({viewport:{width:w,height:h},serviceWorkers:'block',reducedMotion:'reduce'}); const page=await context.newPage();
+            await page.addInitScript(()=>{const R=Date,f=Date.parse('2026-08-28T20:00:00Z');class D extends R{constructor(...a){super(...(a.length?a:[f]));}static now(){return f}}D.parse=R.parse;D.UTC=R.UTC;window.Date=D;});
+            await page.goto(`http://127.0.0.1:${port}${PATH}`,{waitUntil:'load',timeout:60000}); await waitDeep(page); await sleep(2200);
+            if(state!=='first'){
+              await page.evaluate(()=>{const g=document.getElementById('tapGuard');if(g)g.style.visibility='hidden';});
+              const selector=state==='mid'?'#sat-inv6-green-location-exact':'#sat-inv6-program-timeline-section';
+              await deepEval(page,(doc,s)=>{doc.querySelector(s)?.scrollIntoView({block:'center'});},selector);
+              await sleep(state==='lazy'?5500:1200);
+              if(state==='lazy') await deepEval(page,(doc,names)=>{const st=doc.createElement('style');st.textContent=names.map(n=>`img[src*="${n}"]`).join(',')+'{visibility:hidden!important}';doc.head.appendChild(st);},LAZY);
+            }
+            await page.screenshot({path:out}); await context.close();
+          }
+
+          async function visualQA(browser,w,h,tag){
+            for(const state of ['first','mid','lazy']){
+              const a=`/tmp/base-${tag}-${state}.png`,b=`/tmp/head-${tag}-${state}.png`;
+              await capture(browser,'BASE',4175,w,h,state,a); await capture(browser,'HEAD',4174,w,h,state,b);
+              const diff=pixelDiff(a,b); console.log(`PIXEL_${tag.toUpperCase()}_${state.toUpperCase()}=`+JSON.stringify(diff));
+              if(diff.sizeMismatch||diff.differentPixels!==0) throw new Error(`pixel difference ${tag} ${state}`);
+            }
+          }
+
           (async()=>{
             const browser=await chromium.launch({headless:true});
-            await measure(browser,'BASE_DESKTOP','http://127.0.0.1:4175'+path,1366,768);
-            await measure(browser,'BASE_MOBILE','http://127.0.0.1:4175'+path,390,844);
-            await measure(browser,'PAGES_DESKTOP','https://avaldiviezoch.github.io/Wedding'+path,1366,768);
+            const bd=await measure(browser,'BASE_DESKTOP',4175,1366,768); const hd=await measure(browser,'HEAD_DESKTOP',4174,1366,768);
+            const bm=await measure(browser,'BASE_MOBILE',4175,390,844); const hm=await measure(browser,'HEAD_MOBILE',4174,390,844);
+            console.log('ISSUE_CLASS_DESKTOP='+JSON.stringify(classify(bd.issues,hd.issues))); console.log('ISSUE_CLASS_MOBILE='+JSON.stringify(classify(bm.issues,hm.issues));
+            if(classify(bd.issues,hd.issues).HEAD_ONLY.length||classify(bm.issues,hm.issues).HEAD_ONLY.length) throw new Error('new HEAD-only console/network issue');
+            const savingsD=bd.summary.bytes-hd.summary.bytes,savingsM=bm.summary.bytes-hm.summary.bytes;
+            console.log('SAVINGS_DESKTOP='+JSON.stringify({bytes:savingsD,percentage:savingsD/bd.summary.bytes*100,requests:bd.summary.requests-hd.summary.requests}));
+            console.log('SAVINGS_MOBILE='+JSON.stringify({bytes:savingsM,percentage:savingsM/bm.summary.bytes*100,requests:bm.summary.requests-hm.summary.requests}));
+            if(savingsD<=0||savingsM<=0) throw new Error('no measurable initial byte savings');
+            await lazyScrollQA(browser,'HEAD_DESKTOP',4174,1366,768); await lazyScrollQA(browser,'HEAD_MOBILE',4174,390,844);
+            await functionalQA(browser,'BASE',4175); await functionalQA(browser,'HEAD',4174);
+            await visualQA(browser,1366,768,'desktop'); await visualQA(browser,390,844,'mobile');
             await browser.close();
           })().catch(e=>{console.error(e);process.exit(1)});
           NODE
-          node /tmp/phase3b-playwright/audit.cjs
+          node /tmp/phase3b-playwright/qa.cjs
