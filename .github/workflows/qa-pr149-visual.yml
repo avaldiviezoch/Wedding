@@ -1,0 +1,251 @@
+name: QA PR149 visual fidelity
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  qa:
+    if: github.event.pull_request.number == 149
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout BASE
+        uses: actions/checkout@v4
+        with:
+          ref: 4356e7dbcaa389c0f8f3efdf93415b8885626080
+          path: qa/base
+
+      - name: Checkout PR HEAD under test
+        uses: actions/checkout@v4
+        with:
+          ref: 08e37d1c3c473ac54df105d4058e86dfa45394c1
+          path: qa/head
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install ephemeral browser QA dependencies
+        run: |
+          mkdir -p qa-run
+          cd qa-run
+          npm init -y >/dev/null
+          npm install --no-save playwright pixelmatch pngjs
+          npx playwright install --with-deps chromium
+
+      - name: Start isolated BASE and PR servers
+        run: |
+          python3 -m http.server 4173 --directory qa/base > /tmp/base-http.log 2>&1 &
+          python3 -m http.server 4174 --directory qa/head > /tmp/head-http.log 2>&1 &
+          sleep 2
+          curl --fail http://127.0.0.1:4173/invitaciones/invitacion_6/ >/dev/null
+          curl --fail http://127.0.0.1:4174/invitaciones/invitacion_6/ >/dev/null
+
+      - name: Run headless visual and runtime QA
+        working-directory: qa-run
+        run: |
+          cat > qa.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+          import path from 'node:path';
+          import pixelmatch from 'pixelmatch';
+          import { PNG } from 'pngjs';
+
+          const ROOT=path.resolve('artifacts');
+          fs.mkdirSync(ROOT,{recursive:true});
+          const targets={
+            base:'http://127.0.0.1:4173/invitaciones/invitacion_6/',
+            pr:'http://127.0.0.1:4174/invitaciones/invitacion_6/'
+          };
+          const viewports={desktop:{width:1366,height:768},mobile:{width:390,height:844}};
+          const sections={
+            location:'#sat-inv6-green-location-exact',
+            collage:'#sat-inv6-photo-collage',
+            dress:'#dressCodeSection',
+            timeline:'#sat-inv6-program-timeline-section',
+            rsvp:'#rsvpSection',
+            gift:'#inv5GiftInRsvp',
+            music:'.sat-inv6-music-free-host',
+            faq:'.sat-inv6-faq-host',
+            close:'#sat-inv6-final-thanks-section'
+          };
+
+          const browser=await chromium.launch({headless:true});
+          const report={meta:{baseSha:'4356e7dbcaa389c0f8f3efdf93415b8885626080',prSha:'08e37d1c3c473ac54df105d4058e86dfa45394c1'},runs:{},pixelDiff:{},fallback:{}};
+
+          async function instrument(page){
+            await page.addInitScript(()=>{
+              window.__qa={adds:{location:0,collage:0},removes:{location:0,collage:0},timeouts:[],interval250Callbacks:0};
+              const nativeTimeout=window.setTimeout.bind(window);
+              const nativeInterval=window.setInterval.bind(window);
+              window.setTimeout=(fn,ms,...args)=>{
+                try{if(fn?.name==='pauseInvitationMusic')window.__qa.timeouts.push({name:fn.name,ms});}catch(_){}
+                return nativeTimeout(fn,ms,...args);
+              };
+              window.setInterval=(fn,ms,...args)=>{
+                if(ms===250){
+                  const wrapped=(...inner)=>{window.__qa.interval250Callbacks++;return fn(...inner);};
+                  return nativeInterval(wrapped,ms,...args);
+                }
+                return nativeInterval(fn,ms,...args);
+              };
+              const startObserver=()=>{
+                if(!document.body)return;
+                new MutationObserver(records=>{
+                  const scan=(node,bucket)=>{
+                    if(node?.nodeType!==1)return;
+                    const ids=[node.id,...[...node.querySelectorAll?.('#sat-inv6-green-location-exact,#sat-inv6-photo-collage')||[]].map(x=>x.id)];
+                    for(const id of ids){
+                      if(id==='sat-inv6-green-location-exact')window.__qa[bucket].location++;
+                      if(id==='sat-inv6-photo-collage')window.__qa[bucket].collage++;
+                    }
+                  };
+                  for(const r of records){for(const n of r.addedNodes)scan(n,'adds');for(const n of r.removedNodes)scan(n,'removes');}
+                }).observe(document.body,{childList:true,subtree:true});
+              };
+              if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startObserver,{once:true});else startObserver();
+            });
+          }
+
+          function deep(page){return page.frameLocator('#invite').frameLocator('#inviteFrame').frameLocator('#inv5');}
+          async function enter(page){
+            await page.locator('#tapGuard').waitFor({state:'attached',timeout:15000});
+            await page.locator('#tapGuard').screenshot({path:path.join(ROOT,'_entry-temp.png')}).catch(()=>{});
+            await page.locator('#tapGuard').click({position:{x:20,y:20}}).catch(()=>{});
+            await page.waitForTimeout(800);
+            await page.evaluate(()=>{
+              try{
+                const d1=document.querySelector('#invite')?.contentDocument;
+                const d2=d1?.querySelector('#inviteFrame')?.contentDocument;
+                const d3=d2?.querySelector('#inv5')?.contentDocument;
+                const v=d3?.getElementById('entryVideo');
+                if(v){try{if(Number.isFinite(v.duration)&&v.duration>0)v.currentTime=Math.max(0,v.duration-.05);}catch(_){};v.dispatchEvent(new Event('ended'));}
+              }catch(_){}
+            });
+            await page.waitForTimeout(5200);
+          }
+
+          async function textDateLocator(page){
+            const f=deep(page);
+            const candidates=f.locator('section,div').filter({hasText:'Sábado'});
+            return candidates.first();
+          }
+
+          async function screenshotSection(page,name,file){
+            const f=deep(page);
+            let loc;
+            if(name==='date')loc=await textDateLocator(page); else loc=f.locator(sections[name]);
+            if(await loc.count()===0)return {ok:false,reason:'selector missing'};
+            await loc.first().scrollIntoViewIfNeeded().catch(()=>{});
+            await page.waitForTimeout(250);
+            await loc.first().screenshot({path:file,animations:'disabled'});
+            return {ok:true};
+          }
+
+          async function viewportShot(page,name,file){
+            const f=deep(page); const loc=f.locator(sections[name]);
+            if(await loc.count()===0)return {ok:false};
+            await loc.first().scrollIntoViewIfNeeded().catch(()=>{}); await page.waitForTimeout(250);
+            await page.screenshot({path:file,fullPage:false,animations:'disabled'}); return {ok:true};
+          }
+
+          async function metrics(page){
+            const f=deep(page);
+            const get=async(sel)=>{
+              const loc=f.locator(sel).first(); if(await loc.count()===0)return null;
+              return await loc.evaluate(el=>({
+                isConnected:el.isConnected,
+                previousSiblingId:el.previousElementSibling?.id||null,
+                previousSiblingClass:el.previousElementSibling?.className||null,
+                childElementCount:el.childElementCount,
+                rect:(()=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};})(),
+                outerHTML:el.outerHTML,
+                children:[...el.children].map(x=>({tag:x.tagName,className:x.className,src:x.getAttribute?.('src')}))
+              }));
+            };
+            const body=f.locator('body');
+            const qa=await body.evaluate(()=>window.__qa||null).catch(()=>null);
+            const saturday=await body.evaluate(()=>({saturday:(document.body.innerText.match(/Sábado/g)||[]).length,friday:(document.body.innerText.match(/Viernes/g)||[]).length}));
+            return {location:await get('#sat-inv6-green-location-exact'),collage:await get('#sat-inv6-photo-collage'),qa,saturday};
+          }
+
+          async function triggerRetry(page){
+            await page.evaluate(()=>{document.querySelector('#invite')?.contentWindow?.dispatchEvent(new Event('inv6-local-ready'));});
+            await page.waitForTimeout(4400);
+          }
+
+          async function fallbackTests(page){
+            const f=deep(page); const out={};
+            const note=f.locator('#sat-inv6-green-location-exact .church-note');
+            await note.evaluate(el=>el.remove()); await triggerRetry(page);
+            out.location=await f.locator('#sat-inv6-green-location-exact .church-note').count()===1;
+
+            await f.locator('#sat-inv6-photo-collage .photo-2').evaluate(el=>el.remove()); await triggerRetry(page);
+            out.collageMissingPhoto2=await f.locator('#sat-inv6-photo-collage .photo-2').count()===1;
+
+            await f.locator('#sat-inv6-photo-collage').evaluate(el=>{const img=document.createElement('img');img.className='qa-extra';img.src='./assets/foto_pareja_6_1.png';el.appendChild(img);}); await triggerRetry(page);
+            out.collageThirdImg=(await f.locator('#sat-inv6-photo-collage img').count())===2 && (await f.locator('#sat-inv6-photo-collage .qa-extra').count())===0;
+
+            await f.locator('#sat-inv6-photo-collage').evaluate(el=>el.insertBefore(el.querySelector('.photo-2'),el.querySelector('.photo-1'))); await triggerRetry(page);
+            out.collageOrder=await f.locator('#sat-inv6-photo-collage').evaluate(el=>el.children[0]?.className==='photo-1'&&el.children[1]?.className==='photo-2');
+            return out;
+          }
+
+          for(const [vpName,vp] of Object.entries(viewports)){
+            for(const [kind,url] of Object.entries(targets)){
+              const context=await browser.newContext({viewport:vp,reducedMotion:'reduce'});
+              const page=await context.newPage();
+              await instrument(page);
+              const events={consoleError:[],consoleWarn:[],pageerror:[],requestfailed:[],http:[]};
+              page.on('console',m=>{if(m.type()==='error')events.consoleError.push(m.text());if(m.type()==='warning')events.consoleWarn.push(m.text());});
+              page.on('pageerror',e=>events.pageerror.push(String(e)));
+              page.on('requestfailed',r=>events.requestfailed.push({url:r.url(),failure:r.failure()?.errorText||''}));
+              page.on('response',r=>{if(r.status()>=400)events.http.push({status:r.status(),url:r.url()});});
+              await page.goto(url,{waitUntil:'domcontentloaded',timeout:30000});
+              const dir=path.join(ROOT,vpName,kind); fs.mkdirSync(dir,{recursive:true});
+              await page.screenshot({path:path.join(dir,'entry.png'),fullPage:false,animations:'disabled'});
+              await enter(page);
+              for(const name of ['date','location','collage','dress','timeline','rsvp','gift','music','faq','close']){
+                await screenshotSection(page,name,path.join(dir,`${name}.png`));
+              }
+              await viewportShot(page,'location',path.join(dir,'location-collage-transition.png'));
+              const m=await metrics(page);
+              report.runs[`${vpName}-${kind}`]={metrics:m,events};
+              if(vpName==='desktop'&&kind==='pr')report.fallback=await fallbackTests(page);
+              await context.close();
+            }
+          }
+
+          function diffPng(aPath,bPath,outPath){
+            const a=PNG.sync.read(fs.readFileSync(aPath)); const b=PNG.sync.read(fs.readFileSync(bPath));
+            if(a.width!==b.width||a.height!==b.height)return {comparable:false,a:{width:a.width,height:a.height},b:{width:b.width,height:b.height}};
+            const out=new PNG({width:a.width,height:a.height});
+            const pixels=pixelmatch(a.data,b.data,out.data,a.width,a.height,{threshold:0});
+            fs.mkdirSync(path.dirname(outPath),{recursive:true}); fs.writeFileSync(outPath,PNG.sync.write(out));
+            return {comparable:true,width:a.width,height:a.height,differentPixels:pixels,totalPixels:a.width*a.height,percent:pixels*100/(a.width*a.height)};
+          }
+          for(const vp of Object.keys(viewports)){
+            report.pixelDiff[vp]={};
+            for(const name of ['date','location','collage']){
+              const a=path.join(ROOT,vp,'base',`${name}.png`),b=path.join(ROOT,vp,'pr',`${name}.png`);
+              if(fs.existsSync(a)&&fs.existsSync(b))report.pixelDiff[vp][name]=diffPng(a,b,path.join(ROOT,'diff',vp,`${name}-diff.png`));
+            }
+          }
+          fs.writeFileSync(path.join(ROOT,'report.json'),JSON.stringify(report,null,2));
+          fs.writeFileSync(path.join(ROOT,'summary.txt'),JSON.stringify({pixelDiff:report.pixelDiff,fallback:report.fallback,runs:Object.fromEntries(Object.entries(report.runs).map(([k,v])=>[k,{metrics:v.metrics,errors:{consoleError:v.events.consoleError.length,pageerror:v.events.pageerror.length,requestfailed:v.events.requestfailed.length,http:v.events.http.length},warnings:v.events.consoleWarn.length}]))},null,2));
+          await browser.close();
+          EOF
+          node qa.mjs
+
+      - name: Upload QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr149-visual-qa
+          path: qa-run/artifacts
+          if-no-files-found: error
+          retention-days: 30
