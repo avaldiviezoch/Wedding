@@ -191,7 +191,7 @@
 
     const date=doc.createElement('div');
     date.className='invite-html-text invite-date-row';
-    date.innerHTML='<span>Viernes</span><i></i><strong>16</strong><i></i><span>2027</span>';
+    date.innerHTML='<span>Sábado</span><i></i><strong>16</strong><i></i><span>2027</span>';
 
     const ornament=doc.createElement('div');
     ornament.className='invite-html-text invite-ornament';
