@@ -1,0 +1,120 @@
+name: Phase 3B asset audit
+
+on:
+  push:
+    branches:
+      - perf/invitacion6-phase3b-assets-loading
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: perf/invitacion6-phase3b-assets-loading
+          fetch-depth: 0
+
+      - name: Prepare BASE and isolated browser
+        shell: bash
+        run: |
+          set -euo pipefail
+          git worktree add --detach /tmp/phase3b-base 60a05f1e4325714bc91b8fa0026f6d4c49aba9f7
+          mkdir -p /tmp/phase3b-playwright
+          cd /tmp/phase3b-playwright
+          npm init -y >/dev/null
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start BASE server
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd /tmp/phase3b-base && python3 -m http.server 4175 --bind 127.0.0.1 >/tmp/phase3b-base-http.log 2>&1 &)
+          sleep 2
+          curl -fsS http://127.0.0.1:4175/invitaciones/invitacion_6/index.html >/dev/null
+
+      - name: Static asset inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,re
+          root=Path('/tmp/phase3b-base')
+          inv=root/'invitaciones'/'invitacion_6'
+          exts={'.png','.jpg','.jpeg','.webp','.gif','.svg','.mp4','.webm','.mp3','.wav','.ogg','.ttf','.otf','.woff','.woff2','.css','.js','.html'}
+          rows=[]
+          for p in inv.rglob('*'):
+              if p.is_file() and p.suffix.lower() in exts:
+                  rows.append({'path':str(p.relative_to(root)),'ext':p.suffix.lower(),'bytes':p.stat().st_size})
+          rows.sort(key=lambda x:x['bytes'],reverse=True)
+          print('STATIC_TOP20='+json.dumps(rows[:20],ensure_ascii=False))
+          print('STATIC_ASSET_COUNT='+str(len(rows)))
+          targets=['fecha_regresiva_2.png','marco_de_fotos_2.png','video_de_saludo_2.mp4','sake_binks.mp3','video_entrada.mp4']
+          for t in targets:
+              found=[r for r in rows if Path(r['path']).name==t]
+              print('RAW_TARGET_LOCAL_'+t+'='+json.dumps(found,ensure_ascii=False))
+          # references in invitation_6 text files
+          for t in targets:
+              refs=[]
+              for p in inv.rglob('*'):
+                  if p.is_file() and p.suffix.lower() in {'.html','.js','.css'}:
+                      try:s=p.read_text('utf-8',errors='ignore')
+                      except:continue
+                      if t in s:
+                          refs.append(str(p.relative_to(root)))
+              print('RAW_TARGET_REFS_'+t+'='+json.dumps(refs,ensure_ascii=False))
+          PY
+
+      - name: Measure BASE desktop mobile and deployed Pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat >/tmp/phase3b-playwright/audit.cjs <<'NODE'
+          const { chromium } = require('/tmp/phase3b-playwright/node_modules/playwright');
+          const path='/invitaciones/invitacion_6/index.html';
+          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+          function originKind(u){if(u.includes('raw.githubusercontent.com'))return 'raw.githubusercontent.com';if(u.startsWith('http://127.0.0.1'))return 'local';if(u.includes('avaldiviezoch.github.io'))return 'github-pages';return 'external'}
+          async function measure(browser,label,url,w,h){
+            const context=await browser.newContext({viewport:{width:w,height:h},serviceWorkers:'block'});
+            const page=await context.newPage();
+            const cdp=await context.newCDPSession(page);
+            await cdp.send('Network.enable',{maxTotalBufferSize:100000000,maxResourceBufferSize:50000000});
+            const req=new Map(), issues=[];
+            let navStart=0,dcl=null,load=null;
+            cdp.on('Network.requestWillBeSent',e=>{if(!navStart)navStart=e.timestamp;req.set(e.requestId,{url:e.request.url,start:(e.timestamp-navStart)*1000,type:e.type,frameId:e.frameId,bytes:0,status:null,mime:null,failed:false})});
+            cdp.on('Network.responseReceived',e=>{const x=req.get(e.requestId);if(x){x.status=e.response.status;x.mime=e.response.mimeType;x.fromDiskCache=e.response.fromDiskCache;x.fromServiceWorker=e.response.fromServiceWorker}});
+            cdp.on('Network.loadingFinished',e=>{const x=req.get(e.requestId);if(x)x.bytes=e.encodedDataLength||0});
+            cdp.on('Network.loadingFailed',e=>{const x=req.get(e.requestId);if(x){x.failed=true;x.error=e.errorText}});
+            page.on('console',m=>{if(m.type()==='error'||m.type()==='warning')issues.push(`console.${m.type()}:${m.text()}`)});
+            page.on('pageerror',e=>issues.push(`pageerror:${e.message}`));
+            page.on('requestfailed',r=>issues.push(`requestfailed:${r.url()}:${r.failure()?.errorText}`));
+            page.once('domcontentloaded',()=>dcl=Date.now()); page.once('load',()=>load=Date.now());
+            const wall=Date.now();
+            await page.goto(url,{waitUntil:'load',timeout:60000}).catch(()=>{});
+            await sleep(5200);
+            const perf=await page.evaluate(()=>({dcl:performance.timing.domContentLoadedEventEnd-performance.timing.navigationStart,load:performance.timing.loadEventEnd-performance.timing.navigationStart,fcp:performance.getEntriesByName('first-contentful-paint')[0]?.startTime||null,lcp:(()=>{const e=performance.getEntriesByType('largest-contentful-paint');return e.length?e[e.length-1].startTime:null})()})).catch(()=>({}));
+            const rows=[...req.values()].filter(x=>x.url.startsWith('http'));
+            const sum=xs=>xs.reduce((a,x)=>a+(x.bytes||0),0);
+            const byType=t=>rows.filter(x=>(x.type||'').toLowerCase()===t.toLowerCase());
+            const summary={label,viewport:[w,h],requests:rows.length,bytes:sum(rows),imageBytes:sum(byType('Image')),mediaBytes:sum(byType('Media')),scriptBytes:sum(byType('Script')),stylesheetBytes:sum(byType('Stylesheet')),requests3s:rows.filter(x=>x.start<=3000).length,bytes3s:sum(rows.filter(x=>x.start<=3000)),requests5s:rows.filter(x=>x.start<=5000).length,bytes5s:sum(rows.filter(x=>x.start<=5000)),failed:rows.filter(x=>x.failed).length,perf};
+            const top=rows.slice().sort((a,b)=>b.bytes-a.bytes).slice(0,30).map(x=>({...x,origin:originKind(x.url)}));
+            const raw=rows.filter(x=>x.url.includes('raw.githubusercontent.com')).map(x=>({...x,origin:originKind(x.url)}));
+            console.log('MEASURE_'+label+'='+JSON.stringify(summary));
+            console.log('TOP_'+label+'='+JSON.stringify(top));
+            console.log('RAW_'+label+'='+JSON.stringify(raw));
+            console.log('ISSUES_'+label+'='+JSON.stringify([...new Set(issues)]));
+            await context.close();
+          }
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            await measure(browser,'BASE_DESKTOP','http://127.0.0.1:4175'+path,1366,768);
+            await measure(browser,'BASE_MOBILE','http://127.0.0.1:4175'+path,390,844);
+            await measure(browser,'PAGES_DESKTOP','https://avaldiviezoch.github.io/Wedding'+path,1366,768);
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+          node /tmp/phase3b-playwright/audit.cjs
