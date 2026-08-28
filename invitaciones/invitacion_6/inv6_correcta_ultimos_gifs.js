@@ -2424,6 +2424,8 @@ enforceInv6Rsvp();
               <div class="sat-inv6-program-photo-slot">
                 <img
                   class="sat-inv6-program-ceremonia-gif"
+                  loading="lazy"
+                  decoding="async"
                   src="./assets/inicio_de_boda_6_3.gif"
                   alt=""
                 >
@@ -2438,6 +2440,8 @@ enforceInv6Rsvp();
               <div class="sat-inv6-program-photo-slot">
                 <img
                   class="sat-inv6-program-brindis-gif"
+                  loading="lazy"
+                  decoding="async"
                   src="./assets/brindis_6_3.gif"
                   alt=""
                 >
@@ -2481,6 +2485,8 @@ enforceInv6Rsvp();
               <div class="sat-inv6-program-photo-slot">
                 <img
                   class="sat-inv6-program-comida-gif"
+                  loading="lazy"
+                  decoding="async"
                   src="./assets/comida_6_2.gif"
                   alt=""
                 >
@@ -2495,6 +2501,8 @@ enforceInv6Rsvp();
               <div class="sat-inv6-program-photo-slot">
                 <img
                   class="sat-inv6-program-fiesta-gif"
+                  loading="lazy"
+                  decoding="async"
                   src="./assets/fiesta_6_2.gif"
                   alt=""
                 >
@@ -2538,6 +2546,8 @@ enforceInv6Rsvp();
               <div class="sat-inv6-program-photo-slot">
                 <img
                   class="sat-inv6-program-fin-gif"
+                  loading="lazy"
+                  decoding="async"
                   src="./assets/fin_boda_6_2.gif"
                   alt=""
                 >
