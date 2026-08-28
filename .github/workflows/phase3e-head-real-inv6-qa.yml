@@ -1,0 +1,146 @@
+name: Phase 3E HEAD real Invitacion 6 QA
+on:
+  push:
+    branches: [perf/invitacion6-phase3e-audio-video-network]
+    paths: ['.github/workflows/phase3e-head-real-inv6-qa.yml']
+permissions:
+  contents: read
+jobs:
+  qa:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: cdaa961588fed82f39de2236960a5afbe5b341ed
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify exact productive HEAD and clean checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "cdaa961588fed82f39de2236960a5afbe5b341ed"
+          test -z "$(git status --porcelain)"
+          test ! -e package-lock.json
+          echo HEAD_SHA=$(git rev-parse HEAD)
+      - name: Install isolated Playwright
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/phase3e-playwright
+          mkdir -p /tmp/phase3e-playwright
+          cd /tmp/phase3e-playwright
+          npm init -y >/dev/null
+          npm install playwright@1.55.0 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+          test ! -e "$GITHUB_WORKSPACE/package-lock.json"
+      - name: Real Invitacion 6 HEAD browser QA desktop and mobile
+        shell: bash
+        env:
+          NODE_PATH: /tmp/phase3e-playwright/node_modules
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 >/tmp/phase3e-http.log 2>&1 & PID=$!
+          trap 'kill $PID || true' EXIT
+          sleep 2
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          const TARGETS=['sake_binks.mp3','video_entrada.mp4','video_de_saludo_2.mp4'];
+          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+          const exactUrl='http://127.0.0.1:4173/invitaciones/invitacion_6/';
+          async function scanMedia(page){
+            const result={audio:[],entry:[],saludo:[]};
+            for(const f of page.frames()){
+              try{
+                const r=await f.evaluate(()=>{
+                  const state=e=>({tag:e.tagName,id:e.id||null,src:e.getAttribute('src'),sourceSrc:e.querySelector?.('source')?.getAttribute('src')||null,currentSrc:e.currentSrc||'',readyState:e.readyState,networkState:e.networkState,paused:e.paused,loop:e.loop,preload:e.preload,currentTime:e.currentTime,muted:e.muted,autoplay:e.autoplay,playsInline:e.playsInline,ended:e.ended});
+                  return {audios:[...document.querySelectorAll('audio')].filter(e=>(e.currentSrc||e.src||'').includes('sake_binks.mp3')||e.id==='bgMusic').map(state),entries:[...document.querySelectorAll('video')].filter(e=>(e.currentSrc||e.src||e.querySelector('source')?.src||'').includes('video_entrada.mp4')).map(state),saludos:[...document.querySelectorAll('video')].filter(e=>(e.currentSrc||e.src||e.querySelector('source')?.src||'').includes('video_de_saludo_2.mp4')||e.id==='saludoVideo').map(state)};
+                });
+                for(const x of r.audios) result.audio.push({frame:f.url(),...x});
+                for(const x of r.entries) result.entry.push({frame:f.url(),...x});
+                for(const x of r.saludos) result.saludo.push({frame:f.url(),...x});
+              }catch{}
+            }
+            return result;
+          }
+          async function findEntryFrame(page){
+            for(const f of page.frames()){
+              try{if(await f.locator('#entryScreen').count()) return f;}catch{}
+            }
+            return null;
+          }
+          async function visibleInvitation(page){
+            let found=false;
+            for(const f of page.frames()){
+              try{const v=await f.evaluate(()=>{const e=document.querySelector('#mainInvitation');return !!e && getComputedStyle(e).display!=='none' && !e.classList.contains('hidden')}); if(v) found=true;}catch{}
+            }
+            return found;
+          }
+          async function functionalInventory(page){
+            const out={countdown:false,carousel:false,ubicacion:false,collage:false,dress:false,timeline:false,rsvp:false,regalo:false,musica:false,faq:false,cierre:false};
+            for(const f of page.frames()){
+              try{const x=await f.evaluate(()=>{const t=(document.body?.innerText||'').toLowerCase(); const q=s=>!!document.querySelector(s); return {countdown:q('#countdownOverlay')||t.includes('faltan'),carousel:q('#fixedFrameCarousel')||q('.fixed-photo-carousel'),ubicacion:t.includes('ubicación')||t.includes('ubicacion'),collage:q('.collage')||t.includes('collage'),dress:t.includes('dress code'),timeline:q('.timeline')||t.includes('programa'),rsvp:t.includes('confirmar asistencia')||t.includes('rsvp'),regalo:t.includes('regalo'),musica:t.includes('música')||t.includes('musica')||t.includes('canción'),faq:t.includes('preguntas frecuentes')||t.includes('faq'),cierre:t.includes('te esperamos')};}); for(const k in out) out[k]=out[k]||x[k];}catch{}
+            }
+            return out;
+          }
+          async function run(label,width,height){
+            const browser=await chromium.launch({headless:true});
+            const context=await browser.newContext({viewport:{width,height},serviceWorkers:'block'});
+            const page=await context.newPage();
+            const req=[],fail=[],consoleErrors=[];
+            page.on('console',m=>{if(m.type()==='error') consoleErrors.push(m.text())});
+            page.on('request',r=>{if(TARGETS.some(x=>r.url().includes(x))) req.push({event:'request',url:r.url(),frame:r.frame()?.url()||'',type:r.resourceType(),ts:Date.now()})});
+            page.on('response',async r=>{if(TARGETS.some(x=>r.url().includes(x))){let h={};try{h=await r.allHeaders()}catch{}req.push({event:'response',url:r.url(),frame:r.request().frame()?.url()||'',type:r.request().resourceType(),status:r.status(),contentLength:h['content-length']||null,contentType:h['content-type']||null,ts:Date.now()})}});
+            page.on('requestfailed',r=>{if(TARGETS.some(x=>r.url().includes(x))) fail.push({url:r.url(),frame:r.frame()?.url()||'',error:r.failure()?.errorText||''})});
+            await page.goto(exactUrl,{waitUntil:'domcontentloaded'});
+            await sleep(1800);
+            const framesBefore=page.frames().map(f=>({url:f.url(),name:f.name()}));
+            console.log('PHASE3E_PAGE_URL '+label+' '+page.url());
+            console.log('PHASE3E_FRAMES '+label+' '+JSON.stringify(framesBefore));
+            const hasBase=framesBefore.some(x=>x.url.includes('invitacion_5_base.html'));
+            if(framesBefore.length<=1) throw new Error(label+': frames<=1');
+            if(!hasBase) throw new Error(label+': invitacion_5_base frame missing');
+            const before=await scanMedia(page);
+            const entryFrame=await findEntryFrame(page);
+            if(!entryFrame) throw new Error(label+': #entryScreen frame not found');
+            await entryFrame.locator('#entryScreen').click({position:{x:10,y:10}});
+            await sleep(1100);
+            const afterTap=await scanMedia(page);
+            const audioPlaying=afterTap.audio.some(x=>x.paused===false && x.currentTime>0);
+            await sleep(4500);
+            const afterVideo=await scanMedia(page);
+            await sleep(1800);
+            const revealed=await visibleInvitation(page);
+            const inv=await functionalInventory(page);
+            for(const f of page.frames()){try{await f.evaluate(async()=>{for(let y=0;y<document.body.scrollHeight;y+=Math.max(400,innerHeight*.75)){scrollTo(0,y);await new Promise(r=>setTimeout(r,70))}scrollTo(0,document.body.scrollHeight)})}catch{}}
+            await sleep(1000);
+            const final=await scanMedia(page);
+            const perf=[]; for(const f of page.frames()){try{const p=await f.evaluate(()=>performance.getEntriesByType('resource').map(r=>({name:r.name,initiatorType:r.initiatorType,transferSize:r.transferSize,encodedBodySize:r.encodedBodySize,decodedBodySize:r.decodedBodySize,startTime:r.startTime}))); perf.push(...p.map(x=>({frame:f.url(),...x})))}catch{}}
+            const targetPerf=perf.filter(r=>TARGETS.some(x=>r.name.includes(x)));
+            const raw=req.filter(x=>x.event==='request'&&x.url.includes('raw.githubusercontent.com'));
+            const rawOrb=fail.filter(x=>x.url.includes('raw.githubusercontent.com')&&String(x.error).includes('ORB'));
+            const localReq=req.filter(x=>x.event==='request'&&x.url.includes('/invitaciones/invitacion_6/')&&!x.url.includes('raw.githubusercontent.com'));
+            const result={label,url:page.url(),frameCount:framesBefore.length,frames:framesBefore,baseFrameFound:hasBase,rawRequests:raw.length,rawOrb:rawOrb.length,localRequests:localReq,failures:fail,consoleErrors,media:{before,afterTap,afterVideo,final},audioPlaying,revealed,functional:inv,targetPerf};
+            console.log('PHASE3E_REAL_HEAD='+JSON.stringify(result));
+            if(raw.length!==0) throw new Error(label+': raw media requests remain');
+            if(rawOrb.length!==0) throw new Error(label+': raw ORB remains');
+            if(!before.audio.length&&!afterTap.audio.length&&!final.audio.length) throw new Error(label+': audio not found in frames');
+            if(!before.entry.length&&!afterTap.entry.length&&!afterVideo.entry.length) throw new Error(label+': entry video not found in frames');
+            if(!before.saludo.length&&!afterTap.saludo.length&&!final.saludo.length) throw new Error(label+': saludo video not found in frames');
+            if(!revealed) throw new Error(label+': invitation did not reveal');
+            const audio=afterTap.audio[0]||afterVideo.audio[0]||final.audio[0];
+            if(audio && audio.loop!==true) throw new Error(label+': audio loop changed');
+            if(audio && audio.preload!=='auto') throw new Error(label+': audio preload changed: '+audio.preload);
+            const localNames=new Set(localReq.map(x=>TARGETS.find(t=>x.url.includes(t))).filter(Boolean));
+            for(const t of TARGETS) if(!localNames.has(t)) throw new Error(label+': local request missing '+t);
+            await browser.close();
+          }
+          (async()=>{await run('desktop',1366,768);await run('mobile',390,844)})().catch(e=>{console.error('PHASE3E_QA_FAIL',e);process.exit(1)});
+          NODE
+      - name: Confirm no accidental repository changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "cdaa961588fed82f39de2236960a5afbe5b341ed"
+          test -z "$(git status --porcelain)"
+          test ! -e package-lock.json
