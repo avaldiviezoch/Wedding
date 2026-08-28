@@ -53,7 +53,7 @@
       #${SECTION_ID} .inv6-torn-paper-text{
         margin:0 auto !important;
         max-width:100% !important;
-        font-family:'Homemade Apple',cursive !important;
+        font-family:'Cormorant Garamond',serif !important;
         font-size:clamp(14px,3vw,22px) !important;
         line-height:1.24 !important;
         font-weight:400 !important;
