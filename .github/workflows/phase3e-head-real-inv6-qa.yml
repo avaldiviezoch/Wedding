@@ -65,33 +65,40 @@ jobs:
           }
           async function findEntryFrame(page){for(const f of page.frames()){try{if(await f.locator('#entryScreen').count())return f}catch{}}return null}
           async function visibleInvitation(page){for(const f of page.frames()){try{if(await f.evaluate(()=>{const e=document.querySelector('#mainInvitation');return !!e&&getComputedStyle(e).display!=='none'&&!e.classList.contains('hidden')}))return true}catch{}}return false}
+          async function functionalInventory(page){
+            const out={countdown:false,carousel:false,ubicacion:false,collage:false,dress:false,timeline:false,rsvp:false,regalo:false,musica:false,faq:false,cierre:false};
+            for(const f of page.frames()){
+              try{const x=await f.evaluate(()=>{const t=(document.body?.innerText||'').toLowerCase(),q=s=>!!document.querySelector(s);return {countdown:q('#countdownOverlay')||t.includes('faltan'),carousel:q('#fixedFrameCarousel')||q('.fixed-photo-carousel'),ubicacion:t.includes('ubicación')||t.includes('ubicacion')||t.includes('cómo llegar'),collage:q('.collage')||t.includes('collage'),dress:t.includes('dress code'),timeline:q('.timeline')||t.includes('programa'),rsvp:t.includes('confirmar asistencia')||t.includes('rsvp')||t.includes('asistirás'),regalo:t.includes('regalo'),musica:t.includes('música')||t.includes('musica')||t.includes('canción')||t.includes('cancion'),faq:t.includes('preguntas frecuentes')||t.includes('faq'),cierre:t.includes('te esperamos')};});for(const k in out)out[k]=out[k]||x[k]}catch{}
+            }
+            return out;
+          }
           async function run(label,width,height){
             const browser=await chromium.launch({channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']});
             const context=await browser.newContext({viewport:{width,height},serviceWorkers:'block'});
             const page=await context.newPage();
-            const req=[],fail=[],consoleErrors=[];
+            const req=[],fail=[],consoleErrors=[],httpErrors=[];
             page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text())});
             page.on('request',r=>{if(TARGETS.some(x=>r.url().includes(x)))req.push({event:'request',url:r.url(),frame:r.frame()?.url()||'',type:r.resourceType(),ts:Date.now()})});
-            page.on('response',async r=>{if(TARGETS.some(x=>r.url().includes(x))){let h={};try{h=await r.allHeaders()}catch{}req.push({event:'response',url:r.url(),frame:r.request().frame()?.url()||'',type:r.request().resourceType(),status:r.status(),contentLength:h['content-length']||null,contentType:h['content-type']||null,ts:Date.now()})}});
+            page.on('response',async r=>{if(r.status()>=400)httpErrors.push({status:r.status(),url:r.url()});if(TARGETS.some(x=>r.url().includes(x))){let h={};try{h=await r.allHeaders()}catch{}req.push({event:'response',url:r.url(),frame:r.request().frame()?.url()||'',type:r.request().resourceType(),status:r.status(),contentLength:h['content-length']||null,contentType:h['content-type']||null,ts:Date.now()})}});
             page.on('requestfailed',r=>{if(TARGETS.some(x=>r.url().includes(x)))fail.push({url:r.url(),frame:r.frame()?.url()||'',error:r.failure()?.errorText||''})});
             await page.goto(exactUrl,{waitUntil:'domcontentloaded'}); await sleep(1800);
             const frames=page.frames().map(f=>({url:f.url(),name:f.name()}));
             console.log('PHASE3E_PAGE_URL '+label+' '+page.url()); console.log('PHASE3E_FRAMES '+label+' '+JSON.stringify(frames));
             const hasBase=frames.some(x=>x.url.includes('invitacion_5_base.html')); if(frames.length<=1)throw new Error(label+': frames<=1'); if(!hasBase)throw new Error(label+': invitacion_5_base frame missing');
             const before=await scanMedia(page); const entryFrame=await findEntryFrame(page); if(!entryFrame)throw new Error(label+': entry frame missing');
-            await entryFrame.locator('#entryScreen').click({position:{x:10,y:10}}); await sleep(1200); const afterTap=await scanMedia(page); const audioPlaying=afterTap.audio.some(x=>x.paused===false&&x.currentTime>0);
-            await sleep(5200); const afterVideo=await scanMedia(page); await sleep(1500); const revealed=await visibleInvitation(page);
+            const guard=entryFrame.locator('#tapGuard'); if(await guard.count()) await guard.click(); else await entryFrame.locator('#entryScreen').click({force:true});
+            await sleep(1200); const afterTap=await scanMedia(page); const audioPlaying=afterTap.audio.some(x=>x.paused===false&&x.currentTime>0);
+            await sleep(5200); const afterVideo=await scanMedia(page); await sleep(1500); const revealed=await visibleInvitation(page); const functional=await functionalInventory(page);
             for(const f of page.frames()){try{await f.evaluate(async()=>{for(let y=0;y<document.body.scrollHeight;y+=Math.max(400,innerHeight*.75)){scrollTo(0,y);await new Promise(r=>setTimeout(r,70))}scrollTo(0,document.body.scrollHeight)})}catch{}} await sleep(1000); const final=await scanMedia(page);
             const raw=req.filter(x=>x.event==='request'&&x.url.includes('raw.githubusercontent.com')); const rawOrb=fail.filter(x=>x.url.includes('raw.githubusercontent.com')&&String(x.error).includes('ORB')); const localReq=req.filter(x=>x.event==='request'&&x.url.includes('/invitaciones/invitacion_6/')&&!x.url.includes('raw.githubusercontent.com'));
             const localNames=new Set(localReq.map(x=>TARGETS.find(t=>x.url.includes(t))).filter(Boolean));
             const greetingRequested=localNames.has('video_de_saludo_2.mp4'); const greetingPresent=[...before.saludo,...afterTap.saludo,...afterVideo.saludo,...final.saludo].length>0;
-            const result={label,url:page.url(),frameCount:frames.length,frames,baseFrameFound:hasBase,rawRequests:raw.length,rawOrb:rawOrb.length,localRequests:localReq,failures:fail,consoleErrors,media:{before,afterTap,afterVideo,final},audioPlaying,revealed,greetingRequested,greetingPresent}; console.log('PHASE3E_REAL_HEAD='+JSON.stringify(result));
+            const result={label,url:page.url(),frameCount:frames.length,frames,baseFrameFound:hasBase,rawRequests:raw.length,rawOrb:rawOrb.length,localRequests:localReq,failures:fail,consoleErrors,httpErrors,media:{before,afterTap,afterVideo,final},audioPlaying,revealed,greetingRequested,greetingPresent,functional}; console.log('PHASE3E_REAL_HEAD='+JSON.stringify(result));
             if(raw.length)throw new Error(label+': raw requests remain'); if(rawOrb.length)throw new Error(label+': raw ORB remains');
             if(!localNames.has('sake_binks.mp3')||!localNames.has('video_entrada.mp4')||!localNames.has('video_de_saludo_2.mp4'))throw new Error(label+': local media request missing');
             const audio=afterTap.audio[0]||afterVideo.audio[0]||final.audio[0]; if(!audio)throw new Error(label+': audio not found'); if(audio.loop!==true||audio.preload!=='auto')throw new Error(label+': audio attrs changed'); if(!audioPlaying)throw new Error(label+': audio did not advance after single tap');
-            if(!before.entry.length&&!afterTap.entry.length&&!afterVideo.entry.length)throw new Error(label+': entry video not found');
-            if(!revealed)throw new Error(label+': invitation did not reveal');
-            if(!greetingRequested)throw new Error(label+': saludo local request missing');
+            const entry=[...afterTap.entry,...afterVideo.entry].find(x=>x.id==='entryVideo')||afterTap.entry[0]||afterVideo.entry[0]; if(!entry)throw new Error(label+': entry video not found'); if(!afterVideo.entry.some(x=>x.id==='entryVideo'&&x.ended===true))throw new Error(label+': entry video did not end');
+            if(!revealed)throw new Error(label+': invitation did not reveal'); if(!greetingRequested)throw new Error(label+': saludo local request missing');
             await browser.close();
           }
           (async()=>{await run('desktop',1366,768);await run('mobile',390,844)})().catch(e=>{console.error('PHASE3E_QA_FAIL',e);process.exit(1)});
