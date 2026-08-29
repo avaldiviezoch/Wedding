@@ -14,6 +14,11 @@
   import(new URL('js/modules/distribucion/index.js?v=20260819-distribution-lifecycle3', document.baseURI).href)
     .catch((error) => console.warn('No se pudo iniciar el vínculo Invitados ↔ Distribución:', error));
 
+  // Distribución: conserva y recupera la imagen del plano por propuesta.
+  // También corrige una sola vez propuestas antiguas guardadas con el plano oculto.
+  import(new URL('js/modules/distribucion/background-persistence.js?v=20260829-bg-persistence1', document.baseURI).href)
+    .catch((error) => console.warn('No se pudo iniciar la recuperación del plano de Distribución:', error));
+
   function ensureSharedShellStyles() {
     const id = 'mgdModuleTopbarPremiumCss';
     if (document.getElementById(id)) return;
