@@ -4,6 +4,4 @@
 // auth observers, autosave timers and DOM handlers.
 import '../core/logout-data-safety.js?v=20260830-logout-data-safety1';
 import '../core/account-menu-bootstrap.js?v=20260830-account-menu8';
-import '../core/automatic-login-recovery.js?v=20260830-auto-recovery2';
-import '../core/deep-guest-recovery.js?v=20260830-deep-guest-recovery1';
 export * from './firebase-core.js?v=20260819-empty-onboarding2';
