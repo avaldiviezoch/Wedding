@@ -1,7 +1,8 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260830-account-menu5';
+  const VERSION = '20260830-account-menu6';
+  const CONTROLLER_VERSION = '20260830-module-context3';
   let controllerPromise = null;
 
   function ensureStyles() {
@@ -104,10 +105,11 @@
 
   function ensureController() {
     const nav = document.getElementById('moduleQuickNav');
-    if (!nav || nav.dataset.mgdContextBar) return Promise.resolve();
+    if (!nav) return Promise.resolve();
+    if (nav.dataset.mgdContextBar === CONTROLLER_VERSION) return Promise.resolve();
     if (controllerPromise) return controllerPromise;
 
-    const controllerUrl = new URL(`./module-context-bar.js?v=${VERSION}`, import.meta.url).href;
+    const controllerUrl = new URL(`./module-context-bar.js?v=${CONTROLLER_VERSION}`, import.meta.url).href;
     controllerPromise = import(controllerUrl).catch((error) => {
       controllerPromise = null;
       console.error('No se pudo activar el menú de cuenta de módulos:', error);
