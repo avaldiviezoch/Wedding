@@ -48,7 +48,7 @@
   </style>
 </head>
 <body>
-  <iframe id="invite" src="./invitacion_6_base_final.html?v=20260830-entry-loader-1" title="Invitación Antonio y Lucero" allow="autoplay; fullscreen"></iframe>
+  <iframe id="invite" src="./invitacion_6_base_final.html?v=20260830-entry-loader-2" title="Invitación Antonio y Lucero" allow="autoplay; fullscreen"></iframe>
   <div id="entryLoader" role="status" aria-live="polite" aria-label="Cargando invitación">
     <div id="entryLoaderSpinner" aria-hidden="true"></div>
     <div id="entryLoaderText">Cargando…</div>
@@ -57,42 +57,52 @@
   (() => {
     const outer = document.getElementById('invite');
     const loader = document.getElementById('entryLoader');
-    const startedAt = performance.now();
-    const MAX_WAIT = 3000;
     let finished = false;
+    let finishing = false;
 
     function finishLoader() {
-      if (finished) return;
-      finished = true;
-      loader?.classList.add('hide');
-      window.setTimeout(() => loader?.remove(), 260);
+      if (finished || finishing) return;
+      finishing = true;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (finished) return;
+          finished = true;
+          loader?.classList.add('hide');
+          window.setTimeout(() => loader?.remove(), 260);
+        });
+      });
     }
 
-    function criticalEntryReady() {
+    function getCriticalVideo() {
       try {
         const d1 = outer?.contentDocument || outer?.contentWindow.document;
         const f1 = d1?.getElementById('inviteFrame');
-        if (!f1) return false;
+        if (!f1) return null;
         const d2 = f1.contentDocument || f1.contentWindow.document;
         const f2 = d2?.getElementById('inv5');
-        if (!f2) return false;
+        if (!f2) return null;
         const doc = f2.contentDocument || f2.contentWindow.document;
         const video = doc?.getElementById('entryVideo');
         const entry = doc?.getElementById('entryScreen');
-        if (!video || !entry) return false;
-        return video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
+        if (!video || !entry) return null;
+        return { video, entry };
       } catch (error) {
-        return false;
+        return null;
       }
     }
 
+    function criticalEntryReady() {
+      const current = getCriticalVideo();
+      if (!current) return false;
+      const { video } = current;
+      return video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA &&
+             video.videoWidth > 0 &&
+             video.videoHeight > 0;
+    }
+
     function probe() {
-      if (finished) return;
+      if (finished || finishing) return;
       if (criticalEntryReady()) {
-        finishLoader();
-        return;
-      }
-      if (performance.now() - startedAt >= MAX_WAIT) {
         finishLoader();
         return;
       }
@@ -101,7 +111,6 @@
 
     outer?.addEventListener('load', probe, { once:true });
     probe();
-    window.setTimeout(finishLoader, MAX_WAIT);
   })();
   </script>
   <script src="./date-row-fine-tune.js?v=20260827-date-row-2"></script>
