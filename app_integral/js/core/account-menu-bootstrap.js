@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260830-account-menu4';
+  const VERSION = '20260830-account-menu5';
   let controllerPromise = null;
 
   function ensureStyles() {
@@ -37,6 +37,16 @@
         <button class="module-account-logout" id="moduleContextLogout" type="button">Cerrar sesión</button>
       </div>`;
     return wrap;
+  }
+
+  function removeLegacyGlobalHost() {
+    const legacyHost = document.getElementById('globalAccountActions');
+    if (!legacyHost) return;
+
+    const accountWrap = legacyHost.querySelector('#moduleAccountWrap');
+    const navActions = document.querySelector('#moduleQuickNav .module-context-actions');
+    if (accountWrap && navActions) navActions.appendChild(accountWrap);
+    legacyHost.remove();
   }
 
   function ensureMarkup() {
@@ -81,13 +91,13 @@
       actions.appendChild(weddingButton);
     }
 
+    removeLegacyGlobalHost();
+
     let accountWrap = document.getElementById('moduleAccountWrap');
     if (!accountWrap) accountWrap = accountMarkup();
     if (accountWrap.parentElement !== actions) actions.appendChild(accountWrap);
 
-    const globalHost = document.getElementById('globalAccountActions');
-    if (globalHost && !globalHost.children.length) globalHost.remove();
-
+    document.querySelectorAll('#globalAccountActions').forEach((host) => host.remove());
     nav.setAttribute('aria-label', 'Navegación y contexto de la boda');
     return true;
   }

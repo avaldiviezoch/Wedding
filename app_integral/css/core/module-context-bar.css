@@ -102,6 +102,30 @@ body.module-view .module-quick-nav{display:flex!important}
 .module-context-role[data-role="editor"]{color:#7b6340;background:#f6efe2}
 .module-context-role[data-role="admin"]{color:#5c5479;background:#eeebf7}
 .module-context-role[data-role="viewer"],.module-context-role[data-role="provider"]{color:#6a6c70;background:#ececef}
+
+/* Compatibilidad defensiva: la cuenta de módulos nunca se muestra en la portada. */
+body:not(.module-view) #moduleAccountWrap{
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+.global-account-actions{
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+body.module-view .global-account-actions{
+  box-sizing:border-box!important;
+  position:fixed!important;
+  top:max(15px,calc(env(safe-area-inset-top) + 7px))!important;
+  right:19px!important;
+  display:flex!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  z-index:350!important;
+}
 .module-account-wrap{position:relative}
 .module-account-chip{
   width:46px;height:46px;padding:0!important;border-radius:15px!important;
@@ -134,6 +158,10 @@ body.module-view .unified-frame{inset:80px 0 0!important;height:calc(100% - 80px
   .module-quick-nav{
     top:max(5px,env(safe-area-inset-top))!important;left:6px!important;right:6px!important;
     min-height:56px!important;border-radius:18px!important;gap:6px!important;padding:6px!important;
+  }
+  body.module-view .global-account-actions{
+    top:max(11px,calc(env(safe-area-inset-top) + 6px))!important;
+    right:13px!important;
   }
   .module-quick-home{width:46px!important;height:44px!important;min-width:46px!important;padding:0!important;gap:0!important}
   .module-home-label{display:none}
