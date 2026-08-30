@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f4f1ea">
+  <title>Mi Gran Día · Rescate del propietario</title>
+  <link rel="stylesheet" href="app_integral/css/core/recovery-audit.css?v=20260830-recovery1">
+  <link rel="stylesheet" href="app_integral/css/core/recovery-owner-auth.css?v=20260830-owner-recovery1">
+</head>
+<body>
+  <main class="recovery-shell">
+    <header class="recovery-header">
+      <span class="recovery-eyebrow">Mi Gran Día · Incidente de datos</span>
+      <h1>Rescate del propietario</h1>
+      <p>Esta página no carga el planificador ni ejecuta autoguardado. El propietario inicia sesión aquí únicamente para leer sus copias privadas de Firebase y localizar el estado anterior de su boda.</p>
+    </header>
+
+    <section class="recovery-card owner-auth-card" id="ownerAuthCard">
+      <div class="recovery-card-head">
+        <div>
+          <h2>Iniciar sesión como propietaria</h2>
+          <div class="recovery-card-meta">Usa la cuenta de Lucero. No compartas la contraseña en el chat.</div>
+        </div>
+        <span class="recovery-badge">Solo lectura</span>
+      </div>
+
+      <button class="owner-auth-google" id="ownerGoogleButton" type="button">Continuar con Google</button>
+      <div class="owner-auth-divider">o usa correo</div>
+      <div class="owner-auth-fields">
+        <input id="ownerEmail" type="email" autocomplete="email" placeholder="Correo electrónico">
+        <input id="ownerPassword" type="password" autocomplete="current-password" placeholder="Contraseña">
+        <button class="owner-auth-email" id="ownerEmailButton" type="button">Ingresar con correo</button>
+      </div>
+      <p class="owner-auth-status" id="ownerAuthStatus" role="status"></p>
+    </section>
+
+    <section class="recovery-status" aria-live="polite">
+      <div class="recovery-spinner" id="recoverySpinner" aria-hidden="true"></div>
+      <div>
+        <strong id="recoveryStatus">Esperando la sesión de la propietaria…</strong>
+        <p id="recoveryDetail">No se realizará ninguna escritura en Firestore.</p>
+      </div>
+    </section>
+
+    <section class="recovery-actions" id="recoveryActions" hidden>
+      <button type="button" id="scanAgainButton">Volver a escanear</button>
+      <button type="button" id="copyReportButton">Copiar informe</button>
+    </section>
+
+    <section id="recoverySummary" class="recovery-summary" hidden></section>
+    <section id="recoveryResults" class="recovery-results" aria-label="Copias encontradas"></section>
+
+    <section class="recovery-note">
+      <strong>No restaures nada desde aquí.</strong>
+      <p>Primero identificaremos la copia privada correcta de Lucero por fecha, tamaño y contenido. La restauración, si corresponde, se hará después contra la misma Boda de Lucero Balboa.</p>
+    </section>
+  </main>
+
+  <script type="module" src="app_integral/js/core/recovery-owner-auth.js?v=20260830-owner-recovery1"></script>
+  <script type="module" src="app_integral/js/core/recovery-audit.js?v=20260830-recovery1"></script>
+</body>
+</html>
