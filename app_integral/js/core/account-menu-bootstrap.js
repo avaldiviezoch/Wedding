@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260830-account-menu6';
+  const VERSION = '20260830-account-menu7';
   const CONTROLLER_VERSION = '20260830-module-context3';
   let controllerPromise = null;
 
