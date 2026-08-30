@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f4f1ea">
+  <title>Mi Gran Día · Recuperar invitados</title>
+  <link rel="stylesheet" href="app_integral/css/core/recovery-audit.css?v=20260830-recovery1">
+</head>
+<body>
+  <main class="recovery-shell">
+    <header class="recovery-header">
+      <span class="recovery-eyebrow">Mi Gran Día · Recuperación controlada</span>
+      <h1>Recuperar únicamente Invitados</h1>
+      <p>Esta herramienta conserva el backup actual de la boda activa y reemplaza únicamente las dos claves de Invitados. No cambia de boda, no restaura Checklist/Presupuesto y no toca RSVP.</p>
+    </header>
+
+    <section class="recovery-status" aria-live="polite">
+      <div class="recovery-spinner" id="restoreSpinner" aria-hidden="true"></div>
+      <div>
+        <strong id="restoreStatus">Verificando las copias…</strong>
+        <p id="restoreDetail">Todavía no se ha escrito ningún dato.</p>
+      </div>
+    </section>
+
+    <section id="restoreSummary" class="recovery-summary" hidden></section>
+
+    <section class="recovery-card" id="restoreCard" hidden>
+      <div class="recovery-card-head">
+        <div>
+          <h2 id="restoreTarget">Boda activa</h2>
+          <div class="recovery-card-meta" id="restoreMeta"></div>
+        </div>
+      </div>
+      <p id="restoreExplanation"></p>
+      <div class="recovery-card-actions">
+        <button class="recovery-download" id="restoreGuestsButton" type="button" disabled>Restaurar invitados</button>
+      </div>
+    </section>
+
+    <section class="recovery-note">
+      <strong>Protección de emergencia</strong>
+      <p>Antes de escribir, se guarda en este navegador una copia exacta del backup activo. La operación no modifica Confirmaciones RSVP ni cambia la boda activa.</p>
+    </section>
+  </main>
+
+  <script type="module" src="app_integral/js/core/controlled-guest-restore.js?v=20260830-controlled-guests1"></script>
+</body>
+</html>
