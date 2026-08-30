@@ -62,7 +62,7 @@
   </script>
   <script src="./date-row-fine-tune.js?v=20260827-date-row-2"></script>
   <script src="./visual-fidelity.js?v=20260827-fiel-official-1"></script>
-  <script src="./music-fidelity.js?v=20260827-music-seasons-real-1"></script>
+  <script src="./music-fidelity.js?v=20260827-music-seasons-direct-2"></script>
   <script src="./timeline-type-fidelity.js?v=20260827-timeline-type-1"></script>
   <script src="./restore-agreed-gift.js?v=20260827-agreed-gift-owner-2"></script>
   <script src="./gift-green-underlay.js?v=20260828-green-panel-real-1"></script>
@@ -81,8 +81,15 @@
         let style=doc.getElementById(STYLE_ID);
         if(!style){style=doc.createElement('style');style.id=STYLE_ID;doc.head.appendChild(style);}
         style.textContent=`
+          @font-face{
+            font-family:'Inv6MusicSeasonsDirect';
+            src:url('https://raw.githubusercontent.com/avaldiviezoch/Wedding/6b6fa65d2a36d583f3fa20889edf1ca2a5d137ca/invitaciones/invitacion_6/assets/The%20Seasons%20Regular.ttf') format('truetype');
+            font-style:normal;
+            font-weight:400;
+            font-display:swap;
+          }
           body .sat-inv6-music-free-host .mgd-native-success h3{
-            font-family:'Inv6SeasonsReal',Georgia,'Times New Roman',serif!important;
+            font-family:'Inv6MusicSeasonsDirect',Georgia,'Times New Roman',serif!important;
             font-style:normal!important;
             font-weight:400!important;
           }
