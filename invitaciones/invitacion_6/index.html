@@ -3,16 +3,107 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#fffdf8">
+  <meta name="theme-color" content="#f1e5da">
   <title>Antonio & Lucero</title>
-  <link rel="preload" href="./video_entrada.mp4" as="video" type="video/mp4">
+  <link rel="preload" href="./video_entrada.mp4" as="video" type="video/mp4" fetchpriority="high">
   <style>
-    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#fffdf8}
-    #invite{position:fixed;inset:0;width:100%;height:100%;border:0;background:#fffdf8}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f1e5da}
+    #invite{position:fixed;inset:0;width:100%;height:100%;border:0;background:#f1e5da}
+    #entryLoader{
+      position:fixed;
+      inset:0;
+      z-index:999999;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:14px;
+      background:#f1e5da;
+      color:#59634f;
+      opacity:1;
+      visibility:visible;
+      transition:opacity .22s ease,visibility 0s linear .22s;
+      cursor:wait;
+      touch-action:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    #entryLoader.hide{opacity:0;visibility:hidden;pointer-events:none}
+    #entryLoaderSpinner{
+      width:30px;
+      height:30px;
+      border:2px solid rgba(89,99,79,.20);
+      border-top-color:#59634f;
+      border-radius:50%;
+      animation:entrySpin .8s linear infinite;
+    }
+    #entryLoaderText{
+      font:600 14px/1.2 Georgia,'Times New Roman',serif;
+      letter-spacing:.08em;
+    }
+    @keyframes entrySpin{to{transform:rotate(360deg)}}
+    @media (prefers-reduced-motion:reduce){
+      #entryLoader{transition:none}
+      #entryLoaderSpinner{animation:none}
+    }
   </style>
 </head>
 <body>
-  <iframe id="invite" src="./invitacion_6_base_final.html?v=20260830-entry-single-owner-1" title="Invitación Antonio y Lucero" allow="autoplay; fullscreen"></iframe>
+  <iframe id="invite" src="./invitacion_6_base_final.html?v=20260830-entry-loader-1" title="Invitación Antonio y Lucero" allow="autoplay; fullscreen"></iframe>
+  <div id="entryLoader" role="status" aria-live="polite" aria-label="Cargando invitación">
+    <div id="entryLoaderSpinner" aria-hidden="true"></div>
+    <div id="entryLoaderText">Cargando…</div>
+  </div>
+  <script>
+  (() => {
+    const outer = document.getElementById('invite');
+    const loader = document.getElementById('entryLoader');
+    const startedAt = performance.now();
+    const MAX_WAIT = 3000;
+    let finished = false;
+
+    function finishLoader() {
+      if (finished) return;
+      finished = true;
+      loader?.classList.add('hide');
+      window.setTimeout(() => loader?.remove(), 260);
+    }
+
+    function criticalEntryReady() {
+      try {
+        const d1 = outer?.contentDocument || outer?.contentWindow.document;
+        const f1 = d1?.getElementById('inviteFrame');
+        if (!f1) return false;
+        const d2 = f1.contentDocument || f1.contentWindow.document;
+        const f2 = d2?.getElementById('inv5');
+        if (!f2) return false;
+        const doc = f2.contentDocument || f2.contentWindow.document;
+        const video = doc?.getElementById('entryVideo');
+        const entry = doc?.getElementById('entryScreen');
+        if (!video || !entry) return false;
+        return video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function probe() {
+      if (finished) return;
+      if (criticalEntryReady()) {
+        finishLoader();
+        return;
+      }
+      if (performance.now() - startedAt >= MAX_WAIT) {
+        finishLoader();
+        return;
+      }
+      window.setTimeout(probe, 80);
+    }
+
+    outer?.addEventListener('load', probe, { once:true });
+    probe();
+    window.setTimeout(finishLoader, MAX_WAIT);
+  })();
+  </script>
   <script src="./date-row-fine-tune.js?v=20260827-date-row-2"></script>
   <script src="./visual-fidelity.js?v=20260827-fiel-official-1"></script>
   <script src="./music-fidelity.js?v=20260827-music-seasons-real-1"></script>
