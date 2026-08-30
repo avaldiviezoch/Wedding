@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260830-account-menu3';
+  const VERSION = '20260830-account-menu4';
   let controllerPromise = null;
 
   function ensureStyles() {
@@ -20,21 +20,6 @@
     link.href = href;
     link.dataset.mgdContextBar = VERSION;
     document.head.appendChild(link);
-  }
-
-  function ensureGlobalAccountHost() {
-    let host = document.getElementById('globalAccountActions');
-    if (host) return host;
-
-    host = document.createElement('div');
-    host.id = 'globalAccountActions';
-    host.className = 'global-account-actions';
-    host.setAttribute('aria-label', 'Cuenta');
-
-    const workspace = document.getElementById('unifiedWorkspace');
-    if (workspace) workspace.insertAdjacentElement('beforebegin', host);
-    else document.body.appendChild(host);
-    return host;
   }
 
   function accountMarkup() {
@@ -96,10 +81,12 @@
       actions.appendChild(weddingButton);
     }
 
-    const host = ensureGlobalAccountHost();
     let accountWrap = document.getElementById('moduleAccountWrap');
     if (!accountWrap) accountWrap = accountMarkup();
-    if (accountWrap.parentElement !== host) host.appendChild(accountWrap);
+    if (accountWrap.parentElement !== actions) actions.appendChild(accountWrap);
+
+    const globalHost = document.getElementById('globalAccountActions');
+    if (globalHost && !globalHost.children.length) globalHost.remove();
 
     nav.setAttribute('aria-label', 'Navegación y contexto de la boda');
     return true;
@@ -113,7 +100,7 @@
     const controllerUrl = new URL(`./module-context-bar.js?v=${VERSION}`, import.meta.url).href;
     controllerPromise = import(controllerUrl).catch((error) => {
       controllerPromise = null;
-      console.error('No se pudo activar el menú global de cuenta:', error);
+      console.error('No se pudo activar el menú de cuenta de módulos:', error);
     });
     return controllerPromise;
   }

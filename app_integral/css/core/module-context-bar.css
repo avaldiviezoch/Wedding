@@ -30,7 +30,7 @@ body.module-view #unifiedWorkspace{
   width:auto!important;
   max-width:none!important;
   min-height:60px!important;
-  padding:7px 62px 7px 7px!important;
+  padding:7px!important;
   display:none!important;
   align-items:center!important;
   gap:10px!important;
@@ -102,30 +102,10 @@ body.module-view .module-quick-nav{display:flex!important}
 .module-context-role[data-role="editor"]{color:#7b6340;background:#f6efe2}
 .module-context-role[data-role="admin"]{color:#5c5479;background:#eeebf7}
 .module-context-role[data-role="viewer"],.module-context-role[data-role="provider"]{color:#6a6c70;background:#ececef}
-.global-account-actions{
-  box-sizing:border-box!important;
-  position:fixed!important;
-  top:max(15px,calc(env(safe-area-inset-top) + 7px))!important;
-  right:19px!important;
-  display:flex!important;
-  align-items:center!important;
-  justify-content:flex-end!important;
-  z-index:350!important;
-}
-body.auth-locked .global-account-actions{
-  visibility:hidden!important;
-  opacity:0!important;
-  pointer-events:none!important;
-}
 .module-account-wrap{position:relative}
 .module-account-chip{
   width:46px;height:46px;padding:0!important;border-radius:15px!important;
   display:grid;place-items:center;overflow:hidden;
-}
-body:not(.module-view) .global-account-actions .module-account-chip{
-  border-color:rgba(109,117,89,.18)!important;
-  background:rgba(255,255,255,.96)!important;
-  box-shadow:0 10px 28px rgba(43,48,40,.16)!important;
 }
 .module-account-avatar{width:33px;height:33px;border-radius:11px;object-fit:cover;display:none}
 .module-account-avatar.show{display:block}
@@ -153,11 +133,7 @@ body.module-view .unified-frame{inset:80px 0 0!important;height:calc(100% - 80px
 @media(max-width:760px){
   .module-quick-nav{
     top:max(5px,env(safe-area-inset-top))!important;left:6px!important;right:6px!important;
-    min-height:56px!important;border-radius:18px!important;gap:6px!important;padding:6px 56px 6px 6px!important;
-  }
-  .global-account-actions{
-    top:max(11px,calc(env(safe-area-inset-top) + 6px))!important;
-    right:13px!important;
+    min-height:56px!important;border-radius:18px!important;gap:6px!important;padding:6px!important;
   }
   .module-quick-home{width:46px!important;height:44px!important;min-width:46px!important;padding:0!important;gap:0!important}
   .module-home-label{display:none}
