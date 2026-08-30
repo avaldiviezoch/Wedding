@@ -5,12 +5,19 @@
   let controllerPromise = null;
 
   function ensureStyles() {
-    if (document.querySelector('link[data-mgd-context-bar]')) return;
-    if ([...document.styleSheets].some((sheet) => String(sheet.href || '').includes('module-context-bar.css'))) return;
+    const href = new URL(`css/core/module-context-bar.css?v=${VERSION}`, document.baseURI).href;
+    const existing = [...document.querySelectorAll('link[rel="stylesheet"]')]
+      .find((link) => String(link.href || '').includes('module-context-bar.css'));
+
+    if (existing) {
+      if (existing.href !== href) existing.href = href;
+      existing.dataset.mgdContextBar = VERSION;
+      return;
+    }
 
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = new URL(`css/core/module-context-bar.css?v=${VERSION}`, document.baseURI).href;
+    link.href = href;
     link.dataset.mgdContextBar = VERSION;
     document.head.appendChild(link);
   }
