@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260830-module-context3';
+  const VERSION = '20260830-module-context4';
   const ROLE_LABELS = {
     owner: 'Propietario',
     admin: 'Administrador',
@@ -82,79 +82,106 @@
     document.getElementById('moduleAccountButton')?.setAttribute('aria-expanded', 'false');
   }
 
+  function toggleAccount(accountButton) {
+    const nav = document.getElementById('moduleQuickNav');
+    const accountWrap = accountButton?.closest('#moduleAccountWrap') || document.getElementById('moduleAccountWrap');
+    if (!nav || !accountWrap || !accountButton) return;
+    nav.classList.remove('module-tabs-open');
+    const open = !accountWrap.classList.contains('is-open');
+    accountWrap.classList.toggle('is-open', open);
+    accountButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
   function bind() {
     const nav = document.getElementById('moduleQuickNav');
-    const weddingButton = document.getElementById('moduleWeddingButton');
-    const mobileTabs = document.getElementById('moduleMobileTabs');
-    if (!nav || nav.dataset.mgdContextBar === VERSION) return;
+    if (!nav) return;
+
+    // Cada nueva versión cancela los listeners modernos anteriores.
+    window.__mgdModuleContextController?.abort?.();
+    const controller = new AbortController();
+    const { signal } = controller;
+    window.__mgdModuleContextController = controller;
+    window.__mgdModuleContextObserver?.disconnect?.();
     nav.dataset.mgdContextBar = VERSION;
 
-    weddingButton?.addEventListener('click', () => {
-      closeMenus();
-      const existing = document.getElementById('activeWeddingButton');
-      if (existing) existing.click();
-      else window.dispatchEvent(new Event('migrandia:open-weddings'));
-    });
-
-    // Delegación sobre la barra: el avatar puede ser reconstruido por el shell/legacy
-    // sin perder la interacción ni duplicar el flujo de cierre de sesión.
-    nav.addEventListener('click', (event) => {
+    // La cuenta se captura antes de los listeners legacy. Esto evita el caso en que
+    // una versión antigua abre y vuelve a cerrar el menú durante el mismo clic.
+    document.addEventListener('click', (event) => {
       const target = event.target instanceof Element ? event.target : null;
       if (!target) return;
 
       const logoutButton = target.closest('#moduleContextLogout');
-      if (logoutButton && nav.contains(logoutButton)) {
-        event.stopPropagation();
+      if (logoutButton && document.body.classList.contains('module-view')) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
         closeMenus();
         document.getElementById('moduleSessionLogout')?.click();
         return;
       }
 
       const accountButton = target.closest('#moduleAccountButton');
-      if (accountButton && nav.contains(accountButton)) {
-        event.stopPropagation();
-        nav.classList.remove('module-tabs-open');
-        const accountWrap = accountButton.closest('#moduleAccountWrap') || document.getElementById('moduleAccountWrap');
-        const open = !accountWrap?.classList.contains('is-open');
-        accountWrap?.classList.toggle('is-open', open);
-        accountButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (accountButton && document.body.classList.contains('module-view')) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        toggleAccount(accountButton);
+        return;
       }
-    });
 
-    mobileTabs?.addEventListener('click', (event) => {
-      event.stopPropagation();
-      document.getElementById('moduleAccountWrap')?.classList.remove('is-open');
-      nav.classList.toggle('module-tabs-open');
-    });
-
-    nav.querySelectorAll('[data-quick-module]').forEach((button) => {
-      button.addEventListener('click', () => {
-        nav.classList.remove('module-tabs-open');
-        requestAnimationFrame(renderActiveModule);
-      });
-    });
+      const accountWrap = document.getElementById('moduleAccountWrap');
+      if (accountWrap?.classList.contains('is-open') && !accountWrap.contains(target)) {
+        closeMenus();
+      }
+    }, { capture: true, signal });
 
     document.addEventListener('click', (event) => {
-      if (!nav.contains(event.target)) closeMenus();
-    });
+      const target = event.target instanceof Element ? event.target : null;
+      if (!target) return;
+
+      const weddingButton = target.closest('#moduleWeddingButton');
+      if (weddingButton && nav.contains(weddingButton)) {
+        closeMenus();
+        const existing = document.getElementById('activeWeddingButton');
+        if (existing) existing.click();
+        else window.dispatchEvent(new Event('migrandia:open-weddings'));
+        return;
+      }
+
+      const mobileTabs = target.closest('#moduleMobileTabs');
+      if (mobileTabs && nav.contains(mobileTabs)) {
+        document.getElementById('moduleAccountWrap')?.classList.remove('is-open');
+        nav.classList.toggle('module-tabs-open');
+        return;
+      }
+
+      const quickModule = target.closest('[data-quick-module]');
+      if (quickModule && nav.contains(quickModule)) {
+        nav.classList.remove('module-tabs-open');
+        requestAnimationFrame(renderActiveModule);
+      }
+    }, { signal });
+
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') closeMenus();
-    });
+    }, { signal });
 
-    window.addEventListener('hashchange', renderActiveModule);
-    window.addEventListener('migrandia:wedding-context', renderWeddingContext);
-    window.addEventListener('migrandia:auth', renderAccount);
-    window.addEventListener('migrandia:auth-resume', renderAccount);
+    window.addEventListener('hashchange', renderActiveModule, { signal });
+    window.addEventListener('migrandia:wedding-context', renderWeddingContext, { signal });
+    window.addEventListener('migrandia:auth', renderAccount, { signal });
+    window.addEventListener('migrandia:auth-resume', renderAccount, { signal });
     window.addEventListener('migrandia:resume', () => {
       renderActiveModule();
       renderWeddingContext();
       renderAccount();
-    });
+    }, { signal });
 
     const accountCard = document.getElementById('accountCard');
-    if (accountCard) new MutationObserver(renderAccount).observe(accountCard, {
-      childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'class']
-    });
+    if (accountCard) {
+      const observer = new MutationObserver(renderAccount);
+      observer.observe(accountCard, {
+        childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'class']
+      });
+      window.__mgdModuleContextObserver = observer;
+    }
 
     renderActiveModule();
     renderWeddingContext();
