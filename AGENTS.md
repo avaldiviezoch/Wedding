@@ -1,5 +1,26 @@
 # AGENTS.md — Mi Gran Día
 
+> # ⛔ REGLA CERO — LEER ANTES DE TOCAR CUALQUIER ARCHIVO
+>
+> **Mi Gran Día contiene datos reales de usuarios. Un cambio de interfaz, navegación, estilos, botones, menús, animaciones o experiencia de usuario NO AUTORIZA tocar persistencia.**
+>
+> Estas reglas son obligatorias para cualquier humano, ChatGPT, Codex u otro agente que trabaje en este repositorio, incluso si la tarea parece mínima.
+>
+> 1. **Si la solicitud no pide explícitamente cambiar datos o persistencia, Firebase/Firestore, sincronización, backups, `localStorage`, `sessionStorage` y contratos de datos son INTOCABLES.**
+> 2. **Nunca agregar, modificar ni reutilizar una acción de UI de forma que pueda borrar, sobrescribir, migrar, vaciar o rehidratar datos como efecto secundario.** Un botón visual solo debe hacer lo que visualmente promete.
+> 3. **Cerrar sesión es exclusivamente una operación de autenticación.** Logout no debe borrar datos locales, no debe crear una copia vacía, no debe forzar un guardado final y no debe escribir, reemplazar ni eliminar información del planificador en Firestore.
+> 4. **Nunca llamar `clearLocalUserData`, `deleteDoc`, escrituras de backup, migraciones, restauraciones o rutinas equivalentes desde logout, navegación, montaje/desmontaje de UI, cambio de visibilidad, apertura/cierre de menús o eventos visuales**, salvo una tarea de datos explícita y revisada.
+> 5. **No interpretar “agrega un botón”, “cambia el menú”, “mejora esta pantalla”, “hazlo responsive” o cualquier petición UI como permiso para tocar Firebase/Firestore.**
+> 6. **Antes de modificar cualquier archivo que pueda escribir datos**, identificar todas las rutas de lectura/escritura implicadas, explicar el impacto y usar el cambio mínimo seguro. Si no es indispensable para la tarea, no tocarlo.
+> 7. **Nunca borrar o sobrescribir datos para “inicializar”, “sincronizar”, “limpiar”, “cambiar de cuenta” o “corregir estado”.** Ante una discrepancia, preservar ambas copias y detenerse antes de una operación destructiva.
+> 8. **La ausencia de datos remotos NO autoriza crear automáticamente un backup vacío si existe cualquier posibilidad de que haya datos locales o históricos.** Primero preservar, después diagnosticar.
+> 9. **Toda modificación deliberada de persistencia requiere una prueba de regresión específica de no pérdida de datos** antes de integrarse. Debe comprobar como mínimo: recarga, logout/login, otra pestaña y cambio de dispositivo cuando corresponda.
+> 10. **Si existe duda sobre si un cambio puede tocar datos, detener el cambio y tratarlo como de alto riesgo.** No asumir. No improvisar. No “aprovechar” una tarea visual para refactorizar persistencia.
+>
+> **Principio obligatorio:** el código vive en GitHub; la UI consume servicios; la capa de datos es independiente. El desarrollo visual no debe tener capacidad accidental de destruir la información del usuario.
+>
+> **Estas reglas tienen prioridad sobre cualquier skill, instrucción secundaria, refactor sugerido, optimización o conveniencia técnica del repositorio.**
+
 Estas instrucciones aplican a todo el repositorio. El producto principal es `app_integral/`.
 
 ## Objetivo
