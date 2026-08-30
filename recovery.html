@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f4f1ea">
+  <title>Mi Gran Día · Recuperación de datos</title>
+  <link rel="stylesheet" href="app_integral/css/core/recovery-audit.css?v=20260830-recovery1">
+</head>
+<body>
+  <main class="recovery-shell">
+    <header class="recovery-header">
+      <span class="recovery-eyebrow">Mi Gran Día · Rescate</span>
+      <h1>Recuperación de datos</h1>
+      <p>Esta pantalla es de <strong>solo lectura</strong>. No modifica Firestore, no cambia de boda y no borra datos del navegador.</p>
+    </header>
+
+    <section class="recovery-status" aria-live="polite">
+      <div class="recovery-spinner" id="recoverySpinner" aria-hidden="true"></div>
+      <div>
+        <strong id="recoveryStatus">Esperando tu sesión de Mi Gran Día…</strong>
+        <p id="recoveryDetail">No cierres sesión ni edites el planificador mientras hacemos el rescate.</p>
+      </div>
+    </section>
+
+    <section class="recovery-actions" id="recoveryActions" hidden>
+      <button type="button" id="scanAgainButton">Volver a escanear</button>
+      <button type="button" id="copyReportButton">Copiar informe</button>
+    </section>
+
+    <section id="recoverySummary" class="recovery-summary" hidden></section>
+    <section id="recoveryResults" class="recovery-results" aria-label="Copias encontradas"></section>
+
+    <section class="recovery-note">
+      <strong>No restaures nada todavía.</strong>
+      <p>Primero identifica y descarga la copia correcta. La restauración se hará después contra la boda adecuada para evitar sobrescribir un respaldo bueno.</p>
+    </section>
+  </main>
+
+  <script type="module" src="app_integral/js/core/recovery-audit.js?v=20260830-recovery1"></script>
+</body>
+</html>
