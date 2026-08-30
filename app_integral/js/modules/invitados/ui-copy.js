@@ -1,7 +1,8 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260814-1532-uicopy3';
+  const VERSION = '20260830-guests-bridge-cleanup1';
+  const LEGACY_SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 
   const cleanStatus = (value = '') => {
     const text = String(value || '').trim();
@@ -33,6 +34,36 @@
   function setPlaceholder(root, selector, text) {
     const node = root.querySelector(selector);
     if (node && node.getAttribute('placeholder') !== text) node.setAttribute('placeholder', text);
+  }
+
+  function removeLegacyDistributionBridge(doc) {
+    if (!doc?.body) return false;
+
+    const marker = [...doc.body.querySelectorAll('code, small, p, span, strong, div')]
+      .filter((node) => String(node.textContent || '').includes(LEGACY_SHARED_STORAGE_KEY))
+      .sort((a, b) => String(a.textContent || '').length - String(b.textContent || '').length)[0];
+    if (!marker) return false;
+
+    let current = marker;
+    while (current && current !== doc.body) {
+      const text = String(current.textContent || '').replace(/\s+/g, ' ').trim();
+      const hasOpenDistribution = [...current.querySelectorAll('button, a')].some((control) =>
+        /abrir\s+distribuci[oó]n/i.test(String(control.textContent || '').trim())
+      );
+
+      if (
+        text.length <= 1200 &&
+        text.includes(LEGACY_SHARED_STORAGE_KEY) &&
+        /preparado\s+para\s+conectarse/i.test(text) &&
+        hasOpenDistribution
+      ) {
+        current.remove();
+        return true;
+      }
+      current = current.parentElement;
+    }
+
+    return false;
   }
 
   function simplifyRsvpUi(doc) {
@@ -136,11 +167,13 @@
     try { doc = frame.contentDocument; } catch (_) { return; }
     if (!doc?.body || !doc.getElementById('guestList')) return;
 
+    removeLegacyDistributionBridge(doc);
     if (bindPanel(doc)) return;
     if (doc.documentElement.dataset.mgdUiCopyWait === VERSION) return;
     doc.documentElement.dataset.mgdUiCopyWait = VERSION;
 
     const waitObserver = new MutationObserver(() => {
+      removeLegacyDistributionBridge(doc);
       if (bindPanel(doc)) waitObserver.disconnect();
     });
     waitObserver.observe(doc.body, { childList: true, subtree: true });

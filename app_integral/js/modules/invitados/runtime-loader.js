@@ -34,7 +34,7 @@
     if (baseRuntime) return baseRuntime;
     baseRuntime = Promise.all([
       import(moduleUrl('index.js', '20260819-1615-distribution-source1')),
-      import(moduleUrl('ui-copy.js', '20260814-1532-uicopy3')),
+      import(moduleUrl('ui-copy.js', '20260830-guests-bridge-cleanup1')),
       import(moduleUrl('tables-lazy-loader.js', '20260819-empty-onboarding1'))
     ]).catch((error) => {
       console.error('No se pudo iniciar Invitados:', error);
