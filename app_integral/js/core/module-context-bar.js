@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260819-module-context2';
+  const VERSION = '20260830-module-context3';
   const ROLE_LABELS = {
     owner: 'Propietario',
     admin: 'Administrador',
@@ -85,8 +85,6 @@
   function bind() {
     const nav = document.getElementById('moduleQuickNav');
     const weddingButton = document.getElementById('moduleWeddingButton');
-    const accountButton = document.getElementById('moduleAccountButton');
-    const accountWrap = document.getElementById('moduleAccountWrap');
     const mobileTabs = document.getElementById('moduleMobileTabs');
     if (!nav || nav.dataset.mgdContextBar === VERSION) return;
     nav.dataset.mgdContextBar = VERSION;
@@ -98,23 +96,35 @@
       else window.dispatchEvent(new Event('migrandia:open-weddings'));
     });
 
-    accountButton?.addEventListener('click', (event) => {
-      event.stopPropagation();
-      nav.classList.remove('module-tabs-open');
-      const open = !accountWrap?.classList.contains('is-open');
-      accountWrap?.classList.toggle('is-open', open);
-      accountButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+    // Delegación sobre la barra: el avatar puede ser reconstruido por el shell/legacy
+    // sin perder la interacción ni duplicar el flujo de cierre de sesión.
+    nav.addEventListener('click', (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      if (!target) return;
+
+      const logoutButton = target.closest('#moduleContextLogout');
+      if (logoutButton && nav.contains(logoutButton)) {
+        event.stopPropagation();
+        closeMenus();
+        document.getElementById('moduleSessionLogout')?.click();
+        return;
+      }
+
+      const accountButton = target.closest('#moduleAccountButton');
+      if (accountButton && nav.contains(accountButton)) {
+        event.stopPropagation();
+        nav.classList.remove('module-tabs-open');
+        const accountWrap = accountButton.closest('#moduleAccountWrap') || document.getElementById('moduleAccountWrap');
+        const open = !accountWrap?.classList.contains('is-open');
+        accountWrap?.classList.toggle('is-open', open);
+        accountButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
     });
 
     mobileTabs?.addEventListener('click', (event) => {
       event.stopPropagation();
-      accountWrap?.classList.remove('is-open');
+      document.getElementById('moduleAccountWrap')?.classList.remove('is-open');
       nav.classList.toggle('module-tabs-open');
-    });
-
-    document.getElementById('moduleContextLogout')?.addEventListener('click', () => {
-      closeMenus();
-      document.getElementById('moduleSessionLogout')?.click();
     });
 
     nav.querySelectorAll('[data-quick-module]').forEach((button) => {
