@@ -14,4 +14,6 @@ assert.match(recovery, /currentGuestCount\(\) > 0/);
 assert.match(recovery, /MIGRANDIA_RSVP_SYNC/);
 assert.match(recovery, /deep-guest-recovery/);
 assert.doesNotMatch(recovery, /\b(?:setDoc|addDoc|updateDoc|deleteDoc|writeBatch|runTransaction)\s*\(/);
-assert.match(firebaseEntry, /deep-guest-recovery\.js\?v=20260830-deep-guest-recovery1/);
+// Incident containment: deep recovery stays available for controlled/manual use,
+// but must not run on every normal application load.
+assert.doesNotMatch(firebaseEntry, /deep-guest-recovery\.js/);
