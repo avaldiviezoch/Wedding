@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f4f1ea">
+  <title>Mi Gran Día · Reparar boda de Lucero</title>
+  <link rel="stylesheet" href="app_integral/css/core/recovery-audit.css?v=20260830-recovery1">
+</head>
+<body>
+  <main class="recovery-shell">
+    <header class="recovery-header">
+      <span class="recovery-eyebrow">Mi Gran Día · Reparación de incidente</span>
+      <h1>Restaurar la boda de Lucero</h1>
+      <p>Esta herramienta toma el respaldo histórico de la cuenta administradora y lo restaura completo dentro de la boda activa de Lucero. Antes de escribir guarda un snapshot privado de la copia actual y después verifica byte por byte el resultado.</p>
+    </header>
+
+    <section class="recovery-status" aria-live="polite">
+      <div class="recovery-spinner" id="restoreSpinner" aria-hidden="true"></div>
+      <div>
+        <strong id="restoreStatus">Verificando tu sesión y los respaldos…</strong>
+        <p id="restoreDetail">No abras ni edites Mi Gran Día en otra pestaña durante la reparación.</p>
+      </div>
+    </section>
+
+    <section id="restoreSummary" class="recovery-summary" hidden></section>
+
+    <section class="recovery-card" id="restoreCard" hidden>
+      <div class="recovery-card-head">
+        <div>
+          <h2 id="restoreTarget">Boda de Lucero</h2>
+          <div class="recovery-card-meta" id="restoreMeta"></div>
+        </div>
+        <span class="recovery-badge">Restauración completa</span>
+      </div>
+      <p id="restoreExplanation"></p>
+      <div class="recovery-card-actions">
+        <button class="recovery-download" id="restoreFullButton" type="button" disabled>Restaurar respaldo completo</button>
+      </div>
+    </section>
+
+    <section class="recovery-note">
+      <strong>Antes de pulsar el botón</strong>
+      <p>Cierra todas las pestañas normales de Mi Gran Día y deja abierta únicamente esta página. RSVP y sus respuestas están fuera del backup del planificador y no se reemplazan.</p>
+    </section>
+  </main>
+
+  <script type="module" src="app_integral/js/core/controlled-full-lucero-restore.js?v=20260830-lucero-full-restore1"></script>
+</body>
+</html>
