@@ -1,8 +1,8 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260830-account-menu7';
-  const CONTROLLER_VERSION = '20260830-module-context3';
+  const VERSION = '20260830-account-menu8';
+  const CONTROLLER_VERSION = '20260830-module-context4';
   let controllerPromise = null;
 
   function ensureStyles() {
