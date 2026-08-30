@@ -11,9 +11,11 @@
   <link rel="stylesheet" href="css/modules/auth-premium.css?v=20260814-1144-auth1">
   <link rel="stylesheet" href="css/modules/invitaciones.css?v=20260817-layout-refine-v5">
   <link rel="stylesheet" href="css/core/module-context-bar.css?v=20260819-surface-recovery3">
+  <link rel="stylesheet" href="css/v2/mgd-v2.css?v=20260826-task9c">
+  <link rel="stylesheet" href="css/core/editorial-command-shell.css?v=20260826-task9c">
 </head>
 
-<body class="auth-locked">
+<body class="auth-locked mgd-v2">
   <main class="app">
 
     <video
@@ -157,6 +159,59 @@
     </aside>
   </main>
 
+  <section class="editorial-shell" id="editorialShell" aria-label="Planificador de bodas">
+    <header class="editorial-topbar">
+      <button class="editorial-menu-button" id="editorialMenuButton" type="button" aria-label="Abrir navegación" aria-expanded="false" aria-controls="editorialNavigation">
+        <span aria-hidden="true"></span><span aria-hidden="true"></span>
+      </button>
+      <a class="editorial-wordmark" href="#" data-shell-home aria-label="Mi Gran Día, inicio">Mi Gran Día</a>
+      <button class="editorial-context-button" id="editorialContextButton" type="button" aria-label="Abrir menú de boda" aria-expanded="false">
+        <span>Tu boda</span><strong id="editorialWeddingName">Mi boda</strong>
+      </button>
+    </header>
+
+    <aside class="editorial-navigation" id="editorialNavigation" aria-label="Navegación principal" aria-hidden="true">
+      <div class="editorial-navigation-head"><span class="mgd-meta">Planificador privado</span><button class="editorial-navigation-close" type="button" data-shell-close aria-label="Cerrar navegación">×</button></div>
+      <nav>
+        <p class="editorial-nav-group">Planificación</p>
+        <a href="#checklist" data-shell-module="checklist">Checklist</a>
+        <a href="#presupuesto" data-shell-module="presupuesto">Presupuesto</a>
+        <a href="#proveedores" data-shell-module="proveedores">Proveedores</a>
+        <p class="editorial-nav-group">Invitados</p>
+        <a href="#invitados" data-shell-module="invitados">Lista de invitados</a>
+        <a href="#distribucion" data-shell-module="distribucion">Mesas y distribución</a>
+        <p class="editorial-nav-group">Celebración</p>
+        <a href="#cronograma" data-shell-module="cronograma">Cronograma</a>
+        <a href="#invitaciones" data-shell-module="invitaciones">Invitaciones</a>
+        <a href="#musica" data-shell-module="musica">Música</a>
+      </nav>
+    </aside>
+    <div class="editorial-navigation-backdrop" data-shell-close aria-hidden="true"></div>
+
+    <main class="editorial-home" id="editorialHome" aria-labelledby="editorialHomeTitle">
+      <div class="editorial-home-inner">
+        <p class="mgd-meta">Centro de planificación</p>
+        <div class="editorial-home-heading">
+          <div><h1 id="editorialHomeTitle">Todo para el día que están creando.</h1><p>Un lugar sereno para volver a cada decisión importante.</p></div>
+          <div class="editorial-date" aria-label="Fecha de la boda"><span>Fecha de la boda</span><strong id="editorialWeddingDate">16.01.2027</strong></div>
+        </div>
+        <section class="editorial-home-primary" aria-labelledby="editorialNextTitle">
+          <div><p class="mgd-meta">Siguiente espacio</p><h2 id="editorialNextTitle">Avanza con tu checklist</h2><p>Revisa las decisiones de planificación y continúa desde donde lo dejaste.</p></div>
+          <button class="mgd-button mgd-button--primary" type="button" data-shell-module="checklist">Abrir checklist</button>
+        </section>
+        <section class="editorial-home-areas" aria-labelledby="editorialAreasTitle">
+          <div class="editorial-section-heading"><div><p class="mgd-meta">Áreas de trabajo</p><h2 id="editorialAreasTitle">Organiza cada parte de la celebración</h2></div><span>Las mismas rutas y datos de siempre</span></div>
+          <div class="editorial-area-list">
+            <button type="button" data-shell-module="invitados"><span>01</span><strong>Invitados</strong><small>Lista y confirmaciones</small></button>
+            <button type="button" data-shell-module="distribucion"><span>02</span><strong>Mesas</strong><small>Distribución y diseño</small></button>
+            <button type="button" data-shell-module="presupuesto"><span>03</span><strong>Presupuesto</strong><small>Decisiones y seguimiento</small></button>
+            <button type="button" data-shell-module="invitaciones"><span>04</span><strong>Invitaciones</strong><small>Gestión de envíos</small></button>
+          </div>
+        </section>
+      </div>
+    </main>
+  </section>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <section class="auth-overlay" id="authOverlay" aria-hidden="true">
@@ -215,6 +270,7 @@
   <script src="js/core/accordion-fast.js?v=20260820163843-nav"></script>
   <script src="js/core/module-context-bar.js?v=20260819-module-context2"></script>
   <script src="js/core/menu-fast.js?v=20260820163843-master"></script>
+  <script src="js/core/editorial-command-shell.js?v=20260826-task9c"></script>
   <script src="js/modules/invitados/runtime-loader.js?v=20260819-empty-onboarding1"></script>
   <script src="js/modules/invitaciones/index.js?v=20260820163843-invitaciones"></script>
 
