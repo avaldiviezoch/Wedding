@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260819-empty-onboarding1';
+  const VERSION = '20260830-tables-access-recovery1';
   let baseRuntime = null;
   let rsvpRuntime = null;
 
@@ -35,7 +35,8 @@
     baseRuntime = Promise.all([
       import(moduleUrl('index.js', '20260819-1615-distribution-source1')),
       import(moduleUrl('ui-copy.js', '20260830-guests-bridge-cleanup1')),
-      import(moduleUrl('tables-lazy-loader.js', '20260819-empty-onboarding1'))
+      import(moduleUrl('tables-access-recovery.js', '20260830-tables-access-recovery1')),
+      import(moduleUrl('tables-lazy-loader.js', '20260830-tables-access-recovery1'))
     ]).catch((error) => {
       console.error('No se pudo iniciar Invitados:', error);
       baseRuntime = null;

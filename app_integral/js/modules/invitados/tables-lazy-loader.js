@@ -3,12 +3,21 @@ import { TABLES_FINAL_STYLE_VERSION, tablesFinalStyleReady, tablesFinalStyleStat
 (() => {
   'use strict';
 
-  const VERSION = '20260819-empty-onboarding1';
+  const VERSION = '20260830-tables-access-recovery1';
+  const FAIL_OPEN_MS = 1800;
   let tablesRuntime = null;
   let preloadScheduled = false;
+  const revealFallbackTimers = new WeakMap();
+
+  function clearRevealFallback(view) {
+    const timer = revealFallbackTimers.get(view);
+    if (timer) clearTimeout(timer);
+    revealFallbackTimers.delete(view);
+  }
 
   function setReady(view, ready) {
     if (!view) return;
+    if (ready) clearRevealFallback(view);
     view.style.visibility = ready ? 'visible' : 'hidden';
     view.style.opacity = ready ? '1' : '0';
     view.style.pointerEvents = ready ? '' : 'none';
@@ -27,6 +36,19 @@ import { TABLES_FINAL_STYLE_VERSION, tablesFinalStyleReady, tablesFinalStyleStat
     return tablesFinalStyleReady(link);
   }
 
+  function scheduleFailOpen(view) {
+    if (!view || revealFallbackTimers.has(view)) return;
+    const timer = setTimeout(() => {
+      revealFallbackTimers.delete(view);
+      if (!view.isConnected || view.hidden) return;
+      if (!view.querySelector('#mgdTablesEditor')) return;
+      if (finalStyleLoaded(view)) return setReady(view, true);
+      console.warn('Mesas: se muestra el editor aunque el estilo final siga cargando.');
+      setReady(view, true);
+    }, FAIL_OPEN_MS);
+    revealFallbackTimers.set(view, timer);
+  }
+
   function revealWhenReady(view) {
     if (!view) return;
     if (finalStyleLoaded(view)) {
@@ -34,6 +56,7 @@ import { TABLES_FINAL_STYLE_VERSION, tablesFinalStyleReady, tablesFinalStyleStat
       return;
     }
     setReady(view, false);
+    scheduleFailOpen(view);
     const doc = view.ownerDocument;
     const link = doc?.querySelector('link[data-mgd-tables-old-look]');
     if (!link) return;
@@ -52,7 +75,10 @@ import { TABLES_FINAL_STYLE_VERSION, tablesFinalStyleReady, tablesFinalStyleStat
   function prepare(doc) {
     const view = doc?.getElementById('tablesView');
     if (!view) return null;
-    if (!finalStyleLoaded(view)) setReady(view, false);
+    if (!finalStyleLoaded(view)) {
+      setReady(view, false);
+      scheduleFailOpen(view);
+    }
     return view;
   }
 
