@@ -100,8 +100,7 @@ jobs:
             if len(set(hs))!=1: raise SystemExit('LOCAL_CANONICAL_SHA_MISMATCH '+name)
             try:
               req=urllib.request.Request(raw,method='HEAD',headers={'User-Agent':'phase3f-audit'})
-              urllib.request.urlopen(req,timeout=20)
-              status=200
+              urllib.request.urlopen(req,timeout=20); status=200
             except urllib.error.HTTPError as e: status=e.code
             except Exception as e: status=str(e)
             if text.count(raw)!=1: raise SystemExit(f'RAW_COUNT_FAIL {name} count={text.count(raw)}')
@@ -149,45 +148,26 @@ jobs:
           sleep 2
           cat >/tmp/phase3f-qa.js <<'NODE'
           const {chromium}=require('playwright');
-          const fs=require('fs'); const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-          const targets=['foto_pareja_6_2png.png','Primera_entrada_6.png','foto_pareja_6_1.png','fondo_dress_code_5.png','foto_pareja_final_6_1.png','ubicacion_local_2.png','foto_pareja_final_6_2.png','foto_cortada_superior_6_1.png','foto_cortada_superior_6_2.png'];
+          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+          const targetPaths={
+            'foto_pareja_6_2png.png':'assets/foto_pareja_6_2png.png','Primera_entrada_6.png':'assets/Primera_entrada_6.png','foto_pareja_6_1.png':'assets/foto_pareja_6_1.png','fondo_dress_code_5.png':'fondo_dress_code_5.png','foto_pareja_final_6_1.png':'assets/foto_pareja_final_6_1.png','ubicacion_local_2.png':'ubicacion_local_2.png','foto_pareja_final_6_2.png':'assets/foto_pareja_final_6_2.png','foto_cortada_superior_6_1.png':'assets/foto_cortada_superior_6_1.png','foto_cortada_superior_6_2.png':'assets/foto_cortada_superior_6_2.png'};
           const rawNames=['fecha_regresiva_2.png','marco_de_fotos_2.png'];
-          async function stable(page){for(const f of page.frames()){try{await f.addStyleTag({content:'*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}video,canvas,img[src*=".gif"],[id*="countdown" i],[class*="countdown" i]{visibility:hidden!important}'});await f.evaluate(async()=>{try{await document.fonts.ready}catch{};document.querySelectorAll('video,audio').forEach(x=>{try{x.pause()}catch{}})})}catch{}}await sleep(400)}
+          async function stabilize(page){for(const f of page.frames()){try{await f.addStyleTag({content:'*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}video,canvas,img[src*=".gif"]{visibility:hidden!important}'});await f.evaluate(async()=>{try{await document.fonts.ready}catch{};document.querySelectorAll('video,audio').forEach(x=>{try{x.pause()}catch{}})})}catch{}}await sleep(400)}
           async function findEntry(page){for(const f of page.frames()){try{if(await f.locator('#entryScreen').count())return f}catch{}}return null}
-          async function scrollAll(page,ratio){for(const f of page.frames()){try{await f.evaluate(r=>scrollTo(0,document.body.scrollHeight*r),ratio)}catch{}}await sleep(700)}
+          async function scrollAll(page,ratio){for(const f of page.frames()){try{await f.evaluate(r=>scrollTo(0,document.body.scrollHeight*r),ratio)}catch{}}await sleep(900)}
+          async function scanFeatures(page){const out={countdown:false,carousel:false,ubicacion:false,collage:false,dress:false,timeline:false,rsvp:false,regalo:false,musica:false,faq:false,cierre:false};for(const f of page.frames()){try{const x=await f.evaluate(()=>{const t=(document.body?.innerText||'').toLowerCase();const srcs=[...document.querySelectorAll('img,source')].map(e=>e.currentSrc||e.src||'');return {countdown:!!document.querySelector('#countdownOverlay')||/[0-9]+\s*(días|dias|horas)/.test(t),carousel:!!document.querySelector('#fixedFrameCarousel')||document.querySelectorAll('.fixed-photo-dot').length>0,ubicacion:/ubicaci|cómo llegar|como llegar/.test(t)||srcs.some(s=>s.includes('ubicacion_local_2.png')),collage:srcs.some(s=>s.includes('foto_pareja_6_1.png'))&&srcs.some(s=>s.includes('foto_pareja_6_2png.png')),dress:/dress code|vestimenta/.test(t),timeline:/programaci|itinerario/.test(t)||srcs.some(s=>/inicio_de_boda_6_3|brindis_6_3|comida_6_2|fiesta_6_2|fin_boda_6_2/.test(s)),rsvp:/confirmar|asistencia|rsvp/.test(t),regalo:/regalo/.test(t),musica:/música|musica/.test(t),faq:/preguntas|frecuentes/.test(t),cierre:/te esperamos|gracias/.test(t)}});for(const k of Object.keys(out))out[k]=out[k]||x[k]}catch{}}return out}
           async function run(kind,label,port,w,h){
-            const browser=await chromium.launch({channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']});
-            const context=await browser.newContext({viewport:{width:w,height:h},serviceWorkers:'block'}); const page=await context.newPage();
-            const events=[],fails=[],consoleErr=[]; page.on('request',r=>events.push({url:r.url(),frame:r.frame()?.url()||'',stage:globalThis.__stage||'T0'})); page.on('requestfailed',r=>fails.push({url:r.url(),error:r.failure()?.errorText||'',stage:globalThis.__stage||'T0'})); page.on('console',m=>{if(m.type()==='error')consoleErr.push(m.text())});
-            globalThis.__stage='T0'; await page.goto(`http://127.0.0.1:${port}/invitaciones/invitacion_6/`,{waitUntil:'domcontentloaded'}); await sleep(1500);
-            const frames=page.frames(); if(frames.length!==4||!frames.some(f=>f.url().includes('invitacion_5_base.html')))throw new Error(`${kind}-${label}: frame gate ${frames.length}`);
-            await stable(page); await page.screenshot({path:`/tmp/${kind}-${label}-ENTRY.png`});
-            const ef=await findEntry(page); if(!ef)throw new Error('entry frame missing');
-            if(kind==='head'){
-              const pre=await ef.evaluate(()=>({audio:[...document.querySelectorAll('audio')].filter(a=>(a.currentSrc||a.src).includes('sake_binks.mp3')).length,entry:!!document.querySelector('#entryVideo')}));
-              if(pre.audio!==1||!pre.entry)throw new Error('audio/entry pre gate');
-            }
-            globalThis.__stage='T2'; const guard=ef.locator('#tapGuard'); if(await guard.count())await guard.click(); else await ef.locator('#entryScreen').click({force:true});
-            await sleep(6500); globalThis.__stage='T3';
-            if(kind==='head'){
-              const fqa=await ef.evaluate(()=>{const a=document.querySelector('#bgMusic');const v=document.querySelector('#entryVideo');return {audioOk:!!a&&a.loop&&a.currentTime>0,videoOk:!!v&&v.currentTime>0,reveal:!!document.body&&getComputedStyle(document.body).visibility!=='hidden',countdown:!!document.querySelector('#countdownOverlay'),carousel:!!document.querySelector('#fixedFrameCarousel')||document.querySelectorAll('.fixed-photo-dot').length>0,text:document.body.innerText.toLowerCase()}});
-              const t=fqa.text; const checks={entry:true,video:fqa.videoOk,audio:fqa.audioOk,reveal:fqa.reveal,countdown:fqa.countdown,carousel:fqa.carousel,ubicacion:/ubicaci|cómo llegar|como llegar/.test(t),collage:events.some(e=>e.url.includes('foto_pareja_6_1.png'))&&events.some(e=>e.url.includes('foto_pareja_6_2png.png')),dress:/dress code|vestimenta/.test(t),timeline:/programaci|itinerario/.test(t),rsvp:/confirmar|asistencia|rsvp/.test(t),regalo:/regalo/.test(t),musica:/música|musica/.test(t),faq:/preguntas|frecuentes/.test(t),cierre:/te esperamos|gracias/.test(t)};
-              if(Object.values(checks).some(x=>!x))throw new Error('FUNCTIONAL_GATE '+JSON.stringify(checks)); console.log('PHASE3F_FUNCTIONAL='+JSON.stringify(checks));
-            }
-            await stable(page); await page.screenshot({path:`/tmp/${kind}-${label}-FIRST.png`});
-            await scrollAll(page,.5); await stable(page); globalThis.__stage='T4'; await page.screenshot({path:`/tmp/${kind}-${label}-MID.png`});
-            await scrollAll(page,1); await stable(page); globalThis.__stage='T5'; await page.screenshot({path:`/tmp/${kind}-${label}-FINAL.png`});
-            const all=[],dims=[]; for(const f of page.frames()){try{const p=await f.evaluate(()=>performance.getEntriesByType('resource').map(r=>({name:r.name,startTime:r.startTime,transferSize:r.transferSize,encodedBodySize:r.encodedBodySize})));all.push(...p);const d=await f.evaluate(names=>[...document.images].filter(i=>names.some(n=>(i.currentSrc||i.src).includes(n))).map(i=>({src:i.currentSrc||i.src,naturalWidth:i.naturalWidth,naturalHeight:i.naturalHeight,w:i.getBoundingClientRect().width,h:i.getBoundingClientRect().height,complete:i.complete})),targets);dims.push(...d)}catch{}}
-            const sum=(a,k)=>a.reduce((s,x)=>s+(x[k]||0),0); const rawReq=events.filter(e=>e.url.includes('raw.githubusercontent.com')&&rawNames.some(n=>e.url.includes(n))); const rawOrb=fails.filter(e=>e.url.includes('raw.githubusercontent.com')&&rawNames.some(n=>e.url.includes(n))&&e.error.includes('ORB'));
-            const result={kind,label,frameCount:page.frames().length,requests:all.length,totalTransfer:sum(all,'transferSize'),first3:sum(all.filter(x=>x.startTime<=3000),'transferSize'),first5:sum(all.filter(x=>x.startTime<=5000),'transferSize'),rawRequests:rawReq,rawOrb,dims,failures:fails.filter(x=>rawNames.some(n=>x.url.includes(n))),consoleErrors:consoleErr};
-            if(kind==='head'){
-              if(rawReq.length||rawOrb.length)throw new Error('RAW_HEAD_GATE');
-              const uniq=new Map(); for(const d of dims)for(const n of targets)if(d.src.includes(n))uniq.set(n,d);
-              for(const n of targets){const d=uniq.get(n);if(!d||!d.complete||d.naturalWidth<=0||d.naturalHeight<=0)throw new Error('IMAGE_HEAD_GATE '+n+' '+JSON.stringify(d));}
-            }
-            console.log('PHASE3F_METRICS='+JSON.stringify(result)); await browser.close(); return result;
-          }
-          (async()=>{for(const [label,w,h] of [['desktop',1366,768],['mobile',390,844]]){await run('base',label,4173,w,h);await run('head',label,4174,w,h)}})().catch(e=>{console.error(e);process.exit(1)});
+            const browser=await chromium.launch({channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']});const context=await browser.newContext({viewport:{width:w,height:h},serviceWorkers:'block'});const page=await context.newPage();let stage='T0';const events=[],fails=[],consoleErr=[];page.on('request',r=>events.push({url:r.url(),frame:r.frame()?.url()||'',stage}));page.on('requestfailed',r=>fails.push({url:r.url(),error:r.failure()?.errorText||'',stage}));page.on('console',m=>{if(m.type()==='error')consoleErr.push(m.text())});
+            await page.goto(`http://127.0.0.1:${port}/invitaciones/invitacion_6/`,{waitUntil:'domcontentloaded'});await sleep(1500);const frames=page.frames();if(frames.length!==4||!frames.some(f=>f.url().includes('invitacion_5_base.html')))throw new Error(`${kind}-${label}: frame gate ${frames.length}`);const preFeatures=await scanFeatures(page);await stabilize(page);await page.screenshot({path:`/tmp/${kind}-${label}-ENTRY.png`});
+            const ef=await findEntry(page);if(!ef)throw new Error('entry frame missing');let interaction={};if(kind==='head'){const pre=await ef.evaluate(()=>({audio:[...document.querySelectorAll('audio')].filter(a=>(a.currentSrc||a.src).includes('sake_binks.mp3')).length,entry:!!document.querySelector('#entryVideo')}));if(pre.audio!==1||!pre.entry)throw new Error('audio/entry pre gate')}
+            stage='T2';const guard=ef.locator('#tapGuard');if(await guard.count())await guard.click();else await ef.locator('#entryScreen').click({force:true});await sleep(6500);stage='T3';if(kind==='head'){interaction=await ef.evaluate(()=>{const a=document.querySelector('#bgMusic'),v=document.querySelector('#entryVideo'),e=document.querySelector('#entryScreen');return {audioOk:!!a&&a.loop&&a.currentTime>0,audioTime:a?.currentTime||0,videoOk:!!v&&v.currentTime>0,videoTime:v?.currentTime||0,videoEnded:!!v?.ended,reveal:!e||getComputedStyle(e).display==='none'||getComputedStyle(e).visibility==='hidden'||parseFloat(getComputedStyle(e).opacity||'1')<.1}});if(!interaction.audioOk||!interaction.videoOk||!interaction.reveal)throw new Error('ENTRY_MEDIA_GATE '+JSON.stringify(interaction))}
+            await stabilize(page);await page.screenshot({path:`/tmp/${kind}-${label}-FIRST.png`});await scrollAll(page,.5);stage='T4';await stabilize(page);await page.screenshot({path:`/tmp/${kind}-${label}-MID.png`});await scrollAll(page,1);stage='T5';await sleep(1200);const postFeatures=await scanFeatures(page);await stabilize(page);await page.screenshot({path:`/tmp/${kind}-${label}-FINAL.png`});
+            const all=[],rendered=[];for(const f of page.frames()){try{const p=await f.evaluate(()=>performance.getEntriesByType('resource').map(r=>({name:r.name,startTime:r.startTime,transferSize:r.transferSize,encodedBodySize:r.encodedBodySize})));all.push(...p);const r=await f.evaluate(names=>{const z=[];for(const n of names){for(const el of document.querySelectorAll('*')){const src=el.currentSrc||el.src||'';const bg=getComputedStyle(el).backgroundImage||'';if(src.includes(n)||bg.includes(n)){const b=el.getBoundingClientRect();z.push({name:n,w:b.width,h:b.height,tag:el.tagName})}}}return z},Object.keys(targetPaths));rendered.push(...r)}catch{}}
+            const sum=(a,k)=>a.reduce((s,x)=>s+(x[k]||0),0);const rawReq=events.filter(e=>e.url.includes('raw.githubusercontent.com')&&rawNames.some(n=>e.url.includes(n)));const rawOrb=fails.filter(e=>e.url.includes('raw.githubusercontent.com')&&rawNames.some(n=>e.url.includes(n))&&e.error.includes('ORB'));const metrics={requests:all.length,totalTransfer:sum(all,'transferSize'),first3:sum(all.filter(x=>x.startTime<=3000),'transferSize'),first5:sum(all.filter(x=>x.startTime<=5000),'transferSize')};
+            const probe=await page.evaluate(async({paths,port})=>{const out={};for(const [n,p] of Object.entries(paths)){out[n]=await new Promise(resolve=>{const i=new Image();i.onload=()=>resolve({complete:i.complete,naturalWidth:i.naturalWidth,naturalHeight:i.naturalHeight});i.onerror=()=>resolve({complete:i.complete,naturalWidth:i.naturalWidth,naturalHeight:i.naturalHeight,error:true});i.src=`http://127.0.0.1:${port}/invitaciones/invitacion_6/${p}`})}return out},{paths:targetPaths,port});
+            if(kind==='head'){if(rawReq.length||rawOrb.length)throw new Error('RAW_HEAD_GATE');for(const [n,d] of Object.entries(probe))if(!d.complete||d.naturalWidth<=0||d.naturalHeight<=0)throw new Error('IMAGE_HEAD_GATE '+n+' '+JSON.stringify(d))}
+            const result={kind,label,frameCount:page.frames().length,metrics,rawRequests:rawReq.length,rawOrb:rawOrb.length,probe,rendered,preFeatures,postFeatures,interaction,failures:fails.filter(x=>rawNames.some(n=>x.url.includes(n))),consoleErrors:consoleErr};console.log('PHASE3F_RESULT='+JSON.stringify(result));await browser.close();return result}
+          (async()=>{const all={};for(const [label,w,h] of [['desktop',1366,768],['mobile',390,844]]){const b=await run('base',label,4173,w,h);const hres=await run('head',label,4174,w,h);if(JSON.stringify(b.preFeatures)!==JSON.stringify(hres.preFeatures)||JSON.stringify(b.postFeatures)!==JSON.stringify(hres.postFeatures))throw new Error('FUNCTIONAL_PARITY_FAIL '+label+' '+JSON.stringify({basePre:b.preFeatures,headPre:hres.preFeatures,basePost:b.postFeatures,headPost:hres.postFeatures}));for(const n of Object.keys(targetPaths)){const x=b.probe[n],y=hres.probe[n];if(x.naturalWidth!==y.naturalWidth||x.naturalHeight!==y.naturalHeight)throw new Error('NATURAL_DIM_PARITY '+label+' '+n)}console.log('PHASE3F_FUNCTIONAL_PARITY='+JSON.stringify({label,pre:b.preFeatures,post:b.postFeatures,headEntry:hres.interaction}));all[label]={base:b,head:hres}}})().catch(e=>{console.error(e);process.exit(1)});
           NODE
           node /tmp/phase3f-qa.js
           python3 <<'PY'
@@ -196,12 +176,10 @@ jobs:
           rows=[]
           for vp in ('desktop','mobile'):
             for state in ('ENTRY','FIRST','MID','FINAL'):
-              a=Image.open(f'/tmp/base-{vp}-{state}.png').convert('RGBA'); b=Image.open(f'/tmp/head-{vp}-{state}.png').convert('RGBA')
-              if a.size!=b.size: raise SystemExit(f'PIXEL_SIZE_FAIL {vp} {state} {a.size} {b.size}')
-              diff=ImageChops.difference(a,b); bbox=diff.getbbox()
-              different=0 if bbox is None else sum(1 for px in diff.getdata() if px!=(0,0,0,0))
-              rows.append({'viewport':vp,'state':state,'differentPixels':different,'masked_dynamic_media':True})
-              if different!=0: raise SystemExit(f'PIXEL_DIFF_FAIL {vp} {state} different={different}')
+              a=Image.open(f'/tmp/base-{vp}-{state}.png').convert('RGBA');b=Image.open(f'/tmp/head-{vp}-{state}.png').convert('RGBA')
+              if a.size!=b.size: raise SystemExit(f'PIXEL_SIZE_FAIL {vp} {state}')
+              d=ImageChops.difference(a,b);different=0 if d.getbbox() is None else sum(1 for px in d.getdata() if px!=(0,0,0,0))
+              rows.append({'viewport':vp,'state':state,'differentPixels':different,'dynamic_gif_video_masked':True})
           print('PHASE3F_PIXEL='+json.dumps(rows))
           PY
       - name: Repository tests
@@ -216,9 +194,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          BASE=f1fa0a031e0bc4d1070371e872195ddea6716a51
           git diff --check
-          git status --short
           test -z "$(git status --porcelain | awk '$2=="package-lock.json"{print}')"
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
