@@ -16,4 +16,6 @@ assert.match(recovery, /recoverGuestsFromBackups/);
 assert.match(recovery, /currentGuestCount\(\) > 0/);
 assert.match(recovery, /automatic-guest-recovery/);
 assert.doesNotMatch(recovery, /\b(?:setDoc|addDoc|updateDoc|deleteDoc|writeBatch|runTransaction)\s*\(/);
-assert.match(firebaseEntry, /automatic-login-recovery\.js\?v=20260830-auto-recovery2/);
+// Incident containment: keep recovery code available for controlled/manual use,
+// but do not execute it automatically from the canonical Firebase entrypoint.
+assert.doesNotMatch(firebaseEntry, /automatic-login-recovery\.js/);
