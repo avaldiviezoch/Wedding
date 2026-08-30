@@ -28,14 +28,6 @@
       -webkit-tap-highlight-color:transparent;
     }
     #entryLoader.hide{opacity:0;visibility:hidden;pointer-events:none}
-    #entryLoader.fallback{
-      cursor:pointer;
-      touch-action:auto;
-      pointer-events:none;
-      background:
-        radial-gradient(circle at 50% 42%,rgba(255,255,255,.28),transparent 38%),
-        #f1e5da;
-    }
     #entryLoaderSpinner{
       width:30px;
       height:30px;
@@ -44,16 +36,9 @@
       border-radius:50%;
       animation:entrySpin .8s linear infinite;
     }
-    #entryLoader.fallback #entryLoaderSpinner{display:none}
     #entryLoaderText{
       font:600 14px/1.2 Georgia,'Times New Roman',serif;
       letter-spacing:.08em;
-    }
-    #entryLoader.fallback #entryLoaderText{
-      font-size:18px;
-      font-style:italic;
-      font-weight:400;
-      letter-spacing:.04em;
     }
     @keyframes entrySpin{to{transform:rotate(360deg)}}
     @media (prefers-reduced-motion:reduce){
@@ -63,7 +48,7 @@
   </style>
 </head>
 <body>
-  <iframe id="invite" src="./invitacion_6_base_final.html?v=20260830-entry-loader-3" title="Invitación Antonio y Lucero" allow="autoplay; fullscreen"></iframe>
+  <iframe id="invite" src="./invitacion_6_base_final.html?v=20260830-entry-loader-4" title="Invitación Antonio y Lucero" allow="autoplay; fullscreen"></iframe>
   <div id="entryLoader" role="status" aria-live="polite" aria-label="Cargando invitación">
     <div id="entryLoaderSpinner" aria-hidden="true"></div>
     <div id="entryLoaderText">Cargando…</div>
@@ -72,12 +57,9 @@
   (() => {
     const outer = document.getElementById('invite');
     const loader = document.getElementById('entryLoader');
-    const loaderText = document.getElementById('entryLoaderText');
     const HARD_LIMIT = 2500;
     let finished = false;
     let finishing = false;
-    let fallbackShown = false;
-    let observedVideo = null;
 
     function finishLoader() {
       if (finished || finishing) return;
@@ -92,13 +74,6 @@
       });
     }
 
-    function showFallback() {
-      if (finished || fallbackShown) return;
-      fallbackShown = true;
-      loader?.classList.add('fallback');
-      if (loaderText) loaderText.textContent = 'Toca para abrir';
-    }
-
     function getCriticalVideo() {
       try {
         const d1 = outer?.contentDocument || outer?.contentWindow.document;
@@ -111,10 +86,6 @@
         const video = doc?.getElementById('entryVideo');
         const entry = doc?.getElementById('entryScreen');
         if (!video || !entry) return null;
-        if (observedVideo !== video) {
-          observedVideo = video;
-          video.addEventListener('playing', finishLoader, { once:true });
-        }
         return { video, entry };
       } catch (error) {
         return null;
@@ -141,7 +112,7 @@
 
     outer?.addEventListener('load', probe, { once:true });
     probe();
-    window.setTimeout(showFallback, HARD_LIMIT);
+    window.setTimeout(finishLoader, HARD_LIMIT);
   })();
   </script>
   <script src="./date-row-fine-tune.js?v=20260827-date-row-2"></script>
