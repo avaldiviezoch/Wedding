@@ -1,4 +1,4 @@
-import { getApps } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
+import { getApps, initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
 import { getAuth } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 import { collection, doc, getDoc, getDocs, getFirestore } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
@@ -7,9 +7,18 @@ const CORE_URL = '../services/firebase-core.js?v=20260819-empty-onboarding2';
 const MIN_MEANINGFUL_BYTES = 8_000;
 const STRONG_RATIO = 1.8;
 
-const app = getApps()[0];
-const auth = app ? getAuth(app) : null;
-const db = app ? getFirestore(app) : null;
+const firebaseConfig = {
+  apiKey: 'AIzaSyDCRuQgMjnm7KcAN_qo8AHPD3ueyis4-LY',
+  authDomain: 'migrandia.firebaseapp.com',
+  projectId: 'migrandia',
+  storageBucket: 'migrandia.firebasestorage.app',
+  messagingSenderId: '7432985765',
+  appId: '1:7432985765:web:b3a4844f41ac2a1376c14c'
+};
+
+const app = getApps()[0] || initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 let running = false;
 let lastSignature = '';
@@ -148,7 +157,7 @@ async function tryLegacyFallback(user, current) {
 }
 
 async function recoverAfterLogin() {
-  if (running || !auth?.currentUser || !db) return;
+  if (running || !auth.currentUser) return;
   const context = window.WeddingPlannerWeddingContext || {};
   if (!context.id || context.legacyMode) return;
 
