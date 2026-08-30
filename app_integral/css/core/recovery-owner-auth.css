@@ -1,0 +1,11 @@
+.owner-auth-card{margin-bottom:18px}
+.owner-auth-google,.owner-auth-email{border:0;border-radius:999px;padding:12px 16px;background:#293126;color:#fff;font-weight:700;cursor:pointer}
+.owner-auth-google{width:100%}
+.owner-auth-divider{text-align:center;color:#7a7d72;font-size:.82rem;margin:14px 0}
+.owner-auth-fields{display:grid;grid-template-columns:1fr 1fr auto;gap:10px}
+.owner-auth-fields input{width:100%;border:1px solid rgba(41,49,38,.18);border-radius:14px;padding:12px 13px;background:#fbfaf7;color:#22231f;font:inherit}
+.owner-auth-status{margin:12px 0 0;color:#66695f;line-height:1.5}
+.owner-auth-card[data-authenticated="true"] .owner-auth-google,
+.owner-auth-card[data-authenticated="true"] .owner-auth-divider,
+.owner-auth-card[data-authenticated="true"] .owner-auth-fields{display:none}
+@media (max-width:760px){.owner-auth-fields{grid-template-columns:1fr}}
