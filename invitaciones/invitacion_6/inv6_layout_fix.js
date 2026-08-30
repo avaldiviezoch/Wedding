@@ -5,8 +5,8 @@
     const copy=section?.querySelector('.inv6-first-copy');
     if(!section||!copy) return;
 
-    document.documentElement.style.setProperty('background','#e9e1cc','important');
-    document.body?.style.setProperty('background','#e9e1cc','important');
+    document.documentElement.style.setProperty('background','#fffdf8','important');
+    document.body?.style.setProperty('background','#fffdf8','important');
     const outerFrame=document.getElementById('inviteFrame');
     outerFrame?.style.setProperty('background','#e9e1cc','important');
 
