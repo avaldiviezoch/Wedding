@@ -40,7 +40,8 @@
     if (!doc?.body) return false;
 
     const marker = [...doc.body.querySelectorAll('code, small, p, span, strong, div')]
-      .find((node) => String(node.textContent || '').includes(LEGACY_SHARED_STORAGE_KEY));
+      .filter((node) => String(node.textContent || '').includes(LEGACY_SHARED_STORAGE_KEY))
+      .sort((a, b) => String(a.textContent || '').length - String(b.textContent || '').length)[0];
     if (!marker) return false;
 
     let current = marker;
@@ -51,6 +52,7 @@
       );
 
       if (
+        text.length <= 1200 &&
         text.includes(LEGACY_SHARED_STORAGE_KEY) &&
         /preparado\s+para\s+conectarse/i.test(text) &&
         hasOpenDistribution
