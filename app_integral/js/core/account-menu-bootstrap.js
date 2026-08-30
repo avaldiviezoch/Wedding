@@ -1,7 +1,8 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260820-account-menu1';
+  const VERSION = '20260830-account-menu2';
+  let controllerPromise = null;
 
   function ensureStyles() {
     if (document.querySelector('link[data-mgd-context-bar]')) return;
@@ -64,14 +65,16 @@
   }
 
   function ensureController() {
-    if (document.querySelector('script[data-mgd-context-controller]')) return;
-    if (document.getElementById('moduleQuickNav')?.dataset.mgdContextBar) return;
+    const nav = document.getElementById('moduleQuickNav');
+    if (!nav || nav.dataset.mgdContextBar) return Promise.resolve();
+    if (controllerPromise) return controllerPromise;
 
-    const script = document.createElement('script');
-    script.src = new URL(`js/core/module-context-bar.js?v=${VERSION}`, document.baseURI).href;
-    script.dataset.mgdContextController = VERSION;
-    script.defer = true;
-    document.head.appendChild(script);
+    const controllerUrl = new URL(`./module-context-bar.js?v=${VERSION}`, import.meta.url).href;
+    controllerPromise = import(controllerUrl).catch((error) => {
+      controllerPromise = null;
+      console.error('No se pudo activar el menú de cuenta de módulos:', error);
+    });
+    return controllerPromise;
   }
 
   function init() {
