@@ -220,7 +220,7 @@
           const brook=doc.createElement('img');
           brook.className='te-esperamos-gif brook-final-gif';
           brook.src='./brook.gif';
-          brook.alt='Brook'; brook.loading='eager'; brook.decoding='async';
+          brook.alt='Brook'; brook.loading='lazy'; brook.decoding='async';
           if(title) title.insertAdjacentElement('afterend',brook); else finalCard.appendChild(brook);
         }
 
