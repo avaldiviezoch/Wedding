@@ -45,10 +45,14 @@
       const fiesta=doc.querySelector('.sat-inv6-program-fiesta-gif');
       const comida=doc.querySelector('.sat-inv6-program-comida-gif');
       const brindis=doc.querySelector('.sat-inv6-program-brindis-gif');
+      const ceremonia=doc.querySelector('.sat-inv6-program-ceremonia-gif');
+      const fin=doc.querySelector('.sat-inv6-program-fin-gif');
 
       if(fiesta)fiesta.src='./assets/fiesta_6.png';
       if(comida)comida.src='./assets/comida_6.png';
       if(brindis)brindis.src='./assets/brindis_6.png';
+      if(ceremonia)ceremonia.src='./assets/itinerario_entrada_6_3.png';
+      if(fin)fin.src='./assets/itinerario_despedida_6_3.png';
 
       return true;
     }catch(e){return false;}
