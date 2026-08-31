@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <meta name="theme-color" content="#fffdf8">
+  <title>Antonio & Lucero</title>
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#fffdf8}
+    body{min-height:100svh}
+    #inviteFrame{
+      position:fixed;
+      inset:0;
+      width:100%;
+      height:100%;
+      border:0;
+      background:#fffdf8;
+      opacity:0;
+      transition:opacity .18s ease;
+    }
+    #inviteFrame.ready{opacity:1}
+
+    @media (min-width:768px) and (max-width:1023px){
+      body{background:#fffdf8}
+      #inviteFrame{left:50%;right:auto;width:min(760px,100vw);transform:translateX(-50%)}
+    }
+    @media (min-width:1024px){
+      body{background:#fffdf8}
+      body::before,body::after{
+        content:"";
+        position:fixed;
+        top:0;
+        bottom:0;
+        width:max(0px,calc((100vw - 760px)/2));
+        pointer-events:none;
+        z-index:0;
+        background:#fffdf8;
+      }
+      body::before{left:0}
+      body::after{right:0}
+      #inviteFrame{
+        left:50%;
+        right:auto;
+        top:0;
+        bottom:0;
+        width:min(760px,calc(100vw - 96px));
+        height:100%;
+        transform:translateX(-50%);
+        border-left:1px solid rgba(91,82,70,.10);
+        border-right:1px solid rgba(91,82,70,.10);
+        box-shadow:0 0 44px rgba(65,54,43,.13);
+      }
+    }
+    @media (min-width:1440px){#inviteFrame{width:780px}}
+    @media (prefers-reduced-motion:reduce){#inviteFrame{transition:none!important}}
+  </style>
+</head>
+<body>
+  <iframe id="inviteFrame" src="./invitacion_5.html?v=20260819-2520-inv5-music-fields1" title="Invitación Antonio y Lucero" allow="autoplay; fullscreen"></iframe>
+<script src="./effects_5.js?v=20260821-inv6-textos-contador-1"></script>
+<script src="./inv6_layout_fix.js?v=20260823-gap1"></script>
+<script src="./inv6_between_text.js?v=20260823-card-inv1-2"></script>
+<script src="./inv6_torn_paper_message.js?v=20260823-torn-wide-small1"></script>
+<script src="./inv6_remove_between_paper_location.js?v=20260823-map-button-inv2-final-2"></script>
+<script src="./inv6_correcta_ultimos_gifs.js?v=20260826-merge93-final"></script>
+<script>
+(() => {
+  const frame = document.getElementById('inviteFrame');
+
+  const localAssets = new Set([
+    'sake_binks.mp3','video_entrada.mp4','video_de_saludo_2.mp4','fecha_regresiva_2.png',
+    'mano_que_viene_de_la_izquierda.png','mano_que_viene_de_la_derecha.png','marco_de_fotos_2.png',
+    'ubicacion_local_2.png','fiesta_chopper_2.gif','itinerario_2.png','dress_code_2.png',
+    'confirmar invitacion_2.gif','musica_2.png','invitacion_confirmacion_2.png','regalo_2.gif',
+    'te_esperamos_2.gif','brook.gif'
+  ]);
+
+  function localizeAssets(doc) {
+    const changedMedia = new Set();
+    doc.querySelectorAll('[src]').forEach(el => {
+      const raw = el.getAttribute('src') || '';
+      if (!raw || raw.startsWith('data:') || raw.startsWith('blob:')) return;
+      let clean = raw.split('#')[0].split('?')[0];
+      try { clean = decodeURIComponent(clean); } catch (error) {}
+      const name = clean.substring(clean.lastIndexOf('/') + 1);
+      if (!localAssets.has(name)) return;
+      const next = './' + encodeURI(name).replace(/#/g,'%23');
+      if (raw !== next) {
+        el.setAttribute('src', next);
+        if (el.tagName === 'VIDEO' || el.tagName === 'AUDIO' || el.tagName === 'SOURCE') {
+          changedMedia.add(el.closest('video,audio') || el);
+        }
+      }
+    });
+    changedMedia.forEach(media => {
+      try { media.load?.(); } catch (error) {}
+    });
+  }
+
+  function getTitleCandidates(doc) {
+    return [...new Set(doc.querySelectorAll([
+      'section h2','.section-title','.photo-story-title','.final-title','.location-title',
+      '.dresscode-title','.inv5-dress-code','.rsvp-title','.faq-title','.gift-title',
+      '.gift-stage-title','.music-title','.confirmation-title','.questions-title',
+      '.itinerary-title','.itinerario-title','.timeline-title'
+    ].join(',')))];
+  }
+
+  function normalizeSectionTitleSizes(doc) {
+    const reference = doc.querySelector('.photo-story-title');
+    if (!reference) return false;
+    const size = doc.defaultView.getComputedStyle(reference).fontSize;
+    if (!size) return false;
+    getTitleCandidates(doc).forEach(el => {
+      const text = (el.textContent || '').trim().toLowerCase();
+      const isProgramming =
+        el.closest('#itinerarySection,.itinerary-section,[aria-label*="Itinerario"],[aria-label*="itinerario"]') ||
+        text === 'nuestro día' ||
+        text === 'nuestro dia' ||
+        text.includes('programación') ||
+        text.includes('programacion');
+      if (isProgramming) return;
+      el.style.setProperty('font-size', size, 'important');
+    });
+    return true;
+  }
+
+  function applyInv6(doc) {
+    normalizeSectionTitleSizes(doc);
+    window.inv5ApplyVisualEffects?.(doc);
+    window.inv6ApplyLayoutFix?.(doc);
+    window.inv6ApplyBetweenText?.(doc);
+    window.inv6ApplyTornPaperMessage?.(doc);
+    window.inv6RemoveBetweenPaperAndLocation?.(doc);
+  }
+
+  function prepareEntryVideo(doc) {
+    const entry = doc.getElementById('entryScreen');
+    const video = doc.getElementById('entryVideo');
+    if (!entry || !video) return false;
+
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+    video.setAttribute('preload', 'auto');
+    video.preload = 'auto';
+    video.removeAttribute('controls');
+    video.controls = false;
+
+    const hideNative = doc.createElement('style');
+    hideNative.id = 'inv5-hide-native-video-ui';
+    hideNative.textContent =
+      '#entryVideo::-webkit-media-controls,' +
+      '#entryVideo::-webkit-media-controls-enclosure,' +
+      '#entryVideo::-webkit-media-controls-panel,' +
+      '#entryVideo::-webkit-media-controls-start-playback-button,' +
+      '#entryVideo::-webkit-media-controls-overlay-play-button{' +
+      'display:none!important;-webkit-appearance:none!important;opacity:0!important;pointer-events:none!important}';
+    doc.getElementById(hideNative.id)?.remove();
+    doc.head.appendChild(hideNative);
+
+    if (video.networkState === HTMLMediaElement.NETWORK_EMPTY) {
+      try { video.load(); } catch (error) {}
+    }
+    return true;
+  }
+
+  function resolveChild() {
+    try {
+      const wrapperDoc = frame.contentDocument || frame.contentWindow.document;
+      const inner = wrapperDoc.getElementById('inv5');
+      if (!inner) return false;
+      const doc = inner.contentDocument || inner.contentWindow.document;
+
+      localizeAssets(doc);
+      [0,220,700,1400].forEach(delay => setTimeout(() => applyInv6(doc), delay));
+      if (doc.fonts?.ready) doc.fonts.ready.then(() => applyInv6(doc)).catch(() => {});
+
+      return prepareEntryVideo(doc);
+    } catch (error) {
+      return false;
+    }
+  }
+
+  frame.addEventListener('load', () => {
+    frame.classList.add('ready');
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries += 1;
+      if (resolveChild() || tries > 40) clearInterval(timer);
+    }, 100);
+  });
+})();
+</script>
+</body>
+</html>
