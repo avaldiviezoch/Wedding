@@ -63,7 +63,7 @@
         width:69% !important;
         color:#4a433d !important;
         text-align:right !important;
-        font-family:'Great Vibes',cursive !important;
+        font-family:'Inv6EyesomeReal',cursive !important;
         font-size:clamp(15px,3.15vw,24px) !important;
         line-height:1.03 !important;
         font-weight:400 !important;
@@ -119,7 +119,7 @@
       }
       #inv6PrimeraEntrada .inv6-couple{
         margin:12px auto 0 !important;
-        font-family:'Eyesome Script',cursive !important;
+        font-family:'Inv6EyesomeReal',cursive !important;
         font-size:clamp(45px,10.8vw,80px) !important;
         line-height:.92 !important;
         font-weight:400 !important;
