@@ -119,7 +119,7 @@
       }
       #inv6PrimeraEntrada .inv6-couple{
         margin:12px auto 0 !important;
-        font-family:'Great Vibes',cursive !important;
+        font-family:'Eyesome Script',cursive !important;
         font-size:clamp(45px,10.8vw,80px) !important;
         line-height:.92 !important;
         font-weight:400 !important;
