@@ -27,7 +27,7 @@
           right:0!important;
         }
         html body .sat-inv6-crew-title{
-          top:18.2%!important;
+          top:16.2%!important;
         }
       `;
       return true;
