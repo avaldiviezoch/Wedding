@@ -63,7 +63,7 @@
         width:69% !important;
         color:#4a433d !important;
         text-align:right !important;
-        font-family:'Amsterdam Four','Great Vibes',cursive !important;
+        font-family:'Great Vibes',cursive !important;
         font-size:clamp(15px,3.15vw,24px) !important;
         line-height:1.03 !important;
         font-weight:400 !important;
