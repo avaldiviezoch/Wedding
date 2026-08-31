@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f1e5da">
+  <title>Antonio & Lucero · Prueba RSVP y Música</title>
+  <style>
+    @font-face{
+      font-family:"Amsterdam Four";
+      src:url("./Amsterdam%20Four_ttf%20400.ttf") format("truetype");
+      font-display:swap;
+    }
+
+    :root{
+      --olive:#6d7559;
+      --olive-dark:#535c45;
+      --ink:#555d4d;
+      --muted:#777d6d;
+      --paper:#f1e5da;
+      --paper-light:#faf4ee;
+      --line:rgba(109,117,89,.20);
+    }
+
+    *{box-sizing:border-box}
+
+    html{
+      min-height:100%;
+      background:var(--paper);
+      scroll-behavior:smooth;
+    }
+
+    body{
+      min-height:100%;
+      margin:0;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 15% 8%,rgba(255,255,255,.58),transparent 29rem),
+        radial-gradient(circle at 86% 82%,rgba(217,198,181,.35),transparent 31rem),
+        var(--paper);
+      font-family:Georgia,"Times New Roman",serif;
+    }
+
+    .test-page{
+      width:min(100%,760px);
+      margin:0 auto;
+      padding:38px 18px 70px;
+    }
+
+    .intro{
+      padding:10px 10px 32px;
+      text-align:center;
+    }
+
+    .intro-kicker,
+    .section-kicker{
+      margin:0 0 8px;
+      color:#7b826c;
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+    }
+
+    .intro h1{
+      margin:0;
+      color:var(--olive-dark);
+      font-family:"Amsterdam Four","Segoe Script",cursive;
+      font-size:clamp(43px,11vw,76px);
+      font-weight:400;
+      line-height:1.05;
+    }
+
+    .intro p{
+      max-width:540px;
+      margin:16px auto 0;
+      color:#6b7162;
+      font-size:15px;
+      line-height:1.7;
+    }
+
+    .invitation-section{
+      margin:0 0 34px;
+      padding:26px clamp(14px,4vw,28px) 30px;
+      overflow:hidden;
+      border:1px solid rgba(109,117,89,.14);
+      border-radius:28px;
+      background:rgba(255,253,248,.33);
+      box-shadow:0 18px 46px rgba(73,69,52,.07);
+      text-align:center;
+    }
+
+    .section-heading h2{
+      margin:0;
+      color:var(--olive-dark);
+      font-family:"Amsterdam Four","Segoe Script",cursive;
+      font-size:clamp(36px,9vw,58px);
+      font-weight:400;
+      line-height:1.05;
+    }
+
+    .section-heading p{
+      max-width:520px;
+      margin:12px auto 0;
+      color:#6e7465;
+      font-size:14px;
+      line-height:1.65;
+    }
+
+    .illustration{
+      display:block;
+      width:min(100%,560px);
+      max-height:360px;
+      margin:12px auto 8px;
+      object-fit:contain;
+      filter:drop-shadow(0 15px 22px rgba(68,70,51,.08));
+    }
+
+    .illustration-trigger{
+      display:block;
+      width:100%;
+      margin:10px auto 0;
+      padding:0;
+      border:0;
+      outline:none;
+      background:transparent;
+      cursor:pointer;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    .illustration-trigger .illustration{
+      pointer-events:none;
+      transition:transform .45s cubic-bezier(.2,.8,.25,1),filter .45s ease;
+    }
+
+    .illustration-trigger:hover .illustration,
+    .illustration-trigger:focus-visible .illustration{
+      transform:translateY(-5px) scale(1.015);
+      filter:drop-shadow(0 20px 26px rgba(68,70,51,.13));
+    }
+
+    .illustration-trigger.is-open .illustration{
+      animation:invitationTap .72s cubic-bezier(.2,.8,.25,1);
+    }
+
+    .tap-hint{
+      margin:0 0 14px;
+      color:#78806b;
+      font-size:clamp(10px,1.8vw,12px);
+      letter-spacing:.13em;
+      line-height:1.45;
+      text-align:center;
+      text-transform:uppercase;
+      transition:opacity .3s ease;
+    }
+
+    .illustration-trigger.is-open + .tap-hint{
+      opacity:.58;
+    }
+
+    .native-form{
+      width:min(100%,520px);
+      max-height:0;
+      margin:0 auto;
+      overflow:hidden;
+      opacity:0;
+      transform:translateY(-12px);
+      text-align:left;
+      transition:max-height .9s ease,opacity .5s ease,transform .55s ease,margin .55s ease;
+    }
+
+    .native-form.is-open{
+      max-height:2400px;
+      margin-top:12px;
+      overflow:visible;
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    @keyframes invitationTap{
+      0%,100%{transform:scale(1)}
+      34%{transform:scale(.965) rotate(-1deg)}
+      68%{transform:scale(1.025) rotate(1deg)}
+    }
+
+    .native-form .mgd-native-widget{
+      width:100%;
+    }
+
+    .native-form .mgd-native-form,
+    .native-form .mgd-native-success{
+      border-color:var(--line)!important;
+      background:rgba(255,255,255,.20)!important;
+      box-shadow:none!important;
+    }
+
+    .divider{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      margin:0 auto 34px;
+      color:#858b79;
+    }
+
+    .divider::before,
+    .divider::after{
+      width:min(28vw,150px);
+      height:1px;
+      content:"";
+      background:linear-gradient(90deg,transparent,var(--line));
+    }
+
+    .divider::after{
+      transform:scaleX(-1);
+    }
+
+    .divider span{
+      font-size:17px;
+    }
+
+    .test-note{
+      max-width:570px;
+      margin:0 auto;
+      color:#737969;
+      font-size:12px;
+      line-height:1.6;
+      text-align:center;
+    }
+
+    @media(max-width:560px){
+      .test-page{padding:24px 10px 50px}
+      .intro{padding-bottom:22px}
+      .invitation-section{padding:22px 10px 25px;border-radius:22px}
+      .illustration{max-height:270px}
+    }
+  </style>
+</head>
+<body>
+  <main class="test-page">
+    <header class="intro">
+      <p class="intro-kicker">Vista de prueba · Invitación 5</p>
+      <h1>Antonio y Lucero</h1>
+      <p>Esta página contiene únicamente la confirmación de asistencia y la encuesta musical, integradas directamente en la invitación.</p>
+    </header>
+
+    <section class="invitation-section" aria-labelledby="rsvpTitle">
+      <div class="section-heading">
+        <p class="section-kicker">Nos encantaría contar contigo</p>
+        <h2 id="rsvpTitle">Confirma tu asistencia</h2>
+        <p>Completa tus datos para hacernos saber si podrás acompañarnos en este día tan especial.</p>
+      </div>
+
+      <button class="illustration-trigger" id="rsvpTrigger" type="button" aria-controls="rsvpNativePanel" aria-expanded="false">
+        <img
+          class="illustration"
+          src="./confirmar%20invitacion_2.gif"
+          alt="Mensajero de la Invitación 5 para confirmar asistencia">
+      </button>
+      <p class="tap-hint">Toca al mensajero para confirmar tu asistencia</p>
+
+      <div class="native-form" id="rsvpNativePanel">
+        <div
+          data-mgd-rsvp-token="b00bca195e8e448eab17557bb6b4ffc480ad2e95c0db4c85bca52a62ff60b499"
+          style="--mgd-accent:#6d7559;--mgd-text:#555d4d;--mgd-muted:#777d6d;--mgd-surface:rgba(255,255,255,.20);--mgd-border:rgba(109,117,89,.20);"
+        ></div>
+      </div>
+    </section>
+
+    <div class="divider" aria-hidden="true"><span>♪</span></div>
+
+    <section class="invitation-section" aria-labelledby="musicTitle">
+      <div class="section-heading">
+        <p class="section-kicker">Nuestra banda sonora</p>
+        <h2 id="musicTitle">Pedidos musicales</h2>
+        <p>Déjanos las canciones que te gustaría escuchar durante la recepción o la fiesta.</p>
+      </div>
+
+      <button class="illustration-trigger" id="musicTrigger" type="button" aria-controls="musicNativePanel" aria-expanded="false">
+        <img
+          class="illustration"
+          src="./musica_2.png"
+          alt="Tocadiscos de la Invitación 5 para dejar pedidos musicales">
+      </button>
+      <p class="tap-hint">Toca el tocadiscos para dejar tu canción</p>
+
+      <div class="native-form" id="musicNativePanel">
+        <div
+          data-mgd-music-token="b00bca195e8e448eab17557bb6b4ffc480ad2e95c0db4c85bca52a62ff60b499"
+          style="--mgd-accent:#6d7559;--mgd-text:#555d4d;--mgd-muted:#777d6d;--mgd-surface:rgba(255,255,255,.20);--mgd-border:rgba(109,117,89,.20);"
+        ></div>
+      </div>
+    </section>
+
+    <p class="test-note">Ambos formularios usan el mismo token y la misma sesión del invitado. La confirmación y las canciones quedan relacionadas sin mostrarse como una aplicación separada.</p>
+  </main>
+
+  <script>
+    function bindReveal(triggerId,panelId){
+      const trigger=document.getElementById(triggerId);
+      const panel=document.getElementById(panelId);
+      if(!trigger||!panel)return;
+
+      trigger.addEventListener('click',()=>{
+        const willOpen=!panel.classList.contains('is-open');
+        panel.classList.toggle('is-open',willOpen);
+        trigger.classList.toggle('is-open',willOpen);
+        trigger.setAttribute('aria-expanded',String(willOpen));
+
+        if(willOpen){
+          setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}),220);
+        }
+      });
+    }
+
+    bindReveal('rsvpTrigger','rsvpNativePanel');
+    bindReveal('musicTrigger','musicNativePanel');
+  </script>
+  <script type="module" src="https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260820-5b2"></script>
+</body>
+</html>
+
