@@ -30,6 +30,9 @@
         html body #sat-inv6-photo-collage .photo-2{
           right:0!important;
         }
+        html body .sat-inv6-crew-title{
+          top:18.2%!important;
+        }
       `;
       return true;
     }catch(e){return false;}
