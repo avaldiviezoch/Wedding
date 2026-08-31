@@ -39,7 +39,7 @@
       }
 
       if(dressWhite){
-        dressWhite.innerHTML='Amaremos que vistan en colores de<br>nuestra paleta de boda, es decir tropicales y<br>pasteles acorde a la estación ☀️🌴 Recuerda<br>que tu mejor accesorio es tu actitud y una<br>gran sonrisa.';
+        dressWhite.innerHTML='Amaremos que vistan en colores de nuestra<br>paleta de boda, es decir tropicales y<br>pasteles acorde a la estación ☀️🌴 Recuerda<br>que tu mejor accesorio es tu actitud y una<br>gran sonrisa.';
       }
 
       return true;
