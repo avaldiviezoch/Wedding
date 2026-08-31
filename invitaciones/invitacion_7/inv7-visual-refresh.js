@@ -42,6 +42,14 @@
         dressWhite.innerHTML='<span style="white-space:nowrap">Amaremos que vistan en colores de</span><br><span style="white-space:nowrap">nuestra paleta de boda, es decir tropicales y</span><br><span style="white-space:nowrap">pasteles acorde a la estación ☀️🌴 Recuerda</span><br><span style="white-space:nowrap">que tu mejor accesorio es tu actitud y una</span><br><span style="white-space:nowrap">gran sonrisa.</span>';
       }
 
+      const fiesta=doc.querySelector('.sat-inv6-program-fiesta-gif');
+      const comida=doc.querySelector('.sat-inv6-program-comida-gif');
+      const brindis=doc.querySelector('.sat-inv6-program-brindis-gif');
+
+      if(fiesta)fiesta.src='./assets/fiesta_6.png';
+      if(comida)comida.src='./assets/comida_6.png';
+      if(brindis)brindis.src='./assets/brindis_6.png';
+
       return true;
     }catch(e){return false;}
   }
