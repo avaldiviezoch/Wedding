@@ -22,7 +22,7 @@
       style.textContent=`
         #inv6PrimeraEntrada .inv6-top-note,
         #inv6PrimeraEntrada .inv6-couple{
-          font-family:'Eyesome Script',cursive!important;
+          font-family:'Inv6EyesomeReal',cursive!important;
         }
         html body #sat-inv6-photo-collage .photo-1{
           left:0!important;
