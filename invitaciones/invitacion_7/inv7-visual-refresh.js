@@ -39,7 +39,7 @@
       }
 
       if(dressWhite){
-        dressWhite.innerHTML='Amaremos que vistan en colores de nuestra<br>paleta de boda, es decir tropicales y<br>pasteles acorde a la estación ☀️🌴 Recuerda<br>que tu mejor accesorio es tu actitud y una<br>gran sonrisa.';
+        dressWhite.innerHTML='<span style="white-space:nowrap">Amaremos que vistan en colores de</span><br><span style="white-space:nowrap">nuestra paleta de boda, es decir tropicales y</span><br><span style="white-space:nowrap">pasteles acorde a la estación ☀️🌴 Recuerda</span><br><span style="white-space:nowrap">que tu mejor accesorio es tu actitud y una</span><br><span style="white-space:nowrap">gran sonrisa.</span>';
       }
 
       return true;
