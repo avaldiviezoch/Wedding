@@ -30,6 +30,18 @@
           top:16.2%!important;
         }
       `;
+
+      const dressSubtitle=doc.querySelector('.inv5-dress-subtitle');
+      const dressWhite=doc.querySelector('.inv5-dress-white');
+
+      if(dressSubtitle){
+        dressSubtitle.innerHTML='Queremos que cada uno de ustedes<br>se sienta especial y luzca espectacular en<br>nuestro día. ¡Aquí todos brillamos!';
+      }
+
+      if(dressWhite){
+        dressWhite.innerHTML='Amaremos que vistan en colores de<br>nuestra paleta de boda, es decir tropicales y<br>pasteles acorde a la estación ☀️🌴 Recuerda<br>que tu mejor accesorio es tu actitud y una<br>gran sonrisa.';
+      }
+
       return true;
     }catch(e){return false;}
   }
