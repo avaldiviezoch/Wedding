@@ -256,8 +256,8 @@
         if (!doc?.head) return false;
         let style = doc.getElementById(STYLE_ID);
         if (!style) {
-          style=doc.createElement('style');
-          style.id=STYLE_ID;
+          style = doc.createElement('style');
+          style.id = STYLE_ID;
           doc.head.appendChild(style);
         }
         style.textContent = `
