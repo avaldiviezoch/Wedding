@@ -1,4 +1,9 @@
-const VERSION = '20260901-table-capacity-actions1';
+import {
+  alignGeometryLimits,
+  mutationTouchesGeometry
+} from './table-capacity-dom.js?v=20260901-table-capacity-dom1';
+
+const VERSION = '20260901-table-capacity-actions2';
 const controllers = new WeakMap();
 let observer = null;
 
@@ -17,15 +22,6 @@ function isDistributionDocument(doc) {
 
 function normalizeCapacity(value) {
   return Math.min(16, Math.max(4, Math.round(Number(value) || 10)));
-}
-
-function alignGeometryLimits(doc) {
-  doc.querySelectorAll('.mgd-table-geometry-panel input[data-mgd-field="width"],.mgd-table-geometry-panel input[data-mgd-field="height"],.mgd-table-create-modal input[data-mgd-field="width"],.mgd-table-create-modal input[data-mgd-field="height"]').forEach((input) => {
-    input.max = '5';
-  });
-  doc.querySelectorAll('.mgd-table-geometry-help').forEach((help) => {
-    help.textContent = 'Máximo 16 sillas. Medidas físicas editables hasta 5 m; la zona punteada muestra sillas y circulación a la escala actual.';
-  });
 }
 
 function assignSequentially(frame) {
@@ -83,14 +79,14 @@ function bindFrame(frame) {
   try { doc = frame.contentDocument; } catch (_) { return; }
   if (!isDistributionDocument(doc)) return;
 
+  const current = controllers.get(frame);
+  if (current?.doc === doc || doc.documentElement.dataset.mgdTableCapacityActions === VERSION) return;
+  current?.bodyObserver?.disconnect();
+
+  doc.documentElement.dataset.mgdTableCapacityActions = VERSION;
   alignGeometryLimits(doc);
   setTimeout(() => alignGeometryLimits(doc), 120);
   setTimeout(() => alignGeometryLimits(doc), 480);
-
-  const current = controllers.get(frame);
-  if (current === doc || doc.documentElement.dataset.mgdTableCapacityActions === VERSION) return;
-  controllers.set(frame, doc);
-  doc.documentElement.dataset.mgdTableCapacityActions = VERSION;
 
   doc.addEventListener('click', (event) => {
     const button = event.target?.closest?.('#btnAssignGuests,#btnClearAssignments');
@@ -101,8 +97,14 @@ function bindFrame(frame) {
     else clearAssignments(frame);
   }, true);
 
-  const bodyObserver = new MutationObserver(() => alignGeometryLimits(doc));
+  // Observar únicamente la aparición de la UI de geometría. El observer anterior
+  // reaccionaba a cualquier childList del body y su propio textContent volvía a
+  // dispararlo indefinidamente, bloqueando el hilo principal de Chrome.
+  const bodyObserver = new MutationObserver((mutations) => {
+    if (mutationTouchesGeometry(mutations)) alignGeometryLimits(doc);
+  });
   bodyObserver.observe(doc.body, { childList: true, subtree: true });
+  controllers.set(frame, { doc, bodyObserver });
 }
 
 function scan() {
