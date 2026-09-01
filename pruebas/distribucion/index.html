@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi Gran Día · Pruebas de Distribución</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="lab-shell">
+    <header class="lab-header">
+      <div>
+        <span class="eyebrow">MI GRAN DÍA · LABORATORIO</span>
+        <h1>Distribución</h1>
+        <p>Entorno aislado para reconstruir el módulo sin afectar la aplicación real.</p>
+      </div>
+      <div class="lab-status" aria-label="Estado del laboratorio">
+        <span class="status-dot"></span>
+        Sin persistencia
+      </div>
+    </header>
+
+    <main class="lab-layout">
+      <aside class="lab-panel" aria-label="Herramientas">
+        <section>
+          <h2>Agregar elementos</h2>
+          <button class="tool-card" id="addRoundTable" type="button">
+            <span class="tool-icon">◉</span>
+            <span><strong>Mesa circular</strong><small>10 personas</small></span>
+          </button>
+        </section>
+
+        <section class="panel-section">
+          <h2>Vista</h2>
+          <label class="check-row"><input id="showNames" type="checkbox" checked> Mostrar nombres</label>
+          <label class="check-row"><input id="showClearance" type="checkbox" checked> Mostrar circulación</label>
+        </section>
+
+        <section class="panel-section">
+          <h2>Escala</h2>
+          <label class="field">
+            <span>Píxeles por metro</span>
+            <input id="scaleInput" type="number" min="18" max="50" step="1" value="32">
+          </label>
+          <p class="hint">La mesa se dibuja usando medidas físicas. Esta escala será la base de las siguientes pruebas.</p>
+        </section>
+
+        <section class="panel-section">
+          <h2>Selección</h2>
+          <div class="selection-card" id="selectionCard">
+            <strong id="selectionTitle">Mesa 1</strong>
+            <span id="selectionMeta">Circular · 10 sillas</span>
+            <p>Arrastra la mesa directamente sobre el plano.</p>
+          </div>
+          <button class="secondary-button" id="resetLab" type="button">Restablecer prueba</button>
+        </section>
+      </aside>
+
+      <section class="planner-card" aria-label="Plano de distribución">
+        <div class="planner-toolbar">
+          <div>
+            <strong>Plano de prueba</strong>
+            <span>Baseline: mesa circular estable</span>
+          </div>
+          <span class="toolbar-chip">Solo memoria temporal</span>
+        </div>
+        <div class="planner-stage">
+          <svg id="planner" viewBox="0 0 1200 760" role="img" aria-label="Plano de distribución de prueba">
+            <defs>
+              <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+                <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#4f5c52" stroke-opacity=".10" stroke-width="1"/>
+              </pattern>
+              <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+                <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000" flood-opacity=".15"/>
+              </filter>
+            </defs>
+            <rect width="1200" height="760" fill="#f8f6f0"/>
+            <rect width="1200" height="760" fill="url(#grid)"/>
+            <g id="tablesLayer"></g>
+          </svg>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
