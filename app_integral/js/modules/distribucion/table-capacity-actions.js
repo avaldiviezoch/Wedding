@@ -19,6 +19,15 @@ function normalizeCapacity(value) {
   return Math.min(16, Math.max(4, Math.round(Number(value) || 10)));
 }
 
+function alignGeometryLimits(doc) {
+  doc.querySelectorAll('.mgd-table-geometry-panel input[data-mgd-field="width"],.mgd-table-geometry-panel input[data-mgd-field="height"],.mgd-table-create-modal input[data-mgd-field="width"],.mgd-table-create-modal input[data-mgd-field="height"]').forEach((input) => {
+    input.max = '5';
+  });
+  doc.querySelectorAll('.mgd-table-geometry-help').forEach((help) => {
+    help.textContent = 'Máximo 16 sillas. Medidas físicas editables hasta 5 m; la zona punteada muestra sillas y circulación a la escala actual.';
+  });
+}
+
 function assignSequentially(frame) {
   const api = bridge();
   if (!api) return false;
@@ -74,6 +83,10 @@ function bindFrame(frame) {
   try { doc = frame.contentDocument; } catch (_) { return; }
   if (!isDistributionDocument(doc)) return;
 
+  alignGeometryLimits(doc);
+  setTimeout(() => alignGeometryLimits(doc), 120);
+  setTimeout(() => alignGeometryLimits(doc), 480);
+
   const current = controllers.get(frame);
   if (current === doc || doc.documentElement.dataset.mgdTableCapacityActions === VERSION) return;
   controllers.set(frame, doc);
@@ -87,6 +100,9 @@ function bindFrame(frame) {
     if (button.id === 'btnAssignGuests') assignSequentially(frame);
     else clearAssignments(frame);
   }, true);
+
+  const bodyObserver = new MutationObserver(() => alignGeometryLimits(doc));
+  bodyObserver.observe(doc.body, { childList: true, subtree: true });
 }
 
 function scan() {
