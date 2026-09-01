@@ -5,6 +5,7 @@ import {
   TABLE_TYPES,
   TABLE_CAPACITY_OPTIONS,
   MAX_TABLE_CAPACITY,
+  MAX_TABLETOP_M,
   TABLE_CLEARANCE_M,
   standardTabletop,
   resolveTableGeometry,
@@ -17,8 +18,16 @@ const geometryRuntime = readFileSync(
   new URL('../../app_integral/js/modules/distribucion/table-geometry.js', import.meta.url),
   'utf8'
 );
+const capacityActions = readFileSync(
+  new URL('../../app_integral/js/modules/distribucion/table-capacity-actions.js', import.meta.url),
+  'utf8'
+);
 const distribution = readFileSync(
   new URL('../../app_integral/js/modules/distribucion/index.js', import.meta.url),
+  'utf8'
+);
+const runtimeLoader = readFileSync(
+  new URL('../../app_integral/js/modules/invitados/runtime-loader.js', import.meta.url),
   'utf8'
 );
 
@@ -38,7 +47,7 @@ test('standard dimensions are real tabletop sizes and operational footprints inc
   assert.equal(geometry.plannerShape, 'table');
 });
 
-test('custom measurements remain independent from capacity and keep the current planner scale model', () => {
+test('custom measurements remain independent from capacity and use physical tabletop size in the legacy planner', () => {
   const patch = geometryPatch({}, {
     type: 'rectangular',
     capacity: 16,
@@ -51,8 +60,21 @@ test('custom measurements remain independent from capacity and keep the current 
   assert.equal(patch.dimensionsCustom, true);
   const legacy = legacyGeometryPatch(patch);
   assert.equal(legacy.shape, 'rect');
-  assert.equal(legacy.widthM, 3.25 + TABLE_CLEARANCE_M * 2);
-  assert.equal(legacy.heightM, 1.15 + TABLE_CLEARANCE_M * 2);
+  assert.equal(legacy.widthM, 3.25);
+  assert.equal(legacy.heightM, 1.15);
+  assert.equal(resolveTableGeometry(patch).footprintWidthM, 3.25 + TABLE_CLEARANCE_M * 2);
+});
+
+test('custom physical dimensions respect the current planner five-metre limit', () => {
+  assert.equal(MAX_TABLETOP_M, 5);
+  const patch = geometryPatch({}, {
+    type: 'rectangular',
+    capacity: 16,
+    tabletopWidthM: 9,
+    tabletopHeightM: 7
+  });
+  assert.equal(patch.tabletopWidthM, 5);
+  assert.equal(patch.tabletopHeightM, 5);
 });
 
 test('all approved shapes can display sixteen chair positions', () => {
@@ -83,6 +105,16 @@ test('seats 11 through 16 remain editable and cannot be erased by the ten-seat l
   assert.match(distribution, /los asientos 11–16 se preservan/);
 });
 
+test('global assign and clear actions use each table real capacity instead of a ten-seat multiplier', () => {
+  assert.match(capacityActions, /Math\.min\(16, Math\.max\(4/);
+  assert.match(capacityActions, /seatIndex < capacity/);
+  assert.match(capacityActions, /guest\.seatNumber = seatIndex \+ 1/);
+  assert.match(capacityActions, /distribucion-bulk-assign/);
+  assert.match(capacityActions, /distribucion-bulk-clear/);
+  assert.doesNotMatch(capacityActions, /tables\.length\s*\*\s*10/);
+  assert.match(runtimeLoader, /table-capacity-actions\.js\?v=20260901-table-capacity-actions1/);
+});
+
 test('Distribución creates and edits tables through the existing canonical bridge, not Firebase', () => {
   assert.match(geometryRuntime, /saveState\(next, source\)/);
   assert.match(geometryRuntime, /api\.syncNow\(\)/);
@@ -90,6 +122,8 @@ test('Distribución creates and edits tables through the existing canonical brid
   assert.match(geometryRuntime, /distribucion-table-geometry/);
   assert.match(geometryRuntime, /mesa 10 personas/);
   assert.match(geometryRuntime, /original\.hidden = true/);
-  assert.doesNotMatch(geometryRuntime, /\b(?:setDoc|addDoc|updateDoc|deleteDoc|writeBatch|runTransaction)\b/);
-  assert.doesNotMatch(geometryRuntime, /firebase(?:-firestore)?/i);
+  for (const source of [geometryRuntime, capacityActions]) {
+    assert.doesNotMatch(source, /\b(?:setDoc|addDoc|updateDoc|deleteDoc|writeBatch|runTransaction)\b/);
+    assert.doesNotMatch(source, /firebase(?:-firestore)?/i);
+  }
 });
