@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260830-tables-access-recovery1';
+  const VERSION = '20260901-distribution-table-geometry1';
   let baseRuntime = null;
   let rsvpRuntime = null;
 
@@ -9,10 +9,10 @@
     return new URL(`js/modules/invitados/${file}?v=${version}`, document.baseURI).href;
   }
 
-  // Distribución: solo se carga el vínculo de datos. La capa visual dinámica queda
-  // fuera del flujo activo para evitar que una interfaz se pinte sobre otra.
-  import(new URL('js/modules/distribucion/index.js?v=20260901-distribution-live-tables2', document.baseURI).href)
-    .catch((error) => console.warn('No se pudo iniciar el vínculo Invitados ↔ Distribución:', error));
+  // Distribución: primero inicia el vínculo canónico y después la geometría visual.
+  import(new URL('js/modules/distribucion/index.js?v=20260901-distribution-table-geometry1', document.baseURI).href)
+    .then(() => import(new URL('js/modules/distribucion/table-geometry.js?v=20260901-table-geometry1', document.baseURI).href))
+    .catch((error) => console.warn('No se pudo iniciar el vínculo/geometría Mesas ↔ Distribución:', error));
 
   // Distribución: conserva y recupera la imagen del plano por propuesta.
   // También corrige una sola vez propuestas antiguas guardadas con el plano oculto.
