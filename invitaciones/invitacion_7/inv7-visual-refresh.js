@@ -34,10 +34,24 @@
           background-size:100% 100%!important;
           background-position:center top!important;
           background-repeat:no-repeat!important;
-          padding-bottom:110px!important;
         }
-        html body #sat-inv6-program-timeline-section .sat-inv6-program-line-wrap{
-          bottom:100px!important;
+        html body #sat-inv6-rsvp-heading-section::before{
+          content:''!important;
+          position:absolute!important;
+          left:0!important;
+          right:0!important;
+          top:-90px!important;
+          height:90px!important;
+          background-image:url('./assets/IMG_1047.jpeg')!important;
+          background-size:100% auto!important;
+          background-position:center bottom!important;
+          background-repeat:no-repeat!important;
+          pointer-events:none!important;
+          z-index:0!important;
+        }
+        html body #sat-inv6-rsvp-heading-section>*{
+          position:relative!important;
+          z-index:1!important;
         }
       `;
 
