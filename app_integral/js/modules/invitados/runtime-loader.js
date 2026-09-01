@@ -1,7 +1,8 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260901-distribution-table-geometry2';
+  const VERSION = '20260901-distribution-freeze-containment1';
+  const DISTRIBUTION_TABLE_INTEGRATION_ENABLED = false;
   let baseRuntime = null;
   let rsvpRuntime = null;
 
@@ -9,13 +10,17 @@
     return new URL(`js/modules/invitados/${file}?v=${version}`, document.baseURI).href;
   }
 
-  // Distribución: primero inicia el vínculo canónico y después la geometría/acciones de capacidad.
-  import(new URL('js/modules/distribucion/index.js?v=20260901-distribution-table-geometry1', document.baseURI).href)
-    .then(() => Promise.all([
-      import(new URL('js/modules/distribucion/table-geometry.js?v=20260901-table-geometry1', document.baseURI).href),
-      import(new URL('js/modules/distribucion/table-capacity-actions.js?v=20260901-table-capacity-actions1', document.baseURI).href)
-    ]))
-    .catch((error) => console.warn('No se pudo iniciar el vínculo/geometría Mesas ↔ Distribución:', error));
+  // Contención temporal: la integración nueva de Mesas ↔ Distribución queda
+  // desactivada mientras se aísla el ciclo de carga observado en producción.
+  // No modifica datos ni persistencia; simplemente evita ejecutar esos módulos.
+  if (DISTRIBUTION_TABLE_INTEGRATION_ENABLED) {
+    import(new URL('js/modules/distribucion/index.js?v=20260901-distribution-table-geometry1', document.baseURI).href)
+      .then(() => Promise.all([
+        import(new URL('js/modules/distribucion/table-geometry.js?v=20260901-table-geometry1', document.baseURI).href),
+        import(new URL('js/modules/distribucion/table-capacity-actions.js?v=20260901-table-capacity-actions1', document.baseURI).href)
+      ]))
+      .catch((error) => console.warn('No se pudo iniciar el vínculo/geometría Mesas ↔ Distribución:', error));
+  }
 
   // Distribución: conserva y recupera la imagen del plano por propuesta.
   // También corrige una sola vez propuestas antiguas guardadas con el plano oculto.
