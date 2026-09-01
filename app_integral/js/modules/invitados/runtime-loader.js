@@ -17,7 +17,7 @@
     import(new URL('js/modules/distribucion/index.js?v=20260901-distribution-table-geometry2', document.baseURI).href)
       .then(() => Promise.all([
         import(new URL('js/modules/distribucion/table-geometry.js?v=20260901-table-geometry1', document.baseURI).href),
-        import(new URL('js/modules/distribucion/table-capacity-actions.js?v=20260901-table-capacity-actions2', document.baseURI).href)
+        import(new URL('js/modules/distribucion/table-capacity-actions.js?v=20260901-table-capacity-actions1&fix=observer2', document.baseURI).href)
       ]))
       .catch((error) => console.warn('No se pudo iniciar el vínculo/geometría Mesas ↔ Distribución:', error));
   }
