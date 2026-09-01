@@ -211,7 +211,7 @@
   <script src="./restore-agreed-gift.js?v=20260827-agreed-gift-owner-2"></script>
   <script src="./gift-green-underlay.js?v=20260828-green-panel-real-1"></script>
   <script src="./inv7-visual-refresh.js?v=20260901-program-bg-under-bird-1"></script>
-  <script src="./inv7-faq-final-tune.js?v=20260901-faq-images-viewport-fix-2"></script>
+  <script src="./inv7-faq-final-tune.js?v=20260901-faq-images-crew-preload-1"></script>
   <script>
   (() => {
     const outer = document.getElementById('invite');
@@ -257,8 +257,8 @@
         if (!doc?.head) return false;
         let style = doc.getElementById(STYLE_ID);
         if (!style) {
-          style = doc.createElement('style');
-          style.id = STYLE_ID;
+          style=doc.createElement('style');
+          style.id=STYLE_ID;
           doc.head.appendChild(style);
         }
         style.textContent = `
