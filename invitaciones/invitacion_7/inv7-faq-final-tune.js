@@ -27,12 +27,12 @@
 
     style.textContent=`
       .sat-inv6-faq-note{
-        font-size:calc(clamp(16px,3.9vw,24px) - 1px)!important;
+        font-size:clamp(14px,3.2vw,18px)!important;
         font-style:italic!important;
       }
       @media(max-width:540px){
         .sat-inv6-faq-note{
-          font-size:calc(clamp(13px,3.8vw,18px) - 1px)!important;
+          font-size:13px!important;
         }
       }
     `;
