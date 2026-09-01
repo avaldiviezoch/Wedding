@@ -1,8 +1,8 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260901-distribution-freeze-containment2';
-  const DISTRIBUTION_TABLE_INTEGRATION_ENABLED = false;
+  const VERSION = '20260901-distribution-observer-freeze-fix1';
+  const DISTRIBUTION_TABLE_INTEGRATION_ENABLED = true;
   let baseRuntime = null;
   let rsvpRuntime = null;
 
@@ -10,14 +10,14 @@
     return new URL(`js/modules/invitados/${file}?v=${version}`, document.baseURI).href;
   }
 
-  // Contención de emergencia: la integración nueva de Mesas ↔ Distribución queda
-  // desactivada después de reproducirse el bloqueo en producción por segunda vez.
-  // No modifica datos ni persistencia; simplemente evita ejecutar esos módulos.
+  // Mesas ↔ Distribución: la integración vuelve a activarse después de cortar
+  // el bucle de MutationObserver de table-capacity-actions. Este loader no
+  // modifica persistencia; únicamente inicia los módulos existentes.
   if (DISTRIBUTION_TABLE_INTEGRATION_ENABLED) {
     import(new URL('js/modules/distribucion/index.js?v=20260901-distribution-table-geometry2', document.baseURI).href)
       .then(() => Promise.all([
         import(new URL('js/modules/distribucion/table-geometry.js?v=20260901-table-geometry1', document.baseURI).href),
-        import(new URL('js/modules/distribucion/table-capacity-actions.js?v=20260901-table-capacity-actions1', document.baseURI).href)
+        import(new URL('js/modules/distribucion/table-capacity-actions.js?v=20260901-table-capacity-actions2', document.baseURI).href)
       ]))
       .catch((error) => console.warn('No se pudo iniciar el vínculo/geometría Mesas ↔ Distribución:', error));
   }
