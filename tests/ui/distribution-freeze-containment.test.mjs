@@ -7,12 +7,13 @@ const runtime = readFileSync(
   'utf8'
 );
 
-test('the emergency containment keeps the new distribution integration disabled', () => {
-  assert.match(runtime, /const DISTRIBUTION_TABLE_INTEGRATION_ENABLED = false;/);
+test('the distribution table integration is re-enabled with the observer-safe capacity runtime', () => {
+  assert.match(runtime, /const DISTRIBUTION_TABLE_INTEGRATION_ENABLED = true;/);
   assert.match(runtime, /if \(DISTRIBUTION_TABLE_INTEGRATION_ENABLED\)/);
+  assert.match(runtime, /table-capacity-actions\.js\?v=20260901-table-capacity-actions2/);
 });
 
-test('the containment itself does not introduce Firebase or destructive remote writes', () => {
+test('re-enabling the integration does not add Firebase or destructive remote writes to the loader', () => {
   assert.doesNotMatch(runtime, /\b(?:setDoc|addDoc|updateDoc|deleteDoc|writeBatch|runTransaction)\b/);
   assert.doesNotMatch(runtime, /firebase(?:-firestore)?/i);
 });
