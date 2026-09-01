@@ -11,19 +11,20 @@ const runtime = readFileSync(
   'utf8'
 );
 
-test('the production runtime keeps the experimental Distribución table integration contained', () => {
-  assert.match(runtime, /const DISTRIBUTION_TABLE_INTEGRATION_ENABLED = false;/);
+test('the production runtime re-enables Distribución tables after the observer freeze is fixed', () => {
+  assert.match(runtime, /const DISTRIBUTION_TABLE_INTEGRATION_ENABLED = true;/);
   assert.match(runtime, /if \(DISTRIBUTION_TABLE_INTEGRATION_ENABLED\)/);
   assert.match(runtime, /distribucion\/index\.js\?v=20260901-distribution-table-geometry2/);
+  assert.match(runtime, /table-capacity-actions\.js\?v=20260901-table-capacity-actions1&fix=observer2/);
 });
 
-test('the dormant distribution bridge still exposes its canonical save path for isolated diagnosis', () => {
+test('the distribution bridge still exposes its existing canonical save path', () => {
   assert.match(distribution, /readState:\s*read/);
   assert.match(distribution, /saveState:\s*save/);
   assert.match(distribution, /syncNow\(\)/);
 });
 
-test('containment does not introduce Firestore or destructive remote writes', () => {
+test('the freeze fix does not introduce Firestore or destructive remote writes', () => {
   for (const source of [runtime, distribution]) {
     assert.doesNotMatch(source, /\b(?:setDoc|addDoc|updateDoc|deleteDoc|writeBatch|runTransaction)\b/);
     assert.doesNotMatch(source, /firebase(?:-firestore)?/i);
