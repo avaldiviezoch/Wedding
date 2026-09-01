@@ -1,0 +1,116 @@
+name: Temporary distribution safe patch
+
+on:
+  push:
+    branches:
+      - fix/distribution-geometry-without-reload-loop
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/distribution-geometry-without-reload-loop
+      - name: Patch distribution bridge
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('app_integral/js/modules/distribucion/index.js')
+          text = path.read_text(encoding='utf-8')
+
+          text = text.replace(
+              "const V = '20260901-distribution-table-geometry1';",
+              "const V = '20260901-distribution-table-geometry2';"
+          )
+
+          old_sig = """const tableSig = (record) => JSON.stringify(lt(record?.data || {}).map((element) => ({
+            id: element.id,
+            label: element.label,
+            capacity: element.capacity,
+            shape: element.shape,
+            widthM: element.widthM,
+            heightM: element.heightM,
+            sharedTableId: element.sharedTableId,
+            sharedTableType: element.sharedTableType,
+            tabletopWidthM: element.tabletopWidthM,
+            tabletopHeightM: element.tabletopHeightM,
+            dimensionsCustom: element.dimensionsCustom,
+            dimensionShape: element.dimensionShape
+          })));"""
+          new_sig = """// Solo los cambios que requieren que el legacy reconstruya su estado interno
+          // pueden recargar el iframe. Forma y medidas se dibujan en vivo por la capa
+          // moderna y NO forman parte de esta firma para evitar ciclos de recarga.
+          const tableSig = (record) => JSON.stringify(lt(record?.data || {}).map((element) => ({
+            id: element.id,
+            label: element.label,
+            capacity: element.capacity,
+            sharedTableId: element.sharedTableId
+          })));"""
+          if old_sig not in text:
+              raise SystemExit('No se encontró tableSig esperado')
+          text = text.replace(old_sig, new_sig)
+
+          old_refresh = """function refreshLiveFrame(controller) {
+            clearTimeout(controller.reloadTimer);
+            controller.reloadTimer = setTimeout(() => {
+              if (!controller.frame.isConnected) return;
+              const state = plannerSaveState(controller);
+              if (state === 'saving') return refreshLiveFrame(controller);
+              if (state === 'error') {
+                console.warn('Distribución: se evitó refrescar porque hay cambios sin guardar.');
+                return;
+              }
+              try { controller.frame.contentWindow.location.reload(); } catch (_) {}
+            }, 120);
+          }"""
+          new_refresh = """function refreshLiveFrame(controller, structureSig) {
+            clearTimeout(controller.reloadTimer);
+            controller.reloadTimer = setTimeout(() => {
+              if (!controller.frame.isConnected) return;
+              const state = plannerSaveState(controller);
+              if (state === 'saving') return refreshLiveFrame(controller, structureSig);
+              if (state === 'error') {
+                console.warn('Distribución: se evitó refrescar porque hay cambios sin guardar.');
+                return;
+              }
+              // El mismo estado estructural nunca debe provocar una segunda recarga.
+              // El controlador vive en el padre y conserva esta firma aunque el iframe
+              // vuelva a cargar, cortando cualquier ciclo legacy ↔ puente.
+              if (structureSig && controller.lastReloadSig === structureSig) return;
+              controller.lastReloadSig = structureSig || controller.lastReloadSig || '';
+              try { controller.frame.contentWindow.location.reload(); } catch (_) {}
+            }, 120);
+          }"""
+          if old_refresh not in text:
+              raise SystemExit('No se encontró refreshLiveFrame esperado')
+          text = text.replace(old_refresh, new_refresh)
+
+          old_call = "if (written && tablesChanged) refreshLiveFrame(controller);"
+          new_call = "if (written && tablesChanged) refreshLiveFrame(controller, tableSig(nextRecord));"
+          if old_call not in text:
+              raise SystemExit('No se encontró llamada de refresh esperada')
+          text = text.replace(old_call, new_call)
+
+          old_controller = "controller = { frame, aid: '', last: '', busy: false, init: false, timer: 0, reloadTimer: 0, pushTimer: 0, doc: null };"
+          new_controller = "controller = { frame, aid: '', last: '', busy: false, init: false, timer: 0, reloadTimer: 0, pushTimer: 0, lastReloadSig: '', doc: null };"
+          if old_controller not in text:
+              raise SystemExit('No se encontró controlador esperado')
+          text = text.replace(old_controller, new_controller)
+
+          path.write_text(text, encoding='utf-8')
+      - name: Commit patched bridge
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app_integral/js/modules/distribucion/index.js
+          git commit -m "Evitar ciclo de recarga al cambiar geometría de mesas"
+          git push origin HEAD:fix/distribution-geometry-without-reload-loop
