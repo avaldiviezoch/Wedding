@@ -12,20 +12,27 @@ const runtime = readFileSync(
 );
 
 test('Mesas refreshes the live Distribución iframe after an external table-structure push', () => {
-  assert.match(distribution, /const tableSig=/);
-  assert.match(distribution, /beforeTables=tableSig\(p\.r\)/);
-  assert.match(distribution, /tablesChanged=beforeTables!==tableSig\(nr\)/);
-  assert.match(distribution, /if\(wr&&tablesChanged\)refreshLiveFrame\(c\)/);
+  assert.match(distribution, /const tableSig\s*=/);
+  assert.match(distribution, /beforeTables\s*=\s*tableSig\(storage\.r\)/);
+  assert.match(distribution, /tablesChanged\s*=\s*beforeTables\s*!==\s*tableSig\(nextRecord\)/);
+  assert.match(distribution, /if \(written && tablesChanged\) refreshLiveFrame\(controller\)/);
   assert.match(distribution, /contentWindow\.location\.reload\(\)/);
-  assert.match(runtime, /distribucion\/index\.js\?v=20260901-distribution-live-tables2/);
+  assert.match(runtime, /distribucion\/index\.js\?v=20260901-distribution-table-geometry1/);
+  assert.match(runtime, /distribucion\/table-geometry\.js\?v=20260901-table-geometry1/);
 });
 
 test('the live refresh waits for Distribución autosave and refuses to reload on save error', () => {
-  assert.match(distribution, /function plannerSaveState\(c\)/);
-  assert.match(distribution, /if\(state==='saving'\)\{deferPush\(c\);return\}/);
-  assert.match(distribution, /if\(state==='error'\).*return/);
-  assert.match(distribution, /if\(state==='saving'\)\{refreshLiveFrame\(c\);return\}/);
+  assert.match(distribution, /function plannerSaveState\(controller\)/);
+  assert.match(distribution, /if \(state === 'saving'\) return deferPush\(controller\)/);
+  assert.match(distribution, /if \(state === 'error'\)/);
+  assert.match(distribution, /if \(state === 'saving'\) return refreshLiveFrame\(controller\)/);
   assert.match(distribution, /se evitó refrescar porque hay cambios sin guardar/);
+});
+
+test('the distribution bridge exposes its existing canonical save path to the geometry UI', () => {
+  assert.match(distribution, /readState:\s*read/);
+  assert.match(distribution, /saveState:\s*save/);
+  assert.match(distribution, /syncNow\(\)/);
 });
 
 test('the live table refresh does not introduce Firestore or destructive remote writes', () => {
