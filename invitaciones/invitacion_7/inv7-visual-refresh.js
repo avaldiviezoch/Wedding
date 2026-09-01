@@ -29,6 +29,12 @@
         html body .sat-inv6-crew-title{
           top:16.2%!important;
         }
+        html body #sat-inv6-program-timeline-section{
+          background-image:url('./assets/IMG_1047.jpeg')!important;
+          background-size:100% 100%!important;
+          background-position:center top!important;
+          background-repeat:no-repeat!important;
+        }
       `;
 
       const dressSubtitle=doc.querySelector('.inv5-dress-subtitle');
