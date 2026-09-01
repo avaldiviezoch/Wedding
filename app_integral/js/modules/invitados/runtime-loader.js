@@ -11,7 +11,7 @@
 
   // Distribución: solo se carga el vínculo de datos. La capa visual dinámica queda
   // fuera del flujo activo para evitar que una interfaz se pinte sobre otra.
-  import(new URL('js/modules/distribucion/index.js?v=20260819-distribution-lifecycle3', document.baseURI).href)
+  import(new URL('js/modules/distribucion/index.js?v=20260901-distribution-live-tables2', document.baseURI).href)
     .catch((error) => console.warn('No se pudo iniciar el vínculo Invitados ↔ Distribución:', error));
 
   // Distribución: conserva y recupera la imagen del plano por propuesta.
