@@ -4,6 +4,14 @@
 
   const STYLE_ID='inv7-faq-final-tune-style';
 
+  function syncVisibleViewport(){
+    const viewport=window.visualViewport;
+    const height=Math.ceil(viewport?.height||window.innerHeight||document.documentElement.clientHeight||0);
+    if(!height)return;
+    outer.style.setProperty('height',height+'px','important');
+    outer.style.setProperty('bottom','auto','important');
+  }
+
   function getDoc(){
     try{
       const d1=outer.contentDocument||outer.contentWindow.document;
@@ -27,12 +35,12 @@
 
     style.textContent=`
       .sat-inv6-faq-note{
-        font-size:calc(clamp(16px,3.9vw,24px) - 1px)!important;
+        font-size:clamp(14px,3.2vw,18px)!important;
         font-style:italic!important;
       }
       @media(max-width:540px){
         .sat-inv6-faq-note{
-          font-size:calc(clamp(13px,3.8vw,18px) - 1px)!important;
+          font-size:13px!important;
         }
       }
     `;
@@ -58,9 +66,13 @@
   }
 
   function run(){
+    syncVisibleViewport();
     [0,120,300,650,1100,1800,3000,5000,8000].forEach(ms=>setTimeout(apply,ms));
   }
 
+  window.visualViewport?.addEventListener('resize',syncVisibleViewport,{passive:true});
+  window.addEventListener('resize',syncVisibleViewport,{passive:true});
+  window.addEventListener('orientationchange',()=>setTimeout(syncVisibleViewport,80),{passive:true});
   outer.addEventListener('load',run);
   run();
 })();
