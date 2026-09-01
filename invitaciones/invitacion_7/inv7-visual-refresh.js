@@ -49,6 +49,12 @@
           pointer-events:none!important;
           z-index:0!important;
         }
+        html body #sat-inv6-rsvp-heading-section{
+          padding-top:78px!important;
+        }
+        html body #sat-inv6-rsvp-heading-section .sat-inv6-gaviota-regalo{
+          top:-18px!important;
+        }
         html body #sat-inv6-rsvp-heading-section>*{
           position:relative!important;
           z-index:1!important;
