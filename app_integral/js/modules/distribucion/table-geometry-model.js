@@ -2,6 +2,7 @@ export const TABLE_TYPES = Object.freeze(['round', 'square', 'rectangular']);
 export const TABLE_CAPACITY_OPTIONS = Object.freeze([4, 6, 8, 10, 12, 14, 16]);
 export const MAX_TABLE_CAPACITY = 16;
 export const MIN_TABLE_CAPACITY = 4;
+export const MAX_TABLETOP_M = 5;
 export const TABLE_CLEARANCE_M = 0.76;
 export const CHAIR_CENTER_OFFSET_M = 0.34;
 
@@ -35,9 +36,10 @@ const STANDARD_TABLETOPS = Object.freeze({
   })
 });
 
-const numberOr = (value, fallback) => {
+const dimensionOr = (value, fallback) => {
   const number = Number(value);
-  return Number.isFinite(number) && number > 0 ? number : fallback;
+  const resolved = Number.isFinite(number) && number > 0 ? number : fallback;
+  return Math.max(0.5, Math.min(MAX_TABLETOP_M, resolved));
 };
 
 export function normalizeTableType(value) {
@@ -70,11 +72,11 @@ export function resolveTableGeometry(table = {}) {
   const capacity = normalizeTableCapacity(table.capacity || table.seats?.length || 10);
   const standard = standardTabletop(type, capacity);
   const sameShape = !table.dimensionShape || normalizeTableType(table.dimensionShape) === type;
-  let tabletopWidthM = sameShape ? numberOr(table.tabletopWidthM, standard.widthM) : standard.widthM;
-  let tabletopHeightM = sameShape ? numberOr(table.tabletopHeightM, standard.heightM) : standard.heightM;
+  let tabletopWidthM = sameShape ? dimensionOr(table.tabletopWidthM, standard.widthM) : standard.widthM;
+  let tabletopHeightM = sameShape ? dimensionOr(table.tabletopHeightM, standard.heightM) : standard.heightM;
 
   if (type === 'round' || type === 'square') {
-    const size = numberOr(tabletopWidthM, standard.widthM);
+    const size = dimensionOr(tabletopWidthM, standard.widthM);
     tabletopWidthM = size;
     tabletopHeightM = size;
   }
@@ -99,10 +101,8 @@ export function geometryPatch(table = {}, overrides = {}) {
   const type = normalizeTableType(overrides.type ?? table.type);
   const capacity = normalizeTableCapacity(overrides.capacity ?? table.capacity ?? table.seats?.length ?? 10);
   const standard = standardTabletop(type, capacity);
-  const hasWidth = Number.isFinite(Number(overrides.tabletopWidthM)) && Number(overrides.tabletopWidthM) > 0;
-  const hasHeight = Number.isFinite(Number(overrides.tabletopHeightM)) && Number(overrides.tabletopHeightM) > 0;
-  let widthM = hasWidth ? Number(overrides.tabletopWidthM) : standard.widthM;
-  let heightM = hasHeight ? Number(overrides.tabletopHeightM) : standard.heightM;
+  const widthM = dimensionOr(overrides.tabletopWidthM, standard.widthM);
+  let heightM = dimensionOr(overrides.tabletopHeightM, standard.heightM);
 
   if (type === 'round' || type === 'square') heightM = widthM;
 
@@ -121,8 +121,8 @@ export function legacyGeometryPatch(table = {}) {
   const geometry = resolveTableGeometry(table);
   return {
     shape: geometry.plannerShape,
-    widthM: geometry.footprintWidthM,
-    heightM: geometry.footprintHeightM,
+    widthM: geometry.tabletopWidthM,
+    heightM: geometry.tabletopHeightM,
     sharedTableType: geometry.type,
     tabletopWidthM: geometry.tabletopWidthM,
     tabletopHeightM: geometry.tabletopHeightM,
