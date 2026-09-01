@@ -11,31 +11,44 @@ const runtime = readFileSync(
   'utf8'
 );
 
-test('Mesas refreshes the live Distribución iframe after an external table-structure push', () => {
+test('Mesas refreshes the live Distribución iframe only after an external structural table push', () => {
   assert.match(distribution, /const tableSig\s*=/);
+  assert.match(distribution, /id:\s*element\.id/);
+  assert.match(distribution, /label:\s*element\.label/);
+  assert.match(distribution, /capacity:\s*element\.capacity/);
+  assert.match(distribution, /sharedTableId:\s*element\.sharedTableId/);
+  const signatureBlock = distribution.match(/const tableSig[\s\S]*?\}\)\)\);/)?.[0] || '';
+  assert.doesNotMatch(signatureBlock, /sharedTableType|tabletopWidthM|tabletopHeightM|dimensionsCustom|dimensionShape|widthM|heightM|shape/);
   assert.match(distribution, /beforeTables\s*=\s*tableSig\(storage\.r\)/);
   assert.match(distribution, /tablesChanged\s*=\s*beforeTables\s*!==\s*tableSig\(nextRecord\)/);
-  assert.match(distribution, /if \(written && tablesChanged\) refreshLiveFrame\(controller\)/);
-  assert.match(distribution, /contentWindow\.location\.reload\(\)/);
-  assert.match(runtime, /distribucion\/index\.js\?v=20260901-distribution-table-geometry1/);
+  assert.match(distribution, /refreshLiveFrame\(controller, tableSig\(nextRecord\)\)/);
+  assert.match(runtime, /const DISTRIBUTION_TABLE_INTEGRATION_ENABLED = true;/);
+  assert.match(runtime, /distribucion\/index\.js\?v=20260901-distribution-table-geometry2/);
   assert.match(runtime, /distribucion\/table-geometry\.js\?v=20260901-table-geometry1/);
 });
 
-test('the live refresh waits for Distribución autosave and refuses to reload on save error', () => {
+test('the live refresh is deduplicated across iframe reloads and respects autosave', () => {
   assert.match(distribution, /function plannerSaveState\(controller\)/);
   assert.match(distribution, /if \(state === 'saving'\) return deferPush\(controller\)/);
   assert.match(distribution, /if \(state === 'error'\)/);
-  assert.match(distribution, /if \(state === 'saving'\) return refreshLiveFrame\(controller\)/);
+  assert.match(distribution, /function refreshLiveFrame\(controller, structureSig\)/);
+  assert.match(distribution, /if \(state === 'saving'\) return refreshLiveFrame\(controller, structureSig\)/);
+  assert.match(distribution, /controller\.lastReloadSig === structureSig/);
+  assert.match(distribution, /controller\.lastReloadSig = structureSig/);
+  assert.match(distribution, /lastReloadSig:\s*''/);
+  assert.match(distribution, /contentWindow\.location\.reload\(\)/);
   assert.match(distribution, /se evitó refrescar porque hay cambios sin guardar/);
 });
 
-test('the distribution bridge exposes its existing canonical save path to the geometry UI', () => {
+test('the distribution bridge exposes its canonical save path to the geometry UI', () => {
   assert.match(distribution, /readState:\s*read/);
   assert.match(distribution, /saveState:\s*save/);
   assert.match(distribution, /syncNow\(\)/);
 });
 
-test('the live table refresh does not introduce Firestore or destructive remote writes', () => {
+test('the table integration does not introduce Firestore or destructive remote writes', () => {
   assert.doesNotMatch(distribution, /\b(?:setDoc|addDoc|updateDoc|deleteDoc|writeBatch|runTransaction)\b/);
   assert.doesNotMatch(distribution, /firebase(?:-firestore)?/i);
+  assert.doesNotMatch(runtime, /\b(?:setDoc|addDoc|updateDoc|deleteDoc|writeBatch|runTransaction)\b/);
+  assert.doesNotMatch(runtime, /firebase(?:-firestore)?/i);
 });
