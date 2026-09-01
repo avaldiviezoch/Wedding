@@ -10,7 +10,7 @@ const runtime = readFileSync(
 test('the distribution table integration is re-enabled with the observer-safe capacity runtime', () => {
   assert.match(runtime, /const DISTRIBUTION_TABLE_INTEGRATION_ENABLED = true;/);
   assert.match(runtime, /if \(DISTRIBUTION_TABLE_INTEGRATION_ENABLED\)/);
-  assert.match(runtime, /table-capacity-actions\.js\?v=20260901-table-capacity-actions2/);
+  assert.match(runtime, /table-capacity-actions\.js\?v=20260901-table-capacity-actions1&fix=observer2/);
 });
 
 test('re-enabling the integration does not add Firebase or destructive remote writes to the loader', () => {
