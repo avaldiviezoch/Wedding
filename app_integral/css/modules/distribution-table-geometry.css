@@ -69,6 +69,10 @@ html[data-mgd-module="distribucion"] .mgd-table-geometry-help{
   line-height:1.35;
   color:#7c7266;
 }
+html[data-mgd-module="distribucion"] #itemsLayer .draggable[data-mgd-table-geometry-owned="true"]>:not(.rotate-ui){opacity:.001}
+html[data-mgd-module="distribucion"] #seatEditor .seat-row[data-mgd-extended-seat="true"]{
+  background:rgba(245,239,229,.58);
+}
 html[data-mgd-module="distribucion"] .mgd-table-create-modal{
   position:fixed;
   inset:0;
