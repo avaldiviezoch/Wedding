@@ -31,9 +31,9 @@ function bridge() {
 function readLinkState() {
   try {
     const value = JSON.parse(localStorage.getItem(LINK_STORAGE_KEY) || '{}');
-    return { proposals: value.proposals || {} };
+    return { guestIds: value.guestIds || {}, proposals: value.proposals || {} };
   } catch (_) {
-    return { proposals: {} };
+    return { guestIds: {}, proposals: {} };
   }
 }
 
@@ -310,6 +310,47 @@ function selectedCanonicalTable(controller) {
   return api.readState().tables.find((table) => String(table.id) === canonicalId) || null;
 }
 
+function extendedSeatOptions(controller, table, seatIndex) {
+  const api = bridge();
+  if (!api) return '';
+  const data = api.readState();
+  const link = readLinkState();
+  const tableById = new Map((data.tables || []).map((item) => [String(item.id), item]));
+  const selected = (data.guests || []).find((guest) => String(guest.tableId || '') === String(table.id) && Number(guest.seatNumber) === seatIndex + 1)?.id;
+  const options = ['<option value="">— Sin asignar —</option>'];
+  (data.guests || []).forEach((guest) => {
+    const legacyGuestId = Number(link.guestIds[String(guest.id)]);
+    if (!Number.isFinite(legacyGuestId)) return;
+    const elsewhere = guest.tableId && !(String(guest.tableId) === String(table.id) && Number(guest.seatNumber) === seatIndex + 1);
+    const otherTable = elsewhere ? tableById.get(String(guest.tableId)) : null;
+    const suffix = elsewhere ? ` — ${otherTable?.name || 'Otra mesa'}, A${guest.seatNumber || '?'}` : '';
+    options.push(`<option value="${legacyGuestId}" ${String(selected || '') === String(guest.id) ? 'selected' : ''}>${esc(`${guest.name || 'Invitado'}${suffix}`)}</option>`);
+  });
+  return options.join('');
+}
+
+function extendSeatEditor(controller, table) {
+  const editor = controller.doc.getElementById('seatEditor');
+  if (!editor) return;
+  if (!table || Number(table.capacity) <= 10) {
+    editor.querySelectorAll('[data-mgd-extended-seat="true"]').forEach((row) => row.remove());
+    return;
+  }
+  const legacyId = legacyIdFromCanonical(controller, table.id);
+  if (!legacyId) return;
+  const existing = new Set(Array.from(editor.querySelectorAll('select[data-seat-index]')).map((select) => Number(select.dataset.seatIndex)));
+  for (let index = 10; index < Number(table.capacity); index += 1) {
+    if (existing.has(index)) continue;
+    const row = controller.doc.createElement('div');
+    row.className = 'seat-row';
+    row.dataset.mgdExtendedSeat = 'true';
+    row.innerHTML = `
+      <label>Asiento ${index + 1}</label>
+      <select data-table-id="${legacyId}" data-seat-index="${index}">${extendedSeatOptions(controller, table, index)}</select>`;
+    editor.appendChild(row);
+  }
+}
+
 function updateSelectionPanel(controller) {
   const panel = ensureSelectionPanel(controller);
   if (!panel) return;
@@ -317,6 +358,7 @@ function updateSelectionPanel(controller) {
   if (!table) {
     panel.hidden = true;
     setLegacySizeVisibility(controller, false);
+    extendSeatEditor(controller, null);
     return;
   }
   panel.hidden = false;
@@ -325,6 +367,7 @@ function updateSelectionPanel(controller) {
   panel.querySelector('[data-mgd-field="type"]').value = geometry.type;
   panel.querySelector('[data-mgd-field="capacity"]').value = String(TABLE_CAPACITY_OPTIONS.includes(geometry.capacity) ? geometry.capacity : Math.min(16, Math.max(4, Math.round(geometry.capacity / 2) * 2)));
   setDimensionFields(panel, geometry.type, geometry.capacity, geometry);
+  extendSeatEditor(controller, table);
 }
 
 function ensureCreateModal(controller) {
@@ -462,8 +505,8 @@ function renderOverlay(controller) {
     if (legacyId === undefined || legacyId === null) return;
     const group = controller.doc.querySelector(`#itemsLayer .draggable[data-id="${CSS.escape(String(legacyId))}"]`);
     if (!group) return;
+    group.dataset.mgdTableGeometryOwned = 'true';
     markup.push(tableOverlayMarkup(controller, table, String(legacyId), group, scale));
-    if (group.style.opacity !== '0.001') group.style.opacity = '0.001';
   });
   overlay.innerHTML = markup.join('');
   updateSelectionPanel(controller);
@@ -503,12 +546,17 @@ function bindDocument(controller) {
   controller.layerObserver?.disconnect();
   const itemsLayer = doc.getElementById('itemsLayer');
   controller.layerObserver = new MutationObserver(() => scheduleRender(controller));
-  controller.layerObserver.observe(itemsLayer, { childList: true, subtree: true, attributes: true, attributeFilter: ['transform', 'style'] });
+  controller.layerObserver.observe(itemsLayer, { childList: true, subtree: true, attributes: true, attributeFilter: ['transform'] });
 
   controller.selectionObserver?.disconnect();
   const selectionForm = doc.getElementById('selectionForm');
   controller.selectionObserver = new MutationObserver(() => scheduleRender(controller));
   controller.selectionObserver.observe(selectionForm, { attributes: true, attributeFilter: ['class'] });
+
+  controller.seatObserver?.disconnect();
+  const seatEditor = doc.getElementById('seatEditor');
+  controller.seatObserver = new MutationObserver(() => setTimeout(() => updateSelectionPanel(controller), 0));
+  controller.seatObserver.observe(seatEditor, { childList: true });
 
   scheduleRender(controller);
 }
@@ -520,7 +568,7 @@ function bindFrame(frame) {
   if (!isDistributionDocument(doc)) return;
   let controller = controllers.get(frame);
   if (!controller) {
-    controller = { frame, doc: null, selectedLegacyId: '', renderFrame: 0, layerObserver: null, selectionObserver: null };
+    controller = { frame, doc: null, selectedLegacyId: '', renderFrame: 0, layerObserver: null, selectionObserver: null, seatObserver: null };
     controllers.set(frame, controller);
   }
   if (controller.doc !== doc) {
