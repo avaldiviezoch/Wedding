@@ -4,14 +4,6 @@
 
   const STYLE_ID='inv7-faq-final-tune-style';
 
-  function syncVisibleViewport(){
-    const viewport=window.visualViewport;
-    const height=Math.ceil(viewport?.height||window.innerHeight||document.documentElement.clientHeight||0);
-    if(!height)return;
-    outer.style.setProperty('height',height+'px','important');
-    outer.style.setProperty('bottom','auto','important');
-  }
-
   function getDoc(){
     try{
       const d1=outer.contentDocument||outer.contentWindow.document;
@@ -154,13 +146,9 @@
   }
 
   function run(){
-    syncVisibleViewport();
     [0,120,300,650,1100,1800,3000,5000,8000].forEach(ms=>setTimeout(apply,ms));
   }
 
-  window.visualViewport?.addEventListener('resize',syncVisibleViewport,{passive:true});
-  window.addEventListener('resize',syncVisibleViewport,{passive:true});
-  window.addEventListener('orientationchange',()=>setTimeout(syncVisibleViewport,80),{passive:true});
   outer.addEventListener('load',run);
   run();
 })();
