@@ -34,6 +34,10 @@
           background-size:100% 100%!important;
           background-position:center top!important;
           background-repeat:no-repeat!important;
+          padding-bottom:110px!important;
+        }
+        html body #sat-inv6-program-timeline-section .sat-inv6-program-line-wrap{
+          bottom:100px!important;
         }
       `;
 
