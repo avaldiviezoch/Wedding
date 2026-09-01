@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260901-distribution-observer-freeze-fix1';
+  const VERSION = '20260901-distribution-table-trigger-visible1';
   const DISTRIBUTION_TABLE_INTEGRATION_ENABLED = true;
   let baseRuntime = null;
   let rsvpRuntime = null;
@@ -10,11 +10,12 @@
     return new URL(`js/modules/invitados/${file}?v=${version}`, document.baseURI).href;
   }
 
-  // Mesas ↔ Distribución: la integración vuelve a activarse después de cortar
-  // el bucle de MutationObserver de table-capacity-actions. Este loader no
+  // Mesas ↔ Distribución: primero se resuelve el control semántico real
+  // button[data-add="table"] y luego se monta la geometría. Este loader no
   // modifica persistencia; únicamente inicia los módulos existentes.
   if (DISTRIBUTION_TABLE_INTEGRATION_ENABLED) {
     import(new URL('js/modules/distribucion/index.js?v=20260901-distribution-table-geometry2', document.baseURI).href)
+      .then(() => import(new URL('js/modules/distribucion/table-trigger-compat.js?v=20260901-table-trigger-compat1', document.baseURI).href))
       .then(() => Promise.all([
         import(new URL('js/modules/distribucion/table-geometry.js?v=20260901-table-geometry1', document.baseURI).href),
         import(new URL('js/modules/distribucion/table-capacity-actions.js?v=20260901-table-capacity-actions1&fix=observer2', document.baseURI).href)
