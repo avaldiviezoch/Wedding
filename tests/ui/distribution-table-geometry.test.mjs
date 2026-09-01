@@ -72,6 +72,15 @@ test('shape, physical dimensions and capacity participate in Mesas ↔ Distribuc
   assert.match(distribution, /shape:\s*element\.shape/);
   assert.match(distribution, /widthM:\s*element\.widthM/);
   assert.match(distribution, /heightM:\s*element\.heightM/);
+  assert.match(distribution, /version:\s*4/);
+});
+
+test('seats 11 through 16 remain editable and cannot be erased by the ten-seat legacy view', () => {
+  assert.match(geometryRuntime, /for \(let index = 10; index < Number\(table\.capacity\); index \+= 1\)/);
+  assert.match(geometryRuntime, /data-mgd-extended-seat/);
+  assert.match(distribution, /const controlledSeatCount = Math\.min\(legacySeats\.length, count\)/);
+  assert.match(distribution, /seatIndex < controlledSeatCount/);
+  assert.match(distribution, /los asientos 11–16 se preservan/);
 });
 
 test('Distribución creates and edits tables through the existing canonical bridge, not Firebase', () => {
