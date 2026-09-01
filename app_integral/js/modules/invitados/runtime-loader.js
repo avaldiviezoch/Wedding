@@ -1,8 +1,8 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260901-distribution-geometry-safe2';
-  const DISTRIBUTION_TABLE_INTEGRATION_ENABLED = true;
+  const VERSION = '20260901-distribution-freeze-containment2';
+  const DISTRIBUTION_TABLE_INTEGRATION_ENABLED = false;
   let baseRuntime = null;
   let rsvpRuntime = null;
 
@@ -10,9 +10,9 @@
     return new URL(`js/modules/invitados/${file}?v=${version}`, document.baseURI).href;
   }
 
-  // Distribución: integración de Mesas ↔ Distribución reactivada después de
-  // aislar la recarga en bucle. El puente controla la persistencia y la capa
-  // visual dibuja forma/capacidad/medidas sin forzar recargas por geometría.
+  // Contención de emergencia: la integración nueva de Mesas ↔ Distribución queda
+  // desactivada después de reproducirse el bloqueo en producción por segunda vez.
+  // No modifica datos ni persistencia; simplemente evita ejecutar esos módulos.
   if (DISTRIBUTION_TABLE_INTEGRATION_ENABLED) {
     import(new URL('js/modules/distribucion/index.js?v=20260901-distribution-table-geometry2', document.baseURI).href)
       .then(() => Promise.all([
