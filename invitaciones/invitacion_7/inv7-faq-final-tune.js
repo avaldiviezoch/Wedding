@@ -14,6 +14,44 @@
     }catch(e){return null;}
   }
 
+  function prepareCrewGif(doc){
+    const win=doc.defaultView;
+    if(!win||win.__inv7CrewGifPreloadBound)return;
+
+    const target=[...doc.querySelectorAll('img')].find(img=>
+      decodeURIComponent(img.getAttribute('src')||'').includes('fiesta_chopper_2.gif')
+    );
+    if(!target)return;
+
+    win.__inv7CrewGifPreloadBound=true;
+    const warm=()=>{
+      if(win.__inv7CrewGifPreloaded)return;
+      win.__inv7CrewGifPreloaded=true;
+      const src=target.currentSrc||target.src||target.getAttribute('src');
+      if(!src)return;
+      target.loading='eager';
+      const preload=new win.Image();
+      preload.decoding='async';
+      preload.src=src;
+      win.__inv7CrewGifPreloadImage=preload;
+    };
+
+    if(!('IntersectionObserver' in win)){
+      warm();
+      return;
+    }
+
+    const observer=new win.IntersectionObserver(entries=>{
+      if(entries.some(entry=>entry.isIntersecting)){
+        observer.disconnect();
+        warm();
+      }
+    },{root:null,rootMargin:'1800px 0px',threshold:0});
+
+    observer.observe(target);
+    win.__inv7CrewGifPreloadObserver=observer;
+  }
+
   function applyFaqImages(doc,list){
     const sources={
       estacionamiento:'https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/invitaciones/invitacion_5/pic_preguntas_5_1.png',
@@ -68,6 +106,8 @@
   function apply(){
     const doc=getDoc();
     if(!doc?.head||!doc?.body)return false;
+
+    prepareCrewGif(doc);
 
     let style=doc.getElementById(STYLE_ID);
     if(!style){
