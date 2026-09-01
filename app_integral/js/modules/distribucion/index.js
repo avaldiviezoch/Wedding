@@ -92,7 +92,7 @@ const sig = (data) => JSON.stringify({ guests: data.guests, tables: data.tables 
 
 function shared(data, source) {
   return {
-    version: 5,
+    version: 4,
     updatedAt: new Date().toISOString(),
     source,
     guests: data.guests.map((guest) => ({
@@ -395,23 +395,15 @@ function pullSnap(snapshot, input, link, proposalId, initial = false) {
     });
   }
 
-  const controlled = new Set(Object.keys(proposal.tables));
-  data.guests.forEach((guest) => {
-    if (controlled.has(String(guest.tableId || ''))) {
-      guest.tableId = '';
-      guest.seatId = '';
-      guest.seatNumber = null;
-    }
-  });
-
   const canonicalMap = new Map(data.tables.map((table) => [String(table.id), table])), assigned = new Set();
   Object.entries(proposal.tables).forEach(([canonicalId, elementId]) => {
     const element = lt(snapshot).find((item) => String(item.id) === String(elementId));
     const table = canonicalMap.get(canonicalId);
     if (!element || !table) return;
-    const legacySeats = element.seats || [];
+    const legacySeats = Array.isArray(element.seats) ? element.seats : [];
     const highest = legacySeats.reduce((max, value, index) => value !== null && value !== '' && value !== undefined ? Math.max(max, index + 1) : max, 0);
     const count = cap(element.capacity || legacySeats.length || table.capacity, highest);
+    const controlledSeatCount = Math.min(legacySeats.length, count);
     const name = String(element.label || table.name).trim() || table.name;
     const type = normalizeTableType(element.sharedTableType || table.type);
     const geometry = geometryPatch(table, {
@@ -428,8 +420,21 @@ function pullSnap(snapshot, input, link, proposalId, initial = false) {
     Object.assign(table, geometry);
     table.seats = seats(table.seats, count);
 
-    legacySeats.forEach((value, index) => {
-      if (value === null || value === '' || value === undefined || index >= count) return;
+    // El editor heredado todavía materializa como máximo 10 slots. Solo esos
+    // slots son autoritativos en un pull; los asientos 11–16 se preservan en
+    // el estado canónico hasta que la capa moderna los edite explícitamente.
+    data.guests.forEach((guest) => {
+      if (String(guest.tableId || '') !== String(table.id)) return;
+      const seatIndex = Number(guest.seatNumber) - 1;
+      if (!Number.isInteger(seatIndex) || seatIndex < 0 || seatIndex >= count || seatIndex < controlledSeatCount) {
+        guest.tableId = '';
+        guest.seatId = '';
+        guest.seatNumber = null;
+      }
+    });
+
+    legacySeats.slice(0, controlledSeatCount).forEach((value, index) => {
+      if (value === null || value === '' || value === undefined) return;
       const guestId = reverse.get(Number(value));
       if (!guestId || assigned.has(guestId)) return;
       const guest = data.guests.find((item) => String(item.id) === guestId);
