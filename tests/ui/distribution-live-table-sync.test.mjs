@@ -11,22 +11,24 @@ const runtime = readFileSync(
   'utf8'
 );
 
-test('the production runtime re-enables Distribución tables after the observer freeze is fixed', () => {
-  assert.match(runtime, /const DISTRIBUTION_TABLE_INTEGRATION_ENABLED = true;/);
-  assert.match(runtime, /if \(DISTRIBUTION_TABLE_INTEGRATION_ENABLED\)/);
-  assert.match(runtime, /distribucion\/index\.js\?v=20260901-distribution-table-geometry2/);
-  assert.match(runtime, /table-capacity-actions\.js\?v=20260901-table-capacity-actions1&fix=observer2/);
+test('Mesas refreshes the live Distribución iframe after an external table-structure push', () => {
+  assert.match(distribution, /const tableSig=/);
+  assert.match(distribution, /beforeTables=tableSig\(p\.r\)/);
+  assert.match(distribution, /tablesChanged=beforeTables!==tableSig\(nr\)/);
+  assert.match(distribution, /if\(wr&&tablesChanged\)refreshLiveFrame\(c\)/);
+  assert.match(distribution, /contentWindow\.location\.reload\(\)/);
+  assert.match(runtime, /distribucion\/index\.js\?v=20260901-distribution-live-tables2/);
 });
 
-test('the distribution bridge still exposes its existing canonical save path', () => {
-  assert.match(distribution, /readState:\s*read/);
-  assert.match(distribution, /saveState:\s*save/);
-  assert.match(distribution, /syncNow\(\)/);
+test('the live refresh waits for Distribución autosave and refuses to reload on save error', () => {
+  assert.match(distribution, /function plannerSaveState\(c\)/);
+  assert.match(distribution, /if\(state==='saving'\)\{deferPush\(c\);return\}/);
+  assert.match(distribution, /if\(state==='error'\).*return/);
+  assert.match(distribution, /if\(state==='saving'\)\{refreshLiveFrame\(c\);return\}/);
+  assert.match(distribution, /se evitó refrescar porque hay cambios sin guardar/);
 });
 
-test('the freeze fix does not introduce Firestore or destructive remote writes', () => {
-  for (const source of [runtime, distribution]) {
-    assert.doesNotMatch(source, /\b(?:setDoc|addDoc|updateDoc|deleteDoc|writeBatch|runTransaction)\b/);
-    assert.doesNotMatch(source, /firebase(?:-firestore)?/i);
-  }
+test('the live table refresh does not introduce Firestore or destructive remote writes', () => {
+  assert.doesNotMatch(distribution, /\b(?:setDoc|addDoc|updateDoc|deleteDoc|writeBatch|runTransaction)\b/);
+  assert.doesNotMatch(distribution, /firebase(?:-firestore)?/i);
 });
