@@ -17,7 +17,15 @@ test('Mesas refreshes the live Distribución iframe after an external table-stru
   assert.match(distribution, /tablesChanged=beforeTables!==tableSig\(nr\)/);
   assert.match(distribution, /if\(wr&&tablesChanged\)refreshLiveFrame\(c\)/);
   assert.match(distribution, /contentWindow\.location\.reload\(\)/);
-  assert.match(runtime, /distribucion\/index\.js\?v=20260901-distribution-live-tables1/);
+  assert.match(runtime, /distribucion\/index\.js\?v=20260901-distribution-live-tables2/);
+});
+
+test('the live refresh waits for Distribución autosave and refuses to reload on save error', () => {
+  assert.match(distribution, /function plannerSaveState\(c\)/);
+  assert.match(distribution, /if\(state==='saving'\)\{deferPush\(c\);return\}/);
+  assert.match(distribution, /if\(state==='error'\).*return/);
+  assert.match(distribution, /if\(state==='saving'\)\{refreshLiveFrame\(c\);return\}/);
+  assert.match(distribution, /se evitó refrescar porque hay cambios sin guardar/);
 });
 
 test('the live table refresh does not introduce Firestore or destructive remote writes', () => {
