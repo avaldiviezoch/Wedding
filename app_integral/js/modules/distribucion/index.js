@@ -5,7 +5,7 @@ import {
 } from './table-geometry-model.js?v=20260901-table-geometry1';
 
 export const moduleId = 'distribucion';
-const V = '20260901-distribution-table-geometry1';
+const V = '20260901-distribution-table-geometry2';
 const GK = 'planificador_bodas_invitados_v1';
 const SK = 'planificador_bodas_datos_compartidos_v1';
 const LK = 'migrandia_distribucion_invitados_link_v1';
@@ -206,19 +206,14 @@ function guestMap(data, snapshot, link) {
 }
 
 const lt = (snapshot) => (snapshot.elements || []).filter((element) => element?.type === 'table');
+// Solo los cambios que requieren que el legacy reconstruya su estado interno
+// pueden recargar el iframe. Forma y medidas se dibujan en vivo por la capa
+// moderna y NO forman parte de esta firma para evitar ciclos de recarga.
 const tableSig = (record) => JSON.stringify(lt(record?.data || {}).map((element) => ({
   id: element.id,
   label: element.label,
   capacity: element.capacity,
-  shape: element.shape,
-  widthM: element.widthM,
-  heightM: element.heightM,
-  sharedTableId: element.sharedTableId,
-  sharedTableType: element.sharedTableType,
-  tabletopWidthM: element.tabletopWidthM,
-  tabletopHeightM: element.tabletopHeightM,
-  dimensionsCustom: element.dimensionsCustom,
-  dimensionShape: element.dimensionShape
+  sharedTableId: element.sharedTableId
 })));
 
 function nextE(snapshot) {
@@ -599,16 +594,21 @@ function deferPush(controller) {
   clearTimeout(controller.pushTimer);
   controller.pushTimer = setTimeout(() => push(controller), 220);
 }
-function refreshLiveFrame(controller) {
+function refreshLiveFrame(controller, structureSig) {
   clearTimeout(controller.reloadTimer);
   controller.reloadTimer = setTimeout(() => {
     if (!controller.frame.isConnected) return;
     const state = plannerSaveState(controller);
-    if (state === 'saving') return refreshLiveFrame(controller);
+    if (state === 'saving') return refreshLiveFrame(controller, structureSig);
     if (state === 'error') {
       console.warn('Distribución: se evitó refrescar porque hay cambios sin guardar.');
       return;
     }
+    // El mismo estado estructural nunca debe provocar una segunda recarga.
+    // El controlador vive en el padre y conserva esta firma aunque el iframe
+    // vuelva a cargar, cortando cualquier ciclo legacy ↔ puente.
+    if (structureSig && controller.lastReloadSig === structureSig) return;
+    controller.lastReloadSig = structureSig || controller.lastReloadSig || '';
     try { controller.frame.contentWindow.location.reload(); } catch (_) {}
   }, 120);
 }
@@ -634,7 +634,7 @@ async function push(controller) {
       const tablesChanged = beforeTables !== tableSig(nextRecord);
       const written = await writePlan(controller.frame.contentWindow, storage, nextRecord);
       controller.last = written?.updatedAt || '';
-      if (written && tablesChanged) refreshLiveFrame(controller);
+      if (written && tablesChanged) refreshLiveFrame(controller, tableSig(nextRecord));
     } else {
       controller.last = storage.r.updatedAt || '';
     }
@@ -755,7 +755,7 @@ function bind(frame) {
   if (!isDist(doc)) return;
   let controller = ctl.get(frame);
   if (!controller) {
-    controller = { frame, aid: '', last: '', busy: false, init: false, timer: 0, reloadTimer: 0, pushTimer: 0, doc: null };
+    controller = { frame, aid: '', last: '', busy: false, init: false, timer: 0, reloadTimer: 0, pushTimer: 0, lastReloadSig: '', doc: null };
     ctl.set(frame, controller);
   }
   if (controller.doc === doc) return;
