@@ -2,17 +2,18 @@
 
 Entorno de pruebas aislado para reconstruir el módulo **Distribución** de Mi Gran Día sin afectar la aplicación real.
 
-## Contrato de integración
+## Contratos y auditoría
 
-Antes de modificar el motor o agregar nuevas formas de mesa, este laboratorio debe respetar `docs/DISTRIBUTION_INTEGRATION_CONTRACTS.md`.
+Antes de modificar el motor o agregar nuevas formas de mesa, este laboratorio debe respetar:
 
-Ese documento define la **Fase 0** del roadmap y fija las responsabilidades e identidades de Confirmaciones/RSVP, Invitados, Mesas y Sillas y Distribución (`guestId`, `tableId`, `seatId`, `responseId`, `proposalId`).
+- `docs/DISTRIBUTION_INTEGRATION_CONTRACTS.md` — **Fase 0**, identidades y responsabilidades de Confirmaciones/RSVP, Invitados, Mesas y Sillas y Distribución (`guestId`, `tableId`, `seatId`, `responseId`, `proposalId`).
+- `docs/DISTRIBUTION_PHASE1_AUDIT.md` — **Fase 1**, inventario exhaustivo del Distribución productivo y matriz de paridad del laboratorio.
 
 Regla principal: el laboratorio permanece aislado de la persistencia real, pero debe usar un modelo lógico compatible con la futura integración a Mi Gran Día.
 
 ## Alcance actual
 
-El laboratorio replica el panel completo de Distribución como espacio de trabajo independiente:
+El laboratorio contiene una primera reconstrucción del panel de Distribución como espacio de trabajo independiente:
 
 - cabecera del módulo y acciones superiores;
 - panel izquierdo de Herramientas;
@@ -29,6 +30,8 @@ El laboratorio replica el panel completo de Distribución como espacio de trabaj
 - editor de los 10 asientos;
 - herramientas para mesa, pista de baile, mesa de novios, barra, DJ, altar, mesa de torta, photobooth y espejo;
 - rejilla, circulación, etiquetas y nombres configurables.
+
+**Importante:** la presencia de estas funciones no significa que exista todavía paridad con el producto. La auditoría de Fase 1 identifica diferencias críticas de canvas, renderer de mesa, órbita de sillas, colisiones, mobile, propuestas y otras reglas. La siguiente etapa debe corregir primero los ítems P0 de esa matriz.
 
 ## Aislamiento obligatorio
 
