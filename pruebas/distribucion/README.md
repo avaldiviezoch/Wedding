@@ -2,6 +2,14 @@
 
 Entorno de pruebas aislado para reconstruir el módulo **Distribución** de Mi Gran Día sin afectar la aplicación real.
 
+## Contrato de integración
+
+Antes de modificar el motor o agregar nuevas formas de mesa, este laboratorio debe respetar `docs/DISTRIBUTION_INTEGRATION_CONTRACTS.md`.
+
+Ese documento define la **Fase 0** del roadmap y fija las responsabilidades e identidades de Confirmaciones/RSVP, Invitados, Mesas y Sillas y Distribución (`guestId`, `tableId`, `seatId`, `responseId`, `proposalId`).
+
+Regla principal: el laboratorio permanece aislado de la persistencia real, pero debe usar un modelo lógico compatible con la futura integración a Mi Gran Día.
+
 ## Alcance actual
 
 El laboratorio replica el panel completo de Distribución como espacio de trabajo independiente:
