@@ -3,84 +3,185 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mi Gran Día · Pruebas de Distribución</title>
+  <title>Mi Gran Día · Laboratorio de Distribución</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="lab-shell">
-    <header class="lab-header">
-      <div>
-        <span class="eyebrow">MI GRAN DÍA · LABORATORIO</span>
-        <h1>Distribución</h1>
-        <p>Entorno aislado para reconstruir el módulo sin afectar la aplicación real.</p>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand">
+        <span class="eyebrow">ESPACIO DE LA BODA · LABORATORIO</span>
+        <h1>Distribución del espacio</h1>
+        <p>Diseña el salón, organiza las mesas y asigna a tus invitados.</p>
       </div>
-      <div class="lab-status" aria-label="Estado del laboratorio">
-        <span class="status-dot"></span>
-        Sin persistencia
+      <div class="top-actions" aria-label="Acciones del plano">
+        <div class="memory-state" title="Este laboratorio no guarda información">
+          <span class="status-dot"></span>
+          <span><strong>Propuesta de prueba</strong><small>Solo memoria temporal</small></span>
+        </div>
+        <button id="btnUndo" type="button" title="Deshacer">↶ <span>Deshacer</span></button>
+        <button id="btnRedo" type="button" title="Rehacer">↷ <span>Rehacer</span></button>
+        <button id="btnPresentation" type="button">▣ <span>Presentación</span></button>
+        <button id="resetLab" class="primary" type="button">Restablecer</button>
       </div>
     </header>
 
-    <main class="lab-layout">
-      <aside class="lab-panel" aria-label="Herramientas">
-        <section>
-          <h2>Agregar elementos</h2>
-          <button class="tool-card" id="addRoundTable" type="button">
-            <span class="tool-icon">◉</span>
-            <span><strong>Mesa circular</strong><small>10 personas</small></span>
-          </button>
-        </section>
+    <main class="workspace">
+      <aside class="panel tools-panel" aria-label="Herramientas de distribución">
+        <div class="panel-heading">
+          <div><span class="section-kicker">CONSTRUYE TU PLANO</span><h2>Herramientas</h2></div>
+          <span class="count-chip" id="elementCount">1 elemento</span>
+        </div>
 
-        <section class="panel-section">
-          <h2>Vista</h2>
-          <label class="check-row"><input id="showNames" type="checkbox" checked> Mostrar nombres</label>
-          <label class="check-row"><input id="showClearance" type="checkbox" checked> Mostrar circulación</label>
-        </section>
-
-        <section class="panel-section">
-          <h2>Escala</h2>
-          <label class="field">
-            <span>Píxeles por metro</span>
-            <input id="scaleInput" type="number" min="18" max="50" step="1" value="32">
-          </label>
-          <p class="hint">La mesa se dibuja usando medidas físicas. Esta escala será la base de las siguientes pruebas.</p>
-        </section>
-
-        <section class="panel-section">
-          <h2>Selección</h2>
-          <div class="selection-card" id="selectionCard">
-            <strong id="selectionTitle">Mesa 1</strong>
-            <span id="selectionMeta">Circular · 10 sillas</span>
-            <p>Arrastra la mesa directamente sobre el plano.</p>
+        <section class="panel-section first-section">
+          <h3>Elementos</h3>
+          <div class="tool-grid">
+            <button class="tool" type="button" data-add="table"><strong>◉</strong><span>Mesa circular<small>10 personas</small></span></button>
+            <button class="tool" type="button" data-add="dance"><strong>◇</strong><span>Pista de baile<small>5 × 5 m</small></span></button>
+            <button class="tool" type="button" data-add="couple"><strong>♡</strong><span>Mesa de novios<small>3 × 1.2 m</small></span></button>
+            <button class="tool" type="button" data-add="bar"><strong>▰</strong><span>Barra<small>4 × 1.2 m</small></span></button>
+            <button class="tool" type="button" data-add="dj"><strong>♫</strong><span>DJ / sonido<small>3 × 2 m</small></span></button>
+            <button class="tool" type="button" data-add="altar"><strong>✦</strong><span>Altar<small>4 × 2 m</small></span></button>
+            <button class="tool" type="button" data-add="cake"><strong>○</strong><span>Mesa de torta<small>Ø 1.8 m</small></span></button>
+            <button class="tool" type="button" data-add="photo"><strong>▣</strong><span>Photobooth<small>3 × 2 m</small></span></button>
+            <button class="tool" type="button" data-add="mirror"><strong>│</strong><span>Espejo<small>1 × 0.2 m</small></span></button>
           </div>
-          <button class="secondary-button" id="resetLab" type="button">Restablecer prueba</button>
         </section>
+
+        <section class="panel-section">
+          <div class="section-title-row"><h3>Vista del plano</h3><button class="text-button" id="btnDefaultView" type="button">Restaurar</button></div>
+          <label class="field compact-field">
+            <span>Escala del plano</span>
+            <div class="input-suffix"><input id="scaleInput" type="number" min="18" max="50" step="1" value="32"><b>px/m</b></div>
+          </label>
+          <div class="toggle-list">
+            <label><input id="showGrid" type="checkbox" checked><span>Rejilla</span></label>
+            <label><input id="showClearance" type="checkbox" checked><span>Circulación</span></label>
+            <label><input id="showLabels" type="checkbox" checked><span>Etiquetas de elementos</span></label>
+            <label><input id="showNames" type="checkbox" checked><span>Nombres de invitados</span></label>
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <div class="section-title-row"><h3>Capas</h3><button class="text-button" id="btnShowAllLayers" type="button">Mostrar todas</button></div>
+          <div id="layerList" class="layer-list" aria-live="polite"></div>
+        </section>
+
+        <div class="lab-warning">
+          <strong>Entorno aislado</strong>
+          <span>No guarda información ni está conectado con los datos reales del aplicativo.</span>
+        </div>
       </aside>
 
-      <section class="planner-card" aria-label="Plano de distribución">
-        <div class="planner-toolbar">
+      <section class="canvas-card" aria-label="Plano de distribución">
+        <div class="canvas-head">
           <div>
-            <strong>Plano de prueba</strong>
-            <span>Baseline: mesa circular estable</span>
+            <span class="section-kicker">PLANO DEL SALÓN</span>
+            <strong>Propuesta principal · laboratorio</strong>
           </div>
-          <span class="toolbar-chip">Solo memoria temporal</span>
+          <div class="canvas-toolbar">
+            <button id="btnZoomOut" type="button" aria-label="Alejar">−</button>
+            <span id="zoomLabel">100%</span>
+            <button id="btnZoomIn" type="button" aria-label="Acercar">＋</button>
+            <span class="toolbar-divider"></span>
+            <button id="btnMeasure" type="button">⌁ Medir</button>
+            <button id="btnFit" type="button">⊡ Encajar</button>
+          </div>
         </div>
-        <div class="planner-stage">
+        <div class="canvas-wrap" id="canvasWrap">
           <svg id="planner" viewBox="0 0 1200 760" role="img" aria-label="Plano de distribución de prueba">
             <defs>
               <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
-                <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#4f5c52" stroke-opacity=".10" stroke-width="1"/>
+                <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#748065" stroke-opacity=".12" stroke-width="1"/>
               </pattern>
               <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
-                <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000" flood-opacity=".15"/>
+                <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".13"/>
               </filter>
             </defs>
-            <rect width="1200" height="760" fill="#f8f6f0"/>
-            <rect width="1200" height="760" fill="url(#grid)"/>
-            <g id="tablesLayer"></g>
+            <rect class="floor" width="1200" height="760" rx="8"/>
+            <rect id="gridLayer" width="1200" height="760" fill="url(#grid)"/>
+            <g id="itemsLayer"></g>
+            <g id="measureLayer"></g>
           </svg>
+          <div class="floating-legend">
+            <span><i class="legend-dot table-dot"></i>Mesa</span>
+            <span><i class="legend-dot clearance-dot"></i>Circulación</span>
+            <span><i class="legend-dot selected-dot"></i>Seleccionado</span>
+          </div>
+          <div class="measure-note" id="measureNote" hidden>Modo medición · haz clic en dos puntos del plano</div>
         </div>
+        <footer class="canvas-footer">
+          <span><b>Tip:</b> arrastra cualquier elemento para moverlo.</span>
+          <span id="cursorCoords">x 0.00 m · y 0.00 m</span>
+        </footer>
       </section>
+
+      <aside class="panel properties-panel" aria-label="Propiedades del elemento seleccionado">
+        <div class="panel-heading">
+          <div><span class="section-kicker">INSPECTOR</span><h2>Propiedades</h2></div>
+          <span class="selection-tag" id="selectionTag">Mesa</span>
+        </div>
+
+        <div id="selectionEmpty" class="selection-empty" hidden>
+          <div class="empty-icon">↖</div>
+          <strong>Selecciona un elemento</strong>
+          <p>Haz clic sobre una mesa u objeto del plano para editarlo.</p>
+        </div>
+
+        <form id="selectionForm" autocomplete="off">
+          <section class="panel-section first-section">
+            <label class="field"><span>Nombre / etiqueta</span><input id="selLabel" type="text"></label>
+            <div class="two-col">
+              <label class="field"><span>X (m)</span><input id="selX" type="number" step="0.1"></label>
+              <label class="field"><span>Y (m)</span><input id="selY" type="number" step="0.1"></label>
+            </div>
+            <div class="two-col">
+              <label class="field"><span>Ancho (m)</span><input id="selW" type="number" min="0.2" max="12" step="0.1"></label>
+              <label class="field"><span>Alto (m)</span><input id="selH" type="number" min="0.2" max="12" step="0.1"></label>
+            </div>
+            <label class="field"><span>Rotación</span><div class="input-suffix"><input id="selRot" type="number" min="-180" max="180" step="1"><b>°</b></div></label>
+            <label class="field"><span>Color</span><input id="selColor" class="color-input" type="color"></label>
+            <div class="inline-actions">
+              <button id="btnDuplicate" type="button">Duplicar</button>
+              <button id="btnBringFront" type="button">Al frente</button>
+              <button id="btnDelete" class="danger" type="button">Eliminar</button>
+            </div>
+          </section>
+
+          <section id="seatEditorWrap" class="panel-section seat-section">
+            <div class="section-title-row"><div><h3>Asientos de la mesa</h3><p>Conservaremos esta estética de silla + nombre.</p></div><span class="count-chip" id="seatCount">10</span></div>
+            <label class="field"><span>Buscar invitado</span><input id="guestSearch" type="search" placeholder="Buscar por nombre…"></label>
+            <div id="seatEditor" class="seat-editor"></div>
+          </section>
+
+          <section class="panel-section">
+            <div class="section-title-row"><h3>Acciones rápidas</h3></div>
+            <div class="action-grid">
+              <button id="btnCenter" type="button">Centrar</button>
+              <button id="btnRotateLeft" type="button">↶ 15°</button>
+              <button id="btnRotateRight" type="button">↷ 15°</button>
+              <button id="btnClearSeats" type="button">Vaciar nombres</button>
+            </div>
+          </section>
+        </form>
+
+        <section class="panel-section summary-section">
+          <h3>Resumen del plano</h3>
+          <dl class="summary-list">
+            <div><dt>Mesas</dt><dd id="summaryTables">1</dd></div>
+            <div><dt>Asientos</dt><dd id="summarySeats">10</dd></div>
+            <div><dt>Elementos</dt><dd id="summaryElements">1</dd></div>
+          </dl>
+        </section>
+      </aside>
     </main>
+  </div>
+
+  <div class="presentation-overlay" id="presentationOverlay" hidden>
+    <div class="presentation-card">
+      <div class="presentation-header"><span>Vista de presentación</span><button id="closePresentation" type="button">×</button></div>
+      <div id="presentationMount"></div>
+    </div>
   </div>
 
   <script type="module" src="app.js"></script>
