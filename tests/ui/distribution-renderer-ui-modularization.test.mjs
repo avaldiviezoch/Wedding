@@ -28,7 +28,7 @@ test('host carga engine, saneamiento y luego renderer/UI de forma secuencial', (
   assert.match(host, /const RENDERER_UI_SCRIPTS = \[/);
   assert.match(host, /'renderer\/tables\.js'/);
   assert.match(host, /'ui\/mobile\.js'/);
-  assert.match(host, /loadScript\(doc, 'phase2-sanitize\.js', \(\) => loadRendererUi\(doc\)\)/);
+  assert.match(host, /loadEngine\(doc, \(\) => loadScript\(doc, 'phase2-sanitize\.js\?v=20260903-sanitize-1', \(\) => loadRendererUi\(doc\)\)\)/);
   assert.match(host, /phase2-renderer-ui-bridge\.js/);
 });
 
