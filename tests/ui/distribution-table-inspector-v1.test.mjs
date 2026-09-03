@@ -54,6 +54,6 @@ test('no usa MutationObserver y refresca desde el ciclo render existente', () =>
   assert.ok(runtimeSource.includes('refresh();'));
 });
 
-test('host carga inspector después de capacity y antes de validación final', () => {
-  assert.match(hostSource, /phase2-capacity\.js', \(\) => loadScript\(doc, 'phase2-inspector\.js', \(\) => loadScript\(doc, 'phase2-validation\.js'\)/);
+test('host carga inspector después de capacity, antes de validación y fix visual', () => {
+  assert.match(hostSource, /phase2-capacity\.js', \(\) => loadScript\(doc, 'phase2-inspector\.js', \(\) => loadScript\(doc, 'phase2-validation\.js', \(\) => loadScript\(doc, 'phase2-visual-contract-fix\.js'\)/);
 });
