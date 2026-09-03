@@ -7,6 +7,7 @@
     'engine/collisions.js',
     'engine/clearance.js',
     'engine/round-table-contract.js',
+    'engine/square-table-contract.js',
     'engine/tables.js',
     'engine/seats.js',
     'engine/measurements.js',
@@ -30,7 +31,7 @@
 
   function loadScript(doc, src, onload) {
     const script = doc.createElement('script');
-    script.src = src.includes('?') ? src : `${src}?v=20260903-mod2`;
+    script.src = src.includes('?') ? src : `${src}?v=20260903-square1`;
     script.onload = onload || null;
     script.onerror = () => console.error(`No se pudo cargar ${src}`);
     doc.body.appendChild(script);
@@ -47,7 +48,7 @@
   }
 
   function loadRendererUi(doc) {
-    loadSeries(doc, RENDERER_UI_SCRIPTS, () => loadScript(doc, 'phase2-renderer-ui-bridge.js'));
+    loadSeries(doc, RENDERER_UI_SCRIPTS, () => loadScript(doc, 'phase2-renderer-ui-bridge.js', () => loadScript(doc, 'phase2-square.js')));
   }
 
   function loadSanitize(doc) {
