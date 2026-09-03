@@ -29,7 +29,9 @@ test('nombres, números de silla y nombre de mesa se contrarrotan nativamente', 
 });
 
 test('rotación, sillas y etiquetas viven en el mismo renderer final', () => {
-  assert.match(capacity, /seatPositions\(item, scale\)\.forEach/);
+  assert.match(capacity, /const positions = seatPositions\(item, scale\)/);
+  assert.match(capacity, /if \(positions\.length !== capacity\) throw new Error/);
+  assert.match(capacity, /positions\.forEach\(\(pos, index\) =>/);
   assert.match(capacity, /seatsApi\.ensureSeatArray\(item, capacity\)/);
   assert.match(capacity, /appendTabletop\(group, item, shape, C, d, danger\)/);
   assert.match(capacity, /appendTableLabels\(group, item, capacity\)/);

@@ -35,7 +35,7 @@
 
   function loadScript(doc, src, onload) {
     const script = doc.createElement('script');
-    script.src = src.includes('?') ? src : `${src}?v=20260903-stability1`;
+    script.src = src.includes('?') ? src : `${src}?v=20260903-chairs1`;
     script.onload = onload || null;
     script.onerror = () => console.error(`No se pudo cargar ${src}`);
     doc.body.appendChild(script);

@@ -15,10 +15,15 @@
   section.className = 'panel-section';
   section.hidden = true;
   section.innerHTML = `
-    <div class="section-title-row"><div><h3>Mesa seleccionada</h3><p>Forma, capacidad y estado en un solo inspector.</p></div><span class="count-chip" id="tableInspectorSeatBadge">0/0</span></div>
+    <div class="section-title-row"><div><h3>Mesa seleccionada</h3><p>Forma, sillas y estado en un solo inspector.</p></div><span class="count-chip" id="tableInspectorSeatBadge">0/0</span></div>
     <div class="two-col">
       <label class="field"><span>Forma</span><select id="tableInspectorShape"><option value="round">Redonda</option><option value="square">Cuadrada</option><option value="rectangular">Rectangular</option></select></label>
-      <label class="field"><span>Capacidad</span><select id="tableInspectorCapacity">${inspectorApi.TABLE_CAPACITIES.map((n)=>`<option value="${n}">${n} personas</option>`).join('')}</select></label>
+      <label class="field"><span>Número de sillas</span><select id="tableInspectorCapacity">${inspectorApi.TABLE_CAPACITIES.map((n)=>`<option value="${n}">${n} sillas</option>`).join('')}</select></label>
+    </div>
+    <div class="action-grid" id="tableInspectorChairStepper">
+      <button type="button" id="tableInspectorSeatMinus">− Menos sillas</button>
+      <button type="button" id="tableInspectorSeatCount" disabled>10 sillas</button>
+      <button type="button" id="tableInspectorSeatPlus">+ Más sillas</button>
     </div>
     <p class="field-note" id="tableInspectorCapacityNote"></p>
     <div class="summary-list" id="tableInspectorSeatSummary">
@@ -73,13 +78,28 @@
   const shapeSelect = section.querySelector('#tableInspectorShape');
   const capacitySelect = section.querySelector('#tableInspectorCapacity');
   const capacityNote = section.querySelector('#tableInspectorCapacityNote');
+  const seatMinus = section.querySelector('#tableInspectorSeatMinus');
+  const seatPlus = section.querySelector('#tableInspectorSeatPlus');
+  const seatCountButton = section.querySelector('#tableInspectorSeatCount');
   const badge = section.querySelector('#tableInspectorSeatBadge');
   const occupiedEl = section.querySelector('#tableInspectorOccupied');
   const freeEl = section.querySelector('#tableInspectorFree');
+  const capacities = Array.from(inspectorApi.TABLE_CAPACITIES);
 
   function currentTable() {
     const item = typeof selected === 'function' ? selected() : null;
     return item?.type === 'table' ? item : null;
+  }
+
+  function capacityIndex(value) {
+    return capacities.indexOf(Number(value));
+  }
+
+  function neighborCapacity(value, direction) {
+    const index = capacityIndex(value);
+    if (index < 0) return null;
+    const next = index + direction;
+    return next >= 0 && next < capacities.length ? capacities[next] : null;
   }
 
   function updateCapacityAvailability(table, model) {
@@ -90,13 +110,21 @@
       option.disabled = blocked.length > 0;
       if (!firstBlocked && blocked.length) firstBlocked = blocked;
     });
+
+    const lower = neighborCapacity(model.capacity, -1);
+    const upper = neighborCapacity(model.capacity, 1);
+    const lowerBlocked = lower == null ? [] : (capacityApi.blockedSeatsForCapacity?.(table, lower) || []);
+    seatMinus.disabled = lower == null || lowerBlocked.length > 0 || model.locked;
+    seatPlus.disabled = upper == null || model.locked;
+    seatCountButton.textContent = `${model.capacity} sillas`;
+
     if (firstBlocked?.length) {
       const seats = firstBlocked.map((entry) => entry.seatNumber).join(', ');
-      capacityNote.textContent = `Para reducir capacidad, mueve o libera primero los asientos ${seats}.`;
+      capacityNote.textContent = `Puedes agregar sillas libremente. Para reducir, mueve o libera primero los asientos ${seats}.`;
     } else if (model.seats.occupied) {
-      capacityNote.textContent = 'La capacidad puede cambiar sin perder invitados asignados.';
+      capacityNote.textContent = 'Usa − / + para cambiar el número de sillas sin perder invitados asignados.';
     } else {
-      capacityNote.textContent = 'Capacidades disponibles: 4, 6, 8, 10, 12, 14 y 16.';
+      capacityNote.textContent = 'Sillas disponibles: 4, 6, 8, 10, 12, 14 y 16.';
     }
   }
 
@@ -128,6 +156,14 @@
     return result;
   }
 
+  function stepSeats(direction) {
+    const table = currentTable();
+    if (!table) return Object.freeze({ ok:false, reason:'missing-table' });
+    const next = neighborCapacity(table.capacity, direction);
+    if (next == null) return Object.freeze({ ok:false, reason:'limit' });
+    return applyTransition({ capacity:next });
+  }
+
   shapeSelect.addEventListener('change', (event) => {
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -140,6 +176,18 @@
     applyTransition({ capacity: Number(capacitySelect.value) });
   }, true);
 
+  seatMinus.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    stepSeats(-1);
+  }, true);
+
+  seatPlus.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    stepSeats(1);
+  }, true);
+
   const legacyRender = render;
   render = function phase2InspectorAwareRender() {
     const value = legacyRender();
@@ -149,9 +197,11 @@
 
   document.documentElement.dataset.phase2TableInspector = 'ready';
   window.MiGranDiaDistributionTableInspectorV1 = Object.freeze({
-    status:'ready', refresh, applyTransition, moveCoreIntoTableInspector, restoreCoreControls,
+    status:'ready', refresh, applyTransition, stepSeats, neighborCapacity,
+    moveCoreIntoTableInspector, restoreCoreControls,
     unifiedTransition:true, memoryOnly:true, preservesNonTableInspector:true,
-    captureOwnedControls:true, explainsBlockedCapacity:true
+    captureOwnedControls:true, explainsBlockedCapacity:true,
+    explicitChairStepper:true
   });
   refresh();
 })();
