@@ -5,6 +5,13 @@
   function loadP1Spatial(doc) {
     if (doc.documentElement.dataset.phase2P1SpatialHost === 'ready') return;
     doc.documentElement.dataset.phase2P1SpatialHost = 'ready';
+
+    const style = doc.createElement('link');
+    style.rel = 'stylesheet';
+    style.href = 'phase2-p1-spatial.css?v=20260902-p1c-1';
+    style.dataset.phase2P1Spatial = 'style';
+    doc.head.appendChild(style);
+
     const script = doc.createElement('script');
     script.src = 'phase2-p1-spatial.js?v=20260902-p1c-1';
     script.dataset.phase2P1Spatial = 'runtime';
