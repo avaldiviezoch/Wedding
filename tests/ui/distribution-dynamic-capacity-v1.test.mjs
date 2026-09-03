@@ -69,17 +69,18 @@ test('capacidad 10 conserva patrones cuadrado y rectangular congelados', () => {
   assert.deepEqual(Array.from(capacityLayout.balancedSideCounts(10, true)), [4,1,4,1]);
 });
 
-test('runtime declara dimensiones fijas durante Fase D y protege identidad/capacidad', () => {
-  for (const token of ['dimensionsStillFixed:true','protectsOccupiedSeats:true','jsonSupports16:true','convertShapePreservingCapacity','item.capacity = capacity','identity.seats.slice(0, capacity)']) {
+test('runtime Fase E mantiene protecciones de Fase D y activa dimensiones por capacidad', () => {
+  for (const token of ['dimensionsStillFixed:false','physicalDimensionsByCapacity:true','protectsOccupiedSeats:true','jsonSupports16:true','convertShapePreservingCapacity','item.capacity = capacity','identity.seats.slice(0, capacity)']) {
     assert.ok(runtimeSource.includes(token), token);
   }
-  assert.match(runtimeSource, /capacity !== 10 \? renderDynamicTable/);
+  assert.match(runtimeSource, /item\?\.type === 'table' \? renderDynamicTable/);
   assert.match(runtimeSource, /rawSeats\.slice\(0, capacity\)/);
 });
 
-test('host carga capacity-layout después de seats y runtime después de rectangular', () => {
+test('host carga dimensiones físicas después de seats y antes de capacity-layout', () => {
   const seatsIndex = hostSource.indexOf("'engine/seats.js'");
+  const physicalIndex = hostSource.indexOf("'engine/physical-dimensions.js'");
   const layoutIndex = hostSource.indexOf("'engine/capacity-layout.js'");
-  assert.ok(seatsIndex >= 0 && layoutIndex > seatsIndex);
+  assert.ok(seatsIndex >= 0 && physicalIndex > seatsIndex && layoutIndex > physicalIndex);
   assert.match(hostSource, /phase2-rectangular\.js', \(\) => loadScript\(doc, 'phase2-capacity\.js'\)/);
 });
