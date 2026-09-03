@@ -6,6 +6,7 @@
     'engine/geometry.js',
     'engine/collisions.js',
     'engine/clearance.js',
+    'engine/round-table-contract.js',
     'engine/tables.js',
     'engine/seats.js',
     'engine/measurements.js',
