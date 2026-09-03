@@ -40,6 +40,20 @@ test('forma y capacidad delegan únicamente a transición unificada', () => {
   assert.doesNotMatch(runtimeSource, /table\.capacity\s*=/);
 });
 
+test('selectores definitivos son dueños del evento y no dejan actuar listeners heredados', () => {
+  assert.match(runtimeSource, /shapeSelect\.addEventListener\('change',[\s\S]*event\.stopImmediatePropagation\(\)[\s\S]*}, true\)/);
+  assert.match(runtimeSource, /capacitySelect\.addEventListener\('change',[\s\S]*event\.stopImmediatePropagation\(\)[\s\S]*}, true\)/);
+  assert.ok(runtimeSource.includes('captureOwnedControls:true'));
+});
+
+test('capacidad bloqueada se explica en el inspector en vez de parecer rota', () => {
+  assert.ok(runtimeSource.includes('tableInspectorCapacityNote'));
+  assert.ok(runtimeSource.includes('capacityApi.blockedSeatsForCapacity'));
+  assert.ok(runtimeSource.includes('option.disabled = blocked.length > 0'));
+  assert.ok(runtimeSource.includes('mueve o libera primero los asientos'));
+  assert.ok(runtimeSource.includes('explainsBlockedCapacity:true'));
+});
+
 test('controles genéricos vuelven a su lugar para elementos que no son mesa', () => {
   for (const token of ['registerMovable','moveCoreIntoTableInspector','restoreCoreControls','document.createComment','preservesNonTableInspector:true']) {
     assert.ok(runtimeSource.includes(token), token);
@@ -54,6 +68,7 @@ test('no usa MutationObserver y refresca desde el ciclo render existente', () =>
   assert.ok(runtimeSource.includes('refresh();'));
 });
 
-test('host carga inspector después de capacity, antes de validación y fix visual', () => {
-  assert.match(hostSource, /phase2-capacity\.js', \(\) => loadScript\(doc, 'phase2-inspector\.js', \(\) => loadScript\(doc, 'phase2-validation\.js', \(\) => loadScript\(doc, 'phase2-visual-contract-fix\.js'\)/);
+test('host carga inspector después de capacity y antes de validación sin parche visual adicional', () => {
+  assert.match(hostSource, /phase2-capacity\.js', \(\) => loadScript\(doc, 'phase2-inspector\.js', \(\) => loadScript\(doc, 'phase2-validation\.js'\)\)\)/);
+  assert.doesNotMatch(hostSource, /phase2-visual-contract-fix\.js/);
 });
