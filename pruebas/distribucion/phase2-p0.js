@@ -61,7 +61,7 @@
   initialState = function phase2InitialState() {
     seedGuests();
     elements = [];
-    const table = addElement('table', { record: false, assignGuests: true });
+    const table = addElement('table', { record: false, assignGuests: false });
     table.x = CENTER_X;
     table.y = CENTER_Y;
     setSelection([table.id], table.id);
