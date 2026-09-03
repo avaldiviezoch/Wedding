@@ -11,9 +11,38 @@ Antes de modificar el motor o agregar nuevas formas de mesa, este laboratorio de
 
 Regla principal: el laboratorio permanece aislado de la persistencia real, pero debe usar un modelo lógico compatible con la futura integración a Mi Gran Día.
 
-## Alcance actual
+## Fase 2 — Paridad P0
 
-El laboratorio contiene una primera reconstrucción del panel de Distribución como espacio de trabajo independiente:
+La Fase 2 empieza con una vista comparativa separada para no destruir el baseline mientras validamos el motor base:
+
+- `index.html` — baseline del laboratorio anterior, se conserva como referencia visual y funcional.
+- `phase2.html` — vista **Fase 2 P0**, carga el baseline y aplica únicamente la paridad crítica aprobada por la auditoría.
+- `phase2-host.js` — instala la capa P0 únicamente dentro de `phase2.html`.
+- `phase2-p0.js` — canvas 1448×1086, centro 724/543, mesa circular legacy, sillas, etiquetas, SAT y gestor de riesgos.
+- `phase2-p0.css` — oculta el CRUD maestro de Invitados y mantiene la asignación rápida/editor de asientos.
+
+### Gate P0
+
+Antes de sustituir el baseline, `phase2.html` debe demostrar:
+
+1. canvas lógico 1448 × 1086;
+2. centro 724 / 543;
+3. tablero físico circular fijo de radio 0.915 m;
+4. área funcional/circulación independiente del tablero;
+5. 10 sillas en órbita 1.33×;
+6. etiquetas en órbita 2.18× con contrarrotación;
+7. colisiones rectangulares equivalentes mediante SAT;
+8. rojo por invasión de áreas funcionales;
+9. advertencia adicional de 60 cm entre áreas de circulación de mesas;
+10. gestor de riesgos equivalente;
+11. lista maestra de personas no visible dentro de Distribución;
+12. editor de asientos y asignación rápida conservados.
+
+No se agregan todavía mesas cuadradas, rectangulares, capacidades 4–16 ni integración real.
+
+## Alcance del baseline
+
+El baseline contiene una primera reconstrucción del panel de Distribución como espacio de trabajo independiente:
 
 - cabecera del módulo y acciones superiores;
 - panel izquierdo de Herramientas;
@@ -31,19 +60,13 @@ El laboratorio contiene una primera reconstrucción del panel de Distribución c
 - herramientas para mesa, pista de baile, mesa de novios, barra, DJ, altar, mesa de torta, photobooth y espejo;
 - rejilla, circulación, etiquetas y nombres configurables.
 
-**Importante:** la presencia de estas funciones no significa que exista todavía paridad con el producto. La auditoría de Fase 1 identifica diferencias críticas de canvas, renderer de mesa, órbita de sillas, colisiones, mobile, propuestas y otras reglas. La siguiente etapa debe corregir primero los ítems P0 de esa matriz.
+**Importante:** la presencia de estas funciones no significa que exista todavía paridad total con el producto. La auditoría de Fase 1 sigue siendo la referencia para P1 y P2.
 
 ## Aislamiento obligatorio
 
 Este laboratorio no se importa desde `app_integral/` y no está conectado al runtime principal.
 
 No contiene integración con Firebase, Firestore, IndexedDB ni mecanismos de persistencia de la aplicación. Todo el estado existe únicamente en memoria de la página y se reinicia al recargar.
-
-## Archivos
-
-- `index.html`: panel completo del laboratorio.
-- `styles.css`: presentación propia del laboratorio basada en la estética estable de Distribución.
-- `app.js`: render e interacción temporal en memoria.
 
 ## Regla de trabajo
 
