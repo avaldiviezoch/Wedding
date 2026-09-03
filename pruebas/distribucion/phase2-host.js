@@ -12,6 +12,7 @@
     'engine/tables.js',
     'engine/seats.js',
     'engine/physical-dimensions.js',
+    'engine/table-transition.js',
     'engine/capacity-layout.js',
     'engine/measurements.js',
     'engine/validation.js',
@@ -34,7 +35,7 @@
 
   function loadScript(doc, src, onload) {
     const script = doc.createElement('script');
-    script.src = src.includes('?') ? src : `${src}?v=20260903-dim1`;
+    script.src = src.includes('?') ? src : `${src}?v=20260903-f1`;
     script.onload = onload || null;
     script.onerror = () => console.error(`No se pudo cargar ${src}`);
     doc.body.appendChild(script);
