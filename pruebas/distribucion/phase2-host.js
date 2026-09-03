@@ -2,6 +2,16 @@
   const frame = document.getElementById('phase2Frame');
   if (!frame) return;
 
+  function loadP1ProposalPreview(doc) {
+    if (doc.documentElement.dataset.phase2P1ProposalPreviewHost === 'ready') return;
+    doc.documentElement.dataset.phase2P1ProposalPreviewHost = 'ready';
+    const script = doc.createElement('script');
+    script.src = 'phase2-p1-proposal-preview.js?v=20260902-p1c-1';
+    script.dataset.phase2P1ProposalPreview = 'runtime';
+    script.onerror = () => console.error('No se pudieron cargar las vistas previas P1 de Propuestas.');
+    doc.body.appendChild(script);
+  }
+
   function loadP1Spatial(doc) {
     if (doc.documentElement.dataset.phase2P1SpatialHost === 'ready') return;
     doc.documentElement.dataset.phase2P1SpatialHost = 'ready';
@@ -15,6 +25,7 @@
     const script = doc.createElement('script');
     script.src = 'phase2-p1-spatial.js?v=20260902-p1c-1';
     script.dataset.phase2P1Spatial = 'runtime';
+    script.onload = () => loadP1ProposalPreview(doc);
     script.onerror = () => console.error('No se pudo cargar el bloque espacial P1 de Distribución.');
     doc.body.appendChild(script);
   }
