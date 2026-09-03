@@ -20,6 +20,7 @@
       <label class="field"><span>Forma</span><select id="tableInspectorShape"><option value="round">Redonda</option><option value="square">Cuadrada</option><option value="rectangular">Rectangular</option></select></label>
       <label class="field"><span>Capacidad</span><select id="tableInspectorCapacity">${inspectorApi.TABLE_CAPACITIES.map((n)=>`<option value="${n}">${n} personas</option>`).join('')}</select></label>
     </div>
+    <p class="field-note" id="tableInspectorCapacityNote"></p>
     <div class="summary-list" id="tableInspectorSeatSummary">
       <div><dt>Asignados</dt><dd id="tableInspectorOccupied">0</dd></div>
       <div><dt>Libres</dt><dd id="tableInspectorFree">0</dd></div>
@@ -71,6 +72,7 @@
 
   const shapeSelect = section.querySelector('#tableInspectorShape');
   const capacitySelect = section.querySelector('#tableInspectorCapacity');
+  const capacityNote = section.querySelector('#tableInspectorCapacityNote');
   const badge = section.querySelector('#tableInspectorSeatBadge');
   const occupiedEl = section.querySelector('#tableInspectorOccupied');
   const freeEl = section.querySelector('#tableInspectorFree');
@@ -78,6 +80,24 @@
   function currentTable() {
     const item = typeof selected === 'function' ? selected() : null;
     return item?.type === 'table' ? item : null;
+  }
+
+  function updateCapacityAvailability(table, model) {
+    let firstBlocked = null;
+    Array.from(capacitySelect.options).forEach((option) => {
+      const capacity = Number(option.value);
+      const blocked = capacityApi.blockedSeatsForCapacity?.(table, capacity) || [];
+      option.disabled = blocked.length > 0;
+      if (!firstBlocked && blocked.length) firstBlocked = blocked;
+    });
+    if (firstBlocked?.length) {
+      const seats = firstBlocked.map((entry) => entry.seatNumber).join(', ');
+      capacityNote.textContent = `Para reducir capacidad, mueve o libera primero los asientos ${seats}.`;
+    } else if (model.seats.occupied) {
+      capacityNote.textContent = 'La capacidad puede cambiar sin perder invitados asignados.';
+    } else {
+      capacityNote.textContent = 'Capacidades disponibles: 4, 6, 8, 10, 12, 14 y 16.';
+    }
   }
 
   function refresh() {
@@ -92,6 +112,7 @@
     section.hidden = false;
     shapeSelect.value = model.shape;
     capacitySelect.value = String(model.capacity);
+    updateCapacityAvailability(table, model);
     badge.textContent = `${model.seats.occupied}/${model.seats.capacity}`;
     occupiedEl.textContent = String(model.seats.occupied);
     freeEl.textContent = String(model.seats.free);
@@ -101,17 +122,23 @@
 
   function applyTransition(request) {
     const table = currentTable();
-    if (!table) return;
+    if (!table) return Object.freeze({ ok:false, reason:'missing-table' });
     const result = capacityApi.transitionTable(table, request);
-    if (!result?.ok) {
-      refresh();
-      return;
-    }
     refresh();
+    return result;
   }
 
-  shapeSelect.addEventListener('change', () => applyTransition({ shape: shapeSelect.value }));
-  capacitySelect.addEventListener('change', () => applyTransition({ capacity: Number(capacitySelect.value) }));
+  shapeSelect.addEventListener('change', (event) => {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    applyTransition({ shape: shapeSelect.value });
+  }, true);
+
+  capacitySelect.addEventListener('change', (event) => {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    applyTransition({ capacity: Number(capacitySelect.value) });
+  }, true);
 
   const legacyRender = render;
   render = function phase2InspectorAwareRender() {
@@ -121,6 +148,10 @@
   };
 
   document.documentElement.dataset.phase2TableInspector = 'ready';
-  window.MiGranDiaDistributionTableInspectorV1 = Object.freeze({ status:'ready', refresh, applyTransition, moveCoreIntoTableInspector, restoreCoreControls, unifiedTransition:true, memoryOnly:true, preservesNonTableInspector:true });
+  window.MiGranDiaDistributionTableInspectorV1 = Object.freeze({
+    status:'ready', refresh, applyTransition, moveCoreIntoTableInspector, restoreCoreControls,
+    unifiedTransition:true, memoryOnly:true, preservesNonTableInspector:true,
+    captureOwnedControls:true, explainsBlockedCapacity:true
+  });
   refresh();
 })();
