@@ -5,9 +5,11 @@ import { readFileSync } from 'node:fs';
 
 const base = '../../pruebas/distribucion/';
 const files = [
-  'engine/geometry.js','engine/collisions.js','engine/clearance.js','engine/tables.js','engine/seats.js','engine/measurements.js','engine/validation.js','state/memory-store.js','adapters/mock-app-lu.js'
+  'engine/geometry.js','engine/collisions.js','engine/clearance.js','engine/round-table-contract.js','engine/tables.js','engine/seats.js','engine/measurements.js','engine/validation.js','state/memory-store.js','adapters/mock-app-lu.js'
 ];
 const sources = Object.fromEntries(files.map((file)=>[file,readFileSync(new URL(base+file,import.meta.url),'utf8')]));
+const phase2P0 = readFileSync(new URL(base+'phase2-p0.js',import.meta.url),'utf8');
+const host = readFileSync(new URL(base+'phase2-host.js',import.meta.url),'utf8');
 const forbidden = /\b(?:localStorage|sessionStorage|indexedDB|firebase|firestore|setDoc|addDoc|updateDoc|deleteDoc|writeBatch|runTransaction)\b/i;
 
 function loadAll(){
@@ -45,14 +47,82 @@ test('collisions conserva tolerancias físicas legacy',()=>{
   }
 });
 
-test('mesa redonda actual queda congelada como contrato de regresión',()=>{
-  const api=loadAll().MiGranDiaDistributionEngine.tables;
-  assert.equal(api.TABLETOP_RADIUS_M,0.915);
-  assert.equal(api.DEFAULT_CLEARANCE_DIAMETER_M,3.4);
-  assert.equal(api.CHAIR_ORBIT_FACTOR,1.33);
-  assert.equal(api.LABEL_ORBIT_FACTOR,2.18);
-  assert.equal(api.DEFAULT_CAPACITY,10);
+test('contrato round-current-v1 congela la mesa redonda oficial',()=>{
+  const root=loadAll().MiGranDiaDistributionEngine;
+  const contract=root.roundTableContract.ROUND_TABLE_CONTRACT;
+  assert.equal(contract.id,'round-current-v1');
+  assert.equal(contract.shape,'round');
+  assert.equal(contract.capacity,10);
+  assert.equal(contract.tabletopRadiusM,0.915);
+  assert.equal(contract.tabletopDiameterM,1.83);
+  assert.equal(contract.clearanceRadiusM,1.70);
+  assert.equal(contract.clearanceDiameterM,3.40);
+  assert.equal(contract.chairOrbitFactor,1.33);
+  assert.equal(contract.labelOrbitFactor,2.18);
+  assert.equal(contract.seatStartAngleRad,-Math.PI/2);
+  assert.equal(contract.conflictColor,'#c84242');
+  assert.equal(contract.selectedColor,'#d59b3c');
+});
+
+test('dimensiones visuales redondas permanecen invariantes en 18, 32 y 50 px/m',()=>{
+  const api=loadAll().MiGranDiaDistributionEngine.roundTableContract;
+  for(const scale of [18,32,50]){
+    const d=api.dimensionsAtScale(scale);
+    assert.equal(d.tabletopRadiusPx,0.915*scale);
+    assert.equal(d.clearanceRadiusPx,1.70*scale);
+    assert.equal(d.chairOrbitPx,0.915*scale*1.33);
+    assert.equal(d.labelOrbitPx,0.915*scale*2.18);
+    assert.equal(d.chairRadiusPx,Math.max(7,0.915*scale*0.12));
+  }
+});
+
+test('asientos redondos empiezan arriba y mantienen reparto uniforme de 10',()=>{
+  const api=loadAll().MiGranDiaDistributionEngine.roundTableContract;
+  assert.equal(api.seatAngle(0),-Math.PI/2);
+  assert.ok(Math.abs(api.seatAngle(5)-Math.PI/2)<1e-12);
+  const angles=Array.from({length:10},(_,i)=>api.seatAngle(i));
+  for(let i=1;i<angles.length;i++) assert.ok(Math.abs((angles[i]-angles[i-1])-Math.PI/5)<1e-12);
+});
+
+test('engine tables delega al contrato redondo sin duplicar valores',()=>{
+  const root=loadAll().MiGranDiaDistributionEngine;
+  const api=root.tables;
+  const contract=root.roundTableContract.ROUND_TABLE_CONTRACT;
+  assert.equal(api.contract,contract);
+  assert.equal(api.TABLETOP_RADIUS_M,contract.tabletopRadiusM);
+  assert.equal(api.DEFAULT_CLEARANCE_DIAMETER_M,contract.clearanceDiameterM);
+  assert.equal(api.CHAIR_ORBIT_FACTOR,contract.chairOrbitFactor);
+  assert.equal(api.LABEL_ORBIT_FACTOR,contract.labelOrbitFactor);
+  assert.equal(api.DEFAULT_CAPACITY,contract.capacity);
   assert.equal(api.tabletopRadiusPx(32),29.28);
+  assert.equal(api.chairOrbitPx(32),29.28*1.33);
+  assert.equal(api.labelOrbitPx(32),29.28*2.18);
+});
+
+test('normalización de mesa actual conserva exactamente el contrato vigente',()=>{
+  const api=loadAll().MiGranDiaDistributionEngine.tables;
+  const table={id:'t1',type:'table',shape:'rect',capacity:16,widthM:9,heightM:2,x:100,y:100,rotation:45,seats:Array(16).fill(null)};
+  api.normalizeTable(table);
+  assert.equal(table.id,'t1');
+  assert.equal(table.type,'table');
+  assert.equal(table.shape,'table');
+  assert.equal(table.capacity,10);
+  assert.equal(table.widthM,3.4);
+  assert.equal(table.heightM,3.4);
+  assert.equal(table.x,100);
+  assert.equal(table.y,100);
+  assert.equal(table.rotation,45);
+});
+
+test('P0 sigue coincidiendo con el contrato congelado antes de introducir geometrías nuevas',()=>{
+  assert.match(phase2P0,/const TABLETOP_RADIUS_M = 0\.915;/);
+  assert.match(phase2P0,/const CHAIR_ORBIT_FACTOR = 1\.33;/);
+  assert.match(phase2P0,/const LABEL_ORBIT_FACTOR = 2\.18;/);
+  assert.match(phase2P0,/for \(let index = 0; index < 10; index\+\+\)/);
+  assert.match(phase2P0,/#c84242/);
+  assert.match(phase2P0,/#d59b3c/);
+  assert.match(host,/engine\/round-table-contract\.js/);
+  assert.ok(host.indexOf("'engine/round-table-contract.js'") < host.indexOf("'engine/tables.js'"));
 });
 
 test('seats no elimina ocupantes al evaluar reducción',()=>{
