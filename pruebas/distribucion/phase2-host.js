@@ -2,12 +2,23 @@
   const frame = document.getElementById('phase2Frame');
   if (!frame) return;
 
+  function loadP1Editor(doc) {
+    if (doc.documentElement.dataset.phase2P1EditorHost === 'ready') return;
+    doc.documentElement.dataset.phase2P1EditorHost = 'ready';
+    const script = doc.createElement('script');
+    script.src = 'phase2-p1-editor.js?v=20260902-p1b-1';
+    script.dataset.phase2P1Editor = 'runtime';
+    script.onerror = () => console.error('No se pudo cargar el bloque de editor P1 de Distribución.');
+    doc.body.appendChild(script);
+  }
+
   function loadP1(doc) {
     if (doc.documentElement.dataset.phase2P1Host === 'ready') return;
     doc.documentElement.dataset.phase2P1Host = 'ready';
     const script = doc.createElement('script');
     script.src = 'phase2-p1.js?v=20260902-p1-1';
     script.dataset.phase2P1 = 'runtime';
+    script.onload = () => loadP1Editor(doc);
     script.onerror = () => console.error('No se pudo cargar la paridad P1 de interacciones de Distribución.');
     doc.body.appendChild(script);
   }
