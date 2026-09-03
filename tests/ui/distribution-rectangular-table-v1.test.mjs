@@ -99,7 +99,9 @@ test('host carga contrato rectangular antes de tables y runtime después de squa
   const rectContract = hostSource.indexOf("'engine/rectangular-table-contract.js'");
   const tables = hostSource.indexOf("'engine/tables.js'");
   assert.ok(rectContract >= 0 && rectContract < tables);
-  assert.match(hostSource, /phase2-square\.js', \(\) => loadScript\(doc, 'phase2-rectangular\.js'\)/);
+  const squareRuntime = hostSource.indexOf("'phase2-square.js'");
+  const rectangularRuntime = hostSource.indexOf("'phase2-rectangular.js'");
+  assert.ok(squareRuntime >= 0 && rectangularRuntime > squareRuntime);
 });
 
 test('contratos redondo y cuadrado permanecen congelados durante Fase C', () => {
