@@ -52,7 +52,7 @@
   function loadSanitize(doc) {
     if (doc.documentElement.dataset.phase2SanitizeHost === 'ready') return;
     doc.documentElement.dataset.phase2SanitizeHost = 'ready';
-    loadEngine(doc, () => loadScript(doc, 'phase2-sanitize.js?v=20260903-sanitize-1', () => loadRendererUi(doc)));
+    loadEngine(doc, () => loadScript(doc, 'phase2-sanitize.js', () => loadRendererUi(doc)));
   }
 
   function loadP2Close(doc) {
