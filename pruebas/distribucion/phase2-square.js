@@ -6,7 +6,7 @@
   const legacyRenderTable = renderTable;
 
   function isSquareTable(item) {
-    return Boolean(item && item.type === 'table' && (item.tableShape === 'square' || item.shape === 'rect'));
+    return Boolean(item && item.type === 'table' && (item.tableShape === 'square' || (!item.tableShape && item.shape === 'rect')));
   }
 
   function renderSquareGuestLabel(group, guestName, seatNumber, index, scale, rotation) {
@@ -183,6 +183,7 @@
       const button = event.target.closest('[data-shape]');
       if (!button) return;
       event.preventDefault();
+      if (button.dataset.shape === 'rectangular') return;
       convertTable(selected(), button.dataset.shape);
     });
     firstSection.appendChild(wrap);
