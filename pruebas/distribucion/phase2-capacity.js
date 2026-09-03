@@ -94,6 +94,7 @@
       title.textContent = item.label;
       group.appendChild(title);
     }
+    appendRotateHandle(group, item);
     return group;
   }
 
