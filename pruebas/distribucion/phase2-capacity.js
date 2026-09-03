@@ -36,8 +36,11 @@
     const shape = tableShape(item);
     const capacity = seatsApi.normalizeCapacity(item.capacity, 10);
     const dims = physicalAtScale(item, scale);
-    if (shape === 'round') return layout.roundPositions(capacity, dims.tabletopWidthPx / 2 + dims.chairOffsetPx);
-    return layout.rectPositions(capacity, dims.tabletopWidthPx, dims.tabletopHeightPx, dims.chairOffsetPx, shape === 'rectangular');
+    const positions = shape === 'round'
+      ? layout.roundPositions(capacity, dims.tabletopWidthPx / 2 + dims.chairOffsetPx)
+      : layout.rectPositions(capacity, dims.tabletopWidthPx, dims.tabletopHeightPx, dims.chairOffsetPx, shape === 'rectangular');
+    if (positions.length !== capacity) throw new Error(`Layout inválido: capacidad ${capacity}, sillas ${positions.length}`);
+    return positions;
   }
 
   function uprightAnchor(item, x, y) {
@@ -138,6 +141,26 @@
     group.appendChild(meta);
   }
 
+  function appendChair(group, item, position, seatNumber, chairRadius, C, rotation) {
+    const chair = svgEl('g', {
+      transform:`translate(${position.x.toFixed(1)} ${position.y.toFixed(1)})`,
+      class:'chair-wrap', 'data-seat-number':String(seatNumber)
+    });
+    chair.appendChild(svgEl('circle', {
+      r:chairRadius.toFixed(2), class:'chair', fill:C.chairFill,
+      stroke:C.chairStroke, 'stroke-width':1.5
+    }));
+    const number = svgEl('text', {
+      x:0, y:3.2, 'text-anchor':'middle',
+      'font-size':Math.max(7,chairRadius*.88).toFixed(1),
+      'font-weight':800, fill:'#5b554d',
+      transform:`rotate(${-rotation})`, 'data-upright-text':'true', 'pointer-events':'none'
+    });
+    number.textContent = String(seatNumber);
+    chair.appendChild(number);
+    group.appendChild(chair);
+  }
+
   function renderDynamicTable(item, scale, conflicts) {
     applyPhysicalGeometry(item);
     const shape = tableShape(item);
@@ -145,6 +168,7 @@
     const capacity = seatsApi.normalizeCapacity(item.capacity, 10);
     const d = physicalAtScale(item, scale);
     seatsApi.ensureSeatArray(item, capacity);
+    const positions = seatPositions(item, scale);
     const danger = conflicts.has(item.id);
     const selectedState = isSelected(item.id);
     const stroke = danger ? C.conflictColor : selectedState ? C.selectedColor : item.color;
@@ -155,44 +179,29 @@
       class:`draggable table-hit${selectedState?' table-selected':''}${danger?' has-conflict':''}`,
       'data-id':item.id,
       'data-table-shape':shape,
-      'data-capacity':String(capacity)
+      'data-capacity':String(capacity),
+      'data-chair-count':String(positions.length)
     });
     const chairRadius = Math.max(7, Math.min(d.tabletopWidthPx, d.tabletopHeightPx) * 0.06);
 
-    if (shape === 'round') {
-      group.appendChild(svgEl('circle', {
-        r:d.clearanceWidthPx/2, fill:item.color, 'fill-opacity':.16, stroke,
-        'stroke-width':strokeW, 'stroke-dasharray':showClearance.checked?'9 7':'0', class:'clearance'
-      }));
-    } else {
-      group.appendChild(svgEl('rect', {
-        x:-d.clearanceWidthPx/2, y:-d.clearanceHeightPx/2,
-        width:d.clearanceWidthPx, height:d.clearanceHeightPx, rx:8,
-        fill:item.color, 'fill-opacity':.16, stroke,
-        'stroke-width':strokeW, 'stroke-dasharray':showClearance.checked?'9 7':'0', class:'clearance'
-      }));
+    if (showClearance.checked) {
+      if (shape === 'round') {
+        group.appendChild(svgEl('circle', {
+          r:d.clearanceWidthPx/2, fill:item.color, 'fill-opacity':.16, stroke,
+          'stroke-width':strokeW, 'stroke-dasharray':'9 7', class:'clearance'
+        }));
+      } else {
+        group.appendChild(svgEl('rect', {
+          x:-d.clearanceWidthPx/2, y:-d.clearanceHeightPx/2,
+          width:d.clearanceWidthPx, height:d.clearanceHeightPx, rx:8,
+          fill:item.color, 'fill-opacity':.16, stroke,
+          'stroke-width':strokeW, 'stroke-dasharray':'9 7', class:'clearance'
+        }));
+      }
     }
 
-    seatPositions(item, scale).forEach((pos, index) => {
-      if (showClearance.checked) {
-        const chair = svgEl('g', {
-          transform:`translate(${pos.x.toFixed(1)} ${pos.y.toFixed(1)})`,
-          class:'chair-wrap', 'data-seat-number':String(index + 1)
-        });
-        chair.appendChild(svgEl('circle', {
-          r:chairRadius.toFixed(2), class:'chair', fill:C.chairFill,
-          stroke:C.chairStroke, 'stroke-width':1.5
-        }));
-        const number = svgEl('text', {
-          x:0, y:3.2, 'text-anchor':'middle',
-          'font-size':Math.max(7,chairRadius*.88).toFixed(1),
-          'font-weight':800, fill:'#5b554d',
-          transform:`rotate(${-rotation})`, 'data-upright-text':'true', 'pointer-events':'none'
-        });
-        number.textContent = String(index + 1);
-        chair.appendChild(number);
-        group.appendChild(chair);
-      }
+    positions.forEach((pos, index) => {
+      appendChair(group, item, pos, index + 1, chairRadius, C, rotation);
       const guest = guestById(item.seats[index]);
       if (guest) renderGuestLabel(group, item, pos, guest.name, index + 1, scale);
     });
@@ -223,6 +232,7 @@
       }
       return result;
     }
+    applyPhysicalGeometry(item);
     commitMutation();
     return result;
   }
@@ -294,7 +304,8 @@
     seatPositions, renderDynamicTable, applyPhysicalGeometry, blockedSeatsForCapacity,
     protectsOccupiedSeats:true, dimensionsStillFixed:false, physicalDimensionsByCapacity:true,
     unifiedTransition:true, jsonSupports16:true, uprightTextNative:true,
-    rotationHandleNative:true, authoritativeTableRenderer:true
+    rotationHandleNative:true, authoritativeTableRenderer:true, exactChairCountInvariant:true,
+    chairsIndependentFromClearance:true
   });
   render();
 })();
