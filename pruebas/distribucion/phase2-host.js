@@ -2,6 +2,23 @@
   const frame = document.getElementById('phase2Frame');
   if (!frame) return;
 
+  function loadP2Close(doc) {
+    if (doc.documentElement.dataset.phase2P2CloseHost === 'ready') return;
+    doc.documentElement.dataset.phase2P2CloseHost = 'ready';
+
+    const style = doc.createElement('link');
+    style.rel = 'stylesheet';
+    style.href = 'phase2-p2-close.css?v=20260903-p2-close-1';
+    style.dataset.phase2P2Close = 'style';
+    doc.head.appendChild(style);
+
+    const script = doc.createElement('script');
+    script.src = 'phase2-p2-close.js?v=20260903-p2-close-1';
+    script.dataset.phase2P2Close = 'runtime';
+    script.onerror = () => console.error('No se pudo cargar el cierre de paridad P2 de Distribución.');
+    doc.body.appendChild(script);
+  }
+
   function loadP2(doc) {
     if (doc.documentElement.dataset.phase2P2Host === 'ready') return;
     doc.documentElement.dataset.phase2P2Host = 'ready';
@@ -15,6 +32,7 @@
     const script = doc.createElement('script');
     script.src = 'phase2-p2.js?v=20260903-p2-1';
     script.dataset.phase2P2 = 'runtime';
+    script.onload = () => loadP2Close(doc);
     script.onerror = () => console.error('No se pudo cargar P2 de Distribución.');
     doc.body.appendChild(script);
   }
