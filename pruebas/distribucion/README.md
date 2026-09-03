@@ -11,19 +11,18 @@ Antes de modificar el motor o agregar nuevas formas de mesa, este laboratorio de
 
 Regla principal: el laboratorio permanece aislado de la persistencia real, pero debe usar un modelo lógico compatible con la futura integración a Mi Gran Día.
 
-## Fase 2 — Paridad P0
+## Fase 2 — Paridad P0 + primer bloque P1
 
-La Fase 2 empieza con una vista comparativa separada para no destruir el baseline mientras validamos el motor base:
+La Fase 2 usa una vista comparativa separada para no destruir el baseline mientras validamos el motor:
 
-- `index.html` — baseline del laboratorio anterior, se conserva como referencia visual y funcional.
-- `phase2.html` — vista **Fase 2 P0**, carga el baseline y aplica únicamente la paridad crítica aprobada por la auditoría.
-- `phase2-host.js` — instala la capa P0 únicamente dentro de `phase2.html`.
+- `index.html` — baseline anterior, conservado como referencia.
+- `phase2.html` — vista activa de Fase 2.
+- `phase2-host.js` — carga P0 y, cuando P0 termina, carga P1.
 - `phase2-p0.js` — canvas 1448×1086, centro 724/543, mesa circular legacy, sillas, etiquetas, SAT y gestor de riesgos.
-- `phase2-p0.css` — oculta el CRUD maestro de Invitados y mantiene la asignación rápida/editor de asientos.
+- `phase2-p0.css` — oculta el CRUD maestro de Invitados y mantiene asignación rápida/editor de asientos.
+- `phase2-p1.js` — primer bloque P1: drag, multiselección, rotación y bloqueo.
 
-### Gate P0
-
-Antes de sustituir el baseline, `phase2.html` debe demostrar:
+### P0 implementado
 
 1. canvas lógico 1448 × 1086;
 2. centro 724 / 543;
@@ -31,42 +30,37 @@ Antes de sustituir el baseline, `phase2.html` debe demostrar:
 4. área funcional/circulación independiente del tablero;
 5. 10 sillas en órbita 1.33×;
 6. etiquetas en órbita 2.18× con contrarrotación;
-7. colisiones rectangulares equivalentes mediante SAT;
+7. colisiones rectangulares mediante SAT;
 8. rojo por invasión de áreas funcionales;
-9. advertencia adicional de 60 cm entre áreas de circulación de mesas;
-10. gestor de riesgos equivalente;
-11. lista maestra de personas no visible dentro de Distribución;
+9. advertencia adicional de 60 cm entre áreas de circulación;
+10. gestor de riesgos;
+11. lista maestra de personas oculta;
 12. editor de asientos y asignación rápida conservados.
 
-No se agregan todavía mesas cuadradas, rectangulares, capacidades 4–16 ni integración real.
+### P1 — bloque 1 implementado
 
-## Alcance del baseline
+- drag sobre el canvas productivo 1448×1086;
+- Ctrl/Cmd + clic para multiselección;
+- movimiento conjunto de los elementos seleccionados;
+- guías inteligentes P0 durante el drag;
+- handle de rotación;
+- Shift durante rotación para ajustar a pasos de 15°;
+- tecla `R` para rotar 15°;
+- flechas para mover 1 px y Shift+flechas para 10 px;
+- bloqueo respetado antes de cualquier movimiento por puntero o teclado;
+- objetos bloqueados pueden seleccionarse, pero no moverse ni rotarse.
 
-El baseline contiene una primera reconstrucción del panel de Distribución como espacio de trabajo independiente:
+**Bugs heredados que no se copian:** las flechas no pueden modificar Y antes de comprobar el bloqueo y las guías mantienen X con X / Y con Y.
 
-- cabecera del módulo y acciones superiores;
-- panel izquierdo de Herramientas;
-- plano central del salón;
-- panel derecho de Propiedades;
-- capas del plano;
-- zoom y medición visual;
-- deshacer/rehacer dentro de la sesión;
-- vista de presentación;
-- mesa circular baseline de 10 personas;
-- sillas distribuidas alrededor de la mesa;
-- etiquetas de nombres alrededor de cada asiento;
-- edición de nombre, posición, tamaño, rotación y color;
-- editor de los 10 asientos;
-- herramientas para mesa, pista de baile, mesa de novios, barra, DJ, altar, mesa de torta, photobooth y espejo;
-- rejilla, circulación, etiquetas y nombres configurables.
+## Pendiente de Fase 2
 
-**Importante:** la presencia de estas funciones no significa que exista todavía paridad total con el producto. La auditoría de Fase 1 sigue siendo la referencia para P1 y P2.
+P1 aún debe completar frente/fondo/alineación, capas, historial 80, copiar/pegar/duplicar/eliminar, medición, toldo completo, auto layout y propuestas en memoria. P2 cubrirá superficies auxiliares y mobile.
+
+No se agregan todavía mesas cuadradas, rectangulares, capacidades 4–16 ni integración real con App Lu.
 
 ## Aislamiento obligatorio
 
-Este laboratorio no se importa desde `app_integral/` y no está conectado al runtime principal.
-
-No contiene integración con Firebase, Firestore, IndexedDB ni mecanismos de persistencia de la aplicación. Todo el estado existe únicamente en memoria de la página y se reinicia al recargar.
+Este laboratorio no se importa desde `app_integral/` y no está conectado al runtime principal. No contiene integración con Firebase, Firestore, IndexedDB ni mecanismos de persistencia de la aplicación. Todo el estado existe únicamente en memoria de la página y se reinicia al recargar.
 
 ## Regla de trabajo
 
