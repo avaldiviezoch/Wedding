@@ -9,7 +9,7 @@ const forbiddenPersistence = /\b(?:localStorage|sessionStorage|indexedDB|firebas
 
 test('P1 se carga después de P0 y sigue aislado de persistencia', () => {
   assert.match(host, /script\.onload\s*=\s*\(\)\s*=>\s*loadP1\(doc\)/);
-  assert.match(host, /phase2-p1\.js\?v=20260902-p1-1/);
+  assert.match(host, /phase2-p1\.js\?v=20260902-p1-2/);
   assert.doesNotMatch(`${host}\n${source}`, forbiddenPersistence);
   assert.doesNotThrow(() => new Function(source), 'phase2-p1.js debe tener sintaxis JavaScript válida');
 });

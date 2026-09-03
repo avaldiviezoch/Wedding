@@ -26,6 +26,7 @@
   const snapRotation = (value) => Math.round(value / ROTATION_STEP) * ROTATION_STEP;
 
   function pointerTargetItem(event) {
+    if (event.target?.closest?.('.tent-vertex')) return null;
     const node = event.target?.closest?.('[data-id]');
     if (!node) return null;
     return getItem(node.getAttribute('data-id'));
@@ -134,6 +135,7 @@
   }
 
   function onPointerDown(event) {
+    if (event.target?.closest?.('.tent-vertex')) return;
     const rotateItem = pointerRotateItem(event);
     if (rotateItem && beginRotate(event, rotateItem)) return;
 
@@ -226,7 +228,7 @@
   }
 
   function onKeyDown(event) {
-    if (isEditing()) return;
+    if (isEditing() || measureMode || drawingTent) return;
     const step = event.shiftKey ? KEYBOARD_FAST_STEP : KEYBOARD_STEP;
     let handled = false;
 
@@ -272,7 +274,8 @@
       keyboardFastMovePx: KEYBOARD_FAST_STEP,
       keyboardRotateDeg: ROTATION_STEP,
       lockedItemsIgnorePointerMove: true,
-      lockedItemsIgnoreKeyboardMove: true
+      lockedItemsIgnoreKeyboardMove: true,
+      tentVertexReservedForSpatialEditor: true
     },
     status: 'ready'
   });
