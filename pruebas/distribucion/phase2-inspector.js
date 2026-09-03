@@ -29,17 +29,39 @@
   seatWrap.insertAdjacentElement('beforebegin', section);
 
   const core = section.querySelector('#tableInspectorCoreFields');
+  const movedControls = [];
+
+  function registerMovable(node, key) {
+    if (!node?.parentNode) return;
+    const placeholder = document.createComment(`phase2-inspector-${key}`);
+    node.parentNode.insertBefore(placeholder, node);
+    movedControls.push({ node, placeholder });
+  }
+
   ['selLabel','selRot','selColor'].forEach((id) => {
     const input = document.getElementById(id);
-    const field = input?.closest('.field');
-    if (field) core.appendChild(field);
+    registerMovable(input?.closest('.field'), id);
   });
+
   const lockButton = document.getElementById('btnToggleLock');
-  if (lockButton) {
-    const lockWrap = document.createElement('div');
-    lockWrap.className = 'action-grid';
-    lockWrap.appendChild(lockButton);
-    core.appendChild(lockWrap);
+  registerMovable(lockButton, 'btnToggleLock');
+  const lockWrap = document.createElement('div');
+  lockWrap.className = 'action-grid';
+  core.appendChild(lockWrap);
+
+  function moveCoreIntoTableInspector() {
+    movedControls.forEach(({ node }) => {
+      if (node === lockButton) lockWrap.appendChild(node);
+      else core.insertBefore(node, lockWrap);
+    });
+  }
+
+  function restoreCoreControls() {
+    movedControls.forEach(({ node, placeholder }) => {
+      if (placeholder.parentNode && node.parentNode !== placeholder.parentNode) {
+        placeholder.parentNode.insertBefore(node, placeholder.nextSibling);
+      }
+    });
   }
 
   const legacyShape = document.getElementById('phase2TableShapeControls');
@@ -61,8 +83,13 @@
   function refresh() {
     const table = currentTable();
     const model = inspectorApi.tableInspectorModel(table);
-    section.hidden = !model;
-    if (!model) return;
+    if (!model) {
+      section.hidden = true;
+      restoreCoreControls();
+      return;
+    }
+    moveCoreIntoTableInspector();
+    section.hidden = false;
     shapeSelect.value = model.shape;
     capacitySelect.value = String(model.capacity);
     badge.textContent = `${model.seats.occupied}/${model.seats.capacity}`;
@@ -94,6 +121,6 @@
   };
 
   document.documentElement.dataset.phase2TableInspector = 'ready';
-  window.MiGranDiaDistributionTableInspectorV1 = Object.freeze({ status:'ready', refresh, applyTransition, unifiedTransition:true, memoryOnly:true });
+  window.MiGranDiaDistributionTableInspectorV1 = Object.freeze({ status:'ready', refresh, applyTransition, moveCoreIntoTableInspector, restoreCoreControls, unifiedTransition:true, memoryOnly:true, preservesNonTableInspector:true });
   refresh();
 })();
