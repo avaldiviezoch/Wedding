@@ -11,6 +11,7 @@
     'engine/rectangular-table-contract.js',
     'engine/tables.js',
     'engine/seats.js',
+    'engine/capacity-layout.js',
     'engine/measurements.js',
     'engine/validation.js',
     'state/memory-store.js',
@@ -32,7 +33,7 @@
 
   function loadScript(doc, src, onload) {
     const script = doc.createElement('script');
-    script.src = src.includes('?') ? src : `${src}?v=20260903-rect1`;
+    script.src = src.includes('?') ? src : `${src}?v=20260903-cap1`;
     script.onload = onload || null;
     script.onerror = () => console.error(`No se pudo cargar ${src}`);
     doc.body.appendChild(script);
@@ -49,7 +50,7 @@
   }
 
   function loadRendererUi(doc) {
-    loadSeries(doc, RENDERER_UI_SCRIPTS, () => loadScript(doc, 'phase2-renderer-ui-bridge.js', () => loadScript(doc, 'phase2-square.js', () => loadScript(doc, 'phase2-rectangular.js'))));
+    loadSeries(doc, RENDERER_UI_SCRIPTS, () => loadScript(doc, 'phase2-renderer-ui-bridge.js', () => loadScript(doc, 'phase2-square.js', () => loadScript(doc, 'phase2-rectangular.js', () => loadScript(doc, 'phase2-capacity.js')))));
   }
 
   function loadSanitize(doc) {
