@@ -32,13 +32,23 @@
     return item;
   }
 
+  function normalizeSeatLayout(item) {
+    if (!item || item.type !== 'table') return 'default';
+    item.seatLayoutVariant = layout.normalizeVariant(tableShape(item), seatsApi.normalizeCapacity(item.capacity, 10), item.seatLayoutVariant);
+    return item.seatLayoutVariant;
+  }
+
+  function seatLayoutVariants(item) {
+    if (!item || item.type !== 'table') return Object.freeze([]);
+    return layout.layoutVariants(tableShape(item), seatsApi.normalizeCapacity(item.capacity, 10));
+  }
+
   function seatPositions(item, scale) {
     const shape = tableShape(item);
     const capacity = seatsApi.normalizeCapacity(item.capacity, 10);
     const dims = physicalAtScale(item, scale);
-    const positions = shape === 'round'
-      ? layout.roundPositions(capacity, dims.tabletopWidthPx / 2 + dims.chairOffsetPx)
-      : layout.rectPositions(capacity, dims.tabletopWidthPx, dims.tabletopHeightPx, dims.chairOffsetPx, shape === 'rectangular');
+    const variant = normalizeSeatLayout(item);
+    const positions = layout.positionsFor(shape, capacity, dims, variant);
     if (positions.length !== capacity) throw new Error(`Layout inválido: capacidad ${capacity}, sillas ${positions.length}`);
     return positions;
   }
@@ -163,6 +173,7 @@
 
   function renderDynamicTable(item, scale, conflicts) {
     applyPhysicalGeometry(item);
+    normalizeSeatLayout(item);
     const shape = tableShape(item);
     const C = styleContract(shape);
     const capacity = seatsApi.normalizeCapacity(item.capacity, 10);
@@ -180,7 +191,8 @@
       'data-id':item.id,
       'data-table-shape':shape,
       'data-capacity':String(capacity),
-      'data-chair-count':String(positions.length)
+      'data-chair-count':String(positions.length),
+      'data-seat-layout':item.seatLayoutVariant
     });
     const chairRadius = Math.max(7, Math.min(d.tabletopWidthPx, d.tabletopHeightPx) * 0.06);
 
@@ -233,6 +245,7 @@
       return result;
     }
     applyPhysicalGeometry(item);
+    normalizeSeatLayout(item);
     commitMutation();
     return result;
   }
@@ -243,6 +256,16 @@
 
   function convertShapePreservingCapacity(item, shape) {
     return transitionTable(item, { shape });
+  }
+
+  function setSeatLayoutVariant(item, variant) {
+    if (!item || item.type !== 'table' || isItemLocked(item)) return Object.freeze({ ok:false, reason:'unavailable' });
+    const next = layout.normalizeVariant(tableShape(item), seatsApi.normalizeCapacity(item.capacity, 10), variant);
+    const previous = normalizeSeatLayout(item);
+    if (previous === next) return Object.freeze({ ok:true, changed:false, variant:next });
+    item.seatLayoutVariant = next;
+    commitMutation();
+    return Object.freeze({ ok:true, changed:true, variant:next });
   }
 
   function installCapacityControls() {
@@ -290,22 +313,24 @@
           return guestIds.has(safeId) ? safeId : null;
         });
         while (item.seats.length < capacity) item.seats.push(null);
+        item.seatLayoutVariant = layout.normalizeVariant(item.tableShape, capacity, raw.seatLayoutVariant);
         applyPhysicalGeometry(item);
       });
       return safe;
     };
   }
 
-  elements.filter((item) => item.type === 'table').forEach(applyPhysicalGeometry);
+  elements.filter((item) => item.type === 'table').forEach((item) => { applyPhysicalGeometry(item); normalizeSeatLayout(item); });
   installCapacityControls();
   document.documentElement.dataset.phase2Capacity = 'ready';
   window.MiGranDiaDistributionCapacityV1 = Object.freeze({
     status:'ready', capacities, transitionTable, setCapacity, convertShapePreservingCapacity,
+    setSeatLayoutVariant, seatLayoutVariants, normalizeSeatLayout,
     seatPositions, renderDynamicTable, applyPhysicalGeometry, blockedSeatsForCapacity,
     protectsOccupiedSeats:true, dimensionsStillFixed:false, physicalDimensionsByCapacity:true,
     unifiedTransition:true, jsonSupports16:true, uprightTextNative:true,
     rotationHandleNative:true, authoritativeTableRenderer:true, exactChairCountInvariant:true,
-    chairsIndependentFromClearance:true
+    chairsIndependentFromClearance:true, explicitSeatLayoutMatrix:true
   });
   render();
 })();
