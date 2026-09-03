@@ -88,8 +88,10 @@ test('render cuadrado reutiliza estética oficial de sillas y nombres', () => {
 test('host carga contrato cuadrado antes del runtime y después bridge', () => {
   const contractIndex = hostSource.indexOf("'engine/square-table-contract.js'");
   const tablesIndex = hostSource.indexOf("'engine/tables.js'");
+  const bridgeIndex = hostSource.indexOf("'phase2-renderer-ui-bridge.js'");
+  const squareIndex = hostSource.indexOf("'phase2-square.js'");
   assert.ok(contractIndex >= 0 && contractIndex < tablesIndex);
-  assert.match(hostSource, /phase2-renderer-ui-bridge\.js', \(\) => loadScript\(doc, 'phase2-square\.js'\)/);
+  assert.ok(bridgeIndex >= 0 && bridgeIndex < squareIndex);
 });
 
 test('round-current-v1 permanece congelado durante Fase B', () => {

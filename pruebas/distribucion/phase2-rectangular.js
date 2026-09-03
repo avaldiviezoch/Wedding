@@ -1,15 +1,16 @@
 (() => {
-  if (document.documentElement.dataset.phase2Square === 'ready') return;
-  const contractApi = window.MiGranDiaDistributionEngine?.squareTableContract;
-  if (!contractApi) throw new Error('Contrato de mesa cuadrada no disponible');
-  const C = contractApi.SQUARE_TABLE_CONTRACT;
+  if (document.documentElement.dataset.phase2Rectangular === 'ready') return;
+  const contractApi = window.MiGranDiaDistributionEngine?.rectangularTableContract;
+  if (!contractApi) throw new Error('Contrato de mesa rectangular no disponible');
+  const C = contractApi.RECTANGULAR_TABLE_CONTRACT;
   const legacyRenderTable = renderTable;
+  const legacySanitizeState = typeof sanitizeState === 'function' ? sanitizeState : null;
 
-  function isSquareTable(item) {
-    return Boolean(item && item.type === 'table' && (item.tableShape === 'square' || (!item.tableShape && item.shape === 'rect')));
+  function isRectangularTable(item) {
+    return Boolean(item && item.type === 'table' && item.tableShape === 'rectangular');
   }
 
-  function renderSquareGuestLabel(group, guestName, seatNumber, index, scale, rotation) {
+  function renderRectangularGuestLabel(group, guestName, seatNumber, index, scale, rotation) {
     if (!showNames.checked || !guestName) return;
     const pos = contractApi.labelPosition(index, scale);
     const wrapper = svgEl('g', {
@@ -36,7 +37,7 @@
     group.appendChild(wrapper);
   }
 
-  function renderSquareTable(item, scale, conflicts) {
+  function renderRectangularTable(item, scale, conflicts) {
     ensureTableSeats(item);
     const dims = contractApi.dimensionsAtScale(scale);
     const danger = conflicts.has(item.id);
@@ -47,7 +48,7 @@
       transform: `translate(${item.x} ${item.y}) rotate(${item.rotation || 0})`,
       class: `draggable table-hit${selectedState ? ' table-selected' : ''}${danger ? ' has-conflict' : ''}`,
       'data-id': item.id,
-      'data-table-shape': 'square'
+      'data-table-shape': 'rectangular'
     });
 
     group.appendChild(svgEl('rect', {
@@ -89,15 +90,15 @@
         group.appendChild(chair);
       }
       const guest = guestById(item.seats[index]);
-      if (guest) renderSquareGuestLabel(group, guest.name, index + 1, index, scale, item.rotation || 0);
+      if (guest) renderRectangularGuestLabel(group, guest.name, index + 1, index, scale, item.rotation || 0);
     }
 
     group.appendChild(svgEl('rect', {
-      x: -dims.tabletopHalfPx,
-      y: -dims.tabletopHalfPx,
-      width: dims.tabletopSidePx,
-      height: dims.tabletopSidePx,
-      rx: 5,
+      x: -dims.tabletopHalfWidthPx,
+      y: -dims.tabletopHalfHeightPx,
+      width: dims.tabletopWidthPx,
+      height: dims.tabletopHeightPx,
+      rx: 4,
       class: 'tabletop',
       fill: item.color,
       stroke: danger ? C.conflictColor : C.tabletopStroke,
@@ -105,11 +106,11 @@
       filter: 'url(#softShadow)'
     }));
     group.appendChild(svgEl('rect', {
-      x: -dims.tabletopSidePx * 0.275,
-      y: -dims.tabletopSidePx * 0.275,
-      width: dims.tabletopSidePx * 0.55,
-      height: dims.tabletopSidePx * 0.55,
-      rx: 3,
+      x: -dims.tabletopWidthPx * 0.275,
+      y: -dims.tabletopHeightPx * 0.275,
+      width: dims.tabletopWidthPx * 0.55,
+      height: dims.tabletopHeightPx * 0.55,
+      rx: 2,
       fill: 'none',
       stroke: '#fff',
       'stroke-opacity': 0.55,
@@ -125,15 +126,19 @@
     return group;
   }
 
-  renderTable = function phase2SquareAwareRenderTable(item, scale, conflicts) {
-    return isSquareTable(item) ? renderSquareTable(item, scale, conflicts) : legacyRenderTable(item, scale, conflicts);
+  renderTable = function phase2RectangularAwareRenderTable(item, scale, conflicts) {
+    return isRectangularTable(item) ? renderRectangularTable(item, scale, conflicts) : legacyRenderTable(item, scale, conflicts);
   };
 
   function convertTable(item, shape) {
     if (!item || item.type !== 'table' || isItemLocked(item)) return false;
     const identity = { id: item.id, x: item.x, y: item.y, rotation: item.rotation, seats: item.seats.slice(), label: item.label, color: item.color };
-    if (shape === 'square') contractApi.normalizeSquareTable(item);
-    else {
+    if (shape === 'rectangular') contractApi.normalizeRectangularTable(item);
+    else if (shape === 'square') {
+      const square = window.MiGranDiaDistributionEngine?.squareTableContract;
+      if (!square) return false;
+      square.normalizeSquareTable(item);
+    } else {
       const round = window.MiGranDiaDistributionEngine?.roundTableContract;
       if (!round) return false;
       round.normalizeCurrentRoundTable(item);
@@ -150,57 +155,80 @@
     return true;
   }
 
-  function addSquareTable() {
+  function addRectangularTable() {
     const item = addElement('table', { record: false, assignGuests: false });
     if (!item) return null;
-    contractApi.normalizeSquareTable(item);
-    item.label = `Mesa cuadrada ${elements.filter((entry) => entry.type === 'table' && isSquareTable(entry)).length}`;
+    contractApi.normalizeRectangularTable(item);
+    item.label = `Mesa rectangular ${elements.filter((entry) => entry.type === 'table' && isRectangularTable(entry)).length}`;
     commitMutation();
     return item;
   }
 
   function installToolButton() {
+    const square = document.getElementById('btnAddSquareTable');
     const circular = document.querySelector('[data-add="table"]');
-    if (!circular || document.getElementById('btnAddSquareTable')) return;
-    const button = circular.cloneNode(true);
-    button.id = 'btnAddSquareTable';
+    const anchor = square || circular;
+    if (!anchor || document.getElementById('btnAddRectangularTable')) return;
+    const button = anchor.cloneNode(true);
+    button.id = 'btnAddRectangularTable';
     button.removeAttribute('data-add');
-    button.querySelector('strong').textContent = '□';
-    button.querySelector('span').innerHTML = 'Mesa cuadrada<small>10 personas · 1.80 m</small>';
-    button.addEventListener('click', (event) => { event.preventDefault(); event.stopImmediatePropagation(); addSquareTable(); }, true);
-    circular.insertAdjacentElement('afterend', button);
+    button.querySelector('strong').textContent = '▭';
+    button.querySelector('span').innerHTML = 'Mesa rectangular<small>10 personas · 2.40 × 0.75 m</small>';
+    button.addEventListener('click', (event) => { event.preventDefault(); event.stopImmediatePropagation(); addRectangularTable(); }, true);
+    anchor.insertAdjacentElement('afterend', button);
   }
 
-  function installShapeControls() {
-    if (document.getElementById('phase2TableShapeControls')) return;
-    const firstSection = selectionForm?.querySelector('.panel-section');
-    if (!firstSection) return;
-    const wrap = document.createElement('div');
-    wrap.id = 'phase2TableShapeControls';
-    wrap.className = 'action-grid';
-    wrap.innerHTML = '<button type="button" data-shape="round">Mesa redonda</button><button type="button" data-shape="square">Mesa cuadrada</button>';
-    wrap.addEventListener('click', (event) => {
-      const button = event.target.closest('[data-shape]');
-      if (!button) return;
+  function installShapeControl() {
+    const wrap = document.getElementById('phase2TableShapeControls');
+    if (!wrap || wrap.querySelector('[data-shape="rectangular"]')) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.shape = 'rectangular';
+    button.textContent = 'Mesa rectangular';
+    button.addEventListener('click', (event) => {
       event.preventDefault();
-      if (button.dataset.shape === 'rectangular') return;
-      convertTable(selected(), button.dataset.shape);
-    });
-    firstSection.appendChild(wrap);
+      event.stopImmediatePropagation();
+      convertTable(selected(), 'rectangular');
+    }, true);
+    wrap.appendChild(button);
+  }
+
+  // P2 sanea el estado antes de restaurarlo. Conservamos tableShape explícito para
+  // diferenciar cuadrada y rectangular, que comparten shape='rect' para SAT.
+  if (legacySanitizeState) {
+    sanitizeState = function phase2ShapeAwareSanitizeState(input) {
+      const safe = legacySanitizeState(input);
+      const rawElements = Array.isArray(input?.elements) ? input.elements : [];
+      safe.elements.forEach((item, index) => {
+        if (item.type !== 'table') return;
+        const raw = rawElements[index] || rawElements.find((entry) => String(entry?.id || '') === item.id);
+        const requested = raw?.tableShape;
+        if (requested === 'rectangular') {
+          contractApi.normalizeRectangularTable(item);
+        } else if (requested === 'square') {
+          window.MiGranDiaDistributionEngine?.squareTableContract?.normalizeSquareTable(item);
+        } else {
+          window.MiGranDiaDistributionEngine?.roundTableContract?.normalizeCurrentRoundTable(item);
+          item.tableShape = 'round';
+        }
+      });
+      return safe;
+    };
   }
 
   installToolButton();
-  installShapeControls();
-  document.documentElement.dataset.phase2Square = 'ready';
-  window.MiGranDiaDistributionSquareV1 = Object.freeze({
+  installShapeControl();
+  document.documentElement.dataset.phase2Rectangular = 'ready';
+  window.MiGranDiaDistributionRectangularV1 = Object.freeze({
     status: 'ready',
     capacity: C.capacity,
-    tabletopSideM: C.tabletopSideM,
+    tabletopWidthM: C.tabletopWidthM,
+    tabletopHeightM: C.tabletopHeightM,
     preservesIdentity: true,
-    addSquareTable,
+    addRectangularTable,
     convertTable,
-    isSquareTable,
-    renderSquareTable
+    isRectangularTable,
+    renderRectangularTable
   });
   render();
 })();
