@@ -11,19 +11,21 @@ Antes de modificar el motor o agregar nuevas formas de mesa, este laboratorio de
 
 Regla principal: el laboratorio permanece aislado de la persistencia real, pero debe usar un modelo lógico compatible con la futura integración a Mi Gran Día.
 
-## Fase 2 — Paridad P0 + P1 en construcción
+## Fase 2 — Paridad P0 + P1 + P2
 
 La Fase 2 usa una vista comparativa separada para no destruir el baseline mientras validamos el motor:
 
 - `index.html` — baseline anterior, conservado como referencia.
 - `phase2.html` — vista activa de Fase 2.
-- `phase2-host.js` — carga secuencialmente P0 y los tres bloques P1.
+- `phase2-host.js` — carga secuencialmente P0, los tres bloques P1 y P2.
 - `phase2-p0.js` — canvas 1448×1086, centro 724/543, mesa circular legacy, sillas, etiquetas, SAT y gestor de riesgos.
 - `phase2-p0.css` — oculta el CRUD maestro de Invitados y mantiene asignación rápida/editor de asientos.
 - `phase2-p1.js` — drag, multiselección, rotación y bloqueo.
 - `phase2-p1-editor.js` — frente/fondo, alineación, capas, historial 80, duplicar, copiar/pegar y eliminar.
 - `phase2-p1-spatial.js` — medición, toldos, auto distribución, fondo y propuestas exclusivamente en memoria.
 - `phase2-p1-spatial.css` — handles de vértices, dibujo del toldo y presentación de propuestas.
+- `phase2-p2.js` — sesión JSON, PNG, Vista final y gestos/mobile.
+- `phase2-p2.css` — controles P2, Vista final, bottom sheets, FAB y safe areas móviles.
 
 ### P0 implementado
 
@@ -86,17 +88,32 @@ La Fase 2 usa una vista comparativa separada para no destruir el baseline mientr
 - máximo productivo de 20 propuestas;
 - cada cambio espacial recalcula el gestor de riesgos P0; P1.3 no sustituye sus reglas.
 
+### P2 implementado
+
+- exportar la sesión completa a JSON manual: propuestas, propuesta activa, elementos, invitados, medidas y opciones de vista;
+- importar JSON únicamente después de validar tipo, versión, tamaño y estructura;
+- máximo 20 propuestas también durante importación;
+- ningún JSON se guarda automáticamente: la descarga/subida es una acción explícita del usuario;
+- exportación PNG del plano en 1448 × 1086;
+- el PNG retira handles, guías, dibujo temporal y estados de selección;
+- Vista final usa un clon limpio del plano actual y no una segunda fuente de estado;
+- en móvil Herramientas y Propiedades funcionan como bottom sheets;
+- FAB móvil para abrir acciones principales;
+- safe area inferior para iOS;
+- pinch zoom de dos dedos sobre el canvas;
+- acciones móviles para Propuestas, Vista final, PNG y JSON.
+
 **Bugs heredados que no se copian:** las flechas no modifican Y antes de comprobar el bloqueo; las guías mantienen X con X / Y con Y; las acciones múltiples no eliminan ni modifican silenciosamente objetos bloqueados; un handle de vértice del toldo no activa por error el drag de todo el elemento.
 
-## Pendiente de Fase 2
+## Pendiente después de P2
 
-P1 queda funcionalmente cubierto en sus bloques principales. P2 debe completar exportación/importación de sesión, exportación PNG, presentación final de paridad y la experiencia mobile con sheets, FAB y zoom táctil.
+La paridad funcional principal del Distribución actual queda cubierta en el laboratorio. El siguiente trabajo de producto será la evolución controlada de mesas: cuadrada, rectangular, capacidades 4–16 y dimensiones físicas, todavía dentro del laboratorio antes de cualquier integración real.
 
 No se agregan todavía mesas cuadradas, rectangulares, capacidades 4–16 ni integración real con App Lu.
 
 ## Aislamiento obligatorio
 
-Este laboratorio no se importa desde `app_integral/` y no está conectado al runtime principal. No contiene integración con servicios de datos de la aplicación ni mecanismos de persistencia del producto. Todo el estado existe únicamente en memoria de la página y se reinicia al recargar.
+Este laboratorio no se importa desde `app_integral/` y no está conectado al runtime principal. No contiene integración con servicios de datos de la aplicación ni mecanismos de persistencia del producto. Todo el estado existe únicamente en memoria de la página y se reinicia al recargar, salvo archivos JSON que el usuario descargue e importe manualmente.
 
 ## Regla de trabajo
 
