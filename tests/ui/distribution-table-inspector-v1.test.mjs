@@ -40,6 +40,14 @@ test('forma y capacidad delegan únicamente a transición unificada', () => {
   assert.doesNotMatch(runtimeSource, /table\.capacity\s*=/);
 });
 
+test('controles genéricos vuelven a su lugar para elementos que no son mesa', () => {
+  for (const token of ['registerMovable','moveCoreIntoTableInspector','restoreCoreControls','document.createComment','preservesNonTableInspector:true']) {
+    assert.ok(runtimeSource.includes(token), token);
+  }
+  assert.match(runtimeSource, /if \(!model\) \{[\s\S]*restoreCoreControls\(\);[\s\S]*return;/);
+  assert.match(runtimeSource, /moveCoreIntoTableInspector\(\);[\s\S]*section\.hidden = false/);
+});
+
 test('no usa MutationObserver y refresca desde el ciclo render existente', () => {
   assert.doesNotMatch(runtimeSource, /MutationObserver/);
   assert.ok(runtimeSource.includes('const legacyRender = render'));
