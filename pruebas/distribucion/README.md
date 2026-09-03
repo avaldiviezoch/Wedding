@@ -8,16 +8,17 @@ Antes de modificar el motor o agregar nuevas formas de mesa, este laboratorio de
 
 - `docs/DISTRIBUTION_INTEGRATION_CONTRACTS.md` — **Fase 0**, identidades y responsabilidades de Confirmaciones/RSVP, Invitados, Mesas y Sillas y Distribución (`guestId`, `tableId`, `seatId`, `responseId`, `proposalId`).
 - `docs/DISTRIBUTION_PHASE1_AUDIT.md` — **Fase 1**, inventario exhaustivo del Distribución productivo y matriz de paridad del laboratorio.
+- `docs/DISTRIBUTION_PHASE2_CLOSURE.md` — cierre formal de **Fase 2** y orden obligatorio posterior.
 
 Regla principal: el laboratorio permanece aislado de la persistencia real, pero debe usar un modelo lógico compatible con la futura integración a Mi Gran Día.
 
-## Fase 2 — Paridad P0 + P1 + P2
+## Fase 2 — Paridad P0 + P1 + P2 + P2.1 — CERRADA
 
-La Fase 2 usa una vista comparativa separada para no destruir el baseline mientras validamos el motor:
+La Fase 2 usa una vista comparativa separada para conservar el baseline mientras validamos el motor:
 
 - `index.html` — baseline anterior, conservado como referencia.
-- `phase2.html` — vista activa de Fase 2.
-- `phase2-host.js` — carga secuencialmente P0, los tres bloques P1 y P2.
+- `phase2.html` — vista cerrada de Fase 2.
+- `phase2-host.js` — carga secuencialmente P0, los tres bloques P1, P2 y el cierre P2.1.
 - `phase2-p0.js` — canvas 1448×1086, centro 724/543, mesa circular legacy, sillas, etiquetas, SAT y gestor de riesgos.
 - `phase2-p0.css` — oculta el CRUD maestro de Invitados y mantiene asignación rápida/editor de asientos.
 - `phase2-p1.js` — drag, multiselección, rotación y bloqueo.
@@ -26,6 +27,7 @@ La Fase 2 usa una vista comparativa separada para no destruir el baseline mientr
 - `phase2-p1-spatial.css` — handles de vértices, dibujo del toldo y presentación de propuestas.
 - `phase2-p2.js` — sesión JSON, PNG, Vista final y gestos/mobile.
 - `phase2-p2.css` — controles P2, Vista final, bottom sheets, FAB y safe areas móviles.
+- `phase2-p2-close.js` / `phase2-p2-close.css` — cierre P2.1: FAB dinámico sobre sheets, dirección adaptativa del menú y Escape.
 
 ### P0 implementado
 
@@ -42,74 +44,72 @@ La Fase 2 usa una vista comparativa separada para no destruir el baseline mientr
 11. lista maestra de personas oculta;
 12. editor de asientos y asignación rápida conservados.
 
-### P1 — bloque 1 implementado
+### P1 implementado
 
 - drag sobre el canvas productivo 1448×1086;
 - Ctrl/Cmd + clic para multiselección;
-- movimiento conjunto de los elementos seleccionados;
-- guías inteligentes P0 durante el drag;
-- handle de rotación;
-- Shift durante rotación para ajustar a pasos de 15°;
-- tecla `R` para rotar 15°;
-- flechas para mover 1 px y Shift+flechas para 10 px;
-- bloqueo respetado antes de cualquier movimiento por puntero o teclado.
-
-### P1 — bloque 2 implementado
-
-- traer selección al frente y enviarla al fondo;
-- alineación horizontal conservando la regla actual del producto: igualar Y con el elemento principal;
-- objetos bloqueados protegidos también en alineación, orden y eliminación;
-- capas por categoría con mostrar/ocultar y bloquear/desbloquear;
-- ocultar una capa retira de la selección sus objetos;
-- mostrar todas las capas y desbloquear todo;
-- historial ampliado al límite productivo de 80 estados;
-- duplicar el objeto principal con desplazamiento de 35 px;
-- Ctrl/Cmd+C y Ctrl/Cmd+V para una o varias selecciones;
-- pegado con desplazamiento progresivo de 28 px;
-- IDs nuevos en duplicados/copias;
-- las mesas duplicadas o pegadas nacen sin invitados asignados;
-- eliminar selección conserva cualquier objeto bloqueado seleccionado.
-
-### P1 — bloque 3 implementado
-
-- mediciones múltiples entre dos puntos con preview vivo;
-- distancia expresada en metros y etiqueta orientada para mantenerse legible;
-- limpiar todas las medidas;
-- toldo como polígono libre con mínimo tres vértices;
-- cierre al volver a pulsar cerca del primer vértice (18 px), doble clic o Enter;
-- Escape cancela el dibujo;
-- vértices del toldo almacenados en metros locales (`pointsM`);
-- edición individual de vértices;
-- medidas de cada lado del toldo;
-- movimiento, rotación, ancho/alto, color y transparencia del toldo;
-- auto distribución con las coordenadas de partida del Distribución estable: pista, altar, DJ, barra y mesa de novios;
-- mostrar/ocultar fondo conservado dentro de cada propuesta de la sesión;
-- propuestas exclusivamente en memoria: abrir, crear, duplicar, renombrar y eliminar;
-- máximo productivo de 20 propuestas;
-- cada cambio espacial recalcula el gestor de riesgos P0; P1.3 no sustituye sus reglas.
+- movimiento conjunto;
+- guías inteligentes;
+- rotación por handle, Shift 15° y tecla `R`;
+- flechas 1 px y Shift+flechas 10 px;
+- bloqueo respetado antes de mover o rotar;
+- frente/fondo y alineación;
+- capas mostrar/ocultar y bloquear/desbloquear;
+- historial productivo de 80 estados;
+- duplicar 35 px;
+- Ctrl/Cmd+C/V con pegado progresivo de 28 px;
+- IDs nuevos y mesas copiadas sin invitados;
+- eliminación segura;
+- mediciones múltiples;
+- toldos poligonales con `pointsM`, vértices, medidas de lados, rotación, resize, color y transparencia;
+- auto distribución legacy;
+- fondo por propuesta en memoria;
+- propuestas abrir/crear/duplicar/renombrar/eliminar, máximo 20.
 
 ### P2 implementado
 
-- exportar la sesión completa a JSON manual: propuestas, propuesta activa, elementos, invitados, medidas y opciones de vista;
-- importar JSON únicamente después de validar tipo, versión, tamaño y estructura;
-- máximo 20 propuestas también durante importación;
-- ningún JSON se guarda automáticamente: la descarga/subida es una acción explícita del usuario;
-- exportación PNG del plano en 1448 × 1086;
-- el PNG retira handles, guías, dibujo temporal y estados de selección;
-- Vista final usa un clon limpio del plano actual y no una segunda fuente de estado;
-- en móvil Herramientas y Propiedades funcionan como bottom sheets;
-- FAB móvil para abrir acciones principales;
-- safe area inferior para iOS;
-- pinch zoom de dos dedos sobre el canvas;
+- exportar sesión completa a JSON manual;
+- importar JSON validando tipo, versión, tamaño y estructura;
+- máximo 20 propuestas también al importar;
+- exportación PNG 1448 × 1086 sin handles, guías, dibujo temporal ni selección;
+- Vista final basada en clon limpio del mismo plano;
+- bottom sheets móviles;
+- FAB móvil;
+- safe areas iOS;
+- pinch zoom táctil;
 - acciones móviles para Propuestas, Vista final, PNG y JSON.
+
+### P2.1 — cierre implementado
+
+- FAB reposicionado dinámicamente por encima del sheet abierto;
+- menú del FAB abre hacia arriba o abajo según espacio disponible;
+- `Escape` cierra sheets/FAB/backdrop;
+- comportamiento cubierto por pruebas ejecutables;
+- aislamiento de persistencia preservado.
 
 **Bugs heredados que no se copian:** las flechas no modifican Y antes de comprobar el bloqueo; las guías mantienen X con X / Y con Y; las acciones múltiples no eliminan ni modifican silenciosamente objetos bloqueados; un handle de vértice del toldo no activa por error el drag de todo el elemento.
 
-## Pendiente después de P2
+## Estado de cierre
 
-La paridad funcional principal del Distribución actual queda cubierta en el laboratorio. El siguiente trabajo de producto será la evolución controlada de mesas: cuadrada, rectangular, capacidades 4–16 y dimensiones físicas, todavía dentro del laboratorio antes de cualquier integración real.
+Con P0 + P1 + P2 + P2.1 se supera el gate definido para esta etapa:
 
-No se agregan todavía mesas cuadradas, rectangulares, capacidades 4–16 ni integración real con App Lu.
+> **EL LABORATORIO REPRODUCE EL DISTRIBUCIÓN ACTUAL SIN SU PERSISTENCIA REAL.**
+
+Esto cierra Fase 2, pero **NO autoriza todavía nuevas geometrías** ni integración con App Lu.
+
+## Siguiente etapa obligatoria
+
+El orden aprobado después de Fase 2 es:
+
+1. corregir bugs/deudas heredadas uno por uno y con test;
+2. corregir tolerancias px → metros donde corresponda;
+3. revisar reglas de capas ocultas, historial, límites, responsive y conflictos;
+4. modularizar `engine/`, `renderer/`, `ui/`, `state/` y `adapters/` sin cambiar comportamiento;
+5. validar nuevamente la mesa redonda exacta;
+6. recién después: cuadrada → rectangular → capacidades 4–16 → dimensiones → cambios de tipo;
+7. después: adaptador → Mesas/Sillas → Invitados → RSVP → integración en sombra → QA → feature flag.
+
+No se debe saltar directamente de Fase 2 a cuadradas o rectangulares.
 
 ## Aislamiento obligatorio
 
@@ -117,4 +117,4 @@ Este laboratorio no se importa desde `app_integral/` y no está conectado al run
 
 ## Regla de trabajo
 
-La versión estable de Distribución en la aplicación principal no se modifica mientras se itera aquí. Primero se aprueba visual y funcionalmente cada etapa en este laboratorio. Después se diseña un pase mínimo y separado hacia el módulo real.
+La versión estable de Distribución en la aplicación principal no se modifica mientras se itera aquí. Primero reproducimos. Después corregimos. Después mejoramos. Después integramos.
