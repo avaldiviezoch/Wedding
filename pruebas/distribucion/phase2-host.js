@@ -2,6 +2,16 @@
   const frame = document.getElementById('phase2Frame');
   if (!frame) return;
 
+  function loadSanitize(doc) {
+    if (doc.documentElement.dataset.phase2SanitizeHost === 'ready') return;
+    doc.documentElement.dataset.phase2SanitizeHost = 'ready';
+    const script = doc.createElement('script');
+    script.src = 'phase2-sanitize.js?v=20260903-sanitize-1';
+    script.dataset.phase2Sanitize = 'runtime';
+    script.onerror = () => console.error('No se pudo cargar el saneamiento post-paridad de Distribución.');
+    doc.body.appendChild(script);
+  }
+
   function loadP2Close(doc) {
     if (doc.documentElement.dataset.phase2P2CloseHost === 'ready') return;
     doc.documentElement.dataset.phase2P2CloseHost = 'ready';
@@ -15,6 +25,7 @@
     const script = doc.createElement('script');
     script.src = 'phase2-p2-close.js?v=20260903-p21-1';
     script.dataset.phase2P2Close = 'runtime';
+    script.onload = () => loadSanitize(doc);
     script.onerror = () => console.error('No se pudo cargar el cierre P2.1 de Distribución.');
     doc.body.appendChild(script);
   }
