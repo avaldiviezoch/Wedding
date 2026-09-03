@@ -86,5 +86,5 @@ test('host carga dimensiones físicas y transición antes de capacity-layout', (
   const transitionIndex = hostSource.indexOf("'engine/table-transition.js'");
   const layoutIndex = hostSource.indexOf("'engine/capacity-layout.js'");
   assert.ok(seatsIndex >= 0 && physicalIndex > seatsIndex && transitionIndex > physicalIndex && layoutIndex > transitionIndex);
-  assert.match(hostSource, /phase2-rectangular\.js', \(\) => loadScript\(doc, 'phase2-capacity\.js', \(\) => loadScript\(doc, 'phase2-inspector\.js'\)/);
+  assert.match(hostSource, /phase2-rectangular\.js', \(\) => loadScript\(doc, 'phase2-capacity\.js', \(\) => loadScript\(doc, 'phase2-inspector\.js', \(\) => loadScript\(doc, 'phase2-validation\.js'\)/);
 });
