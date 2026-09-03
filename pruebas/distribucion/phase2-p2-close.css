@@ -1,0 +1,6 @@
+@media(max-width:780px){
+  .p2-mobile-fab{transition:bottom .22s ease,top .22s ease,transform .18s ease}
+  .p2-mobile-sheet.p2-menu-up,.p2-mobile-sheet.p2-menu-down{max-height:min(52vh,430px);overflow:auto}
+  .p2-mobile-sheet.p2-menu-down{transform:translateY(0)}
+}
+@media(prefers-reduced-motion:reduce){.p2-mobile-fab{transition:none!important}}
