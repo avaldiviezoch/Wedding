@@ -8,6 +8,7 @@ const preview = readFileSync(new URL('../../pruebas/distribucion/phase2-p1-propo
 const interaction = readFileSync(new URL('../../pruebas/distribucion/phase2-p1.js', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../../pruebas/distribucion/phase2-p1-spatial.css', import.meta.url), 'utf8');
 const p0 = readFileSync(new URL('../../pruebas/distribucion/phase2-p0.js', import.meta.url), 'utf8');
+const baseline = readFileSync(new URL('../../pruebas/distribucion/app.js', import.meta.url), 'utf8');
 
 const forbiddenPersistence = /\b(?:localStorage|sessionStorage|indexedDB|firebase|firestore|setDoc|addDoc|updateDoc|deleteDoc|writeBatch|runTransaction)\b/i;
 
@@ -99,7 +100,10 @@ test('fondo se conserva dentro del snapshot de propuesta sin persistencia extern
 test('P1 espacial conserva el gestor de riesgos P0 en vez de reemplazarlo', () => {
   assert.doesNotMatch(source, /validationMessages\s*=/);
   assert.doesNotMatch(source, /conflictIds\s*=/);
-  assert.match(p0, /Hay \$\{conflicts\.size\} elemento\(s\) involucrados en superposición/);
+  assert.match(baseline, /Hay \$\{conflicts\.size\} elemento\(s\) involucrados en superposición/);
+  assert.match(p0, /const originalValidationMessages = validationMessages/);
+  assert.match(p0, /originalValidationMessages\(conflicts\)/);
   assert.match(p0, /menos de 60 cm libres entre sus áreas de circulación/);
+  assert.match(p0, /renderValidation = function phase2RenderValidation/);
   assert.match(source, /commitMutation\(\)/);
 });
