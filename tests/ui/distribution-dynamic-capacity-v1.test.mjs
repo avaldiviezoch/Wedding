@@ -70,14 +70,15 @@ test('capacidad 10 conserva patrones cuadrado y rectangular congelados', () => {
   assert.deepEqual(Array.from(capacityLayout.balancedSideCounts(10, true)), [4,1,4,1]);
 });
 
-test('runtime Fase E/F mantiene protecciones y delega preservación de asientos al engine', () => {
-  for (const token of ['dimensionsStillFixed:false','physicalDimensionsByCapacity:true','protectsOccupiedSeats:true','jsonSupports16:true','convertShapePreservingCapacity','unifiedTransition:true']) {
+test('runtime final mantiene protecciones y es el único renderer dueño de mesas', () => {
+  for (const token of ['dimensionsStillFixed:false','physicalDimensionsByCapacity:true','protectsOccupiedSeats:true','jsonSupports16:true','convertShapePreservingCapacity','unifiedTransition:true','authoritativeTableRenderer:true','uprightTextNative:true','rotationHandleNative:true']) {
     assert.ok(runtimeSource.includes(token), token);
   }
   assert.match(runtimeSource, /transitionApi\.transition\(item, request\)/);
   assert.match(transitionSource, /before\.seats\.slice\(0, capacity\)/);
   assert.match(runtimeSource, /item\?\.type === 'table' \? renderDynamicTable/);
   assert.match(runtimeSource, /rawSeats\.slice\(0, capacity\)/);
+  assert.match(runtimeSource, /appendRotateHandle\(group, item\)/);
 });
 
 test('host carga dimensiones físicas y transición antes de capacity-layout', () => {
@@ -86,5 +87,6 @@ test('host carga dimensiones físicas y transición antes de capacity-layout', (
   const transitionIndex = hostSource.indexOf("'engine/table-transition.js'");
   const layoutIndex = hostSource.indexOf("'engine/capacity-layout.js'");
   assert.ok(seatsIndex >= 0 && physicalIndex > seatsIndex && transitionIndex > physicalIndex && layoutIndex > transitionIndex);
-  assert.match(hostSource, /phase2-rectangular\.js', \(\) => loadScript\(doc, 'phase2-capacity\.js', \(\) => loadScript\(doc, 'phase2-inspector\.js', \(\) => loadScript\(doc, 'phase2-validation\.js', \(\) => loadScript\(doc, 'phase2-visual-contract-fix\.js'\)/);
+  assert.match(hostSource, /phase2-rectangular\.js', \(\) => loadScript\(doc, 'phase2-capacity\.js', \(\) => loadScript\(doc, 'phase2-inspector\.js', \(\) => loadScript\(doc, 'phase2-validation\.js'\)\)\)/);
+  assert.doesNotMatch(hostSource, /phase2-visual-contract-fix\.js/);
 });
