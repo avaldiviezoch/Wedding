@@ -32,7 +32,7 @@ test('las 21 combinaciones forma por capacidad tienen al menos un acomodo explí
       for (const variant of variants) {
         const positions = capacityLayout.positionsFor(shape, capacity, dimensions, variant.id);
         assert.equal(positions.length, capacity, `${shape}/${capacity}/${variant.id}`);
-        assert.equal(new Set(positions.map((p) => `${p.x.toFixed(5)},${p.y.toFixed(5)}`)).size, capacity, `${shape}/${capacity}/${variant.id} sin duplicados`);
+        assert.equal(new Set(Array.from(positions, (p) => `${p.x.toFixed(5)},${p.y.toFixed(5)}`)).size, capacity, `${shape}/${capacity}/${variant.id} sin duplicados`);
       }
     }
   }
@@ -61,7 +61,7 @@ test('cuadradas usan patrones simétricos intencionales para 4 6 8 10 12 14 16',
     16:[[4,4,4,4]]
   };
   for (const capacity of capacities) {
-    const actual = capacityLayout.layoutVariants('square', capacity).map((variant) => Array.from(variant.counts));
+    const actual = Array.from(capacityLayout.layoutVariants('square', capacity), (variant) => Array.from(variant.counts));
     assert.deepEqual(actual, expected[capacity]);
   }
 });
@@ -78,7 +78,7 @@ test('rectangulares ofrecen extremos ocupados y alternativas de lados largos seg
     16:[[7,1,7,1],[6,2,6,2],[8,0,8,0]]
   };
   for (const capacity of capacities) {
-    const actual = capacityLayout.layoutVariants('rectangular', capacity).map((variant) => Array.from(variant.counts));
+    const actual = Array.from(capacityLayout.layoutVariants('rectangular', capacity), (variant) => Array.from(variant.counts));
     assert.deepEqual(actual, expected[capacity]);
   }
 });
