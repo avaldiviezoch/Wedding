@@ -29,7 +29,7 @@
 
   function loadScript(doc, src, onload) {
     const script = doc.createElement('script');
-    script.src = `${src}?v=20260903-mod2`;
+    script.src = src.includes('?') ? src : `${src}?v=20260903-mod2`;
     script.onload = onload || null;
     script.onerror = () => console.error(`No se pudo cargar ${src}`);
     doc.body.appendChild(script);
@@ -40,6 +40,11 @@
     loadScript(doc, scripts[index], () => loadSeries(doc, scripts, done, index + 1));
   }
 
+  function loadEngine(doc, done, index = 0) {
+    if (index >= ENGINE_SCRIPTS.length) return done?.();
+    loadScript(doc, ENGINE_SCRIPTS[index], () => loadEngine(doc, done, index + 1));
+  }
+
   function loadRendererUi(doc) {
     loadSeries(doc, RENDERER_UI_SCRIPTS, () => loadScript(doc, 'phase2-renderer-ui-bridge.js'));
   }
@@ -47,7 +52,7 @@
   function loadSanitize(doc) {
     if (doc.documentElement.dataset.phase2SanitizeHost === 'ready') return;
     doc.documentElement.dataset.phase2SanitizeHost = 'ready';
-    loadSeries(doc, ENGINE_SCRIPTS, () => loadScript(doc, 'phase2-sanitize.js', () => loadRendererUi(doc)));
+    loadEngine(doc, () => loadScript(doc, 'phase2-sanitize.js?v=20260903-sanitize-1', () => loadRendererUi(doc)));
   }
 
   function loadP2Close(doc) {
