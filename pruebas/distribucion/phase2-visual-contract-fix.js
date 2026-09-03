@@ -12,25 +12,32 @@
     return item?.type === 'table' ? item : null;
   }
 
-  function forceShapeTransition(shape) {
-    const table = currentTable();
-    if (!table) return Object.freeze({ ok:false, reason:'missing-table' });
-
-    const result = capacityApi.transitionTable(table, { shape });
+  function finishTransition(table, result) {
     if (!result?.ok) {
-      if (typeof toast === 'function' && result?.reason === 'unavailable') {
-        toast('Desbloquea la mesa o su capa para cambiar el tipo.', true);
-      }
       inspectorApi?.refresh?.();
       return result;
     }
-
-    // La transición ya preserva identidad/asientos. Reaplicamos geometría y
-    // repintamos explícitamente para que ningún listener heredado deje la forma anterior en pantalla.
     capacityApi.applyPhysicalGeometry(table);
     render();
     inspectorApi?.refresh?.();
     return result;
+  }
+
+  function forceShapeTransition(shape) {
+    const table = currentTable();
+    if (!table) return Object.freeze({ ok:false, reason:'missing-table' });
+    const result = capacityApi.transitionTable(table, { shape });
+    if (!result?.ok && typeof toast === 'function' && result?.reason === 'unavailable') {
+      toast('Desbloquea la mesa o su capa para cambiar el tipo.', true);
+    }
+    return finishTransition(table, result);
+  }
+
+  function forceCapacityTransition(capacity) {
+    const table = currentTable();
+    if (!table) return Object.freeze({ ok:false, reason:'missing-table' });
+    const result = capacityApi.transitionTable(table, { capacity });
+    return finishTransition(table, result);
   }
 
   const shapeSelect = document.getElementById('tableInspectorShape');
@@ -42,6 +49,16 @@
     }, true);
   }
 
+  const capacitySelect = document.getElementById('tableInspectorCapacity');
+  if (capacitySelect) {
+    capacitySelect.addEventListener('change', (event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const capacity = Number(capacitySelect.value);
+      forceCapacityTransition(capacity);
+    }, true);
+  }
+
   const previousRenderTable = renderTable;
   renderTable = function phase2UprightTextRenderTable(item, scale, conflicts) {
     const group = previousRenderTable(item, scale, conflicts);
@@ -50,7 +67,6 @@
     const rotation = Number(item.rotation) || 0;
     const counter = -rotation;
 
-    // Los nombres siguen la posición física de su silla, pero sus letras nunca giran.
     group.querySelectorAll?.('.guest-tag').forEach((tag) => {
       const raw = tag.getAttribute('transform') || '';
       const base = raw.replace(/\s*rotate\([^)]*\)\s*$/, '').trim();
@@ -58,7 +74,6 @@
       tag.dataset.uprightText = 'true';
     });
 
-    // Números de silla y nombre central de mesa también permanecen legibles hacia arriba.
     group.querySelectorAll?.('.chair-wrap > text').forEach((text) => {
       text.setAttribute('transform', `rotate(${counter})`);
       text.dataset.uprightText = 'true';
@@ -76,9 +91,11 @@
   window.MiGranDiaDistributionVisualContractFixV1 = Object.freeze({
     status:'ready',
     forceShapeTransition,
+    forceCapacityTransition,
     uprightGuestNames:true,
     uprightChairNumbers:true,
     uprightTableLabel:true,
+    rotationHandlePreserved:true,
     memoryOnly:true
   });
 
