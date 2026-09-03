@@ -35,7 +35,7 @@
 
   function loadScript(doc, src, onload) {
     const script = doc.createElement('script');
-    script.src = src.includes('?') ? src : `${src}?v=20260903-h1`;
+    script.src = src.includes('?') ? src : `${src}?v=20260903-vc1`;
     script.onload = onload || null;
     script.onerror = () => console.error(`No se pudo cargar ${src}`);
     doc.body.appendChild(script);
@@ -52,7 +52,7 @@
   }
 
   function loadRendererUi(doc) {
-    loadSeries(doc, RENDERER_UI_SCRIPTS, () => loadScript(doc, 'phase2-renderer-ui-bridge.js', () => loadScript(doc, 'phase2-square.js', () => loadScript(doc, 'phase2-rectangular.js', () => loadScript(doc, 'phase2-capacity.js', () => loadScript(doc, 'phase2-inspector.js', () => loadScript(doc, 'phase2-validation.js')))))));
+    loadSeries(doc, RENDERER_UI_SCRIPTS, () => loadScript(doc, 'phase2-renderer-ui-bridge.js', () => loadScript(doc, 'phase2-square.js', () => loadScript(doc, 'phase2-rectangular.js', () => loadScript(doc, 'phase2-capacity.js', () => loadScript(doc, 'phase2-inspector.js', () => loadScript(doc, 'phase2-validation.js', () => loadScript(doc, 'phase2-visual-contract-fix.js'))))))));
   }
 
   function loadSanitize(doc) {
