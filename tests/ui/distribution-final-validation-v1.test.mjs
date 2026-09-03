@@ -52,6 +52,6 @@ test('runtime sustituye mensajes legacy por una sola evaluación final',()=>{
   assert.ok(runtimeSource.includes('canvas:{ width:1448, height:1086 }'));
 });
 
-test('host carga Fase H después del inspector',()=>{
-  assert.match(hostSource,/phase2-inspector\.js', \(\) => loadScript\(doc, 'phase2-validation\.js'\)/);
+test('host carga Fase H después del inspector y antes del fix visual',()=>{
+  assert.match(hostSource,/phase2-inspector\.js', \(\) => loadScript\(doc, 'phase2-validation\.js', \(\) => loadScript\(doc, 'phase2-visual-contract-fix\.js'\)/);
 });
