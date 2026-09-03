@@ -15,11 +15,12 @@
   section.className = 'panel-section';
   section.hidden = true;
   section.innerHTML = `
-    <div class="section-title-row"><div><h3>Mesa seleccionada</h3><p>Forma, sillas y estado en un solo inspector.</p></div><span class="count-chip" id="tableInspectorSeatBadge">0/0</span></div>
+    <div class="section-title-row"><div><h3>Mesa seleccionada</h3><p>Forma, sillas, acomodo y estado en un solo inspector.</p></div><span class="count-chip" id="tableInspectorSeatBadge">0/0</span></div>
     <div class="two-col">
       <label class="field"><span>Forma</span><select id="tableInspectorShape"><option value="round">Redonda</option><option value="square">Cuadrada</option><option value="rectangular">Rectangular</option></select></label>
       <label class="field"><span>Número de sillas</span><select id="tableInspectorCapacity">${inspectorApi.TABLE_CAPACITIES.map((n)=>`<option value="${n}">${n} sillas</option>`).join('')}</select></label>
     </div>
+    <label class="field"><span>Acomodo de sillas</span><select id="tableInspectorSeatLayout"></select></label>
     <div class="action-grid" id="tableInspectorChairStepper">
       <button type="button" id="tableInspectorSeatMinus">− Menos sillas</button>
       <button type="button" id="tableInspectorSeatCount" disabled>10 sillas</button>
@@ -77,6 +78,7 @@
 
   const shapeSelect = section.querySelector('#tableInspectorShape');
   const capacitySelect = section.querySelector('#tableInspectorCapacity');
+  const seatLayoutSelect = section.querySelector('#tableInspectorSeatLayout');
   const capacityNote = section.querySelector('#tableInspectorCapacityNote');
   const seatMinus = section.querySelector('#tableInspectorSeatMinus');
   const seatPlus = section.querySelector('#tableInspectorSeatPlus');
@@ -102,6 +104,19 @@
     return next >= 0 && next < capacities.length ? capacities[next] : null;
   }
 
+  function updateSeatLayoutOptions(table) {
+    const variants = capacityApi.seatLayoutVariants?.(table) || [];
+    const active = capacityApi.normalizeSeatLayout?.(table) || variants[0]?.id || 'default';
+    seatLayoutSelect.replaceChildren(...variants.map((variant) => {
+      const option = document.createElement('option');
+      option.value = variant.id;
+      option.textContent = variant.label;
+      return option;
+    }));
+    seatLayoutSelect.value = active;
+    seatLayoutSelect.disabled = variants.length <= 1 || Boolean(table?.locked);
+  }
+
   function updateCapacityAvailability(table, model) {
     let firstBlocked = null;
     Array.from(capacitySelect.options).forEach((option) => {
@@ -122,9 +137,9 @@
       const seats = firstBlocked.map((entry) => entry.seatNumber).join(', ');
       capacityNote.textContent = `Puedes agregar sillas libremente. Para reducir, mueve o libera primero los asientos ${seats}.`;
     } else if (model.seats.occupied) {
-      capacityNote.textContent = 'Usa − / + para cambiar el número de sillas sin perder invitados asignados.';
+      capacityNote.textContent = 'Usa − / + para cambiar sillas y “Acomodo” para elegir su distribución sin perder invitados.';
     } else {
-      capacityNote.textContent = 'Sillas disponibles: 4, 6, 8, 10, 12, 14 y 16.';
+      capacityNote.textContent = 'Sillas disponibles: 4, 6, 8, 10, 12, 14 y 16. El acomodo depende de la forma y cantidad.';
     }
   }
 
@@ -140,6 +155,7 @@
     section.hidden = false;
     shapeSelect.value = model.shape;
     capacitySelect.value = String(model.capacity);
+    updateSeatLayoutOptions(table);
     updateCapacityAvailability(table, model);
     badge.textContent = `${model.seats.occupied}/${model.seats.capacity}`;
     occupiedEl.textContent = String(model.seats.occupied);
@@ -176,6 +192,14 @@
     applyTransition({ capacity: Number(capacitySelect.value) });
   }, true);
 
+  seatLayoutSelect.addEventListener('change', (event) => {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const table = currentTable();
+    if (table) capacityApi.setSeatLayoutVariant?.(table, seatLayoutSelect.value);
+    refresh();
+  }, true);
+
   seatMinus.addEventListener('click', (event) => {
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -197,11 +221,11 @@
 
   document.documentElement.dataset.phase2TableInspector = 'ready';
   window.MiGranDiaDistributionTableInspectorV1 = Object.freeze({
-    status:'ready', refresh, applyTransition, stepSeats, neighborCapacity,
+    status:'ready', refresh, applyTransition, stepSeats, neighborCapacity, updateSeatLayoutOptions,
     moveCoreIntoTableInspector, restoreCoreControls,
     unifiedTransition:true, memoryOnly:true, preservesNonTableInspector:true,
     captureOwnedControls:true, explainsBlockedCapacity:true,
-    explicitChairStepper:true
+    explicitChairStepper:true, explicitSeatLayoutSelector:true
   });
   refresh();
 })();
