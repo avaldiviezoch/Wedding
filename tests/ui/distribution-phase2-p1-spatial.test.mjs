@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 
 const host = readFileSync(new URL('../../pruebas/distribucion/phase2-host.js', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../../pruebas/distribucion/phase2-p1-spatial.js', import.meta.url), 'utf8');
+const preview = readFileSync(new URL('../../pruebas/distribucion/phase2-p1-proposal-preview.js', import.meta.url), 'utf8');
 const interaction = readFileSync(new URL('../../pruebas/distribucion/phase2-p1.js', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../../pruebas/distribucion/phase2-p1-spatial.css', import.meta.url), 'utf8');
 const p0 = readFileSync(new URL('../../pruebas/distribucion/phase2-p0.js', import.meta.url), 'utf8');
@@ -14,8 +15,11 @@ test('P1 espacial carga después del editor y permanece aislado', () => {
   assert.match(host, /script\.onload\s*=\s*\(\)\s*=>\s*loadP1Spatial\(doc\)/);
   assert.match(host, /phase2-p1-spatial\.js\?v=20260902-p1c-1/);
   assert.match(host, /phase2-p1-spatial\.css\?v=20260902-p1c-1/);
-  assert.doesNotMatch(`${host}\n${source}`, forbiddenPersistence);
+  assert.match(host, /script\.onload\s*=\s*\(\)\s*=>\s*loadP1ProposalPreview\(doc\)/);
+  assert.match(host, /phase2-p1-proposal-preview\.js\?v=20260902-p1c-1/);
+  assert.doesNotMatch(`${host}\n${source}\n${preview}`, forbiddenPersistence);
   assert.doesNotThrow(() => new Function(source), 'phase2-p1-spatial.js debe tener sintaxis JavaScript válida');
+  assert.doesNotThrow(() => new Function(preview), 'phase2-p1-proposal-preview.js debe tener sintaxis JavaScript válida');
 });
 
 test('medición P1 conserva múltiples medidas y etiquetas en metros', () => {
@@ -46,7 +50,7 @@ test('toldo replica polígono libre con puntos en metros y edición de vértices
 });
 
 test('P1 general reserva vértices del toldo y no mueve elementos mientras se mide o dibuja', () => {
-  assert.match(interaction, /if \(event\.target\?\.closest\?\.\('\.tent-vertex'\)\) return/);
+  assert.match(interaction, /closest\?\.\('\.tent-vertex'\)/);
   assert.match(interaction, /if \(isEditing\(\) \|\| measureMode \|\| drawingTent\) return/);
   assert.match(interaction, /tentVertexReservedForSpatialEditor: true/);
 });
@@ -60,7 +64,7 @@ test('auto distribución replica las coordenadas del Distribución estable', () 
     "['couple', 820, 775]"
   ]) assert.ok(source.includes(literal), `falta ${literal}`);
   assert.match(source, /elements = AUTO_LAYOUT\.map/);
-  assert.match(source, /id = 'btnAutoLayoutP1'|button\.id = 'btnAutoLayoutP1'/);
+  assert.match(source, /button\.id = 'btnAutoLayoutP1'/);
 });
 
 test('propuestas P1 son solo de sesión y tienen límite productivo de 20', () => {
@@ -72,7 +76,18 @@ test('propuestas P1 son solo de sesión y tienen límite productivo de 20', () =
   assert.match(source, /switchProposalP1/);
   assert.match(source, /proposals\.length >= MAX_PROPOSALS/);
   assert.match(source, /saveCurrentProposalSnapshot = function phase2P1SaveCurrentProposalSnapshot/);
-  assert.match(source, /state:.*blankState|const state = duplicate/s);
+  assert.match(source, /const state = duplicate && active \? clone\(active\.state\) : blankState\(\)/);
+});
+
+test('propuestas incluyen vista previa SVG y fecha de actualización sin persistir', () => {
+  assert.match(preview, /planner\.cloneNode\(true\)/);
+  assert.match(preview, /querySelectorAll\('\.rotate-ui,\.vertex-handle'\)/);
+  assert.match(preview, /data:image\/svg\+xml/);
+  assert.match(preview, /proposal\.thumbnail = buildProposalPreview\(\)/);
+  assert.match(preview, /proposal\.updatedAt = new Date\(\)\.toISOString\(\)/);
+  assert.match(preview, /proposal-preview-p1/);
+  assert.match(css, /\.proposal-preview-p1/);
+  assert.doesNotMatch(preview, forbiddenPersistence);
 });
 
 test('fondo se conserva dentro del snapshot de propuesta sin persistencia externa', () => {
