@@ -2,12 +2,30 @@
   const frame = document.getElementById('phase2Frame');
   if (!frame) return;
 
+  function loadP2(doc) {
+    if (doc.documentElement.dataset.phase2P2Host === 'ready') return;
+    doc.documentElement.dataset.phase2P2Host = 'ready';
+
+    const style = doc.createElement('link');
+    style.rel = 'stylesheet';
+    style.href = 'phase2-p2.css?v=20260903-p2-1';
+    style.dataset.phase2P2 = 'style';
+    doc.head.appendChild(style);
+
+    const script = doc.createElement('script');
+    script.src = 'phase2-p2.js?v=20260903-p2-1';
+    script.dataset.phase2P2 = 'runtime';
+    script.onerror = () => console.error('No se pudo cargar P2 de Distribución.');
+    doc.body.appendChild(script);
+  }
+
   function loadP1ProposalPreview(doc) {
     if (doc.documentElement.dataset.phase2P1ProposalPreviewHost === 'ready') return;
     doc.documentElement.dataset.phase2P1ProposalPreviewHost = 'ready';
     const script = doc.createElement('script');
     script.src = 'phase2-p1-proposal-preview.js?v=20260902-p1c-1';
     script.dataset.phase2P1ProposalPreview = 'runtime';
+    script.onload = () => loadP2(doc);
     script.onerror = () => console.error('No se pudieron cargar las vistas previas P1 de Propuestas.');
     doc.body.appendChild(script);
   }
