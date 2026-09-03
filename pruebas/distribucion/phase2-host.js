@@ -14,23 +14,40 @@
     'adapters/mock-app-lu.js'
   ];
 
+  const RENDERER_UI_SCRIPTS = [
+    'renderer/tables.js',
+    'renderer/chairs.js',
+    'renderer/labels.js',
+    'renderer/tents.js',
+    'ui/planner.js',
+    'ui/inspector.js',
+    'ui/layers.js',
+    'ui/risks.js',
+    'ui/proposals.js',
+    'ui/mobile.js'
+  ];
+
   function loadScript(doc, src, onload) {
     const script = doc.createElement('script');
-    script.src = `${src}?v=20260903-mod1`;
-    script.onload = onload;
+    script.src = `${src}?v=20260903-mod2`;
+    script.onload = onload || null;
     script.onerror = () => console.error(`No se pudo cargar ${src}`);
     doc.body.appendChild(script);
   }
 
-  function loadEngine(doc, done, index = 0) {
-    if (index >= ENGINE_SCRIPTS.length) return done();
-    loadScript(doc, ENGINE_SCRIPTS[index], () => loadEngine(doc, done, index + 1));
+  function loadSeries(doc, scripts, done, index = 0) {
+    if (index >= scripts.length) return done?.();
+    loadScript(doc, scripts[index], () => loadSeries(doc, scripts, done, index + 1));
+  }
+
+  function loadRendererUi(doc) {
+    loadSeries(doc, RENDERER_UI_SCRIPTS, () => loadScript(doc, 'phase2-renderer-ui-bridge.js'));
   }
 
   function loadSanitize(doc) {
     if (doc.documentElement.dataset.phase2SanitizeHost === 'ready') return;
     doc.documentElement.dataset.phase2SanitizeHost = 'ready';
-    loadEngine(doc, () => loadScript(doc, 'phase2-sanitize.js', null));
+    loadSeries(doc, ENGINE_SCRIPTS, () => loadScript(doc, 'phase2-sanitize.js', () => loadRendererUi(doc)));
   }
 
   function loadP2Close(doc) {
