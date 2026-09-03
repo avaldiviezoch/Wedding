@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 const root = new URL('../../pruebas/distribucion/', import.meta.url);
 const seatsSource = readFileSync(new URL('engine/seats.js', root), 'utf8');
 const layoutSource = readFileSync(new URL('engine/capacity-layout.js', root), 'utf8');
+const transitionSource = readFileSync(new URL('engine/table-transition.js', root), 'utf8');
 const runtimeSource = readFileSync(new URL('phase2-capacity.js', root), 'utf8');
 const hostSource = readFileSync(new URL('phase2-host.js', root), 'utf8');
 const forbidden = /\b(?:localStorage|sessionStorage|indexedDB|firebase|firestore|setDoc|addDoc|updateDoc|deleteDoc|writeBatch|runTransaction)\b/i;
@@ -23,7 +24,7 @@ test('Fase D solo admite capacidades pares aprobadas de 4 a 16', () => {
   assert.deepEqual(Array.from(seats.SUPPORTED_CAPACITIES), [4,6,8,10,12,14,16]);
   for (const capacity of seats.SUPPORTED_CAPACITIES) assert.equal(seats.normalizeCapacity(capacity), capacity);
   assert.equal(seats.normalizeCapacity(5), 10);
-  assert.doesNotMatch(seatsSource + layoutSource + runtimeSource, forbidden);
+  assert.doesNotMatch(seatsSource + layoutSource + transitionSource + runtimeSource, forbidden);
 });
 
 test('reducción bloquea cualquier invitado que quede fuera del nuevo rango', () => {
@@ -69,18 +70,21 @@ test('capacidad 10 conserva patrones cuadrado y rectangular congelados', () => {
   assert.deepEqual(Array.from(capacityLayout.balancedSideCounts(10, true)), [4,1,4,1]);
 });
 
-test('runtime Fase E mantiene protecciones de Fase D y activa dimensiones por capacidad', () => {
-  for (const token of ['dimensionsStillFixed:false','physicalDimensionsByCapacity:true','protectsOccupiedSeats:true','jsonSupports16:true','convertShapePreservingCapacity','item.capacity = capacity','identity.seats.slice(0, capacity)']) {
+test('runtime Fase E/F mantiene protecciones y delega preservación de asientos al engine', () => {
+  for (const token of ['dimensionsStillFixed:false','physicalDimensionsByCapacity:true','protectsOccupiedSeats:true','jsonSupports16:true','convertShapePreservingCapacity','unifiedTransition:true']) {
     assert.ok(runtimeSource.includes(token), token);
   }
+  assert.match(runtimeSource, /transitionApi\.transition\(item, request\)/);
+  assert.match(transitionSource, /before\.seats\.slice\(0, capacity\)/);
   assert.match(runtimeSource, /item\?\.type === 'table' \? renderDynamicTable/);
   assert.match(runtimeSource, /rawSeats\.slice\(0, capacity\)/);
 });
 
-test('host carga dimensiones físicas después de seats y antes de capacity-layout', () => {
+test('host carga dimensiones físicas y transición antes de capacity-layout', () => {
   const seatsIndex = hostSource.indexOf("'engine/seats.js'");
   const physicalIndex = hostSource.indexOf("'engine/physical-dimensions.js'");
+  const transitionIndex = hostSource.indexOf("'engine/table-transition.js'");
   const layoutIndex = hostSource.indexOf("'engine/capacity-layout.js'");
-  assert.ok(seatsIndex >= 0 && physicalIndex > seatsIndex && layoutIndex > physicalIndex);
+  assert.ok(seatsIndex >= 0 && physicalIndex > seatsIndex && transitionIndex > physicalIndex && layoutIndex > transitionIndex);
   assert.match(hostSource, /phase2-rectangular\.js', \(\) => loadScript\(doc, 'phase2-capacity\.js'\)/);
 });

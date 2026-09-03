@@ -4,18 +4,17 @@
   const seatsApi = engine.seats;
   const layout = engine.capacityLayout;
   const physical = engine.physicalDimensions;
+  const transitionApi = engine.tableTransition;
   const round = engine.roundTableContract;
   const square = engine.squareTableContract;
   const rectangular = engine.rectangularTableContract;
-  if (!seatsApi || !layout || !physical || !round || !square || !rectangular) throw new Error('Motor de capacidad/dimensiones incompleto');
+  if (!seatsApi || !layout || !physical || !transitionApi || !round || !square || !rectangular) throw new Error('Motor de capacidad/transición incompleto');
 
   const legacySanitizeState = typeof sanitizeState === 'function' ? sanitizeState : null;
   const capacities = seatsApi.SUPPORTED_CAPACITIES;
 
   function tableShape(item) {
-    if (item?.tableShape === 'rectangular') return 'rectangular';
-    if (item?.tableShape === 'square') return 'square';
-    return 'round';
+    return transitionApi.normalizeShape(item?.tableShape, 'round');
   }
 
   function styleContract(shape) {
@@ -102,31 +101,26 @@
     return item?.type === 'table' ? renderDynamicTable(item, scale, conflicts) : null;
   };
 
-  function setCapacity(item, nextCapacity) {
+  function transitionTable(item, request) {
     if (!item || item.type !== 'table' || isItemLocked(item)) return Object.freeze({ ok:false, reason:'unavailable' });
-    const result = seatsApi.resizeCapacity(item, nextCapacity);
+    const result = transitionApi.transition(item, request);
     if (!result.ok) {
-      const blockedSeats = result.blocked.map((entry) => entry.seatNumber).join(', ');
-      if (typeof toast === 'function') toast(`No se puede reducir: hay invitados en los asientos ${blockedSeats}.`, true);
+      if (result.reason === 'occupied-seats') {
+        const blockedSeats = result.blocked.map((entry) => entry.seatNumber).join(', ');
+        if (typeof toast === 'function') toast(`No se puede reducir: hay invitados en los asientos ${blockedSeats}.`, true);
+      }
       return result;
     }
-    applyPhysicalGeometry(item);
     commitMutation();
     return result;
   }
 
+  function setCapacity(item, nextCapacity) {
+    return transitionTable(item, { capacity:nextCapacity });
+  }
+
   function convertShapePreservingCapacity(item, shape) {
-    if (!item || item.type !== 'table' || isItemLocked(item)) return false;
-    const capacity = seatsApi.normalizeCapacity(item.capacity, 10);
-    const identity = { id:item.id, x:item.x, y:item.y, rotation:item.rotation, seats:Array.isArray(item.seats)?item.seats.slice():[], label:item.label, color:item.color };
-    item.tableShape = shape === 'square' || shape === 'rectangular' ? shape : 'round';
-    item.capacity = capacity;
-    item.id = identity.id; item.x = identity.x; item.y = identity.y; item.rotation = identity.rotation; item.label = identity.label; item.color = identity.color;
-    item.seats = identity.seats.slice(0, capacity);
-    while (item.seats.length < capacity) item.seats.push(null);
-    applyPhysicalGeometry(item);
-    commitMutation();
-    return true;
+    return transitionTable(item, { shape });
   }
 
   function installCapacityControls() {
@@ -159,7 +153,7 @@
       safe.elements.forEach((item, index) => {
         if (item.type !== 'table') return;
         const raw = rawElements.find((entry) => String(entry?.id || '') === item.id) || rawElements[index] || {};
-        item.tableShape = raw.tableShape === 'square' || raw.tableShape === 'rectangular' ? raw.tableShape : 'round';
+        item.tableShape = transitionApi.normalizeShape(raw.tableShape, 'round');
         const capacity = seatsApi.normalizeCapacity(raw.capacity, 10);
         item.capacity = capacity;
         const rawSeats = Array.isArray(raw.seats) ? raw.seats : [];
@@ -178,6 +172,6 @@
   elements.filter((item) => item.type === 'table').forEach(applyPhysicalGeometry);
   installCapacityControls();
   document.documentElement.dataset.phase2Capacity = 'ready';
-  window.MiGranDiaDistributionCapacityV1 = Object.freeze({ status:'ready', capacities, setCapacity, convertShapePreservingCapacity, seatPositions, renderDynamicTable, applyPhysicalGeometry, protectsOccupiedSeats:true, dimensionsStillFixed:false, physicalDimensionsByCapacity:true, jsonSupports16:true });
+  window.MiGranDiaDistributionCapacityV1 = Object.freeze({ status:'ready', capacities, transitionTable, setCapacity, convertShapePreservingCapacity, seatPositions, renderDynamicTable, applyPhysicalGeometry, protectsOccupiedSeats:true, dimensionsStillFixed:false, physicalDimensionsByCapacity:true, unifiedTransition:true, jsonSupports16:true });
   render();
 })();
