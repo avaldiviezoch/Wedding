@@ -11,16 +11,17 @@ Antes de modificar el motor o agregar nuevas formas de mesa, este laboratorio de
 
 Regla principal: el laboratorio permanece aislado de la persistencia real, pero debe usar un modelo lógico compatible con la futura integración a Mi Gran Día.
 
-## Fase 2 — Paridad P0 + primer bloque P1
+## Fase 2 — Paridad P0 + P1 en construcción
 
 La Fase 2 usa una vista comparativa separada para no destruir el baseline mientras validamos el motor:
 
 - `index.html` — baseline anterior, conservado como referencia.
 - `phase2.html` — vista activa de Fase 2.
-- `phase2-host.js` — carga P0 y, cuando P0 termina, carga P1.
+- `phase2-host.js` — carga secuencialmente P0, P1 de interacciones y P1 de editor.
 - `phase2-p0.js` — canvas 1448×1086, centro 724/543, mesa circular legacy, sillas, etiquetas, SAT y gestor de riesgos.
 - `phase2-p0.css` — oculta el CRUD maestro de Invitados y mantiene asignación rápida/editor de asientos.
-- `phase2-p1.js` — primer bloque P1: drag, multiselección, rotación y bloqueo.
+- `phase2-p1.js` — drag, multiselección, rotación y bloqueo.
+- `phase2-p1-editor.js` — frente/fondo, alineación, capas, historial 80, duplicar, copiar/pegar y eliminar.
 
 ### P0 implementado
 
@@ -47,20 +48,35 @@ La Fase 2 usa una vista comparativa separada para no destruir el baseline mientr
 - Shift durante rotación para ajustar a pasos de 15°;
 - tecla `R` para rotar 15°;
 - flechas para mover 1 px y Shift+flechas para 10 px;
-- bloqueo respetado antes de cualquier movimiento por puntero o teclado;
-- objetos bloqueados pueden seleccionarse, pero no moverse ni rotarse.
+- bloqueo respetado antes de cualquier movimiento por puntero o teclado.
 
-**Bugs heredados que no se copian:** las flechas no pueden modificar Y antes de comprobar el bloqueo y las guías mantienen X con X / Y con Y.
+### P1 — bloque 2 implementado
+
+- traer selección al frente y enviarla al fondo;
+- alineación horizontal conservando la regla actual del producto: igualar Y con el elemento principal;
+- objetos bloqueados protegidos también en alineación, orden y eliminación;
+- capas por categoría con mostrar/ocultar y bloquear/desbloquear;
+- ocultar una capa retira de la selección sus objetos;
+- mostrar todas las capas y desbloquear todo;
+- historial ampliado al límite productivo de 80 estados;
+- duplicar el objeto principal con desplazamiento de 35 px;
+- Ctrl/Cmd+C y Ctrl/Cmd+V para una o varias selecciones;
+- pegado con desplazamiento progresivo de 28 px;
+- IDs nuevos en duplicados/copias;
+- las mesas duplicadas o pegadas nacen sin invitados asignados;
+- eliminar selección conserva cualquier objeto bloqueado seleccionado.
+
+**Bugs heredados que no se copian:** las flechas no modifican Y antes de comprobar el bloqueo; las guías mantienen X con X / Y con Y; las acciones múltiples no eliminan ni modifican silenciosamente objetos bloqueados.
 
 ## Pendiente de Fase 2
 
-P1 aún debe completar frente/fondo/alineación, capas, historial 80, copiar/pegar/duplicar/eliminar, medición, toldo completo, auto layout y propuestas en memoria. P2 cubrirá superficies auxiliares y mobile.
+P1 aún debe completar medición de paridad, toldo poligonal completo, auto distribución, fondo y propuestas exclusivamente en memoria. P2 cubrirá exportación/presentación final y la experiencia mobile con sheets, FAB y zoom táctil.
 
 No se agregan todavía mesas cuadradas, rectangulares, capacidades 4–16 ni integración real con App Lu.
 
 ## Aislamiento obligatorio
 
-Este laboratorio no se importa desde `app_integral/` y no está conectado al runtime principal. No contiene integración con Firebase, Firestore, IndexedDB ni mecanismos de persistencia de la aplicación. Todo el estado existe únicamente en memoria de la página y se reinicia al recargar.
+Este laboratorio no se importa desde `app_integral/` y no está conectado al runtime principal. No contiene integración con servicios de datos de la aplicación ni mecanismos de persistencia del producto. Todo el estado existe únicamente en memoria de la página y se reinicia al recargar.
 
 ## Regla de trabajo
 
