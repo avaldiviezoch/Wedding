@@ -116,7 +116,10 @@ test('canvas P0 usa exactamente 1448 × 1086 y centro 724 / 543', () => {
   const { context, planner, floor, bgImage, gridLayer } = runtimeContext();
   const contract = context.window.MiGranDiaDistributionPhase2P0;
 
-  assert.deepEqual(contract.canvas, { width: 1448, height: 1086, centerX: 724, centerY: 543 });
+  assert.equal(contract.canvas.width, 1448);
+  assert.equal(contract.canvas.height, 1086);
+  assert.equal(contract.canvas.centerX, 724);
+  assert.equal(contract.canvas.centerY, 543);
   assert.equal(planner.attrs.viewBox, '0 0 1448 1086');
   for (const node of [floor, bgImage, gridLayer]) {
     assert.equal(node.attrs.width, '1448');
