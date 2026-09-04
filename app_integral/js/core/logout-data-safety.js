@@ -1,15 +1,17 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260830-logout-data-safety1';
+  const VERSION = '20260830-logout-data-safety2';
   const LOCAL_OWNER_KEY = 'migrandia_local_owner_uid_v1';
+  const LOGOUT_BACKUP_BLOCKED = 'MIGRANDIA_LOGOUT_BACKUP_BLOCKED';
 
   function install() {
     const bridge = window.WeddingPlannerBridge;
-    if (!bridge || typeof bridge.clearLocalUserData !== 'function') return false;
+    if (!bridge || typeof bridge.clearLocalUserData !== 'function' || typeof bridge.buildCloudBackup !== 'function') return false;
     if (bridge.__mgdLogoutDataSafety === VERSION) return true;
 
     const originalClear = bridge.clearLocalUserData.bind(bridge);
+    const originalBuildCloudBackup = bridge.buildCloudBackup.bind(bridge);
 
     bridge.clearLocalUserData = async (...args) => {
       const authenticated = window.WeddingPlannerAuthGuard?.authenticated === true;
@@ -28,6 +30,20 @@
       }
 
       return originalClear(...args);
+    };
+
+    bridge.buildCloudBackup = async (...args) => {
+      const authenticated = window.WeddingPlannerAuthGuard?.authenticated === true;
+
+      // The current logout flow marks the shell unauthenticated before attempting
+      // its legacy final save. Abort before buildCloudBackup so Firestore receives
+      // zero writes from logout. Normal authenticated autosaves remain untouched.
+      if (!authenticated) {
+        console.info('[Mi Gran Día] Escritura en nube bloqueada durante cierre de sesión.');
+        throw new Error(LOGOUT_BACKUP_BLOCKED);
+      }
+
+      return originalBuildCloudBackup(...args);
     };
 
     bridge.__mgdLogoutDataSafety = VERSION;
