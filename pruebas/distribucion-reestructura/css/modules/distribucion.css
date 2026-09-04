@@ -107,3 +107,15 @@ html[data-phase2-p0="true"] .table-hit .guest-tag{
 .fixed-scale-contract span{font-size:12px;font-weight:700;color:#625b52}
 .fixed-scale-contract strong{font-size:13px;color:#302d29}
 .fixed-scale-contract small{grid-column:1/-1;font-size:11px;color:#7d756b}
+
+/* Fondo del salón · arrastre directo, solo memoria */
+#bgImage{cursor:grab;pointer-events:all}
+#bgImage.is-dragging{cursor:grabbing}
+.bg-drag-note{margin:7px 0 0;color:#777167;font-size:9px;line-height:1.35}
+
+/* Navegación del plano: mouse ahora, Pointer Events compatible con touch */
+.canvas-wrap.viewport-pan-mode{cursor:grab}
+.canvas-wrap.viewport-pan-mode.is-panning{cursor:grabbing;user-select:none}
+.canvas-wrap.background-move-mode #bgImage{cursor:grab}
+.canvas-wrap.background-move-mode #bgImage.is-dragging{cursor:grabbing}
+#btnMoveBackground.active{border-color:#7f8962;background:#eef0e8;color:#4f573d}

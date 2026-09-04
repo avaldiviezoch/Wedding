@@ -82,6 +82,10 @@ let selectedId='';
 let drag=null;
 let zoom=1;
 let bgVisible=true;
+let bgPosition={x:0,y:0};
+let bgDrag=null;
+let backgroundMoveMode=false;
+let viewportPan=null;
 let measureMode=false;
 let measureDraft=null;
 let measurements=[];
@@ -160,7 +164,7 @@ function stateSnapshot(){
   return {
     elements:clone(elements),guests:clone(guests),guestUid,selectedIds:clone(selectedIds),selectedId,
     scale:PHYSICAL_SCALE_PX_PER_M,hiddenLayers:clone(hiddenLayers),lockedLayers:clone(lockedLayers),
-    measurements:clone(measurements),measurementUid,bgVisible,
+    measurements:clone(measurements),measurementUid,bgVisible,bgPosition:clone(bgPosition),
     settings:{grid:showGrid.checked,clearance:showClearance.checked,labels:showLabels.checked,names:showNames.checked}
   };
 }
@@ -170,7 +174,7 @@ function restoreState(state){
   elements=clone(state.elements||[]);guests=clone(state.guests||[]);guestUid=state.guestUid||1;
   selectedIds=clone(state.selectedIds||[]);selectedId=state.selectedId||'';
   scaleInput.value=PHYSICAL_SCALE_PX_PER_M;hiddenLayers=clone(state.hiddenLayers||{});lockedLayers=clone(state.lockedLayers||{});
-  measurements=clone(state.measurements||[]);measurementUid=state.measurementUid||1;bgVisible=state.bgVisible!==false;
+  measurements=clone(state.measurements||[]);measurementUid=state.measurementUid||1;bgVisible=state.bgVisible!==false;bgPosition={x:Number(state.bgPosition?.x)||0,y:Number(state.bgPosition?.y)||0};
   showGrid.checked=state.settings?.grid!==false;showClearance.checked=state.settings?.clearance!==false;
   showLabels.checked=state.settings?.labels!==false;showNames.checked=state.settings?.names!==false;
   restoringHistory=false;render();
@@ -412,7 +416,7 @@ function renderSummary(){
   summaryTables.textContent=String(tables.length);summarySeats.textContent=String(seats);summaryAssigned.textContent=String(assigned);summaryElements.textContent=String(elements.length);elementCount.textContent=`${elements.length} ${elements.length===1?'elemento':'elementos'}`;
 }
 function render(){
-  const scale=currentScale(),conflicts=conflictIds();gridLayer.style.display=showGrid.checked?'':'none';bgImage.style.display=bgVisible?'':'none';itemsLayer.replaceChildren();
+  const scale=currentScale(),conflicts=conflictIds();gridLayer.style.display=showGrid.checked?'':'none';bgImage.style.display=bgVisible?'':'none';bgImage.setAttribute('x',String(bgPosition.x));bgImage.setAttribute('y',String(bgPosition.y));itemsLayer.replaceChildren();
   getVisibleElements().forEach(item=>itemsLayer.appendChild(item.type==='table'?renderTable(item,scale,conflicts):item.type==='tent'?renderTent(item):renderObject(item,scale,conflicts)));
   renderGuideLayer();renderDrawLayer();renderMeasureLayer();renderLayerList();renderValidation();renderGuestManager();fillProperties(selected());renderSummary();updateHistoryButtons();
 }
@@ -424,6 +428,7 @@ function beginItemDrag(event,item){
   const starts=selectedItems().map(entry=>({id:entry.id,x:entry.x,y:entry.y}));drag={mode:'move',id:item.id,pointerId:event.pointerId,dx:point.x-item.x,dy:point.y-item.y,starts,moved:false};planner.setPointerCapture(event.pointerId);render();
 }
 planner.addEventListener('pointerdown',event=>{
+  if(event.target===bgImage&&backgroundMoveMode&&!measureMode&&!drawingTent){event.preventDefault();event.stopImmediatePropagation();const point=svgPoint(event);clearSelection();bgDrag={pointerId:event.pointerId,startX:bgPosition.x,startY:bgPosition.y,px:point.x,py:point.y,moved:false};bgImage.classList.add('is-dragging');try{planner.setPointerCapture(event.pointerId);}catch{}render();return;}
   const rotate=event.target.closest?.('[data-rotate-id]');if(rotate){const item=getItem(rotate.getAttribute('data-rotate-id'));if(!item||isItemLocked(item))return;event.preventDefault();const p=svgPoint(event);setSelection([item.id],item.id);drag={mode:'rotate',id:item.id,pointerId:event.pointerId,startAngle:Math.atan2(p.y-item.y,p.x-item.x),startRotation:item.rotation||0,moved:false};planner.setPointerCapture(event.pointerId);return;}
   const group=event.target.closest?.('[data-id]');if(group){const item=getItem(group.getAttribute('data-id'));if(item)beginItemDrag(event,item);return;}
   if(!measureMode&&!drawingTent){clearSelection();render();}
@@ -431,13 +436,14 @@ planner.addEventListener('pointerdown',event=>{
 planner.addEventListener('pointermove',event=>{
   const point=svgPoint(event),scale=currentScale();cursorCoords.textContent=`x ${(point.x/scale).toFixed(2)} m · y ${(point.y/scale).toFixed(2)} m`;
   if(drawingTent){tentHoverPoint={x:point.x,y:point.y};renderDrawLayer();return;}
+  if(bgDrag&&event.pointerId===bgDrag.pointerId){event.preventDefault();bgPosition.x=bgDrag.startX+(point.x-bgDrag.px);bgPosition.y=bgDrag.startY+(point.y-bgDrag.py);bgDrag.moved=true;bgImage.setAttribute('x',String(bgPosition.x));bgImage.setAttribute('y',String(bgPosition.y));return;}
   if(!drag||event.pointerId!==drag.pointerId)return;
   const item=getItem(drag.id);if(!item)return;
   if(drag.mode==='rotate'){item.rotation=drag.startRotation+(Math.atan2(point.y-item.y,point.x-item.x)-drag.startAngle)*180/Math.PI;drag.moved=true;render();return;}
   const guides=applySmartGuides(point.x-drag.dx,point.y-drag.dy,selectedIds),primaryStart=drag.starts.find(start=>start.id===drag.id),deltaX=guides.x-primaryStart.x,deltaY=guides.y-primaryStart.y;
   drag.starts.forEach(start=>{const target=getItem(start.id);if(target&&!isItemLocked(target)){target.x=Math.max(20,Math.min(1180,start.x+deltaX));target.y=Math.max(20,Math.min(740,start.y+deltaY));}});drag.moved=true;render();
 });
-function endDrag(event){if(!drag||event.pointerId!==drag.pointerId)return;try{planner.releasePointerCapture(event.pointerId);}catch{}const moved=drag.moved;drag=null;guideLines={vertical:null,horizontal:null};if(moved)pushHistory();render();}
+function endDrag(event){if(bgDrag&&event.pointerId===bgDrag.pointerId){event.preventDefault();try{planner.releasePointerCapture(event.pointerId);}catch{}const moved=bgDrag.moved;bgDrag=null;bgImage.classList.remove('is-dragging');if(moved){pushHistory();saveCurrentProposalSnapshot();}render();return;}if(!drag||event.pointerId!==drag.pointerId)return;try{planner.releasePointerCapture(event.pointerId);}catch{}const moved=drag.moved;drag=null;guideLines={vertical:null,horizontal:null};if(moved)pushHistory();render();}
 planner.addEventListener('pointerup',endDrag);planner.addEventListener('pointercancel',endDrag);
 
 function toggleMeasureMode(){measureMode=!measureMode;drawingTent=false;tentDraft=[];tentHoverPoint=null;measureDraft=null;measureNote.hidden=!measureMode;measureToolbarChip.hidden=!measureMode;document.getElementById('btnMeasure').classList.toggle('active',measureMode);render();}
@@ -526,7 +532,7 @@ function renderProposalList(){proposalList.replaceChildren();proposals.forEach(p
 document.getElementById('btnProposals').addEventListener('click',()=>{renderProposalList();proposalModal.hidden=false;});document.getElementById('closeProposalModal').addEventListener('click',()=>proposalModal.hidden=true);document.getElementById('btnNewProposal').addEventListener('click',()=>createProposal(`Propuesta ${proposals.length+1}`));document.getElementById('btnDuplicateProposal').addEventListener('click',()=>createProposal(`${proposals.find(item=>item.id===currentProposalId)?.name||'Propuesta'} copia`,true));proposalModal.addEventListener('click',event=>{if(event.target===proposalModal)proposalModal.hidden=true;});
 
 function initialState(){
-  seedGuests();elements=[];const table=addElement('table',{record:false,assignGuests:true});table.x=724;table.y=543;setSelection([table.id],table.id);hiddenLayers={};lockedLayers={};measurements=[];measurementUid=1;scaleInput.value=32;showGrid.checked=true;showClearance.checked=true;showLabels.checked=true;showNames.checked=true;bgVisible=true;zoom=1;setZoom(1);historyPast=[];historyFuture=[];pushHistory();render();
+  seedGuests();elements=[];const table=addElement('table',{record:false,assignGuests:true});table.x=724;table.y=543;setSelection([table.id],table.id);hiddenLayers={};lockedLayers={};measurements=[];measurementUid=1;scaleInput.value=32;showGrid.checked=true;showClearance.checked=true;showLabels.checked=true;showNames.checked=true;bgVisible=true;bgPosition={x:0,y:0};zoom=1;setZoom(1);historyPast=[];historyFuture=[];pushHistory();render();
 }
 function resetCurrent(){initialState();saveCurrentProposalSnapshot();}
 document.getElementById('resetLab').addEventListener('click',resetCurrent);
@@ -613,6 +619,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     showLabels.checked = true;
     showNames.checked = true;
     bgVisible = true;
+    bgPosition = { x: 0, y: 0 };
     zoom = 1;
     setZoom(1);
     historyPast = [];
@@ -1060,6 +1067,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   }
 
   function onPointerDown(event) {
+    if (event.target === bgImage) return;
     if (event.target?.closest?.('.tent-vertex')) return;
     const rotateItem = pointerRotateItem(event);
     if (rotateItem && beginRotate(event, rotateItem)) return;
@@ -2889,3 +2897,74 @@ document.documentElement.dataset.mgdDistributionArchitecture='app-integral-align
 document.documentElement.dataset.mgdDistributionStorageWrites='false';
 document.documentElement.dataset.mgdDistributionPhysicalScale='32';
 document.documentElement.dataset.mgdDistributionCanvas='1448x1086';
+
+document.documentElement.dataset.mgdDistributionBackgroundDrag='true';
+
+/* ===== REESTRUCTURA: desplazamiento de viewport =====
+   Arrastrar sobre el fondo/espacio del plano desplaza la vista.
+   No modifica geometría, zoom, escala física ni storage. */
+(() => {
+  const wrap = document.getElementById('canvasWrap');
+  const moveBgButton = document.getElementById('btnMoveBackground');
+  if (!wrap) return;
+
+  function setBackgroundMoveMode(next) {
+    backgroundMoveMode = Boolean(next);
+    moveBgButton?.setAttribute('aria-pressed', String(backgroundMoveMode));
+    moveBgButton?.classList.toggle('active', backgroundMoveMode);
+    wrap.classList.toggle('background-move-mode', backgroundMoveMode);
+    wrap.classList.toggle('viewport-pan-mode', !backgroundMoveMode);
+  }
+
+  moveBgButton?.addEventListener('click', () => setBackgroundMoveMode(!backgroundMoveMode));
+
+  function canStartViewportPan(event) {
+    if (backgroundMoveMode || measureMode || drawingTent) return false;
+    if (event.button !== undefined && event.button !== 0) return false;
+    if (event.target?.closest?.('[data-id],[data-rotate-id],.tent-vertex')) return false;
+    if (event.target?.closest?.('button,input,select,textarea,label')) return false;
+    return true;
+  }
+
+  function beginViewportPan(event) {
+    if (!canStartViewportPan(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    viewportPan = {
+      pointerId: event.pointerId,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      scrollLeft: wrap.scrollLeft,
+      scrollTop: wrap.scrollTop,
+      moved: false
+    };
+    wrap.classList.add('is-panning');
+    try { wrap.setPointerCapture(event.pointerId); } catch (_) {}
+  }
+
+  function moveViewportPan(event) {
+    if (!viewportPan || event.pointerId !== viewportPan.pointerId) return;
+    event.preventDefault();
+    const dx = event.clientX - viewportPan.clientX;
+    const dy = event.clientY - viewportPan.clientY;
+    if (Math.abs(dx) + Math.abs(dy) > 2) viewportPan.moved = true;
+    wrap.scrollLeft = viewportPan.scrollLeft - dx;
+    wrap.scrollTop = viewportPan.scrollTop - dy;
+  }
+
+  function endViewportPan(event) {
+    if (!viewportPan || event.pointerId !== viewportPan.pointerId) return;
+    event.preventDefault();
+    try { wrap.releasePointerCapture(event.pointerId); } catch (_) {}
+    viewportPan = null;
+    wrap.classList.remove('is-panning');
+  }
+
+  wrap.addEventListener('pointerdown', beginViewportPan, true);
+  wrap.addEventListener('pointermove', moveViewportPan, true);
+  wrap.addEventListener('pointerup', endViewportPan, true);
+  wrap.addEventListener('pointercancel', endViewportPan, true);
+
+  setBackgroundMoveMode(false);
+  document.documentElement.dataset.mgdDistributionViewportPan='pointer';
+})();
