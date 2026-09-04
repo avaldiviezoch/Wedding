@@ -104,6 +104,10 @@ let copiedPlannerItems=[];
 let pasteSequence=0;
 let proposals=[];
 let currentProposalId='';
+let uiFontScale=1.10;
+const UI_FONT_MIN=.90;
+const UI_FONT_MAX=1.30;
+const UI_FONT_STEP=.05;
 
 const clone=value=>JSON.parse(JSON.stringify(value));
 const PHYSICAL_SCALE_PX_PER_M=32;
@@ -119,6 +123,25 @@ function svgEl(tag,attrs={}){
   const node=document.createElementNS(NS,tag);
   Object.entries(attrs).forEach(([key,value])=>node.setAttribute(key,String(value)));
   return node;
+}
+function applyUiFontScale(){
+  document.documentElement.style.setProperty('--ui-font-scale',String(uiFontScale));
+  const selector='.app-header button,.app-header span,.app-header strong,.app-header small,.app-header p,.app-header h1,.panel button,.panel input,.panel select,.panel textarea,.panel label,.panel span,.panel strong,.panel small,.panel p,.panel h2,.panel h3,.panel summary,.canvas-head button,.canvas-head span,.canvas-head strong,.canvas-footer span,.canvas-footer b,.floating-legend span,.measure-note';
+  document.querySelectorAll(selector).forEach(node=>{
+    if(node.closest('svg'))return;
+    if(!node.dataset.baseFontPx){
+      const size=parseFloat(getComputedStyle(node).fontSize);
+      if(Number.isFinite(size)&&size>0)node.dataset.baseFontPx=String(size);
+    }
+    const base=Number(node.dataset.baseFontPx);
+    if(Number.isFinite(base)&&base>0)node.style.fontSize=`${(base*uiFontScale).toFixed(2)}px`;
+  });
+  const reset=document.getElementById('textSizeReset');
+  if(reset)reset.textContent=`${Math.round(uiFontScale*100)}%`;
+}
+function setUiFontScale(next){
+  uiFontScale=Math.max(UI_FONT_MIN,Math.min(UI_FONT_MAX,Math.round(Number(next)*100)/100));
+  applyUiFontScale();
 }
 function svgPoint(event){
   const point=planner.createSVGPoint();
@@ -493,7 +516,7 @@ function renderSummary(){
 function render(){
   const scale=currentScale(),conflicts=conflictIds();gridLayer.style.display=showGrid.checked?'':'none';bgImage.style.display=bgVisible?'':'none';bgImage.setAttribute('x',String(bgPosition.x));bgImage.setAttribute('y',String(bgPosition.y));itemsLayer.replaceChildren();
   getVisibleElements().forEach(item=>itemsLayer.appendChild(item.type==='table'?renderTable(item,scale,conflicts):item.type==='tent'?renderTent(item):renderObject(item,scale,conflicts)));
-  renderGuideLayer();renderDrawLayer();renderMeasureLayer();renderLayerList();renderValidation();renderGuestManager();fillProperties(selected());renderSummary();updateHistoryButtons();
+  renderGuideLayer();renderDrawLayer();renderMeasureLayer();renderLayerList();renderValidation();renderGuestManager();fillProperties(selected());renderSummary();updateHistoryButtons();applyUiFontScale();
 }
 
 function beginItemDrag(event,item){
@@ -581,6 +604,9 @@ document.getElementById('btnUnlockAllLayers').addEventListener('click',()=>{Obje
 document.getElementById('btnMeasure').addEventListener('click',toggleMeasureMode);document.getElementById('btnClearMeasures').addEventListener('click',()=>{measurements=[];measureDraft=null;pushHistory();render();});
 function setZoom(next){zoom=Math.max(.65,Math.min(1.8,next));planner.style.width=`${zoom*100}%`;document.getElementById('zoomReset').textContent=`${Math.round(zoom*100)}%`;}
 document.getElementById('btnZoomOut').addEventListener('click',()=>setZoom(zoom-.1));document.getElementById('btnZoomIn').addEventListener('click',()=>setZoom(zoom+.1));document.getElementById('zoomReset').addEventListener('click',()=>setZoom(1));document.getElementById('btnFit').addEventListener('click',()=>setZoom(1));
+document.getElementById('btnTextSmaller').addEventListener('click',()=>setUiFontScale(uiFontScale-UI_FONT_STEP));
+document.getElementById('btnTextLarger').addEventListener('click',()=>setUiFontScale(uiFontScale+UI_FONT_STEP));
+document.getElementById('textSizeReset').addEventListener('click',()=>setUiFontScale(1.10));
 document.getElementById('btnUndo').addEventListener('click',undoHistory);document.getElementById('btnRedo').addEventListener('click',redoHistory);
 document.getElementById('btnPresentation').addEventListener('click',()=>{presentationMount.innerHTML='';const cloneSvg=planner.cloneNode(true);cloneSvg.style.width='100%';presentationMount.appendChild(cloneSvg);presentationOverlay.hidden=false;});document.getElementById('closePresentation').addEventListener('click',()=>presentationOverlay.hidden=true);
 
