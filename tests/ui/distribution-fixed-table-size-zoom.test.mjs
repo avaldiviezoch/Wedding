@@ -41,6 +41,32 @@ for (const shape of ['round','square','rectangular']) {
   });
 }
 
+
+test('cambiar tipo usa el tamaño por defecto del nuevo tipo y luego capacidad no lo toca', () => {
+  const { physicalDimensions:d, tableTransition:t } = engine();
+  const table = {
+    id:'t2', type:'table', tableShape:'round', capacity:10, shape:'table',
+    tabletopWidthM:2.2, tabletopHeightM:2.2,
+    widthM:0, heightM:0, x:100, y:100, rotation:0, label:'Mesa', color:'#fff', locked:false, layerId:'tables',
+    seats:Array(10).fill(null)
+  };
+  d.applyToTable(table);
+  let result=t.transition(table,{shape:'rectangular'});
+  assert.equal(result.ok,true);
+  assert.deepEqual([table.tabletopWidthM,table.tabletopHeightM],[2.4,.75]);
+
+  d.setTabletopDimensions(table,3.1,1.1);
+  assert.deepEqual([table.tabletopWidthM,table.tabletopHeightM],[3.1,1.1]);
+
+  result=t.transition(table,{capacity:16});
+  assert.equal(result.ok,true);
+  assert.deepEqual([table.tabletopWidthM,table.tabletopHeightM],[3.1,1.1]);
+
+  result=t.transition(table,{shape:'square'});
+  assert.equal(result.ok,true);
+  assert.deepEqual([table.tabletopWidthM,table.tabletopHeightM],[1.8,1.8]);
+});
+
 test('zoom panorámico cambia solo la vista y no geometría de mesas', () => {
   assert.match(appSource, /function setZoom\(next\)\{zoom=/);
   const zoomBody = appSource.match(/function setZoom\(next\)\{([^}]*)\}/)?.[1] || '';
