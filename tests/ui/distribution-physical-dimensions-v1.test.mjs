@@ -44,7 +44,7 @@ test('aplicar dimensión fija tablero y usa width/height solo como geometría fu
   assert.equal(table.shape, 'rect');
   assert.equal(table.tabletopWidthM, 1.8);
   assert.equal(table.tabletopHeightM, .75);
-  assert.equal(table.widthM, 3.4);
+  assert.ok(Math.abs(table.widthM - 3.4) < 1e-9);
   assert.equal(table.heightM, 2.35);
 });
 
