@@ -378,6 +378,8 @@
         });
         while (item.seats.length < capacity) item.seats.push(null);
         item.seatLayoutVariant = layout.normalizeVariant(item.tableShape, capacity, raw.seatLayoutVariant);
+        if (Number.isFinite(Number(raw.tabletopWidthM))) item.tabletopWidthM = Number(raw.tabletopWidthM);
+        if (Number.isFinite(Number(raw.tabletopHeightM))) item.tabletopHeightM = Number(raw.tabletopHeightM);
         applyPhysicalGeometry(item);
       });
       return safe;
