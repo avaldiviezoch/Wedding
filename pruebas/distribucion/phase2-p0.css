@@ -1,0 +1,58 @@
+/* Fase 2 · Paridad P0. Solo aplica dentro de phase2.html. */
+html[data-phase2-p0="true"] .guest-manager-section > .field,
+html[data-phase2-p0="true"] .guest-manager-section .guest-list,
+html[data-phase2-p0="true"] .guest-manager-section .guest-add-row,
+html[data-phase2-p0="true"] .guest-manager-section .bulk-box{
+  display:none!important;
+}
+
+html[data-phase2-p0="true"] .guest-manager-section{
+  padding-bottom:14px;
+}
+
+html[data-phase2-p0="true"] .guest-manager-section .section-title-row{
+  margin-bottom:8px;
+}
+
+html[data-phase2-p0="true"] .guest-manager-section .section-title-row h3::after{
+  content:" · fuente maestra en Invitados";
+  color:#858078;
+  font-size:9px;
+  font-weight:650;
+}
+
+html[data-phase2-p0="true"] .phase2-risk-status{
+  display:grid;
+  gap:3px;
+  margin-bottom:8px;
+  padding:9px 10px;
+  border:1px solid #ded9d1;
+  border-radius:10px;
+  background:#fff;
+  font-size:10px;
+  line-height:1.35;
+}
+
+html[data-phase2-p0="true"] .phase2-risk-status strong{
+  font-size:10.5px;
+}
+
+html[data-phase2-p0="true"] .phase2-risk-status.good{
+  border-color:rgba(108,128,86,.24);
+  background:#f3f6ee;
+  color:#5c694c;
+}
+
+html[data-phase2-p0="true"] .phase2-risk-status.bad{
+  border-color:rgba(200,66,66,.26);
+  background:#fff3f2;
+  color:#9d3f3f;
+}
+
+html[data-phase2-p0="true"] #planner{
+  aspect-ratio:1448 / 1086;
+}
+
+html[data-phase2-p0="true"] .table-hit .guest-tag{
+  pointer-events:none;
+}
