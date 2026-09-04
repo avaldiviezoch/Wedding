@@ -1,65 +1,58 @@
-# Distribución · reestructura limpia
+# Distribución — reestructura completa en 8 archivos
 
-Esta carpeta es el nuevo laboratorio aislado para reconstruir Distribución antes de integrarlo a App Mi Lu.
+Fecha: 2026-09-04.
 
-## Reglas
-1. No usar Firebase, Firestore, localStorage, IndexedDB ni persistencia real.
-2. No importar ningún archivo de `pruebas/distribucion/`.
-3. El engine es la única capa que modifica el estado de dominio.
-4. El renderer solo dibuja.
-5. El editor traduce eventos de UI a comandos del engine.
-6. El adapter es la única frontera futura con App Mi Lu.
-7. Cambiar capacidad no modifica tamaño físico.
-8. Zoom no modifica geometría.
-9. Los IDs de mesas e invitados deben poder provenir directamente de Mi Lu.
+Esta carpeta ya no es un prototipo mínimo. Consolida la herramienta funcional de Distribución en **ocho archivos**, tomando como referencia el módulo real de App Mi Lu y el laboratorio completo respaldado.
 
-## Archivos
-- `index.html`: laboratorio aislado.
-- `distribucion.css`: presentación.
-- `distribucion-engine.js`: estado, mesas, sillas, geometría y reglas.
-- `distribucion-renderer.js`: SVG/DOM, sin mutaciones de dominio.
-- `distribucion-editor.js`: interacción, selección, zoom e inspector.
-- `distribucion-export.js`: JSON/PNG/propuestas.
-- `distribucion-adapter.js`: contrato memory-only hoy; Mi Lu mañana.
-
-## Contrato de mesa
-```js
-{
-  id: "table-1",
-  type: "table",
-  shape: "round",
-  tabletop: { widthM: 1.50, heightM: 1.50 },
-  capacity: 10,
-  seatLayout: "default",
-  seats: [null, ...],
-  x: 724,
-  y: 543,
-  rotation: 0,
-  locked: false
-}
-```
-
-La capacidad y el tamaño físico son propiedades independientes.
-
-
-## Regla principal de seguridad
+## Regla principal
 
 **EL STORAGE NO SE TOCA.**
 
-Esta regla tiene prioridad sobre cualquier reestructura, corrección, prueba o integración.
+Queda prohibido en esta reestructura:
+- Firebase / Firestore / Rules;
+- IndexedDB real de App Mi Lu;
+- localStorage o sessionStorage real;
+- migraciones;
+- sincronización real;
+- modificación de backups o logout.
 
-Queda prohibido desde este laboratorio:
-- Firebase.
-- Firestore.
-- Firebase Rules.
-- localStorage real de App Mi Lu.
-- sessionStorage real.
-- IndexedDB real.
-- Storage real.
-- persistencia real de invitados, mesas, asignaciones o distribución.
-- migraciones, limpiezas, rehidrataciones destructivas o reseteos.
-- cambios en backups, logout o sincronización real.
+Todo el estado del laboratorio es temporal y vive en memoria.
 
-La reestructura trabaja únicamente en memoria hasta que exista una autorización explícita y una fase de integración controlada mediante adapter.
+## Auditoría realizada
 
-**Ningún cambio visual, de mesas, sillas, geometría, zoom o editor puede escribir en el storage real.**
+Se revisó la arquitectura real de Mi Lu:
+- `app_integral/applu.html`;
+- `app_integral/css/modules/distribucion.css`;
+- `app_integral/js/modules/distribucion/index.js`;
+- `app_integral/js/modules/distribucion/background-persistence.js` solo para entender la frontera, **no para copiar persistencia**;
+- `app_integral/js/modules/invitados/runtime-loader.js`;
+- contratos de Mesas/Invitados/Distribución;
+- `docs/DISTRIBUTION_PHASE1_AUDIT.md`;
+- `docs/DISTRIBUTION_INTEGRATION_CONTRACTS.md`.
+
+Hallazgo principal: Distribución real está repartido entre legacy, CSS de módulo, adaptador y runtime. La reestructura elimina esa dispersión del laboratorio sin reducir la herramienta visual.
+
+## Los 8 archivos
+
+1. `index.html` — DOM completo del planner.
+2. `distribucion.css` — estilos completos consolidados.
+3. `distribucion-editor.js` — interacciones, historial, mediciones, toldos, propuestas, mobile y zoom.
+4. `distribucion-engine.js` — geometría, colisiones, mesas, dimensiones, sillas y validación.
+5. `distribucion-renderer.js` — renderer final, formas, capacidad e inspector.
+6. `distribucion-adapter.js` — frontera memory-only para futura integración con Mi Lu.
+7. `distribucion-export.js` — fachada de exportación sin persistencia.
+8. `README.md` — auditoría y contratos.
+
+## Funciones recuperadas
+
+Canvas 1448×1086, mobiliario completo, mesas, sillas, editor de asientos, drag, multiselección, rotación, teclado, bloqueo, capas, frente/fondo, alinear, copiar/pegar, duplicar, eliminar, historial 80, mediciones, toldos, propuestas en memoria, fondo en memoria, riesgos, presentación, JSON/PNG y controles mobile existentes.
+
+## Contratos obligatorios
+
+- **Cambiar 4/6/8/10/12/14/16 sillas no cambia el tamaño físico del tablero.**
+- Zoom solo cambia la vista.
+- Tabletop, chairs y clearance son geometrías distintas.
+- Cambiar forma conserva el mismo `tableId`.
+- Reducir capacidad nunca elimina ocupantes silenciosamente.
+- Distribución no administra el maestro de invitados.
+- La integración futura con App Mi Lu entra solo por el adapter.
