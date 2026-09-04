@@ -84,6 +84,8 @@ let zoom=1;
 let bgVisible=true;
 let bgPosition={x:0,y:0};
 let bgDrag=null;
+let backgroundMoveMode=false;
+let viewportPan=null;
 let measureMode=false;
 let measureDraft=null;
 let measurements=[];
@@ -426,7 +428,7 @@ function beginItemDrag(event,item){
   const starts=selectedItems().map(entry=>({id:entry.id,x:entry.x,y:entry.y}));drag={mode:'move',id:item.id,pointerId:event.pointerId,dx:point.x-item.x,dy:point.y-item.y,starts,moved:false};planner.setPointerCapture(event.pointerId);render();
 }
 planner.addEventListener('pointerdown',event=>{
-  if(event.target===bgImage&&!measureMode&&!drawingTent){event.preventDefault();const point=svgPoint(event);clearSelection();bgDrag={pointerId:event.pointerId,startX:bgPosition.x,startY:bgPosition.y,px:point.x,py:point.y,moved:false};bgImage.classList.add('is-dragging');try{planner.setPointerCapture(event.pointerId);}catch{}render();return;}
+  if(event.target===bgImage&&backgroundMoveMode&&!measureMode&&!drawingTent){event.preventDefault();event.stopImmediatePropagation();const point=svgPoint(event);clearSelection();bgDrag={pointerId:event.pointerId,startX:bgPosition.x,startY:bgPosition.y,px:point.x,py:point.y,moved:false};bgImage.classList.add('is-dragging');try{planner.setPointerCapture(event.pointerId);}catch{}render();return;}
   const rotate=event.target.closest?.('[data-rotate-id]');if(rotate){const item=getItem(rotate.getAttribute('data-rotate-id'));if(!item||isItemLocked(item))return;event.preventDefault();const p=svgPoint(event);setSelection([item.id],item.id);drag={mode:'rotate',id:item.id,pointerId:event.pointerId,startAngle:Math.atan2(p.y-item.y,p.x-item.x),startRotation:item.rotation||0,moved:false};planner.setPointerCapture(event.pointerId);return;}
   const group=event.target.closest?.('[data-id]');if(group){const item=getItem(group.getAttribute('data-id'));if(item)beginItemDrag(event,item);return;}
   if(!measureMode&&!drawingTent){clearSelection();render();}
@@ -2897,3 +2899,72 @@ document.documentElement.dataset.mgdDistributionPhysicalScale='32';
 document.documentElement.dataset.mgdDistributionCanvas='1448x1086';
 
 document.documentElement.dataset.mgdDistributionBackgroundDrag='true';
+
+/* ===== REESTRUCTURA: desplazamiento de viewport =====
+   Arrastrar sobre el fondo/espacio del plano desplaza la vista.
+   No modifica geometría, zoom, escala física ni storage. */
+(() => {
+  const wrap = document.getElementById('canvasWrap');
+  const moveBgButton = document.getElementById('btnMoveBackground');
+  if (!wrap) return;
+
+  function setBackgroundMoveMode(next) {
+    backgroundMoveMode = Boolean(next);
+    moveBgButton?.setAttribute('aria-pressed', String(backgroundMoveMode));
+    moveBgButton?.classList.toggle('active', backgroundMoveMode);
+    wrap.classList.toggle('background-move-mode', backgroundMoveMode);
+    wrap.classList.toggle('viewport-pan-mode', !backgroundMoveMode);
+  }
+
+  moveBgButton?.addEventListener('click', () => setBackgroundMoveMode(!backgroundMoveMode));
+
+  function canStartViewportPan(event) {
+    if (backgroundMoveMode || measureMode || drawingTent) return false;
+    if (event.button !== undefined && event.button !== 0) return false;
+    if (event.target?.closest?.('[data-id],[data-rotate-id],.tent-vertex')) return false;
+    if (event.target?.closest?.('button,input,select,textarea,label')) return false;
+    return true;
+  }
+
+  function beginViewportPan(event) {
+    if (!canStartViewportPan(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    viewportPan = {
+      pointerId: event.pointerId,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      scrollLeft: wrap.scrollLeft,
+      scrollTop: wrap.scrollTop,
+      moved: false
+    };
+    wrap.classList.add('is-panning');
+    try { wrap.setPointerCapture(event.pointerId); } catch (_) {}
+  }
+
+  function moveViewportPan(event) {
+    if (!viewportPan || event.pointerId !== viewportPan.pointerId) return;
+    event.preventDefault();
+    const dx = event.clientX - viewportPan.clientX;
+    const dy = event.clientY - viewportPan.clientY;
+    if (Math.abs(dx) + Math.abs(dy) > 2) viewportPan.moved = true;
+    wrap.scrollLeft = viewportPan.scrollLeft - dx;
+    wrap.scrollTop = viewportPan.scrollTop - dy;
+  }
+
+  function endViewportPan(event) {
+    if (!viewportPan || event.pointerId !== viewportPan.pointerId) return;
+    event.preventDefault();
+    try { wrap.releasePointerCapture(event.pointerId); } catch (_) {}
+    viewportPan = null;
+    wrap.classList.remove('is-panning');
+  }
+
+  wrap.addEventListener('pointerdown', beginViewportPan, true);
+  wrap.addEventListener('pointermove', moveViewportPan, true);
+  wrap.addEventListener('pointerup', endViewportPan, true);
+  wrap.addEventListener('pointercancel', endViewportPan, true);
+
+  setBackgroundMoveMode(false);
+  document.documentElement.dataset.mgdDistributionViewportPan='pointer';
+})();
