@@ -24,7 +24,7 @@
   }
 
   function physicalAtScale(item, scale) {
-    return physical.dimensionsAtScale(tableShape(item), seatsApi.normalizeCapacity(item?.capacity, 10), scale);
+    return physical.dimensionsAtScaleForTable(item, scale);
   }
 
   function applyPhysicalGeometry(item) {
@@ -268,6 +268,70 @@
     return Object.freeze({ ok:true, changed:true, variant:next });
   }
 
+  function setTabletopSize(item, widthM, heightM = widthM) {
+    if (!item || item.type !== 'table' || isItemLocked(item)) return Object.freeze({ ok:false, reason:'unavailable' });
+    const before = {
+      widthM:item.tabletopWidthM,
+      heightM:item.tabletopHeightM
+    };
+    physical.setTabletopDimensions(item, widthM, heightM);
+    commitMutation();
+    return Object.freeze({
+      ok:true,
+      before,
+      tabletopWidthM:item.tabletopWidthM,
+      tabletopHeightM:item.tabletopHeightM
+    });
+  }
+
+  function syncTableDimensionInputs(item) {
+    if (!item || item.type !== 'table') return;
+    physical.ensureTabletopDimensions(item);
+    if (typeof selW !== 'undefined' && selW) selW.value = Number(item.tabletopWidthM).toFixed(2).replace(/0+$/,'').replace(/\.$/,'');
+    if (typeof selH !== 'undefined' && selH) selH.value = Number(item.tabletopHeightM).toFixed(2).replace(/0+$/,'').replace(/\.$/,'');
+    if (typeof dimensionLimitNote !== 'undefined' && dimensionLimitNote) {
+      dimensionLimitNote.textContent = tableShape(item) === 'round'
+        ? 'Diámetro físico de la mesa. Cambiar sillas no modifica esta medida.'
+        : tableShape(item) === 'square'
+          ? 'Lado físico de la mesa. Cambiar sillas no modifica esta medida.'
+          : 'Medidas físicas del tablero. Cambiar sillas no modifica estas medidas.';
+    }
+  }
+
+  function installTableDimensionControls() {
+    if (document.documentElement.dataset.phase2TableDimensions === 'ready') return;
+    document.documentElement.dataset.phase2TableDimensions = 'ready';
+
+    const handle = (axis, event) => {
+      const item = selected();
+      if (!item || item.type !== 'table') return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      physical.ensureTabletopDimensions(item);
+      const width = axis === 'w' ? Number(selW.value) : item.tabletopWidthM;
+      const height = axis === 'h' ? Number(selH.value) : item.tabletopHeightM;
+      if (tableShape(item) === 'round' || tableShape(item) === 'square') {
+        const size = axis === 'w' ? width : height;
+        setTabletopSize(item, size, size);
+      } else {
+        setTabletopSize(item, width, height);
+      }
+      syncTableDimensionInputs(item);
+    };
+
+    selW?.addEventListener('change', (event) => handle('w', event), true);
+    selH?.addEventListener('change', (event) => handle('h', event), true);
+
+    if (typeof fillProperties === 'function') {
+      const legacyFillProperties = fillProperties;
+      fillProperties = function phase2PhysicalTableFillProperties(item) {
+        const value = legacyFillProperties(item);
+        if (item?.type === 'table') syncTableDimensionInputs(item);
+        return value;
+      };
+    }
+  }
+
   function installCapacityControls() {
     if (document.getElementById('phase2CapacityControls')) return;
     const shapeControls = document.getElementById('phase2TableShapeControls');
@@ -322,12 +386,13 @@
 
   elements.filter((item) => item.type === 'table').forEach((item) => { applyPhysicalGeometry(item); normalizeSeatLayout(item); });
   installCapacityControls();
+  installTableDimensionControls();
   document.documentElement.dataset.phase2Capacity = 'ready';
   window.MiGranDiaDistributionCapacityV1 = Object.freeze({
     status:'ready', capacities, transitionTable, setCapacity, convertShapePreservingCapacity,
     setSeatLayoutVariant, seatLayoutVariants, normalizeSeatLayout,
-    seatPositions, renderDynamicTable, applyPhysicalGeometry, blockedSeatsForCapacity,
-    protectsOccupiedSeats:true, dimensionsStillFixed:false, physicalDimensionsByCapacity:true,
+    seatPositions, renderDynamicTable, applyPhysicalGeometry, blockedSeatsForCapacity, setTabletopSize,
+    protectsOccupiedSeats:true, dimensionsStillFixed:true, physicalDimensionsByCapacity:false,
     unifiedTransition:true, jsonSupports16:true, uprightTextNative:true,
     rotationHandleNative:true, authoritativeTableRenderer:true, exactChairCountInvariant:true,
     chairsIndependentFromClearance:true, explicitSeatLayoutMatrix:true
