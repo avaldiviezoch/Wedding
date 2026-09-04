@@ -51,7 +51,7 @@
           <div id="tentDrawHint" class="mode-hint" hidden>Haz clic para marcar vértices. Doble clic o Enter para terminar; Esc cancela.</div>
         </section>
 
-        <section class="panel-section guest-manager-section">
+        <section class="panel-section guest-manager-section" hidden aria-hidden="true">
           <div class="section-title-row">
             <div><h3>Invitados</h3><p><span id="guestCountText">10 invitados</span> · <span id="guestPendingText">0 sin asignar</span></p></div>
           </div>
@@ -74,10 +74,12 @@
 
         <section class="panel-section">
           <div class="section-title-row"><h3>Vista del plano</h3><button class="text-button" id="btnDefaultView" type="button">Restaurar</button></div>
-          <label class="field compact-field">
-            <span>Escala del plano</span>
-            <div class="input-suffix"><input id="scaleInput" type="number" min="18" max="50" step="1" value="32"><b>px/m</b></div>
-          </label>
+          <div class="fixed-scale-contract">
+            <span>Escala física</span>
+            <strong>32 px/m</strong>
+            <small>Fija · el zoom solo cambia la vista</small>
+          </div>
+          <input id="scaleInput" type="hidden" value="32">
           <div class="toggle-list">
             <label><input id="showGrid" type="checkbox" checked><span>Rejilla</span></label>
             <label><input id="showClearance" type="checkbox" checked><span>Circulación</span></label>
@@ -98,8 +100,8 @@
         </section>
 
         <div class="lab-warning">
-          <strong>Entorno aislado</strong>
-          <span>No guarda información ni está conectado con los datos reales del aplicativo.</span>
+          <strong>Entorno aislado · memory-only</strong>
+          <span>Invitados se administran fuera de Distribución. Este laboratorio no escribe en storage ni datos reales.</span>
         </div>
       </aside>
 
@@ -124,7 +126,7 @@
           <span id="measureToolbarChip" class="toolbar-chip" hidden>Modo medición activo</span>
         </div>
         <div class="canvas-wrap" id="canvasWrap">
-          <svg id="planner" viewBox="0 0 1200 760" role="img" aria-label="Plano de distribución de prueba">
+          <svg id="planner" viewBox="0 0 1448 1086" role="img" aria-label="Plano de distribución de prueba">
             <defs>
               <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
                 <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#748065" stroke-opacity=".12" stroke-width="1"/>
@@ -137,9 +139,9 @@
                 <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".13"/>
               </filter>
             </defs>
-            <rect class="floor" width="1200" height="760" rx="8"/>
-            <rect id="bgImage" width="1200" height="760" fill="url(#floorPattern)" opacity="1"/>
-            <rect id="gridLayer" width="1200" height="760" fill="url(#grid)"/>
+            <rect class="floor" width="1448" height="1086" rx="8"/>
+            <rect id="bgImage" width="1448" height="1086" fill="url(#floorPattern)" opacity="1"/>
+            <rect id="gridLayer" width="1448" height="1086" fill="url(#grid)"/>
             <g id="guideLayer"></g>
             <g id="drawLayer"></g>
             <g id="itemsLayer"></g>
