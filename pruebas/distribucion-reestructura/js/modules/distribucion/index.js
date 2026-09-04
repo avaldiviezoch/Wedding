@@ -1075,11 +1075,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     const item = pointerTargetItem(event);
     if (item && beginMove(event, item)) return;
 
-    if (!measureMode && !drawingTent) {
-      event.stopImmediatePropagation();
-      clearSelection();
-      renderP1();
-    }
+    if (!measureMode && !drawingTent) return;
   }
 
   function onPointerMove(event) {
@@ -1523,6 +1519,8 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   const btnNewProposalP1 = document.getElementById('btnNewProposal');
   const btnDuplicateProposalP1 = document.getElementById('btnDuplicateProposal');
   const closeProposalModalP1 = document.getElementById('closeProposalModal');
+  const canvasWrapP1 = document.getElementById('canvasWrap');
+  const moveBackgroundButtonP1 = document.getElementById('btnMoveBackground');
 
   const clampX = (value) => Math.max(0, Math.min(CANVAS_W, Number(value) || 0));
   const clampY = (value) => Math.max(0, Math.min(CANVAS_H, Number(value) || 0));
@@ -2123,14 +2121,71 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     proposalModal.hidden = true;
   }
 
+  function setBackgroundMoveModeP1(next) {
+    backgroundMoveMode = Boolean(next);
+    moveBackgroundButtonP1?.setAttribute('aria-pressed', String(backgroundMoveMode));
+    moveBackgroundButtonP1?.classList.toggle('active', backgroundMoveMode);
+    canvasWrapP1?.classList.toggle('background-move-mode', backgroundMoveMode);
+    canvasWrapP1?.classList.toggle('viewport-pan-mode', !backgroundMoveMode);
+  }
+
+  function isBlankPlannerTarget(event) {
+    if (event.target?.closest?.('[data-id],[data-rotate-id],.tent-vertex')) return false;
+    return true;
+  }
+
+  function beginViewportPanP1(event) {
+    if (!canvasWrapP1 || backgroundMoveMode || measureMode || drawingTent) return false;
+    if (event.pointerType === 'mouse' && event.button !== 0) return false;
+    if (!isBlankPlannerTarget(event)) return false;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    clearSelection();
+
+    viewportPan = {
+      pointerId: event.pointerId,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      scrollLeft: canvasWrapP1.scrollLeft,
+      scrollTop: canvasWrapP1.scrollTop
+    };
+    canvasWrapP1.classList.add('is-panning');
+    try { planner.setPointerCapture(event.pointerId); } catch (_) {}
+    renderP1();
+    return true;
+  }
+
+  function moveViewportPanP1(event) {
+    if (!canvasWrapP1 || !viewportPan || event.pointerId !== viewportPan.pointerId) return false;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    canvasWrapP1.scrollLeft = viewportPan.scrollLeft - (event.clientX - viewportPan.clientX);
+    canvasWrapP1.scrollTop = viewportPan.scrollTop - (event.clientY - viewportPan.clientY);
+    return true;
+  }
+
+  function endViewportPanP1(event) {
+    if (!viewportPan || event.pointerId !== viewportPan.pointerId) return false;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    try { planner.releasePointerCapture(event.pointerId); } catch (_) {}
+    viewportPan = null;
+    canvasWrapP1?.classList.remove('is-panning');
+    return true;
+  }
+
   function onPlannerPointerDown(event) {
     if (tentPointerDown(event)) return;
-    measurementPointerDown(event);
+    if (measurementPointerDown(event)) return;
+    beginViewportPanP1(event);
   }
 
   function onPlannerPointerMove(event) {
     if (tentPointerMove(event)) return;
-    measurementPointerMove(event);
+    if (measurementPointerMove(event)) return;
+    moveViewportPanP1(event);
   }
 
   function onPlannerDoubleClick(event) {
@@ -2160,6 +2215,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   captureButton(btnClearMeasuresP1, clearMeasurementsP1);
   captureButton(btnDrawTentP1, startTentDrawingP1);
   captureButton(toggleBgP1, toggleBackgroundP1);
+  captureButton(moveBackgroundButtonP1, () => setBackgroundMoveModeP1(!backgroundMoveMode));
   captureButton(btnProposalsP1, openProposalsP1);
   captureButton(btnNewProposalP1, () => createProposalP1({ duplicate: false }));
   captureButton(btnDuplicateProposalP1, () => createProposalP1({ duplicate: true }));
@@ -2171,8 +2227,14 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
 
   planner.addEventListener('pointerdown', onPlannerPointerDown, true);
   planner.addEventListener('pointermove', onPlannerPointerMove, true);
-  planner.addEventListener('pointerup', endSpatialDrag, true);
-  planner.addEventListener('pointercancel', endSpatialDrag, true);
+  planner.addEventListener('pointerup', (event) => {
+    if (endViewportPanP1(event)) return;
+    endSpatialDrag(event);
+  }, true);
+  planner.addEventListener('pointercancel', (event) => {
+    if (endViewportPanP1(event)) return;
+    endSpatialDrag(event);
+  }, true);
   planner.addEventListener('dblclick', onPlannerDoubleClick, true);
   document.addEventListener('keydown', onDocumentKeyDown, true);
 
@@ -2180,6 +2242,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   elements.filter((item) => item.type === 'tent').forEach((item) => normalizeTentPoints(item));
   updateMeasureUi();
   setTentUi(false);
+  setBackgroundMoveModeP1(false);
   renderProposalList();
   render();
 
@@ -2899,72 +2962,4 @@ document.documentElement.dataset.mgdDistributionPhysicalScale='32';
 document.documentElement.dataset.mgdDistributionCanvas='1448x1086';
 
 document.documentElement.dataset.mgdDistributionBackgroundDrag='true';
-
-/* ===== REESTRUCTURA: desplazamiento de viewport =====
-   Arrastrar sobre el fondo/espacio del plano desplaza la vista.
-   No modifica geometría, zoom, escala física ni storage. */
-(() => {
-  const wrap = document.getElementById('canvasWrap');
-  const moveBgButton = document.getElementById('btnMoveBackground');
-  if (!wrap) return;
-
-  function setBackgroundMoveMode(next) {
-    backgroundMoveMode = Boolean(next);
-    moveBgButton?.setAttribute('aria-pressed', String(backgroundMoveMode));
-    moveBgButton?.classList.toggle('active', backgroundMoveMode);
-    wrap.classList.toggle('background-move-mode', backgroundMoveMode);
-    wrap.classList.toggle('viewport-pan-mode', !backgroundMoveMode);
-  }
-
-  moveBgButton?.addEventListener('click', () => setBackgroundMoveMode(!backgroundMoveMode));
-
-  function canStartViewportPan(event) {
-    if (backgroundMoveMode || measureMode || drawingTent) return false;
-    if (event.button !== undefined && event.button !== 0) return false;
-    if (event.target?.closest?.('[data-id],[data-rotate-id],.tent-vertex')) return false;
-    if (event.target?.closest?.('button,input,select,textarea,label')) return false;
-    return true;
-  }
-
-  function beginViewportPan(event) {
-    if (!canStartViewportPan(event)) return;
-    event.preventDefault();
-    event.stopPropagation();
-    viewportPan = {
-      pointerId: event.pointerId,
-      clientX: event.clientX,
-      clientY: event.clientY,
-      scrollLeft: wrap.scrollLeft,
-      scrollTop: wrap.scrollTop,
-      moved: false
-    };
-    wrap.classList.add('is-panning');
-    try { wrap.setPointerCapture(event.pointerId); } catch (_) {}
-  }
-
-  function moveViewportPan(event) {
-    if (!viewportPan || event.pointerId !== viewportPan.pointerId) return;
-    event.preventDefault();
-    const dx = event.clientX - viewportPan.clientX;
-    const dy = event.clientY - viewportPan.clientY;
-    if (Math.abs(dx) + Math.abs(dy) > 2) viewportPan.moved = true;
-    wrap.scrollLeft = viewportPan.scrollLeft - dx;
-    wrap.scrollTop = viewportPan.scrollTop - dy;
-  }
-
-  function endViewportPan(event) {
-    if (!viewportPan || event.pointerId !== viewportPan.pointerId) return;
-    event.preventDefault();
-    try { wrap.releasePointerCapture(event.pointerId); } catch (_) {}
-    viewportPan = null;
-    wrap.classList.remove('is-panning');
-  }
-
-  wrap.addEventListener('pointerdown', beginViewportPan, true);
-  wrap.addEventListener('pointermove', moveViewportPan, true);
-  wrap.addEventListener('pointerup', endViewportPan, true);
-  wrap.addEventListener('pointercancel', endViewportPan, true);
-
-  setBackgroundMoveMode(false);
-  document.documentElement.dataset.mgdDistributionViewportPan='pointer';
-})();
+document.documentElement.dataset.mgdDistributionViewportPan='phase2-p1-spatial';
