@@ -6,7 +6,7 @@ body{height:100vh;display:grid;grid-template-rows:48px 1fr;overflow:hidden}
 .topbar div{display:flex;gap:10px;align-items:baseline}.topbar span{font-size:12px;color:#777}
 .layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;min-height:0}
 .canvas-wrap{overflow:auto;padding:20px;background:#ece9e4}
-#planner{display:block;width:100%;max-width:none;background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.08);transform-origin:0 0}
+#planner{display:block;width:1448px;height:1086px;max-width:none;flex:none;background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.08)}
 .floor{fill:#fffdf8;stroke:#d9d4cb;stroke-width:2}
 .panel{padding:18px;background:#fbfaf8;border-left:1px solid #ddd8d0;overflow:auto}
 .panel h2{font-size:16px;margin:0 0 16px}
