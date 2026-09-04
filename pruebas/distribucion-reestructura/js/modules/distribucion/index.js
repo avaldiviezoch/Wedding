@@ -1521,6 +1521,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   const closeProposalModalP1 = document.getElementById('closeProposalModal');
   const canvasWrapP1 = document.getElementById('canvasWrap');
   const moveBackgroundButtonP1 = document.getElementById('btnMoveBackground');
+  const btnFitP1 = document.getElementById('btnFit');
 
   const clampX = (value) => Math.max(0, Math.min(CANVAS_W, Number(value) || 0));
   const clampY = (value) => Math.max(0, Math.min(CANVAS_H, Number(value) || 0));
@@ -2129,6 +2130,19 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     canvasWrapP1?.classList.toggle('viewport-pan-mode', !backgroundMoveMode);
   }
 
+  function centerViewportP1() {
+    if (!canvasWrapP1) return;
+    const maxX = Math.max(0, canvasWrapP1.scrollWidth - canvasWrapP1.clientWidth);
+    const maxY = Math.max(0, canvasWrapP1.scrollHeight - canvasWrapP1.clientHeight);
+    canvasWrapP1.scrollLeft = maxX / 2;
+    canvasWrapP1.scrollTop = maxY / 2;
+  }
+
+  function fitAndCenterViewportP1() {
+    setZoom(1);
+    requestAnimationFrame(centerViewportP1);
+  }
+
   function isBlankPlannerTarget(event) {
     if (event.target?.closest?.('[data-id],[data-rotate-id],.tent-vertex')) return false;
     return true;
@@ -2216,6 +2230,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   captureButton(btnDrawTentP1, startTentDrawingP1);
   captureButton(toggleBgP1, toggleBackgroundP1);
   captureButton(moveBackgroundButtonP1, () => setBackgroundMoveModeP1(!backgroundMoveMode));
+  captureButton(btnFitP1, fitAndCenterViewportP1);
   captureButton(btnProposalsP1, openProposalsP1);
   captureButton(btnNewProposalP1, () => createProposalP1({ duplicate: false }));
   captureButton(btnDuplicateProposalP1, () => createProposalP1({ duplicate: true }));
@@ -2245,6 +2260,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   setBackgroundMoveModeP1(false);
   renderProposalList();
   render();
+  requestAnimationFrame(centerViewportP1);
 
   window.MiGranDiaDistributionPhase2P1Spatial = Object.freeze({
     canvas: { width: CANVAS_W, height: CANVAS_H },
