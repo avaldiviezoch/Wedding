@@ -102,8 +102,8 @@ function runtimeContext() {
 test('Fase 2 se mantiene aislada y carga el baseline en una vista separada', () => {
   assert.match(html, /id="phase2Frame"/);
   assert.match(html, /src="index\.html\?phase=2-p0&v=20260904-fixedtable2"/);
-  assert.match(host, /phase2-p0\.js/);
-  assert.match(host, /phase2-p0\.css/);
+  assert.match(host, /phase2-p0\.js\?v=20260904-fixedtable2/);
+  assert.match(host, /phase2-p0\.css\?v=20260904-fixedtable2/);
 
   const isolated = `${html}\n${host}\n${source}\n${css}`;
   assert.doesNotMatch(isolated, /\blocalStorage\b/);
