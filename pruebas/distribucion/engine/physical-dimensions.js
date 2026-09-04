@@ -4,7 +4,15 @@
   const CLEARANCE_MARGIN_M = 0.80;
   const CHAIR_OFFSET_M = 0.38;
   const LABEL_OFFSET_M = 0.72;
+  const DEFAULT_TABLETOP_M = Object.freeze({
+    round:Object.freeze([1.50,1.50]),
+    square:Object.freeze([1.80,1.80]),
+    rectangular:Object.freeze([2.40,0.75])
+  });
 
+  // Estos valores se conservan únicamente como referencia histórica/sugerida,
+  // pero la capacidad NUNCA define el tamaño de una mesa existente. Nunca vuelven a
+  // recalcular el tablero cuando cambia la cantidad de sillas.
   const ROUND_DIAMETER_M = Object.freeze({ 4:0.90, 6:1.20, 8:1.50, 10:1.50, 12:1.80, 14:2.10, 16:2.40 });
   const SQUARE_SIDE_M = Object.freeze({ 4:0.90, 6:1.20, 8:1.50, 10:1.80, 12:2.00, 14:2.20, 16:2.40 });
   const RECTANGULAR_M = Object.freeze({
@@ -22,36 +30,146 @@
     return value === 'square' || value === 'rectangular' ? value : 'round';
   }
 
-  function dimensionsFor(shapeValue, capacityValue) {
+  function suggestedDimensionsFor(shapeValue, capacityValue) {
     const shape = normalizeShape(shapeValue);
     const seats = capacity(capacityValue);
     let tabletopWidthM, tabletopHeightM;
     if (shape === 'round') tabletopWidthM = tabletopHeightM = ROUND_DIAMETER_M[seats];
     else if (shape === 'square') tabletopWidthM = tabletopHeightM = SQUARE_SIDE_M[seats];
     else [tabletopWidthM, tabletopHeightM] = RECTANGULAR_M[seats];
-    const clearanceWidthM = tabletopWidthM + CLEARANCE_MARGIN_M * 2;
-    const clearanceHeightM = tabletopHeightM + CLEARANCE_MARGIN_M * 2;
-    return Object.freeze({ shape, capacity:seats, tabletopWidthM, tabletopHeightM, clearanceWidthM, clearanceHeightM, chairOffsetM:CHAIR_OFFSET_M, labelOffsetM:LABEL_OFFSET_M });
+    return Object.freeze({ shape, capacity:seats, tabletopWidthM, tabletopHeightM });
+  }
+
+  function clampTabletop(value, fallback) {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? Math.max(0.20, Math.min(20, numeric)) : fallback;
+  }
+
+  function ensureTabletopDimensions(table) {
+    if (!table || table.type !== 'table') return null;
+    const shape = normalizeShape(table.tableShape);
+    const seats = root.seats?.normalizeCapacity
+      ? root.seats.normalizeCapacity(table.capacity, 10)
+      : (SUPPORTED_CAPACITIES.includes(Number(table.capacity)) ? Number(table.capacity) : 10);
+
+    const defaults = DEFAULT_TABLETOP_M[shape];
+    let tabletopWidthM = clampTabletop(table.tabletopWidthM, defaults[0]);
+    let tabletopHeightM = clampTabletop(table.tabletopHeightM, defaults[1]);
+
+    // Redonda y cuadrada conservan una sola medida física.
+    if (shape === 'round' || shape === 'square') {
+      const canonical = clampTabletop(table.tabletopWidthM ?? table.tabletopHeightM, defaults[0]);
+      tabletopWidthM = canonical;
+      tabletopHeightM = canonical;
+    }
+
+    table.tabletopWidthM = tabletopWidthM;
+    table.tabletopHeightM = tabletopHeightM;
+    return Object.freeze({ shape, capacity:seats, tabletopWidthM, tabletopHeightM });
+  }
+
+  // Compatibilidad: dimensionsFor sigue devolviendo la sugerencia histórica,
+  // pero ya no debe usarse como fuente de verdad para una mesa existente.
+  function dimensionsFor(shapeValue, capacityValue) {
+    const base = suggestedDimensionsFor(shapeValue, capacityValue);
+    const clearanceWidthM = base.tabletopWidthM + CLEARANCE_MARGIN_M * 2;
+    const clearanceHeightM = base.tabletopHeightM + CLEARANCE_MARGIN_M * 2;
+    return Object.freeze({
+      ...base,
+      clearanceWidthM,
+      clearanceHeightM,
+      chairOffsetM:CHAIR_OFFSET_M,
+      labelOffsetM:LABEL_OFFSET_M
+    });
+  }
+
+  function dimensionsForTable(table) {
+    const base = ensureTabletopDimensions(table);
+    if (!base) return null;
+    const clearanceWidthM = base.tabletopWidthM + CLEARANCE_MARGIN_M * 2;
+    const clearanceHeightM = base.tabletopHeightM + CLEARANCE_MARGIN_M * 2;
+    return Object.freeze({
+      ...base,
+      clearanceWidthM,
+      clearanceHeightM,
+      chairOffsetM:CHAIR_OFFSET_M,
+      labelOffsetM:LABEL_OFFSET_M
+    });
   }
 
   function dimensionsAtScale(shape, seats, scale = 32) {
     const meters = dimensionsFor(shape, seats);
     const s = Number(scale) || 32;
-    return Object.freeze({ ...meters, scale:s, tabletopWidthPx:meters.tabletopWidthM*s, tabletopHeightPx:meters.tabletopHeightM*s, clearanceWidthPx:meters.clearanceWidthM*s, clearanceHeightPx:meters.clearanceHeightM*s, chairOffsetPx:CHAIR_OFFSET_M*s, labelOffsetPx:LABEL_OFFSET_M*s });
+    return Object.freeze({
+      ...meters,
+      scale:s,
+      tabletopWidthPx:meters.tabletopWidthM*s,
+      tabletopHeightPx:meters.tabletopHeightM*s,
+      clearanceWidthPx:meters.clearanceWidthM*s,
+      clearanceHeightPx:meters.clearanceHeightM*s,
+      chairOffsetPx:CHAIR_OFFSET_M*s,
+      labelOffsetPx:LABEL_OFFSET_M*s
+    });
+  }
+
+  function dimensionsAtScaleForTable(table, scale = 32) {
+    const meters = dimensionsForTable(table);
+    if (!meters) return null;
+    const s = Number(scale) || 32;
+    return Object.freeze({
+      ...meters,
+      scale:s,
+      tabletopWidthPx:meters.tabletopWidthM*s,
+      tabletopHeightPx:meters.tabletopHeightM*s,
+      clearanceWidthPx:meters.clearanceWidthM*s,
+      clearanceHeightPx:meters.clearanceHeightM*s,
+      chairOffsetPx:CHAIR_OFFSET_M*s,
+      labelOffsetPx:LABEL_OFFSET_M*s
+    });
+  }
+
+  function setTabletopDimensions(table, widthM, heightM = widthM) {
+    if (!table || table.type !== 'table') return table;
+    const shape = normalizeShape(table.tableShape);
+    const current = ensureTabletopDimensions(table);
+    let width = clampTabletop(widthM, current.tabletopWidthM);
+    let height = clampTabletop(heightM, current.tabletopHeightM);
+    if (shape === 'round' || shape === 'square') height = width;
+    table.tabletopWidthM = width;
+    table.tabletopHeightM = height;
+    return applyToTable(table);
   }
 
   function applyToTable(table) {
     if (!table || table.type !== 'table') return table;
-    const shape = normalizeShape(table.tableShape);
-    const seats = root.seats?.normalizeCapacity ? root.seats.normalizeCapacity(table.capacity, 10) : (SUPPORTED_CAPACITIES.includes(Number(table.capacity)) ? Number(table.capacity) : 10);
-    const dims = dimensionsFor(shape, seats);
-    table.tableShape = shape;
-    table.capacity = seats;
-    table.shape = shape === 'round' ? 'table' : 'rect';
+    const dims = dimensionsForTable(table);
+    table.tableShape = dims.shape;
+    table.capacity = dims.capacity;
+    table.shape = dims.shape === 'round' ? 'table' : 'rect';
+
+    // widthM/heightM siguen representando geometría funcional para límites y
+    // colisiones; el tablero real vive en tabletopWidthM/tabletopHeightM.
     table.widthM = dims.clearanceWidthM;
     table.heightM = dims.clearanceHeightM;
     return table;
   }
 
-  root.physicalDimensions = Object.freeze({ SUPPORTED_CAPACITIES, CLEARANCE_MARGIN_M, CHAIR_OFFSET_M, LABEL_OFFSET_M, ROUND_DIAMETER_M, SQUARE_SIDE_M, RECTANGULAR_M, dimensionsFor, dimensionsAtScale, applyToTable });
+  root.physicalDimensions = Object.freeze({
+    SUPPORTED_CAPACITIES,
+    CLEARANCE_MARGIN_M,
+    CHAIR_OFFSET_M,
+    LABEL_OFFSET_M,
+    ROUND_DIAMETER_M,
+    SQUARE_SIDE_M,
+    RECTANGULAR_M,
+    DEFAULT_TABLETOP_M,
+    suggestedDimensionsFor,
+    dimensionsFor,
+    dimensionsForTable,
+    dimensionsAtScale,
+    dimensionsAtScaleForTable,
+    ensureTabletopDimensions,
+    setTabletopDimensions,
+    applyToTable
+  });
 })();

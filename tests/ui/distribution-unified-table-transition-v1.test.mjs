@@ -50,9 +50,11 @@ test('una sola transición cubre todas las combinaciones forma/capacidad', () =>
       assert.equal(item.tableShape, shape);
       assert.equal(item.capacity, capacity);
       assert.equal(item.seats.length, capacity);
-      const expected = physicalDimensions.dimensionsFor(shape, capacity);
-      assert.equal(item.widthM, expected.clearanceWidthM);
-      assert.equal(item.heightM, expected.clearanceHeightM);
+      const defaults = physicalDimensions.DEFAULT_TABLETOP_M[shape];
+      assert.ok(Math.abs(item.tabletopWidthM - defaults[0]) < 1e-9);
+      assert.ok(Math.abs(item.tabletopHeightM - defaults[1]) < 1e-9);
+      assert.ok(Math.abs(item.widthM - (defaults[0] + physicalDimensions.CLEARANCE_MARGIN_M * 2)) < 1e-9);
+      assert.ok(Math.abs(item.heightM - (defaults[1] + physicalDimensions.CLEARANCE_MARGIN_M * 2)) < 1e-9);
     }
   }
 });

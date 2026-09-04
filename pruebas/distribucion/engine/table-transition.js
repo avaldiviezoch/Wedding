@@ -22,6 +22,8 @@
       layerId: table.layerId,
       capacity: seats.normalizeCapacity(table.capacity, 10),
       tableShape: normalizeShape(table.tableShape),
+      tabletopWidthM: Number(table.tabletopWidthM),
+      tabletopHeightM: Number(table.tabletopHeightM),
       seats: Object.freeze((Array.isArray(table.seats) ? table.seats : []).slice())
     });
   }
@@ -42,9 +44,21 @@
     const prepared = plan(table, request);
     if (!prepared.ok) return prepared;
 
+    const shapeChanged = prepared.shape !== prepared.before.tableShape;
     table.tableShape = prepared.shape;
     table.capacity = prepared.capacity;
     table.seats = Array.from(prepared.seats);
+
+    // Cambiar TIPO adopta el tamaño por defecto de ese tipo.
+    // Cambiar CAPACIDAD conserva siempre las dimensiones físicas existentes.
+    if (shapeChanged) {
+      const defaults = physical.DEFAULT_TABLETOP_M[prepared.shape];
+      table.tabletopWidthM = defaults[0];
+      table.tabletopHeightM = defaults[1];
+    } else {
+      table.tabletopWidthM = prepared.before.tabletopWidthM;
+      table.tabletopHeightM = prepared.before.tabletopHeightM;
+    }
     physical.applyToTable(table);
 
     return Object.freeze({
@@ -57,7 +71,10 @@
       heightM:table.heightM,
       identityPreserved:table.id === prepared.before.id,
       positionPreserved:table.x === prepared.before.x && table.y === prepared.before.y,
-      rotationPreserved:table.rotation === prepared.before.rotation
+      rotationPreserved:table.rotation === prepared.before.rotation,
+      shapeChanged,
+      tabletopWidthM:table.tabletopWidthM,
+      tabletopHeightM:table.tabletopHeightM
     });
   }
 

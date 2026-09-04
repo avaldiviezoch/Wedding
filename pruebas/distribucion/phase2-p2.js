@@ -440,6 +440,15 @@
     wrap.addEventListener('pointermove', onTouchPointerMove, { capture: true, passive: false });
     wrap.addEventListener('pointerup', onTouchPointerEnd, { capture: true, passive: false });
     wrap.addEventListener('pointercancel', onTouchPointerEnd, { capture: true, passive: false });
+
+    // Rueda del mouse = zoom del lienzo completo. No modifica ninguna medida
+    // física: únicamente cambia la escala visual de planner.
+    wrap.addEventListener('wheel', (event) => {
+      if (Math.abs(event.deltaY) < 1) return;
+      event.preventDefault();
+      const factor = event.deltaY < 0 ? 1.10 : 0.90;
+      setZoom(zoom * factor);
+    }, { passive:false });
   }
 
   function overridePresentationButton() {
@@ -462,7 +471,7 @@
     jsonSession: true,
     png: { width: CANVAS_W, height: CANVAS_H },
     finalView: true,
-    mobile: { sheets: true, fab: true, pinchZoom: true },
+    mobile: { sheets: true, fab: true, pinchZoom: true, wheelZoom: true },
     memoryOnly: true,
     status: 'ready'
   });

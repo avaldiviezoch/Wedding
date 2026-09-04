@@ -35,15 +35,17 @@ test('clearance permanece separado del tablero con 80 cm por lado', () => {
   }
 });
 
-test('aplicar dimensión actualiza geometría funcional usada por colisiones y límites', () => {
+test('aplicar dimensión fija tablero y usa width/height solo como geometría funcional', () => {
   const { physicalDimensions:d } = load();
-  const table = { id:'t1', type:'table', tableShape:'rectangular', capacity:16, shape:'rect', widthM:1, heightM:1 };
+  const table = { id:'t1', type:'table', tableShape:'rectangular', capacity:16, shape:'rect', tabletopWidthM:1.8, tabletopHeightM:.75 };
   d.applyToTable(table);
   assert.equal(table.id, 't1');
   assert.equal(table.capacity, 16);
   assert.equal(table.shape, 'rect');
-  assert.equal(table.widthM, 5.2);
-  assert.equal(table.heightM, 2.6);
+  assert.equal(table.tabletopWidthM, 1.8);
+  assert.equal(table.tabletopHeightM, .75);
+  assert.ok(Math.abs(table.widthM - 3.4) < 1e-9);
+  assert.equal(table.heightM, 2.35);
 });
 
 test('redonda 10 usa objetivo físico Ø1.50 sin modificar contrato histórico', () => {
@@ -53,7 +55,7 @@ test('redonda 10 usa objetivo físico Ø1.50 sin modificar contrato histórico',
   assert.equal(dims.clearanceWidthM, 3.1);
 });
 
-test('runtime usa matriz física para render, sillas, cambio de capacidad, forma e importación', () => {
-  for (const token of ['physical.dimensionsAtScale','physical.applyToTable','applyPhysicalGeometry(item)','physicalDimensionsByCapacity:true','phase2PhysicalDimensionAwareSanitizeState']) assert.ok(runtimeSource.includes(token), token);
+test('runtime usa tamaño de mesa persistente y capacidad solo para sillas', () => {
+  for (const token of ['physical.dimensionsAtScaleForTable','physical.applyToTable','applyPhysicalGeometry(item)','physicalDimensionsByCapacity:false','dimensionsStillFixed:true','setTabletopSize','phase2PhysicalDimensionAwareSanitizeState']) assert.ok(runtimeSource.includes(token), token);
   assert.doesNotMatch(dimensionsSource + runtimeSource, forbidden);
 });

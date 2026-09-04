@@ -101,7 +101,7 @@ function runtimeContext() {
 
 test('Fase 2 se mantiene aislada y carga el baseline en una vista separada', () => {
   assert.match(html, /id="phase2Frame"/);
-  assert.match(html, /src="index\.html\?phase=2-p0&v=20260903-runtime-scope1"/);
+  assert.match(html, /src="index\.html\?phase=2-p0&v=20260904-fixedtable2"/);
   assert.match(host, /phase2-p0\.js/);
   assert.match(host, /phase2-p0\.css/);
 

@@ -35,7 +35,7 @@
 
   function loadScript(doc, src, onload) {
     const script = doc.createElement('script');
-    script.src = src.includes('?') ? src : `${src}?v=20260903-layoutmatrix1`;
+    script.src = src.includes('?') ? src : `${src}?v=20260904-fixedtable2`;
     script.onload = onload || null;
     script.onerror = () => console.error(`No se pudo cargar ${src}`);
     doc.body.appendChild(script);
@@ -82,11 +82,11 @@
     doc.documentElement.dataset.phase2P2Host = 'ready';
     const style = doc.createElement('link');
     style.rel = 'stylesheet';
-    style.href = 'phase2-p2.css?v=20260903-p2-1';
+    style.href = 'phase2-p2.css?v=20260904-fixedtable2';
     style.dataset.phase2P2 = 'style';
     doc.head.appendChild(style);
     const script = doc.createElement('script');
-    script.src = 'phase2-p2.js?v=20260903-p2-1';
+    script.src = 'phase2-p2.js?v=20260904-fixedtable2';
     script.dataset.phase2P2 = 'runtime';
     script.onload = () => loadP2Close(doc);
     script.onerror = () => console.error('No se pudo cargar P2 de Distribución.');
@@ -148,11 +148,11 @@
     doc.documentElement.dataset.phase2P0Host = 'ready';
     const style = doc.createElement('link');
     style.rel = 'stylesheet';
-    style.href = 'phase2-p0.css?v=20260902-p0-1';
+    style.href = 'phase2-p0.css?v=20260904-fixedtable2';
     style.dataset.phase2P0 = 'style';
     doc.head.appendChild(style);
     const script = doc.createElement('script');
-    script.src = 'phase2-p0.js?v=20260902-p0-1';
+    script.src = 'phase2-p0.js?v=20260903-lowcap1';
     script.dataset.phase2P0 = 'runtime';
     script.onload = () => loadP1(doc);
     script.onerror = () => console.error('No se pudo cargar la paridad P0 de Distribución.');
