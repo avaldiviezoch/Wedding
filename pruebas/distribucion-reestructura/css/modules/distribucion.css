@@ -100,3 +100,10 @@ html[data-phase2-p0="true"] .table-hit .guest-tag{
 }
 @media(prefers-reduced-motion:reduce){.p2-mobile-fab{transition:none!important}}
 
+
+/* Reestructura auditada · contratos visibles */
+.guest-manager-section[hidden]{display:none!important}
+.fixed-scale-contract{display:grid;grid-template-columns:1fr auto;gap:3px 10px;align-items:center;padding:10px 12px;margin:0 0 12px;border:1px solid #ddd6ca;border-radius:10px;background:#faf8f4}
+.fixed-scale-contract span{font-size:12px;font-weight:700;color:#625b52}
+.fixed-scale-contract strong{font-size:13px;color:#302d29}
+.fixed-scale-contract small{grid-column:1/-1;font-size:11px;color:#7d756b}
