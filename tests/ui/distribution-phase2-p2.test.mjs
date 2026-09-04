@@ -10,8 +10,8 @@ const forbiddenPersistence = /\b(?:localStorage|sessionStorage|indexedDB|firebas
 
 test('P2 carga después de P1.3 y permanece aislado de persistencia', () => {
   assert.match(host, /script\.onload\s*=\s*\(\)\s*=>\s*loadP2\(doc\)/);
-  assert.match(host, /phase2-p2\.js\?v=20260903-p2-1/);
-  assert.match(host, /phase2-p2\.css\?v=20260903-p2-1/);
+  assert.match(host, /phase2-p2\.js\?v=20260904-fixedtable2/);
+  assert.match(host, /phase2-p2\.css\?v=20260904-fixedtable2/);
   assert.doesNotMatch(`${host}\n${source}`, forbiddenPersistence);
   assert.doesNotThrow(() => new Function(source));
 });
@@ -57,7 +57,7 @@ test('Vista final usa clon limpio del plano y no una segunda fuente de estado', 
   assert.doesNotMatch(source, /elements\s*=\s*\[\]/);
 });
 
-test('mobile incluye bottom sheets, FAB y pinch zoom táctil', () => {
+test('mobile incluye bottom sheets, FAB, pinch y rueda de zoom', () => {
   assert.match(source, /p2-mobile-fab/);
   assert.match(source, /p2-mobile-sheet/);
   assert.match(source, /openPanel\('\.tools-panel'\)/);
@@ -65,6 +65,8 @@ test('mobile incluye bottom sheets, FAB y pinch zoom táctil', () => {
   assert.match(source, /touchPoints\.size === 2/);
   assert.match(source, /setZoom\(pinchStartZoom \* distance \/ pinchStartDistance\)/);
   assert.match(source, /passive: false/);
+  assert.match(source, /addEventListener\('wheel'/);
+  assert.match(source, /setZoom\(zoom \* factor\)/);
   assert.match(css, /@media\(max-width:780px\)/);
   assert.match(css, /\.tools-panel\.p2-sheet-open/);
   assert.match(css, /\.properties-panel\.p2-sheet-open/);
