@@ -40,3 +40,26 @@ Esta carpeta es el nuevo laboratorio aislado para reconstruir Distribución ante
 ```
 
 La capacidad y el tamaño físico son propiedades independientes.
+
+
+## Regla principal de seguridad
+
+**EL STORAGE NO SE TOCA.**
+
+Esta regla tiene prioridad sobre cualquier reestructura, corrección, prueba o integración.
+
+Queda prohibido desde este laboratorio:
+- Firebase.
+- Firestore.
+- Firebase Rules.
+- localStorage real de App Mi Lu.
+- sessionStorage real.
+- IndexedDB real.
+- Storage real.
+- persistencia real de invitados, mesas, asignaciones o distribución.
+- migraciones, limpiezas, rehidrataciones destructivas o reseteos.
+- cambios en backups, logout o sincronización real.
+
+La reestructura trabaja únicamente en memoria hasta que exista una autorización explícita y una fase de integración controlada mediante adapter.
+
+**Ningún cambio visual, de mesas, sillas, geometría, zoom o editor puede escribir en el storage real.**
