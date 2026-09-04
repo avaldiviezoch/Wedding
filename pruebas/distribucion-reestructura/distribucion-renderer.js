@@ -7,19 +7,29 @@ const svg=(name,attrs={})=>{
   return node;
 };
 
+function tabletopPixels(table){
+  return {
+    width:table.tabletop.widthM*SCALE,
+    height:table.tabletop.heightM*SCALE
+  };
+}
+
 function seatPositions(table){
   const count=table.capacity;
   const points=[];
+  const {width:w,height:h}=tabletopPixels(table);
+
+  // El radio/orbita depende SOLO del tamaño físico; la cantidad de sillas
+  // únicamente reparte más o menos posiciones sobre esa misma órbita.
   if(table.shape==='round'){
-    const r=Math.max(table.tabletop.widthM,table.tabletop.heightM)*SCALE/2+28;
+    const orbit=Math.max(w,h)/2+28;
     for(let i=0;i<count;i++){
       const a=-Math.PI/2+Math.PI*2*i/count;
-      points.push({x:Math.cos(a)*r,y:Math.sin(a)*r});
+      points.push({x:Math.cos(a)*orbit,y:Math.sin(a)*orbit});
     }
     return points;
   }
-  const w=table.tabletop.widthM*SCALE;
-  const h=table.tabletop.heightM*SCALE;
+
   const perimeter=2*(w+h);
   for(let i=0;i<count;i++){
     let d=(i/count)*perimeter;
@@ -35,8 +45,7 @@ export function render(state,{planner,itemsLayer}){
   itemsLayer.replaceChildren();
   for(const table of state.tables){
     const g=svg('g',{transform:`translate(${table.x} ${table.y}) rotate(${table.rotation})`,'data-table-id':table.id});
-    const w=table.tabletop.widthM*SCALE;
-    const h=table.tabletop.heightM*SCALE;
+    const {width:w,height:h}=tabletopPixels(table);
     const top=table.shape==='round'
       ? svg('circle',{r:w/2,fill:'#d9b978',class:'tabletop'})
       : svg('rect',{x:-w/2,y:-h/2,width:w,height:h,rx:table.shape==='square'?10:6,fill:'#d9b978',class:'tabletop'});
