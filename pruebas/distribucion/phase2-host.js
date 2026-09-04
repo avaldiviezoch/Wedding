@@ -35,7 +35,7 @@
 
   function loadScript(doc, src, onload) {
     const script = doc.createElement('script');
-    script.src = src.includes('?') ? src : `${src}?v=20260903-layoutmatrix1`;
+    script.src = src.includes('?') ? src : `${src}?v=20260904-fixedtable1`;
     script.onload = onload || null;
     script.onerror = () => console.error(`No se pudo cargar ${src}`);
     doc.body.appendChild(script);
@@ -148,7 +148,7 @@
     doc.documentElement.dataset.phase2P0Host = 'ready';
     const style = doc.createElement('link');
     style.rel = 'stylesheet';
-    style.href = 'phase2-p0.css?v=20260902-p0-1';
+    style.href = 'phase2-p0.css?v=20260904-fixedtable1';
     style.dataset.phase2P0 = 'style';
     doc.head.appendChild(style);
     const script = doc.createElement('script');
