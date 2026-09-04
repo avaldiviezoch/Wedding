@@ -34,14 +34,34 @@ Hallazgo principal: Distribución real está repartido entre legacy, CSS de mód
 
 ## Los 8 archivos
 
-1. `index.html` — DOM completo del planner.
-2. `distribucion.css` — estilos completos consolidados.
-3. `distribucion-editor.js` — interacciones, historial, mediciones, toldos, propuestas, mobile y zoom.
-4. `distribucion-engine.js` — geometría, colisiones, mesas, dimensiones, sillas y validación.
-5. `distribucion-renderer.js` — renderer final, formas, capacidad e inspector.
-6. `distribucion-adapter.js` — frontera memory-only para futura integración con Mi Lu.
-7. `distribucion-export.js` — fachada de exportación sin persistencia.
-8. `README.md` — auditoría y contratos.
+La carpeta replica desde ahora la organización objetivo de `app_integral`:
+
+```text
+pruebas/distribucion-reestructura/
+├── index.html
+├── README.md
+├── css/
+│   └── modules/
+│       └── distribucion.css
+└── js/
+    └── modules/
+        └── distribucion/
+            ├── index.js
+            ├── engine.js
+            ├── renderer.js
+            ├── adapter.js
+            └── export.js
+```
+
+Responsabilidades:
+- `index.html`: shell aislado del laboratorio.
+- `css/modules/distribucion.css`: presentación del módulo.
+- `js/modules/distribucion/index.js`: controlador/editor y lifecycle.
+- `engine.js`: estado, geometría, mesas, sillas, colisiones y validación.
+- `renderer.js`: SVG, inspector y representación visual.
+- `adapter.js`: única frontera futura con App Mi Lu; hoy memory-only.
+- `export.js`: exportación/presentación sin persistencia.
+- `README.md`: auditoría, invariantes y reglas de seguridad.
 
 ## Funciones recuperadas
 
