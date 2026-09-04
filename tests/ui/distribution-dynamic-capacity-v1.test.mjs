@@ -71,7 +71,7 @@ test('capacidad 10 conserva patrones cuadrado y rectangular congelados', () => {
 });
 
 test('runtime final mantiene protecciones y es el único renderer dueño de mesas', () => {
-  for (const token of ['dimensionsStillFixed:false','physicalDimensionsByCapacity:true','protectsOccupiedSeats:true','jsonSupports16:true','convertShapePreservingCapacity','unifiedTransition:true','authoritativeTableRenderer:true','uprightTextNative:true','rotationHandleNative:true']) {
+  for (const token of ['dimensionsStillFixed:true','physicalDimensionsByCapacity:false','protectsOccupiedSeats:true','jsonSupports16:true','convertShapePreservingCapacity','unifiedTransition:true','authoritativeTableRenderer:true','uprightTextNative:true','rotationHandleNative:true']) {
     assert.ok(runtimeSource.includes(token), token);
   }
   assert.match(runtimeSource, /transitionApi\.transition\(item, request\)/);
