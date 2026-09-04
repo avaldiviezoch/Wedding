@@ -91,7 +91,7 @@ test('renderer e inspector usan la matriz y exponen selector de acomodo', () => 
   assert.ok(inspectorSource.includes('Acomodo de sillas'));
   assert.ok(inspectorSource.includes('capacityApi.setSeatLayoutVariant'));
   assert.ok(inspectorSource.includes('explicitSeatLayoutSelector:true'));
-  assert.match(hostSource, /20260904-fixedtable1/);
+  assert.match(hostSource, /20260904-fixedtable2/);
 });
 
 test('matriz de acomodos permanece aislada de persistencia real', () => {
