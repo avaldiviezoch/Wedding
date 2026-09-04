@@ -50,12 +50,22 @@ export function setTableCapacity(state,id,nextCapacity){
   const capacity=Number(nextCapacity);
   if(!SUPPORTED_CAPACITIES.includes(capacity)) throw new Error('Capacidad no soportada');
   const table=tableById(state,id);
+  const tabletopBefore=clone(table.tabletop);
   const blocked=table.seats.slice(capacity).map((guestId,index)=>guestId?{seatNumber:capacity+index+1,guestId}:null).filter(Boolean);
   if(blocked.length) return {ok:false,reason:'occupied-seats',blocked};
+
+  // CONTRATO: cambiar sillas jamás cambia el tamaño físico de la mesa.
   table.capacity=capacity;
   table.seats=table.seats.slice(0,capacity);
   while(table.seats.length<capacity) table.seats.push(null);
-  return {ok:true};
+  table.tabletop=tabletopBefore;
+
+  return {
+    ok:true,
+    tabletopUnchanged:
+      table.tabletop.widthM===tabletopBefore.widthM &&
+      table.tabletop.heightM===tabletopBefore.heightM
+  };
 }
 
 export function setTableShape(state,id,nextShape){
