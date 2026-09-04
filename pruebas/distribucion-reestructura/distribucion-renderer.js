@@ -61,5 +61,4 @@ export function render(state,{planner,itemsLayer}){
     });
     itemsLayer.appendChild(g);
   }
-  planner.style.transform=`scale(${state.viewport.zoom})`;
 }
