@@ -930,6 +930,14 @@
 
   function transitionTable(item, request) {
     if (!item || item.type !== 'table' || isItemLocked(item)) return Object.freeze({ ok:false, reason:'unavailable' });
+
+    const capacityOnly = Object.prototype.hasOwnProperty.call(request || {}, 'capacity')
+      && !Object.prototype.hasOwnProperty.call(request || {}, 'shape');
+    const physicalBefore = capacityOnly ? {
+      tabletopWidthM:Number(item.tabletopWidthM),
+      tabletopHeightM:Number(item.tabletopHeightM)
+    } : null;
+
     const result = transitionApi.transition(item, request);
     if (!result.ok) {
       if (result.reason === 'occupied-seats') {
@@ -938,8 +946,22 @@
       }
       return result;
     }
+
+    // INVARIANTE DURO: cambiar sillas jamás cambia el tablero físico.
+    if (capacityOnly && physicalBefore) {
+      item.tabletopWidthM = physicalBefore.tabletopWidthM;
+      item.tabletopHeightM = physicalBefore.tabletopHeightM;
+    }
+
     applyPhysicalGeometry(item);
     normalizeSeatLayout(item);
+
+    if (capacityOnly && physicalBefore &&
+        (Number(item.tabletopWidthM) !== physicalBefore.tabletopWidthM ||
+         Number(item.tabletopHeightM) !== physicalBefore.tabletopHeightM)) {
+      throw new Error('Contrato roto: cambiar sillas modificó el tamaño físico de la mesa.');
+    }
+
     commitMutation();
     return result;
   }
