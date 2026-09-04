@@ -2864,3 +2864,21 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   });
 })();
 
+
+/* ===== REESTRUCTURA: contrato final de zoom =====
+   El zoom solo cambia el tamaño CSS del SVG. Nunca toca escala física,
+   widthM/heightM, tabletop, capacidad, sillas ni posiciones del modelo. */
+(() => {
+  const LOGICAL_W = 1448;
+  const LOGICAL_H = 1086;
+  setZoom = function distributionViewOnlyZoom(next) {
+    zoom = Math.max(.65, Math.min(1.8, Number(next) || 1));
+    planner.style.transform = '';
+    planner.style.width = `${LOGICAL_W * zoom}px`;
+    planner.style.height = `${LOGICAL_H * zoom}px`;
+    planner.setAttribute('viewBox', `0 0 ${LOGICAL_W} ${LOGICAL_H}`);
+    if (zoomReset) zoomReset.textContent = `${Math.round(zoom * 100)}%`;
+    return zoom;
+  };
+  setZoom(zoom);
+})();
