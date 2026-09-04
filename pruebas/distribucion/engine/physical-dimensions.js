@@ -4,8 +4,14 @@
   const CLEARANCE_MARGIN_M = 0.80;
   const CHAIR_OFFSET_M = 0.38;
   const LABEL_OFFSET_M = 0.72;
+  const DEFAULT_TABLETOP_M = Object.freeze({
+    round:Object.freeze([1.50,1.50]),
+    square:Object.freeze([1.80,1.80]),
+    rectangular:Object.freeze([2.40,0.75])
+  });
 
-  // Estos valores son SOLO sugerencias de tamaño inicial. Nunca vuelven a
+  // Estos valores se conservan únicamente como referencia histórica/sugerida,
+  // pero la capacidad NUNCA define el tamaño de una mesa existente. Nunca vuelven a
   // recalcular el tablero cuando cambia la cantidad de sillas.
   const ROUND_DIAMETER_M = Object.freeze({ 4:0.90, 6:1.20, 8:1.50, 10:1.50, 12:1.80, 14:2.10, 16:2.40 });
   const SQUARE_SIDE_M = Object.freeze({ 4:0.90, 6:1.20, 8:1.50, 10:1.80, 12:2.00, 14:2.20, 16:2.40 });
@@ -46,13 +52,13 @@
       ? root.seats.normalizeCapacity(table.capacity, 10)
       : (SUPPORTED_CAPACITIES.includes(Number(table.capacity)) ? Number(table.capacity) : 10);
 
-    const suggested = suggestedDimensionsFor(shape, seats);
-    let tabletopWidthM = clampTabletop(table.tabletopWidthM, suggested.tabletopWidthM);
-    let tabletopHeightM = clampTabletop(table.tabletopHeightM, suggested.tabletopHeightM);
+    const defaults = DEFAULT_TABLETOP_M[shape];
+    let tabletopWidthM = clampTabletop(table.tabletopWidthM, defaults[0]);
+    let tabletopHeightM = clampTabletop(table.tabletopHeightM, defaults[1]);
 
     // Redonda y cuadrada conservan una sola medida física.
     if (shape === 'round' || shape === 'square') {
-      const canonical = clampTabletop(table.tabletopWidthM ?? table.tabletopHeightM, suggested.tabletopWidthM);
+      const canonical = clampTabletop(table.tabletopWidthM ?? table.tabletopHeightM, defaults[0]);
       tabletopWidthM = canonical;
       tabletopHeightM = canonical;
     }
@@ -156,6 +162,7 @@
     ROUND_DIAMETER_M,
     SQUARE_SIDE_M,
     RECTANGULAR_M,
+    DEFAULT_TABLETOP_M,
     suggestedDimensionsFor,
     dimensionsFor,
     dimensionsForTable,
