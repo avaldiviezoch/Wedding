@@ -1,13 +1,13 @@
-export function exportJson(state){
-  return JSON.stringify(state,null,2);
-}
-
-export function importJson(text){
-  const parsed=JSON.parse(text);
-  if(!parsed||typeof parsed!=='object'||!Array.isArray(parsed.tables)) throw new Error('JSON de Distribución inválido');
-  return structuredClone(parsed);
-}
-
-export async function exportPng(){
-  throw new Error('PNG pendiente de implementar en la reestructura limpia');
-}
+/* Distribución · fachada de exportación memory-only.
+   No crea persistencia ni toca App Mi Lu. */
+(() => {
+  'use strict';
+  function snapshot(){
+    return typeof stateSnapshot === 'function' ? structuredClone(stateSnapshot()) : {};
+  }
+  window.MiGranDiaDistributionExport = Object.freeze({
+    snapshot,
+    json(){ return JSON.stringify(snapshot(), null, 2); },
+    storageWrites:false
+  });
+})();
