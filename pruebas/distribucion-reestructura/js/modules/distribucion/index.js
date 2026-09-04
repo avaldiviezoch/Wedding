@@ -382,12 +382,86 @@ function renderGuestManager(){
   document.getElementById('guestPendingText').textContent=`${Math.max(0,guests.length-assignments.size)} sin asignar`;
   guestList.replaceChildren();
   filtered.forEach(guest=>{
-    const row=document.createElement('div');row.className='guest-row';
-    const info=document.createElement('div');const strong=document.createElement('strong');strong.textContent=guest.name;const small=document.createElement('small');const location=assignments.get(guest.id);small.textContent=location?`${location.tableLabel} · Asiento ${location.seatNumber}`:'Sin asignar';info.append(strong,small);
-    const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.title='Quitar invitado';remove.addEventListener('click',()=>{clearGuestFromOtherSeats(guest.id);guests=guests.filter(item=>item.id!==guest.id);commitMutation();});
-    row.append(info,remove);guestList.appendChild(row);
+    const row=document.createElement('div');
+    row.className='guest-row guest-drag-source';
+    row.draggable=true;
+    row.dataset.guestId=guest.id;
+    row.title='Arrastra este invitado hacia una silla';
+    const info=document.createElement('div');
+    const strong=document.createElement('strong');strong.textContent=guest.name;
+    const small=document.createElement('small');const location=assignments.get(guest.id);small.textContent=location?`${location.tableLabel} · Asiento ${location.seatNumber}`:'Sin asignar';
+    info.append(strong,small);
+    const handle=document.createElement('span');handle.className='guest-drag-handle';handle.textContent='⋮⋮';handle.setAttribute('aria-hidden','true');
+    row.append(info,handle);guestList.appendChild(row);
   });
 }
+
+function draggedGuestId(event){
+  return event.dataTransfer?.getData('text/mgd-guest')||event.dataTransfer?.getData('text/plain')||'';
+}
+function clearSeatDropFeedback(){
+  planner.querySelectorAll('.seat-drop-target').forEach(node=>node.classList.remove('is-seat-drop','is-seat-drop-blocked'));
+}
+function seatDropTarget(event){
+  return event.target?.closest?.('.seat-drop-target[data-table-id][data-seat-index]')||null;
+}
+function assignGuestToSeat(guestId,tableId,seatIndex){
+  const guest=guestById(guestId),table=getItem(tableId),index=Number(seatIndex);
+  if(!guest||!table||table.type!=='table'||!Number.isInteger(index))return false;
+  ensureTableSeats(table);
+  if(index<0||index>=table.seats.length)return false;
+  const occupied=table.seats[index];
+  if(occupied&&occupied!==guestId)return false;
+  clearGuestFromOtherSeats(guestId,table.id,index);
+  table.seats[index]=guestId;
+  setSelection([table.id],table.id);
+  commitMutation();
+  return true;
+}
+
+guestList.addEventListener('dragstart',event=>{
+  const source=event.target.closest?.('.guest-drag-source[data-guest-id]');
+  if(!source||!event.dataTransfer)return;
+  event.dataTransfer.effectAllowed='move';
+  event.dataTransfer.setData('text/mgd-guest',source.dataset.guestId);
+  event.dataTransfer.setData('text/plain',source.dataset.guestId);
+  source.classList.add('is-dragging');
+  planner.classList.add('is-guest-dragging');
+});
+guestList.addEventListener('dragend',event=>{
+  event.target.closest?.('.guest-drag-source')?.classList.remove('is-dragging');
+  planner.classList.remove('is-guest-dragging');
+  clearSeatDropFeedback();
+});
+planner.addEventListener('dragover',event=>{
+  const guestId=draggedGuestId(event);
+  const seat=seatDropTarget(event);
+  if(!guestId||!seat)return;
+  event.preventDefault();
+  clearSeatDropFeedback();
+  const occupied=seat.dataset.guestId;
+  const blocked=Boolean(occupied&&occupied!==guestId);
+  seat.classList.add(blocked?'is-seat-drop-blocked':'is-seat-drop');
+  if(event.dataTransfer)event.dataTransfer.dropEffect=blocked?'none':'move';
+});
+planner.addEventListener('dragleave',event=>{
+  const seat=seatDropTarget(event);
+  if(seat)seat.classList.remove('is-seat-drop','is-seat-drop-blocked');
+});
+planner.addEventListener('drop',event=>{
+  const guestId=draggedGuestId(event);
+  const seat=seatDropTarget(event);
+  if(!guestId||!seat)return;
+  event.preventDefault();
+  event.stopPropagation();
+  const tableId=seat.dataset.tableId;
+  const seatIndex=Number(seat.dataset.seatIndex);
+  const occupied=seat.dataset.guestId;
+  clearSeatDropFeedback();
+  planner.classList.remove('is-guest-dragging');
+  if(occupied&&occupied!==guestId)return;
+  assignGuestToSeat(guestId,tableId,seatIndex);
+});
 function renderSeatEditor(table){
   seatEditor.replaceChildren();
   if(!table||table.type!=='table'){seatEditorWrap.hidden=true;return;}

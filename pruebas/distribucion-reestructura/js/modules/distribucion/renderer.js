@@ -846,9 +846,15 @@
   }
 
   function appendChair(group, item, position, seatNumber, chairRadius, C, rotation) {
+    const seatIndex = seatNumber - 1;
+    const guestId = Array.isArray(item.seats) ? (item.seats[seatIndex] || '') : '';
     const chair = svgEl('g', {
       transform:`translate(${position.x.toFixed(1)} ${position.y.toFixed(1)})`,
-      class:'chair-wrap', 'data-seat-number':String(seatNumber)
+      class:`chair-wrap seat-drop-target${guestId?' is-occupied':''}`,
+      'data-seat-number':String(seatNumber),
+      'data-seat-index':String(seatIndex),
+      'data-table-id':String(item.id),
+      'data-guest-id':String(guestId)
     });
     chair.appendChild(svgEl('circle', {
       r:chairRadius.toFixed(2), class:'chair', fill:C.chairFill,

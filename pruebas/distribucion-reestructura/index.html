@@ -51,22 +51,23 @@
           <div id="tentDrawHint" class="mode-hint" hidden>Haz clic para marcar vértices. Doble clic o Enter para terminar; Esc cancela.</div>
         </section>
 
-        <section class="panel-section guest-manager-section" hidden aria-hidden="true">
+        <section class="panel-section guest-manager-section">
           <div class="section-title-row">
             <div><h3>Invitados</h3><p><span id="guestCountText">10 invitados</span> · <span id="guestPendingText">0 sin asignar</span></p></div>
           </div>
+          <p class="guest-drag-help">Arrastra un invitado y suéltalo sobre una silla libre del plano.</p>
           <label class="field"><span>Buscar</span><input id="guestSearch" type="search" placeholder="Buscar invitado…"></label>
-          <div id="guestList" class="guest-list"></div>
-          <div class="guest-add-row">
+          <div id="guestList" class="guest-list" aria-label="Lista de invitados para asignar"></div>
+          <div class="guest-add-row" hidden>
             <input id="newGuestName" type="text" placeholder="Nombre del invitado">
             <button id="btnAddGuest" type="button">Agregar</button>
           </div>
-          <details class="bulk-box">
+          <details class="bulk-box" hidden>
             <summary>Agregar varios invitados</summary>
             <textarea id="bulkGuests" rows="4" placeholder="Un nombre por línea"></textarea>
             <button id="btnAddBulkGuests" type="button">Agregar lista</button>
           </details>
-          <div class="action-grid guest-actions">
+          <div class="action-grid guest-actions" hidden>
             <button id="btnAssignSequential" type="button">Asignar en orden</button>
             <button id="btnClearAssignments" type="button">Limpiar asignaciones</button>
           </div>
