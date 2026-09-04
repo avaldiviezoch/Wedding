@@ -20,8 +20,8 @@ test('app base se carga como script clásico para que las fases reemplacen el re
 });
 
 test('phase2 rompe caché también en el iframe, no solo en la página exterior', () => {
-  assert.match(phase2Source, /index\.html\?phase=2-p0&v=20260904-fixedtable1/);
-  assert.match(phase2Source, /phase2-host\.js\?v=20260904-fixedtable1/);
+  assert.match(phase2Source, /index\.html\?phase=2-p0&v=20260904-fixedtable2/);
+  assert.match(phase2Source, /phase2-host\.js\?v=20260904-fixedtable2/);
 });
 
 test('corrección de scope permanece aislada de persistencia real', () => {
