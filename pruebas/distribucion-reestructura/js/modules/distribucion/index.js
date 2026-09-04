@@ -86,6 +86,7 @@ let bgPosition={x:0,y:0};
 let bgDrag=null;
 let backgroundMoveMode=false;
 let viewportPan=null;
+let viewportOffset={x:0,y:0};
 let measureMode=false;
 let measureDraft=null;
 let measurements=[];
@@ -2130,12 +2131,19 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     canvasWrapP1?.classList.toggle('viewport-pan-mode', !backgroundMoveMode);
   }
 
+  function applyViewportOffsetP1() {
+    planner.style.transform = `translate3d(${viewportOffset.x}px,${viewportOffset.y}px,0)`;
+  }
+
   function centerViewportP1() {
     if (!canvasWrapP1) return;
-    const maxX = Math.max(0, canvasWrapP1.scrollWidth - canvasWrapP1.clientWidth);
-    const maxY = Math.max(0, canvasWrapP1.scrollHeight - canvasWrapP1.clientHeight);
-    canvasWrapP1.scrollLeft = maxX / 2;
-    canvasWrapP1.scrollTop = maxY / 2;
+    const plannerWidth = 1448 * zoom;
+    const plannerHeight = 1086 * zoom;
+    viewportOffset = {
+      x: (canvasWrapP1.clientWidth - plannerWidth) / 2,
+      y: (canvasWrapP1.clientHeight - plannerHeight) / 2
+    };
+    applyViewportOffsetP1();
   }
 
   function fitAndCenterViewportP1() {
@@ -2161,8 +2169,8 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
       pointerId: event.pointerId,
       clientX: event.clientX,
       clientY: event.clientY,
-      scrollLeft: canvasWrapP1.scrollLeft,
-      scrollTop: canvasWrapP1.scrollTop
+      startX: viewportOffset.x,
+      startY: viewportOffset.y
     };
     canvasWrapP1.classList.add('is-panning');
     try { planner.setPointerCapture(event.pointerId); } catch (_) {}
@@ -2171,12 +2179,15 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   }
 
   function moveViewportPanP1(event) {
-    if (!canvasWrapP1 || !viewportPan || event.pointerId !== viewportPan.pointerId) return false;
+    if (!viewportPan || event.pointerId !== viewportPan.pointerId) return false;
     event.preventDefault();
     event.stopImmediatePropagation();
 
-    canvasWrapP1.scrollLeft = viewportPan.scrollLeft - (event.clientX - viewportPan.clientX);
-    canvasWrapP1.scrollTop = viewportPan.scrollTop - (event.clientY - viewportPan.clientY);
+    viewportOffset = {
+      x: viewportPan.startX + (event.clientX - viewportPan.clientX),
+      y: viewportPan.startY + (event.clientY - viewportPan.clientY)
+    };
+    applyViewportOffsetP1();
     return true;
   }
 
@@ -2961,10 +2972,10 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   const LOGICAL_H = 1086;
   setZoom = function distributionViewOnlyZoom(next) {
     zoom = Math.max(.65, Math.min(1.8, Number(next) || 1));
-    planner.style.transform = '';
     planner.style.width = `${LOGICAL_W * zoom}px`;
     planner.style.height = `${LOGICAL_H * zoom}px`;
     planner.setAttribute('viewBox', `0 0 ${LOGICAL_W} ${LOGICAL_H}`);
+    planner.style.transform = `translate3d(${viewportOffset.x}px,${viewportOffset.y}px,0)`;
     if (zoomReset) zoomReset.textContent = `${Math.round(zoom * 100)}%`;
     return zoom;
   };
@@ -2978,4 +2989,4 @@ document.documentElement.dataset.mgdDistributionPhysicalScale='32';
 document.documentElement.dataset.mgdDistributionCanvas='1448x1086';
 
 document.documentElement.dataset.mgdDistributionBackgroundDrag='true';
-document.documentElement.dataset.mgdDistributionViewportPan='phase2-p1-spatial';
+document.documentElement.dataset.mgdDistributionViewportPan='phase2-p1-spatial-camera';
