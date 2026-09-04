@@ -152,7 +152,7 @@
     style.dataset.phase2P0 = 'style';
     doc.head.appendChild(style);
     const script = doc.createElement('script');
-    script.src = 'phase2-p0.js?v=20260903-lowcap1';
+    script.src = 'phase2-p0.js?v=20260904-fixedtable2';
     script.dataset.phase2P0 = 'runtime';
     script.onload = () => loadP1(doc);
     script.onerror = () => console.error('No se pudo cargar la paridad P0 de Distribución.');
