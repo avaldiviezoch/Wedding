@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Distribución · Reestructura</title>
+  <link rel="stylesheet" href="distribucion.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <strong>Distribución · Reestructura</strong>
+      <span>Laboratorio limpio · memory-only</span>
+    </div>
+    <span id="status">Inicializando…</span>
+  </header>
+
+  <main class="layout">
+    <section class="canvas-wrap">
+      <svg id="planner" viewBox="0 0 1448 1086" aria-label="Plano de distribución">
+        <rect class="floor" x="0" y="0" width="1448" height="1086"></rect>
+        <g id="itemsLayer"></g>
+      </svg>
+    </section>
+
+    <aside class="panel">
+      <h2>Mesa seleccionada</h2>
+      <label>Forma
+        <select id="shape">
+          <option value="round">Redonda</option>
+          <option value="square">Cuadrada</option>
+          <option value="rectangular">Rectangular</option>
+        </select>
+      </label>
+
+      <label>Número de sillas
+        <select id="capacity">
+          <option>4</option><option>6</option><option>8</option><option selected>10</option>
+          <option>12</option><option>14</option><option>16</option>
+        </select>
+      </label>
+
+      <label>Ancho / diámetro (m)
+        <input id="widthM" type="number" min="0.2" max="20" step="0.05">
+      </label>
+
+      <label>Alto (m)
+        <input id="heightM" type="number" min="0.2" max="20" step="0.05">
+      </label>
+
+      <label>Zoom de vista
+        <input id="zoom" type="range" min="0.65" max="1.8" value="1" step="0.05">
+      </label>
+
+      <pre id="debug"></pre>
+    </aside>
+  </main>
+
+  <script type="module" src="distribucion-editor.js"></script>
+</body>
+</html>
