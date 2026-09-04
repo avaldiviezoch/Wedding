@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi Gran Día · Distribución · Fase 2 cerrada</title>
+  <style>
+    :root{font-family:Inter,"Segoe UI",Arial,sans-serif;color:#33352f;background:#f2f0ec}
+    *{box-sizing:border-box}
+    html,body{width:100%;height:100%;margin:0;overflow:hidden}
+    body{display:grid;grid-template-rows:46px minmax(0,1fr)}
+    .phase-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 16px;border-bottom:1px solid #ded9d1;background:#fbfaf8;box-shadow:0 2px 12px rgba(48,43,38,.05);z-index:10}
+    .phase-title{display:flex;align-items:center;gap:10px;min-width:0}
+    .phase-badge{display:inline-flex;align-items:center;min-height:25px;padding:4px 8px;border-radius:999px;background:#eef0e8;color:#687151;font-size:10px;font-weight:900;letter-spacing:.08em}
+    .phase-title strong{font-family:Georgia,"Times New Roman",serif;font-weight:500;font-size:15px;white-space:nowrap}
+    .phase-title span:last-child{color:#77736d;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .phase-actions{display:flex;align-items:center;gap:8px}
+    .phase-actions a{display:inline-flex;align-items:center;min-height:28px;padding:5px 9px;border:1px solid #ded9d1;border-radius:9px;color:#5f6259;background:#fff;text-decoration:none;font-size:10px;font-weight:800}
+    iframe{display:block;width:100%;height:100%;border:0;background:#f6f4f1}
+    @media(max-width:760px){.phase-title span:last-child{display:none}.phase-actions a:first-child{display:none}}
+  </style>
+</head>
+<body>
+  <header class="phase-bar">
+    <div class="phase-title">
+      <span class="phase-badge">FASE 2 · CERRADA</span>
+      <strong>Paridad funcional cerrada</strong>
+      <span>P0 + P1 + P2 + P2.1 · laboratorio memory-only</span>
+    </div>
+    <nav class="phase-actions" aria-label="Comparación de laboratorio">
+      <a href="index.html?v=20260904-fixedtable2" target="_blank" rel="noopener">Abrir baseline</a>
+      <a href="../" target="_blank" rel="noopener">Carpeta pruebas</a>
+    </nav>
+  </header>
+  <iframe id="phase2Frame" src="index.html?phase=2-p0&v=20260904-fixedtable2" title="Distribución · Fase 2 cerrada"></iframe>
+  <script src="phase2-host.js?v=20260904-fixedtable2"></script>
+</body>
+</html>
