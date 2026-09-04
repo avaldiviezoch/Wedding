@@ -2,60 +2,255 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Distribución · Reestructura</title>
-  <link rel="stylesheet" href="distribucion.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi Gran Día · Distribución reestructurada</title>
+  <link rel="stylesheet" href="css/modules/distribucion.css?v=20260904-appintegral-1">
 </head>
 <body>
-  <header class="topbar">
-    <div>
-      <strong>Distribución · Reestructura</strong>
-      <span>Laboratorio limpio · memory-only</span>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand">
+        <span class="eyebrow">ESPACIO DE LA BODA · LABORATORIO</span>
+        <h1>Distribución del espacio</h1>
+        <p>Diseña el salón, organiza las mesas y asigna a tus invitados.</p>
+      </div>
+      <div class="top-actions" aria-label="Acciones del plano">
+        <div class="memory-state" title="Este laboratorio no guarda información">
+          <span class="status-dot"></span>
+          <span><strong id="proposalNameTop">Propuesta principal</strong><small>Solo memoria temporal</small></span>
+        </div>
+        <button id="btnProposals" type="button">▤ <span>Propuestas</span></button>
+        <button id="btnUndo" type="button" title="Deshacer">↶ <span>Deshacer</span></button>
+        <button id="btnRedo" type="button" title="Rehacer">↷ <span>Rehacer</span></button>
+        <button id="btnPresentation" type="button">▣ <span>Presentación</span></button>
+        <button id="resetLab" class="primary" type="button">Restablecer</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="panel tools-panel" aria-label="Herramientas de distribución">
+        <div class="panel-heading">
+          <div><span class="section-kicker">CONSTRUYE TU PLANO</span><h2>Herramientas</h2></div>
+          <span class="count-chip" id="elementCount">1 elemento</span>
+        </div>
+
+        <section class="panel-section first-section">
+          <h3>Elementos</h3>
+          <div class="tool-grid">
+            <button class="tool" type="button" data-add="table"><strong>◉</strong><span>Mesa circular<small>10 personas</small></span></button>
+            <button class="tool" type="button" data-add="dance"><strong>◇</strong><span>Pista de baile<small>5 × 5 m</small></span></button>
+            <button class="tool" type="button" data-add="couple"><strong>♡</strong><span>Mesa de novios<small>3 × 1.2 m</small></span></button>
+            <button class="tool" type="button" data-add="bar"><strong>▰</strong><span>Barra<small>4 × 1.2 m</small></span></button>
+            <button class="tool" type="button" data-add="dj"><strong>♫</strong><span>DJ / sonido<small>3 × 2 m</small></span></button>
+            <button class="tool" type="button" data-add="altar"><strong>✦</strong><span>Altar<small>4 × 2 m</small></span></button>
+            <button class="tool" type="button" data-add="cake"><strong>○</strong><span>Mesa de torta<small>Ø 1.8 m</small></span></button>
+            <button class="tool" type="button" data-add="photo"><strong>▣</strong><span>Photobooth<small>3 × 2 m</small></span></button>
+            <button class="tool" type="button" data-add="mirror"><strong>│</strong><span>Espejo<small>1 × 0.2 m</small></span></button>
+            <button class="tool" id="btnDrawTent" type="button"><strong>⌂</strong><span>Dibujar toldo<small>Polígono libre</small></span></button>
+          </div>
+          <div id="tentDrawHint" class="mode-hint" hidden>Haz clic para marcar vértices. Doble clic o Enter para terminar; Esc cancela.</div>
+        </section>
+
+        <section class="panel-section guest-manager-section">
+          <div class="section-title-row">
+            <div><h3>Invitados</h3><p><span id="guestCountText">10 invitados</span> · <span id="guestPendingText">0 sin asignar</span></p></div>
+          </div>
+          <label class="field"><span>Buscar</span><input id="guestSearch" type="search" placeholder="Buscar invitado…"></label>
+          <div id="guestList" class="guest-list"></div>
+          <div class="guest-add-row">
+            <input id="newGuestName" type="text" placeholder="Nombre del invitado">
+            <button id="btnAddGuest" type="button">Agregar</button>
+          </div>
+          <details class="bulk-box">
+            <summary>Agregar varios invitados</summary>
+            <textarea id="bulkGuests" rows="4" placeholder="Un nombre por línea"></textarea>
+            <button id="btnAddBulkGuests" type="button">Agregar lista</button>
+          </details>
+          <div class="action-grid guest-actions">
+            <button id="btnAssignSequential" type="button">Asignar en orden</button>
+            <button id="btnClearAssignments" type="button">Limpiar asignaciones</button>
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <div class="section-title-row"><h3>Vista del plano</h3><button class="text-button" id="btnDefaultView" type="button">Restaurar</button></div>
+          <label class="field compact-field">
+            <span>Escala del plano</span>
+            <div class="input-suffix"><input id="scaleInput" type="number" min="18" max="50" step="1" value="32"><b>px/m</b></div>
+          </label>
+          <div class="toggle-list">
+            <label><input id="showGrid" type="checkbox" checked><span>Rejilla</span></label>
+            <label><input id="showClearance" type="checkbox" checked><span>Circulación</span></label>
+            <label><input id="showLabels" type="checkbox" checked><span>Etiquetas de elementos</span></label>
+            <label><input id="showNames" type="checkbox" checked><span>Nombres de invitados</span></label>
+          </div>
+          <button class="wide-button" id="toggleBg" type="button">Ocultar plano</button>
+        </section>
+
+        <section class="panel-section">
+          <div class="section-title-row"><h3>Capas</h3><div class="mini-actions"><button class="text-button" id="btnShowAllLayers" type="button">Mostrar todas</button><button class="text-button" id="btnUnlockAllLayers" type="button">Desbloquear</button></div></div>
+          <div id="layerList" class="layer-list" aria-live="polite"></div>
+        </section>
+
+        <section class="panel-section validation-section">
+          <div class="section-title-row"><div><h3>Validación y riesgos</h3><p>Las mismas comprobaciones del Distribución estable.</p></div></div>
+          <div id="validationBox" class="validation-box" aria-live="polite"></div>
+        </section>
+
+        <div class="lab-warning">
+          <strong>Entorno aislado</strong>
+          <span>No guarda información ni está conectado con los datos reales del aplicativo.</span>
+        </div>
+      </aside>
+
+      <section class="canvas-card" aria-label="Plano de distribución">
+        <div class="canvas-head">
+          <div>
+            <span class="section-kicker">PLANO DEL SALÓN</span>
+            <strong id="proposalNameCanvas">Propuesta principal · laboratorio</strong>
+          </div>
+          <div class="canvas-toolbar">
+            <button id="btnZoomOut" type="button" aria-label="Alejar">−</button>
+            <button id="zoomReset" type="button">100%</button>
+            <button id="btnZoomIn" type="button" aria-label="Acercar">＋</button>
+            <span class="toolbar-divider"></span>
+            <button id="btnMeasure" type="button">⌁ Medir</button>
+            <button id="btnClearMeasures" type="button">Limpiar medidas</button>
+            <button id="btnFit" type="button">⊡ Encajar</button>
+          </div>
+        </div>
+        <div class="toolbar-chip-row">
+          <span id="multiToolbarChip" class="toolbar-chip" hidden></span>
+          <span id="measureToolbarChip" class="toolbar-chip" hidden>Modo medición activo</span>
+        </div>
+        <div class="canvas-wrap" id="canvasWrap">
+          <svg id="planner" viewBox="0 0 1200 760" role="img" aria-label="Plano de distribución de prueba">
+            <defs>
+              <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+                <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#748065" stroke-opacity=".12" stroke-width="1"/>
+              </pattern>
+              <pattern id="floorPattern" width="48" height="48" patternUnits="userSpaceOnUse">
+                <rect width="48" height="48" fill="#faf8f3"/>
+                <path d="M0 48L48 0M-12 12L12-12M36 60L60 36" stroke="#e9e4da" stroke-width="1" opacity=".55"/>
+              </pattern>
+              <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+                <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".13"/>
+              </filter>
+            </defs>
+            <rect class="floor" width="1200" height="760" rx="8"/>
+            <rect id="bgImage" width="1200" height="760" fill="url(#floorPattern)" opacity="1"/>
+            <rect id="gridLayer" width="1200" height="760" fill="url(#grid)"/>
+            <g id="guideLayer"></g>
+            <g id="drawLayer"></g>
+            <g id="itemsLayer"></g>
+            <g id="measureLayer"></g>
+          </svg>
+          <div class="floating-legend">
+            <span><i class="legend-dot table-dot"></i>Mesa</span>
+            <span><i class="legend-dot clearance-dot"></i>Circulación</span>
+            <span><i class="legend-dot danger-dot"></i>Superposición</span>
+            <span><i class="legend-dot selected-dot"></i>Seleccionado</span>
+          </div>
+          <div class="measure-note" id="measureNote" hidden>Modo medición · haz clic en dos puntos del plano</div>
+        </div>
+        <footer class="canvas-footer">
+          <span><b>Tip:</b> Ctrl/Cmd + clic selecciona varios. Ctrl/Cmd + C/V copia y pega.</span>
+          <span id="cursorCoords">x 0.00 m · y 0.00 m</span>
+        </footer>
+      </section>
+
+      <aside class="panel properties-panel" aria-label="Propiedades del elemento seleccionado">
+        <div class="panel-heading">
+          <div><span class="section-kicker">INSPECTOR</span><h2>Propiedades</h2></div>
+          <span class="selection-tag" id="selectionTag" hidden></span>
+        </div>
+
+        <div id="selectionEmpty" class="selection-empty">
+          <div class="empty-icon">↖</div>
+          <strong>Selecciona un elemento</strong>
+          <p>Haz clic sobre una mesa u objeto del plano para editarlo.</p>
+        </div>
+
+        <form id="selectionForm" autocomplete="off" hidden>
+          <section class="panel-section first-section">
+            <div id="lockedNote" class="locked-note" hidden>Este elemento está bloqueado. Desbloquéalo para editarlo.</div>
+            <label class="field"><span>Nombre / etiqueta</span><input id="selLabel" type="text"></label>
+            <div class="two-col">
+              <label class="field"><span>X (m)</span><input id="selX" type="number" step="0.1"></label>
+              <label class="field"><span>Y (m)</span><input id="selY" type="number" step="0.1"></label>
+            </div>
+            <div class="two-col">
+              <label class="field"><span>Ancho (m)</span><input id="selW" type="number" min="0.2" max="5" step="0.1"></label>
+              <label class="field"><span>Alto (m)</span><input id="selH" type="number" min="0.2" max="5" step="0.1"></label>
+            </div>
+            <p id="dimensionLimitNote" class="field-note">Máximo permitido para este elemento: 5 m por lado.</p>
+            <label class="field"><span>Rotación</span><div class="input-suffix"><input id="selRot" type="number" min="-180" max="180" step="1"><b>°</b></div></label>
+            <label class="field"><span>Color</span><input id="selColor" class="color-input" type="color"></label>
+
+            <div id="tentStyleFields" class="tent-style" hidden>
+              <label class="field"><span>Color del toldo</span><input id="tentFillColor" class="color-input" type="color" value="#d8c9a6"></label>
+              <label class="field"><span>Transparencia</span><div class="range-row"><input id="tentTransparencyRange" type="range" min="0" max="90" step="1" value="45"><input id="tentTransparencyNumber" type="number" min="0" max="90" step="1" value="45"></div></label>
+            </div>
+
+            <div class="action-grid inspector-actions">
+              <button id="btnDuplicate" type="button">Duplicar</button>
+              <button id="btnToggleLock" type="button">🔒 Bloquear</button>
+              <button id="btnBringFront" type="button">Al frente</button>
+              <button id="btnSendBack" type="button">Al fondo</button>
+              <button id="btnAlignNow" type="button">Alinear</button>
+              <button id="btnDelete" class="danger" type="button">Eliminar</button>
+            </div>
+          </section>
+
+          <section id="seatEditorWrap" class="panel-section seat-section" hidden>
+            <div class="section-title-row"><div><h3>Asientos de la mesa</h3><p>Sillas y etiquetas mantienen la estética estable.</p></div><span class="count-chip" id="seatCount">10</span></div>
+            <div id="seatEditor" class="seat-editor"></div>
+          </section>
+
+          <section class="panel-section">
+            <div class="section-title-row"><h3>Acciones rápidas</h3></div>
+            <div class="action-grid">
+              <button id="btnCenter" type="button">Centrar</button>
+              <button id="btnRotateLeft" type="button">↶ 15°</button>
+              <button id="btnRotateRight" type="button">↷ 15°</button>
+              <button id="btnClearSeats" type="button">Vaciar mesa</button>
+            </div>
+          </section>
+        </form>
+
+        <section class="panel-section summary-section">
+          <h3>Resumen del plano</h3>
+          <dl class="summary-list">
+            <div><dt>Mesas</dt><dd id="summaryTables">1</dd></div>
+            <div><dt>Asientos</dt><dd id="summarySeats">10</dd></div>
+            <div><dt>Asignados</dt><dd id="summaryAssigned">10</dd></div>
+            <div><dt>Elementos</dt><dd id="summaryElements">1</dd></div>
+          </dl>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <div class="presentation-overlay" id="presentationOverlay" hidden>
+    <div class="presentation-card">
+      <div class="presentation-header"><span>Vista de presentación</span><button id="closePresentation" type="button">×</button></div>
+      <div id="presentationMount"></div>
     </div>
-    <span id="status">Inicializando…</span>
-  </header>
+  </div>
 
-  <main class="layout">
-    <section class="canvas-wrap">
-      <svg id="planner" viewBox="0 0 1448 1086" aria-label="Plano de distribución">
-        <rect class="floor" x="0" y="0" width="1448" height="1086"></rect>
-        <g id="itemsLayer"></g>
-      </svg>
-    </section>
+  <div class="modal-overlay" id="proposalModal" hidden>
+    <div class="modal-card">
+      <div class="modal-header"><div><span class="section-kicker">LABORATORIO</span><h2>Propuestas</h2></div><button id="closeProposalModal" type="button">×</button></div>
+      <p class="modal-copy">Estas propuestas existen solo durante esta sesión de prueba.</p>
+      <div class="proposal-toolbar"><button id="btnNewProposal" type="button">Nueva propuesta</button><button id="btnDuplicateProposal" type="button">Duplicar actual</button></div>
+      <div id="proposalList" class="proposal-list"></div>
+    </div>
+  </div>
 
-    <aside class="panel">
-      <h2>Mesa seleccionada</h2>
-      <label>Forma
-        <select id="shape">
-          <option value="round">Redonda</option>
-          <option value="square">Cuadrada</option>
-          <option value="rectangular">Rectangular</option>
-        </select>
-      </label>
-
-      <label>Número de sillas
-        <select id="capacity">
-          <option>4</option><option>6</option><option>8</option><option selected>10</option>
-          <option>12</option><option>14</option><option>16</option>
-        </select>
-      </label>
-
-      <label>Ancho / diámetro (m)
-        <input id="widthM" type="number" min="0.2" max="20" step="0.05">
-      </label>
-
-      <label>Alto (m)
-        <input id="heightM" type="number" min="0.2" max="20" step="0.05">
-      </label>
-
-      <label>Zoom de vista
-        <input id="zoom" type="range" min="0.65" max="1.8" value="1" step="0.05">
-      </label>
-
-      <pre id="debug"></pre>
-    </aside>
-  </main>
-
-  <script type="module" src="distribucion-editor.js"></script>
+  <script src="js/modules/distribucion/index.js?v=20260904-appintegral-1"></script>
+  <script src="js/modules/distribucion/engine.js?v=20260904-appintegral-1"></script>
+  <script src="js/modules/distribucion/adapter.js?v=20260904-appintegral-1"></script>
+  <script src="js/modules/distribucion/renderer.js?v=20260904-appintegral-1"></script>
+  <script src="js/modules/distribucion/export.js?v=20260904-appintegral-1"></script>
 </body>
 </html>
