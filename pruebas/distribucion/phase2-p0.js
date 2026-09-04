@@ -365,8 +365,10 @@
   }, true);
 
   resizePlannerSurface();
-  rebaseCurrentSession();
-  render();
+  // app.js ya creó un estado antes de que P0 se cargue. Reinicializamos aquí
+  // para que el contrato real de P0 (mesa vacía y capacidades 4–16 libres)
+  // sea el que llegue al usuario, no el seed heredado de 10 invitados.
+  initialState();
 
   window.MiGranDiaDistributionPhase2P0 = Object.freeze({
     canvas: { width: CANVAS_W, height: CANVAS_H, centerX: CENTER_X, centerY: CENTER_Y },
