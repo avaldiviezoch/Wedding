@@ -10,23 +10,10 @@
   <div class="app-shell">
     <header class="app-header">
       <div class="brand">
-        <span class="eyebrow">MÓDULO · RECEPCIÓN</span>
-        <h1>Distribución</h1>
-        <p>Organiza mesas, invitados y zonas del salón para tu gran día.</p>
+        <span class="eyebrow">ESPACIO DE LA BODA · LABORATORIO</span>
+        <h1>Distribución del espacio</h1>
+        <p>Diseña el salón, organiza las mesas y asigna a tus invitados.</p>
       </div>
-      <section class="hero-summary" aria-label="Resumen del plano">
-        <div class="hero-summary-title">
-          <span class="section-kicker">RESUMEN</span>
-          <strong>Estado del plano</strong>
-        </div>
-        <dl class="summary-list">
-          <div><dt>Mesas</dt><dd id="summaryTables">1</dd></div>
-          <div><dt>Asientos</dt><dd id="summarySeats">10</dd></div>
-          <div><dt>Asignados</dt><dd id="summaryAssigned">10</dd></div>
-          <div><dt>Elementos</dt><dd id="summaryElements">1</dd></div>
-        </dl>
-      </section>
-
       <div class="top-actions" aria-label="Acciones del plano">
         <div class="memory-state" title="Este laboratorio no guarda información">
           <span class="status-dot"></span>
@@ -47,7 +34,24 @@
           <span class="count-chip" id="elementCount">1 elemento</span>
         </div>
 
-        <section class="panel-section guest-manager-section guest-workbench">
+        <section class="panel-section first-section">
+          <h3>Elementos</h3>
+          <div class="tool-grid">
+            <button class="tool" type="button" data-add="table"><strong>◉</strong><span>Mesa circular<small>10 personas</small></span></button>
+            <button class="tool" type="button" data-add="dance"><strong>◇</strong><span>Pista de baile<small>5 × 5 m</small></span></button>
+            <button class="tool" type="button" data-add="couple"><strong>♡</strong><span>Mesa de novios<small>3 × 1.2 m</small></span></button>
+            <button class="tool" type="button" data-add="bar"><strong>▰</strong><span>Barra<small>4 × 1.2 m</small></span></button>
+            <button class="tool" type="button" data-add="dj"><strong>♫</strong><span>DJ / sonido<small>3 × 2 m</small></span></button>
+            <button class="tool" type="button" data-add="altar"><strong>✦</strong><span>Altar<small>4 × 2 m</small></span></button>
+            <button class="tool" type="button" data-add="cake"><strong>○</strong><span>Mesa de torta<small>Ø 1.8 m</small></span></button>
+            <button class="tool" type="button" data-add="photo"><strong>▣</strong><span>Photobooth<small>3 × 2 m</small></span></button>
+            <button class="tool" type="button" data-add="mirror"><strong>│</strong><span>Espejo<small>1 × 0.2 m</small></span></button>
+            <button class="tool" id="btnDrawTent" type="button"><strong>⌂</strong><span>Dibujar toldo<small>Polígono libre</small></span></button>
+          </div>
+          <div id="tentDrawHint" class="mode-hint" hidden>Haz clic para marcar vértices. Doble clic o Enter para terminar; Esc cancela.</div>
+        </section>
+
+        <section class="panel-section guest-manager-section">
           <div class="section-title-row">
             <div><h3>Invitados</h3><p><span id="guestCountText">10 invitados</span> · <span id="guestPendingText">0 sin asignar</span></p></div>
           </div>
@@ -68,25 +72,6 @@
             <button id="btnClearAssignments" type="button">Limpiar asignaciones</button>
           </div>
         </section>
-
-        <section class="panel-section first-section element-workbench">
-          <div class="section-title-row"><div><h3>Elementos</h3><p>Añade mobiliario y zonas al plano.</p></div></div>
-          <div class="tool-grid">
-            <button class="tool" type="button" data-add="table"><strong>◉</strong><span>Mesa circular<small>10 personas</small></span></button>
-            <button class="tool" type="button" data-add="dance"><strong>◇</strong><span>Pista de baile<small>5 × 5 m</small></span></button>
-            <button class="tool" type="button" data-add="couple"><strong>♡</strong><span>Mesa de novios<small>3 × 1.2 m</small></span></button>
-            <button class="tool" type="button" data-add="bar"><strong>▰</strong><span>Barra<small>4 × 1.2 m</small></span></button>
-            <button class="tool" type="button" data-add="dj"><strong>♫</strong><span>DJ / sonido<small>3 × 2 m</small></span></button>
-            <button class="tool" type="button" data-add="altar"><strong>✦</strong><span>Altar<small>4 × 2 m</small></span></button>
-            <button class="tool" type="button" data-add="cake"><strong>○</strong><span>Mesa de torta<small>Ø 1.8 m</small></span></button>
-            <button class="tool" type="button" data-add="photo"><strong>▣</strong><span>Photobooth<small>3 × 2 m</small></span></button>
-            <button class="tool" type="button" data-add="mirror"><strong>│</strong><span>Espejo<small>1 × 0.2 m</small></span></button>
-            <button class="tool" id="btnDrawTent" type="button"><strong>⌂</strong><span>Dibujar toldo<small>Polígono libre</small></span></button>
-          </div>
-          <div id="tentDrawHint" class="mode-hint" hidden>Haz clic para marcar vértices. Doble clic o Enter para terminar; Esc cancela.</div>
-        </section>
-
-
 
         <section class="panel-section">
           <div class="section-title-row"><h3>Vista del plano</h3><button class="text-button" id="btnDefaultView" type="button">Restaurar</button></div>
@@ -242,7 +227,15 @@
           </section>
         </form>
 
-
+        <section class="panel-section summary-section">
+          <h3>Resumen del plano</h3>
+          <dl class="summary-list">
+            <div><dt>Mesas</dt><dd id="summaryTables">1</dd></div>
+            <div><dt>Asientos</dt><dd id="summarySeats">10</dd></div>
+            <div><dt>Asignados</dt><dd id="summaryAssigned">10</dd></div>
+            <div><dt>Elementos</dt><dd id="summaryElements">1</dd></div>
+          </dl>
+        </section>
       </aside>
     </main>
   </div>
