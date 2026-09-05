@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Mi Gran Día · Distribución reestructurada</title>
-  <link rel="stylesheet" href="css/modules/distribucion.css?v=20260905-panoramic-left146-1">
+  <link rel="stylesheet" href="css/modules/distribucion.css?v=20260905-fullheight-panoramic-1">
 </head>
 <body>
   <div class="app-shell">
@@ -133,7 +133,7 @@
           <span id="measureToolbarChip" class="toolbar-chip" hidden>Modo medición activo</span>
         </div>
         <div class="canvas-wrap" id="canvasWrap">
-          <svg id="planner" viewBox="0 0 1448 1086" role="img" aria-label="Plano de distribución de prueba">
+          <svg id="planner" viewBox="0 0 1448 1086" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Plano de distribución de prueba">
             <defs>
               <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
                 <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#748065" stroke-opacity=".12" stroke-width="1"/>
@@ -147,7 +147,7 @@
               </filter>
             </defs>
             <rect class="floor" width="1448" height="1086" rx="8"/>
-            <image id="bgImage" x="0" y="0" width="1448" height="1086" href="/Wedding/distribucion_base.png?v=20260904-bgdrag1" xlink:href="/Wedding/distribucion_base.png?v=20260904-bgdrag1" preserveAspectRatio="none" opacity="1" pointer-events="all"/>
+            <image id="bgImage" x="0" y="0" width="1448" height="1086" href="/Wedding/distribucion_base.png?v=20260904-bgdrag1" xlink:href="/Wedding/distribucion_base.png?v=20260904-bgdrag1" preserveAspectRatio="xMidYMid slice" opacity="1" pointer-events="all"/>
             <rect id="gridLayer" width="1448" height="1086" fill="url(#grid)"/>
             <g id="guideLayer"></g>
             <g id="drawLayer"></g>
@@ -256,7 +256,7 @@
     </div>
   </div>
 
-  <script src="js/modules/distribucion/index.js?v=20260904-appintegral-1"></script>
+  <script src="js/modules/distribucion/index.js?v=20260905-fitwidth-cursor-1"></script>
   <script src="js/modules/distribucion/engine.js?v=20260905-table-shapes-authoritative-1"></script>
   <script src="js/modules/distribucion/adapter.js?v=20260904-appintegral-1"></script>
   <script src="js/modules/distribucion/renderer.js?v=20260904-appintegral-1"></script>

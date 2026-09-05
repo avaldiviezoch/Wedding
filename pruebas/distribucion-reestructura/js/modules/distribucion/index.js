@@ -2247,8 +2247,10 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   }
 
   function fitAndCenterViewportP1() {
-    setZoom(1);
-    requestAnimationFrame(centerViewportP1);
+    if (!canvasWrapP1) return;
+    const fitWidth = canvasWrapP1.clientWidth / CANVAS_W;
+    setZoom(Math.max(.65, Math.min(1, fitWidth)));
+    requestAnimationFrame(fitAndCenterViewportP1);
   }
 
   function isBlankPlannerTarget(event) {
