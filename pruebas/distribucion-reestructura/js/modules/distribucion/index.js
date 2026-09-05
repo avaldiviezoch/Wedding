@@ -67,11 +67,52 @@ const TYPE_DEFAULTS=Object.freeze({
   altar:{label:'Altar',widthM:4,heightM:2,color:'#e3d3ae',shape:'rect'},
   cake:{label:'Mesa de torta',widthM:1.8,heightM:1.8,color:'#cfa9c7',shape:'circle'},
   photo:{label:'Photobooth',widthM:3,heightM:2,color:'#6f95aa',shape:'rect'},
-  mirror:{label:'Espejo',widthM:1,heightM:.2,color:'#dfeaf0',shape:'rect'},
-  tent:{label:'Toldo',widthM:5,heightM:4,color:'#d8c9a6',shape:'polygon'}
+  mirror:{label:'Espejo selfie',widthM:1,heightM:.2,color:'#dfeaf0',shape:'rect'},
+  gift:{label:'Mesa de regalos',widthM:1.8,heightM:.75,color:'#d8c2a8',shape:'rect'},
+  guestbook:{label:'Mesa de firmas',widthM:1.2,heightM:.6,color:'#c9b7d4',shape:'rect'},
+  welcome:{label:'Mesa de bienvenida',widthM:1.8,heightM:.75,color:'#d9c8b8',shape:'rect'},
+  favors:{label:'Mesa de recuerdos',widthM:1.5,heightM:.7,color:'#d3b8c5',shape:'rect'},
+  cocktail:{label:'Mesa alta / cóctel',widthM:.8,heightM:.8,color:'#c8b38d',shape:'circle'},
+  chair:{label:'Silla',widthM:.5,heightM:.5,color:'#c7bcae',shape:'rect'},
+  buffet:{label:'Buffet',widthM:3,heightM:.9,color:'#caa780',shape:'rect'},
+  drinks:{label:'Estación de bebidas',widthM:2,heightM:.8,color:'#91a9a0',shape:'rect'},
+  desserts:{label:'Estación de postres',widthM:2.4,heightM:.8,color:'#d6abc1',shape:'rect'},
+  snacks:{label:'Carrito de snacks',widthM:1.5,heightM:.8,color:'#d6b28d',shape:'rect'},
+  supplier:{label:'Mesa de proveedores',widthM:1.8,heightM:.75,color:'#aeb5a0',shape:'rect'},
+  stage:{label:'Escenario',widthM:4,heightM:2.5,color:'#8a7d91',shape:'rect'},
+  screen:{label:'Pantalla / proyector',widthM:2.5,heightM:.5,color:'#9aa5ad',shape:'rect'},
+  booth360:{label:'Cabina 360',widthM:2.5,heightM:2.5,color:'#9d8dac',shape:'circle'},
+  arch:{label:'Arco decorativo',widthM:2.4,heightM:.8,color:'#c7b59a',shape:'rect'},
+  backdrop:{label:'Panel floral / backdrop',widthM:2.5,heightM:.6,color:'#c8a8b6',shape:'rect'},
+  sign:{label:'Tótem / letrero',widthM:.8,heightM:.5,color:'#b4aa92',shape:'rect'},
+  planter:{label:'Macetero / decoración',widthM:.6,heightM:.6,color:'#95a27f',shape:'circle'},
+  divider:{label:'Separador / biombo',widthM:2,heightM:.4,color:'#b7aa9e',shape:'rect'},
+  entrance:{label:'Entrada',widthM:2,heightM:1.2,color:'#93a889',shape:'rect'},
+  exit:{label:'Salida',widthM:2,heightM:1.2,color:'#b28b86',shape:'rect'},
+  restroom:{label:'Baños',widthM:2.5,heightM:2,color:'#9da7ad',shape:'rect'},
+  kitchen:{label:'Cocina / servicio',widthM:3,heightM:2.5,color:'#b0a18c',shape:'rect'},
+  technical:{label:'Zona técnica',widthM:2,heightM:1.5,color:'#8d939a',shape:'rect'},
+  column:{label:'Columna',widthM:.5,heightM:.5,color:'#888680',shape:'rect'},
+  extinguisher:{label:'Extintor / seguridad',widthM:.4,heightM:.4,color:'#b86767',shape:'rect'},
+  tent:{label:'Área dibujada',widthM:5,heightM:4,color:'#d8c9a6',shape:'polygon'}
+});
+const DRAW_AREA_PRESETS=Object.freeze({
+  tent:{label:'Toldo',color:'#d8c9a6',transparency:45,suggestedWidthM:5,suggestedHeightM:4},
+  stage:{label:'Área de escenario',color:'#8a7d91',transparency:58,suggestedWidthM:4,suggestedHeightM:2.5},
+  lounge:{label:'Área lounge',color:'#b8a8c7',transparency:62,suggestedWidthM:3,suggestedHeightM:2.5},
+  kids:{label:'Área infantil',color:'#d8b5a2',transparency:62,suggestedWidthM:3,suggestedHeightM:3},
+  buffet:{label:'Área de buffet',color:'#caa780',transparency:58,suggestedWidthM:3,suggestedHeightM:.9},
+  technical:{label:'Zona técnica',color:'#8d939a',transparency:62,suggestedWidthM:2,suggestedHeightM:1.5},
+  restricted:{label:'Zona restringida',color:'#b86767',transparency:68,suggestedWidthM:2,suggestedHeightM:2},
+  circulation:{label:'Circulación',color:'#8da08b',transparency:72,suggestedWidthM:1.2,suggestedHeightM:4},
+  custom:{label:'Área personalizada',color:'#a99f93',transparency:62,suggestedWidthM:2,suggestedHeightM:2}
 });
 const LAYERS=Object.freeze({
-  table:'Mesas',dance:'Pistas',couple:'Mesa de novios',bar:'Barras',dj:'DJ / sonido',altar:'Altares',cake:'Mesa de torta',photo:'Photobooth',mirror:'Espejos',tent:'Toldos'
+  table:'Mesas',dance:'Pistas',couple:'Mesa de novios',bar:'Barras',dj:'DJ / sonido',altar:'Altares',cake:'Mesa de torta',photo:'Photobooth',mirror:'Espejos',
+  gift:'Mesa de regalos',guestbook:'Mesa de firmas',welcome:'Bienvenida',favors:'Recuerdos',cocktail:'Mesas altas',chair:'Sillas',
+  buffet:'Buffet',drinks:'Bebidas',desserts:'Postres',snacks:'Snacks',supplier:'Proveedores',
+  stage:'Escenario',screen:'Pantallas',booth360:'Cabina 360',arch:'Arcos',backdrop:'Paneles',sign:'Letreros',planter:'Decoración',divider:'Separadores',
+  entrance:'Entradas',exit:'Salidas',restroom:'Baños',kitchen:'Cocina',technical:'Zona técnica',column:'Columnas',extinguisher:'Seguridad',tent:'Áreas dibujadas'
 });
 
 let elements=[];
@@ -1614,7 +1655,8 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
 
   const btnMeasureP1 = document.getElementById('btnMeasure');
   const btnClearMeasuresP1 = document.getElementById('btnClearMeasures');
-  const btnDrawTentP1 = document.getElementById('btnDrawTent');
+  const drawAreaButtonsP1 = Array.from(document.querySelectorAll('[data-draw-area]'));
+  let drawingAreaKind = 'tent';
   const toggleBgP1 = document.getElementById('toggleBg');
   const btnProposalsP1 = document.getElementById('btnProposals');
   const btnNewProposalP1 = document.getElementById('btnNewProposal');
@@ -1818,8 +1860,9 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     const pointsPx = pointsM.map((point) => ({ x: point.x * scale, y: point.y * scale }));
     const group = svgEl('g', {
       transform: `translate(${item.x} ${item.y}) rotate(${item.rotation || 0})`,
-      class: `draggable tent-hit${selectedState ? ' item-selected' : ''}`,
-      'data-id': item.id
+      class: `draggable tent-hit draw-area draw-area-${item.areaKind || 'tent'}${selectedState ? ' item-selected' : ''}`,
+      'data-id': item.id,
+      'data-area-kind': item.areaKind || 'tent'
     });
     const points = pointsPx.map((point) => `${point.x},${point.y}`).join(' ');
     const opacity = Math.max(0, Math.min(1, 1 - (Number(item.transparency ?? 85) / 100)));
@@ -1888,8 +1931,17 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   }
 
   function setTentUi(active) {
-    if (btnDrawTentP1) btnDrawTentP1.classList.toggle('active', active);
-    if (tentDrawHint) tentDrawHint.hidden = !active;
+    drawAreaButtonsP1.forEach((button) => {
+      const selectedKind = button.dataset.drawArea || 'tent';
+      button.classList.toggle('active', active && selectedKind === drawingAreaKind);
+    });
+    if (tentDrawHint) {
+      tentDrawHint.hidden = !active;
+      if (active) {
+        const preset = DRAW_AREA_PRESETS[drawingAreaKind] || DRAW_AREA_PRESETS.custom;
+        tentDrawHint.textContent = `Dibujando: ${preset.label}. Haz clic para marcar vértices. Doble clic o Enter para terminar; Esc cancela.`;
+      }
+    }
   }
 
   function cancelTentDrawing(shouldRender = true) {
@@ -1902,12 +1954,14 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     if (shouldRender) render();
   }
 
-  function startTentDrawingP1() {
-    if (drawingTent) {
+  function startTentDrawingP1(kind = 'tent') {
+    const nextKind = DRAW_AREA_PRESETS[kind] ? kind : 'custom';
+    if (drawingTent && drawingAreaKind === nextKind) {
       cancelTentDrawing();
       return;
     }
     stopMeasureMode();
+    drawingAreaKind = nextKind;
     drawingTent = true;
     tentDraft = [];
     tentHoverPoint = null;
@@ -1917,8 +1971,9 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   }
 
   function finishTentDrawingP1() {
+    const preset = DRAW_AREA_PRESETS[drawingAreaKind] || DRAW_AREA_PRESETS.custom;
     if (tentDraft.length < 3) {
-      window.alert('El toldo necesita como mínimo tres vértices.');
+      window.alert(`${preset.label} necesita como mínimo tres vértices.`);
       return false;
     }
     const closedPoints = tentDraft.map((point) => ({ x: Number(point.x), y: Number(point.y) }));
@@ -1931,20 +1986,24 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
       x: (point.x - centroid.x) / scale,
       y: (point.y - centroid.y) / scale
     }));
+    const sameKindCount = elements.filter((entry) => entry.type === 'tent' && (entry.areaKind || 'tent') === drawingAreaKind).length;
     const item = {
       id: makeId('tent'),
       type: 'tent',
+      areaKind: drawingAreaKind,
       shape: 'polygon',
-      label: `Toldo ${elements.filter((entry) => entry.type === 'tent').length + 1}`,
+      label: `${preset.label} ${sameKindCount + 1}`,
       x: clampX(centroid.x),
       y: clampY(centroid.y),
       widthM: 1,
       heightM: 1,
+      suggestedWidthM: preset.suggestedWidthM,
+      suggestedHeightM: preset.suggestedHeightM,
       rotation: 0,
-      color: '#d8c9a6',
-      fillColor: '#d8c9a6',
+      color: preset.color,
+      fillColor: preset.color,
       outlineColor: '#555555',
-      transparency: 45,
+      transparency: preset.transparency,
       pointsM,
       locked: false
     };
@@ -1959,7 +2018,6 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     commitMutation();
     return true;
   }
-
   function tentPointerDown(event) {
     const vertex = event.target?.closest?.('.tent-vertex');
     if (vertex) {
@@ -2340,7 +2398,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
 
   captureButton(btnMeasureP1, toggleMeasureModeP1);
   captureButton(btnClearMeasuresP1, clearMeasurementsP1);
-  captureButton(btnDrawTentP1, startTentDrawingP1);
+  drawAreaButtonsP1.forEach((button) => captureButton(button, () => startTentDrawingP1(button.dataset.drawArea || 'tent')));
   captureButton(toggleBgP1, toggleBackgroundP1);
   captureButton(moveBackgroundButtonP1, () => setBackgroundMoveModeP1(!backgroundMoveMode));
   captureButton(btnFitP1, fitAndCenterViewportP1);
@@ -2379,6 +2437,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     canvas: { width: CANVAS_W, height: CANVAS_H },
     measurement: { multiple: true, livePreview: true, labelsInMeters: true },
     tent: { polygon: true, minVertices: 3, closeThresholdPx: TENT_CLOSE_THRESHOLD, editableVertices: true, sideMeasures: true, rotation: true, resize: true, color: true, transparency: true },
+    drawAreas: Object.keys(DRAW_AREA_PRESETS),
     autoLayout: AUTO_LAYOUT.map(([type, x, y]) => ({ type, x, y })),
     background: { visiblePerProposal: true },
     proposals: { max: MAX_PROPOSALS, memoryOnly: true, create: true, duplicate: true, rename: true, delete: true, switch: true },
