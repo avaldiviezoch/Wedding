@@ -184,8 +184,11 @@
   function normalizeCurrentRoundTable(table) {
     if (!table) return table;
     table.type = 'table';
+    table.tableShape = 'round';
     table.shape = 'table';
     table.capacity = ROUND_TABLE_CONTRACT.capacity;
+    table.tabletopWidthM = ROUND_TABLE_CONTRACT.tabletopRadiusM * 2;
+    table.tabletopHeightM = ROUND_TABLE_CONTRACT.tabletopRadiusM * 2;
     table.widthM = ROUND_TABLE_CONTRACT.clearanceDiameterM;
     table.heightM = ROUND_TABLE_CONTRACT.clearanceDiameterM;
     return table;
@@ -265,6 +268,8 @@
     table.tableShape = 'square';
     table.shape = 'rect';
     table.capacity = SQUARE_TABLE_CONTRACT.capacity;
+    table.tabletopWidthM = SQUARE_TABLE_CONTRACT.tabletopSideM;
+    table.tabletopHeightM = SQUARE_TABLE_CONTRACT.tabletopSideM;
     table.widthM = SQUARE_TABLE_CONTRACT.clearanceWidthM;
     table.heightM = SQUARE_TABLE_CONTRACT.clearanceHeightM;
     return table;
@@ -352,6 +357,8 @@
     table.tableShape = 'rectangular';
     table.shape = 'rect';
     table.capacity = RECTANGULAR_TABLE_CONTRACT.capacity;
+    table.tabletopWidthM = RECTANGULAR_TABLE_CONTRACT.tabletopWidthM;
+    table.tabletopHeightM = RECTANGULAR_TABLE_CONTRACT.tabletopHeightM;
     table.widthM = RECTANGULAR_TABLE_CONTRACT.clearanceWidthM;
     table.heightM = RECTANGULAR_TABLE_CONTRACT.clearanceHeightM;
     return table;
