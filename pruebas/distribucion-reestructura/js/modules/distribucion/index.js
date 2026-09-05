@@ -2536,7 +2536,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   const MAX_PROPOSALS = 20;
   const CANVAS_W = 1448;
   const CANVAS_H = 1086;
-  const ALLOWED_TYPES = new Set(['table','dance','couple','bar','dj','altar','cake','photo','mirror','tent']);
+  const ALLOWED_TYPES = new Set(Object.keys(TYPE_DEFAULTS));
   const touchPoints = new Map();
   let pinchStartDistance = 0;
   let pinchStartZoom = 1;
@@ -2602,9 +2602,13 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
       while (out.seats.length < 10) out.seats.push(null);
     }
     if (type === 'tent') {
+      const requestedAreaKind = safeText(item.areaKind || 'tent');
+      out.areaKind = DRAW_AREA_PRESETS[requestedAreaKind] ? requestedAreaKind : 'custom';
       out.fillColor = /^#[0-9a-f]{6}$/i.test(item.fillColor || '') ? item.fillColor : out.color;
       out.outlineColor = /^#[0-9a-f]{6}$/i.test(item.outlineColor || '') ? item.outlineColor : '#555555';
       out.transparency = bounded(item.transparency, 0, 90, 45);
+      out.suggestedWidthM = bounded(item.suggestedWidthM, .2, 50, DRAW_AREA_PRESETS[out.areaKind].suggestedWidthM);
+      out.suggestedHeightM = bounded(item.suggestedHeightM, .2, 50, DRAW_AREA_PRESETS[out.areaKind].suggestedHeightM);
       const points = Array.isArray(item.pointsM) ? item.pointsM : [];
       out.pointsM = points.slice(0, 80).map((point) => ({ x: bounded(point?.x, -50, 50, 0), y: bounded(point?.y, -50, 50, 0) }));
     }
