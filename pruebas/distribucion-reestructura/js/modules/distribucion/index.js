@@ -2237,11 +2237,11 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
 
   function centerViewportP1() {
     if (!canvasWrapP1) return;
-    const plannerWidth = 1448 * zoom;
-    const plannerHeight = 1086 * zoom;
+    const plannerWidth = CANVAS_W * zoom;
+    const plannerHeight = CANVAS_H * zoom;
     viewportOffset = {
-      x: (canvasWrapP1.clientWidth - plannerWidth) / 2,
-      y: (canvasWrapP1.clientHeight - plannerHeight) / 2
+      x: Math.round((canvasWrapP1.clientWidth - plannerWidth) / 2),
+      y: Math.round((canvasWrapP1.clientHeight - plannerHeight) / 2)
     };
     applyViewportOffsetP1();
   }
@@ -2250,7 +2250,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     if (!canvasWrapP1) return;
     const fitWidth = canvasWrapP1.clientWidth / CANVAS_W;
     setZoom(Math.max(.65, Math.min(1, fitWidth)));
-    requestAnimationFrame(fitAndCenterViewportP1);
+    requestAnimationFrame(centerViewportP1);
   }
 
   function isBlankPlannerTarget(event) {
