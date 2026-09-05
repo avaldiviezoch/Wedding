@@ -121,14 +121,14 @@ html[data-phase2-p0="true"] .table-hit .guest-tag{
 .fixed-scale-contract small{grid-column:1/-1;font-size:8px;line-height:1.25;color:#7d756b}
 
 /* Fondo del salón · arrastre directo, solo memoria */
-#bgImage{cursor:grab;pointer-events:all}
-#bgImage.is-dragging{cursor:grabbing}
+#bgImage{cursor:grab!important;pointer-events:all}
+#bgImage.is-dragging{cursor:grabbing!important}
 .bg-drag-note{margin:7px 0 0;color:#777167;font-size:9px;line-height:1.35}
 
 /* Navegación del plano: mouse ahora, Pointer Events compatible con touch */
-.canvas-wrap.viewport-pan-mode,.canvas-wrap.viewport-pan-mode #planner,.canvas-wrap.viewport-pan-mode #planner *{cursor:grab}
-.canvas-wrap.viewport-pan-mode.is-panning,.canvas-wrap.viewport-pan-mode.is-panning #planner,.canvas-wrap.viewport-pan-mode.is-panning #planner *{cursor:grabbing;user-select:none}
-.canvas-wrap.background-move-mode,.canvas-wrap.background-move-mode #planner,.canvas-wrap.background-move-mode #planner *{cursor:default}
-.canvas-wrap.background-move-mode #bgImage{cursor:move}
-.canvas-wrap.background-move-mode #bgImage.is-dragging{cursor:grabbing}
+.canvas-wrap.viewport-pan-mode,.canvas-wrap.viewport-pan-mode #planner,.canvas-wrap.viewport-pan-mode #planner *{cursor:grab!important}
+.canvas-wrap.viewport-pan-mode.is-panning,.canvas-wrap.viewport-pan-mode.is-panning #planner,.canvas-wrap.viewport-pan-mode.is-panning #planner *{cursor:grabbing!important;user-select:none}
+.canvas-wrap.background-move-mode,.canvas-wrap.background-move-mode #planner,.canvas-wrap.background-move-mode #planner *{cursor:default!important}
+.canvas-wrap.background-move-mode #bgImage{cursor:move!important}
+.canvas-wrap.background-move-mode #bgImage.is-dragging{cursor:grabbing!important}
 #btnMoveBackground.active{border-color:#7f8962;background:#eef0e8;color:#4f573d}
