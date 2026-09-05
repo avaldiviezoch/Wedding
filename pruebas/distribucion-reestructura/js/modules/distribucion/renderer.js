@@ -415,6 +415,8 @@
     const button = circular.cloneNode(true);
     button.id = 'btnAddSquareTable';
     button.removeAttribute('data-add');
+    button.title = 'Mesa cuadrada';
+    button.setAttribute('aria-label', 'Mesa cuadrada');
     button.querySelector('strong').textContent = '□';
     button.querySelector('span').innerHTML = 'Mesa cuadrada<small>10 personas · 1.80 m</small>';
     button.addEventListener('click', (event) => { event.preventDefault(); event.stopImmediatePropagation(); addSquareTable(); }, true);
@@ -630,6 +632,8 @@
     const button = anchor.cloneNode(true);
     button.id = 'btnAddRectangularTable';
     button.removeAttribute('data-add');
+    button.title = 'Mesa rectangular';
+    button.setAttribute('aria-label', 'Mesa rectangular');
     button.querySelector('strong').textContent = '▭';
     button.querySelector('span').innerHTML = 'Mesa rectangular<small>10 personas · 2.40 × 0.75 m</small>';
     button.addEventListener('click', (event) => { event.preventDefault(); event.stopImmediatePropagation(); addRectangularTable(); }, true);
