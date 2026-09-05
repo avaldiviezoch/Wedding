@@ -2287,6 +2287,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     moveBackgroundButtonP1?.classList.toggle('active', backgroundMoveMode);
     canvasWrapP1?.classList.toggle('background-move-mode', backgroundMoveMode);
     canvasWrapP1?.classList.toggle('viewport-pan-mode', !backgroundMoveMode);
+    bgImage?.setAttribute('pointer-events', backgroundMoveMode ? 'all' : 'none');
   }
 
   function applyViewportOffsetP1() {
