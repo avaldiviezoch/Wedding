@@ -29,7 +29,39 @@
         html body .sat-inv6-crew-title{
           top:16.2%!important;
         }
+
+        /* Transición suave: la cabecera verde se desvanece sobre el mapa */
+        html body #sat-inv6-paper-bottom-section{
+          position:relative!important;
+          z-index:2!important;
+          margin-bottom:-90px!important;
+          background:transparent!important;
+        }
+        html body #sat-inv6-paper-bottom-section .sat-inv6-paper-bg{
+          -webkit-mask-image:linear-gradient(
+            to bottom,
+            #000 0%,
+            #000 72%,
+            rgba(0,0,0,.96) 78%,
+            rgba(0,0,0,.72) 86%,
+            rgba(0,0,0,.28) 94%,
+            transparent 100%
+          )!important;
+          mask-image:linear-gradient(
+            to bottom,
+            #000 0%,
+            #000 72%,
+            rgba(0,0,0,.96) 78%,
+            rgba(0,0,0,.72) 86%,
+            rgba(0,0,0,.28) 94%,
+            transparent 100%
+          )!important;
+        }
+
         html body #sat-inv6-program-timeline-section{
+          position:relative!important;
+          z-index:1!important;
+          padding-top:112px!important;
           background-image:url('./assets/IMG_1047.jpeg')!important;
           background-size:100% 100%!important;
           background-position:center top!important;
