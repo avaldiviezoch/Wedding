@@ -2,7 +2,6 @@
   const outer=document.getElementById('invite');
   if(!outer)return;
   const STYLE_ID='inv7-visible-refresh-20260831';
-  const CORMORANT_FONT_ID='inv7-cormorant-italic-real';
 
   function syncTypography(doc){
     const reference=doc.querySelector('#inv6TornPaperMessage .inv6-torn-paper-text');
@@ -41,14 +40,8 @@
       const doc=f2?(f2.contentDocument||f2.contentWindow.document):null;
       if(!doc?.head)return false;
 
-      let fontLink=doc.getElementById(CORMORANT_FONT_ID);
-      if(!fontLink){
-        fontLink=doc.createElement('link');
-        fontLink.id=CORMORANT_FONT_ID;
-        fontLink.rel='stylesheet';
-        fontLink.href='https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400;1,700&display=swap';
-        doc.head.appendChild(fontLink);
-      }
+      /* Eliminar la fuente que se inyectó por error: el texto de referencia debe usar exactamente su render original. */
+      doc.getElementById('inv7-cormorant-italic-real')?.remove();
 
       let style=doc.getElementById(STYLE_ID);
       if(!style){
@@ -61,13 +54,7 @@
         html body #sat-inv6-photo-collage .photo-1{left:0!important}
         html body #sat-inv6-photo-collage .photo-2{right:0!important}
 
-        /* No tocar el texto de referencia: debe conservar exactamente su estilo original. */
-        html body .sat-inv6-crew-title,
-        html body .sat-inv6-crew-copy,
-        html body .paper-section .inv6-between-lead{
-          font-family:'Cormorant Garamond',serif!important;
-          font-style:italic!important;
-        }
+        /* La referencia “Nada nos hará más felices…” NO se modifica. */
         html body .sat-inv6-crew-copy,
         html body .paper-section .inv6-between-lead{font-weight:400!important}
         html body .sat-inv6-crew-title{top:16.2%!important;font-weight:700!important}
@@ -130,7 +117,7 @@
       if(fin)fin.src='./assets/itinerario_despedida_6_3.png';
 
       syncTypography(doc);
-      doc.fonts?.ready?.then(()=>syncTypography(doc)).catch(()=>{});
+      requestAnimationFrame(()=>syncTypography(doc));
       return true;
     }catch(e){return false;}
   }
