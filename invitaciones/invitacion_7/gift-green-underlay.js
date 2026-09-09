@@ -44,25 +44,23 @@
         width:100%!important;
         margin:0!important;
         padding:66px 34px 70px!important;
-        background:#5d6140!important;
+        background-color:transparent!important;
+        background-image:url('./assets/fondo_verde_de_regalo.png')!important;
+        background-repeat:no-repeat!important;
+        background-position:center!important;
+        background-size:100% 100%!important;
         color:#fff!important;
         text-align:center!important;
-        overflow:hidden!important;
-        clip-path:polygon(0 3.2%,4% 1.4%,9% 2.6%,14% .9%,20% 2.2%,27% .8%,34% 2.5%,42% .7%,49% 2.1%,57% .9%,64% 2.6%,72% 1%,80% 2.3%,88% .8%,94% 2.2%,100% 1.2%,100% 97.3%,95% 98.7%,90% 97.4%,84% 99%,77% 97.6%,69% 99.2%,61% 97.5%,54% 99.1%,47% 97.7%,39% 99.2%,31% 97.6%,23% 99%,16% 97.5%,9% 98.8%,4% 97.4%,0 98.8%)!important;
+        overflow:visible!important;
+        clip-path:none!important;
       }
       #${BLOCK_ID}.is-open .inv6-gift-sheet{
         padding-bottom:44px!important;
-        clip-path:polygon(0 3.2%,4% 1.4%,9% 2.6%,14% .9%,20% 2.2%,27% .8%,34% 2.5%,42% .7%,49% 2.1%,57% .9%,64% 2.6%,72% 1%,80% 2.3%,88% .8%,94% 2.2%,100% 1.2%,100% 100%,0 100%)!important;
+        clip-path:none!important;
       }
       #${BLOCK_ID} .inv6-gift-sheet::before{
-        content:""!important;
-        position:absolute!important;
-        inset:0!important;
-        pointer-events:none!important;
-        background:
-          radial-gradient(circle at 18% 20%,rgba(255,255,255,.045),transparent 30%),
-          radial-gradient(circle at 78% 72%,rgba(0,0,0,.045),transparent 34%),
-          linear-gradient(180deg,rgba(255,255,255,.018),rgba(0,0,0,.025))!important;
+        content:none!important;
+        display:none!important;
       }
       #${BLOCK_ID} .inv6-gift-content{position:relative!important;z-index:2!important;max-width:470px!important;margin:0 auto!important}
       #${BLOCK_ID} .inv6-gift-kicker{
