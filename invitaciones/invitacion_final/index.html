@@ -8,16 +8,163 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <!-- REGLA INVITACIÓN FINAL:
-       Esta carpeta se mantiene únicamente con index.html, styles.css y app.js.
-       No agregar parches, archivos auxiliares, iframes, HTML extra, CSS extra ni JS extra.
-       Cualquier cambio futuro debe integrarse limpiamente en uno de estos 3 archivos.
-       El video de entrada se referencia desde la invitación anterior para no duplicar archivos aquí. -->
+  <!-- REGLA INVITACIÓN FINAL
+       Esta carpeta mantiene SOLO index.html, styles.css y app.js.
+       No crear parches, iframes, HTML/CSS/JS auxiliares ni archivos nuevos.
+       Todo cambio se integra de forma estructurada en estos tres documentos.
+       Los recursos visuales existentes se referencian desde invitacion_7; no se duplican aquí. -->
 
-  <main id="app" aria-label="Invitación final">
+  <div id="entryLayer" class="entry-layer">
     <video id="entryVideo" autoplay muted playsinline webkit-playsinline preload="auto">
       <source src="../invitacion_7/video_entrada.mp4" type="video/mp4">
     </video>
+  </div>
+
+  <main id="app" class="invitation" aria-label="Invitación de Antonio y Lucero" hidden>
+    <section class="section hero" id="inicio">
+      <p class="eyebrow">NOS CASAMOS</p>
+      <h1>Antonio &amp; Lucero</h1>
+      <p class="lead">16 · 01 · 2027</p>
+      <img src="../invitacion_7/assets/foto_pareja_6_1.png" alt="Antonio y Lucero" loading="eager">
+    </section>
+
+    <section class="section" id="fecha">
+      <h2>Nuestro gran día</h2>
+      <p>Sábado 16 de enero de 2027</p>
+      <div id="countdown" class="countdown" aria-label="Cuenta regresiva"></div>
+    </section>
+
+    <section class="section green-message" id="mensaje">
+      <p>Nada nos hará más felices<br>que celebrar nuestro amor rodeados<br>de las personas más importantes de<br>nuestras vidas!</p>
+    </section>
+
+    <section class="section" id="ubicacion">
+      <h2>La celebración</h2>
+      <img src="../invitacion_7/assets/church_green_6.webp" alt="Ubicación de la celebración" loading="lazy">
+      <h3>Casa Acapulco</h3>
+      <p>Calle Acapulco 480</p>
+      <p>La ceremonia y la recepción serán en el mismo lugar.</p>
+    </section>
+
+    <section class="section" id="fotos">
+      <img src="../invitacion_7/assets/foto_pareja_final_6_2.png" alt="Antonio y Lucero" loading="lazy">
+    </section>
+
+    <section class="section" id="tripulacion">
+      <h2>Toda gran aventura necesita una buena tripulación</h2>
+      <p>Y nos encantaría que formaras parte de la nuestra.</p>
+      <p>Ahora que ya conoces el rumbo, queremos contarte algunos detalles para que disfrutes este día tan especial junto a nosotros.</p>
+      <img src="../invitacion_7/fiesta_chopper_2.gif" alt="Nuestra gran tripulación" loading="lazy">
+    </section>
+
+    <section class="section" id="dress-code">
+      <h2>Dress Code</h2>
+      <p>Queremos que cada uno de ustedes se sienta especial y luzca espectacular en nuestro día. ¡Aquí todos brillamos!</p>
+      <img src="../invitacion_7/assets/dress_code_6_2.png" alt="Dress code" loading="lazy">
+      <p>Amaremos que vistan en colores de nuestra paleta de boda, es decir tropicales y pasteles acorde a la estación ☀️🌴 Recuerda que tu mejor accesorio es tu actitud y una gran sonrisa.</p>
+    </section>
+
+    <section class="section" id="programa">
+      <h2>Programa</h2>
+      <img src="../invitacion_7/assets/fondo_verde_de_programacion.png" alt="Programa de la boda" loading="lazy">
+      <div class="program-list" aria-label="Programa de la boda">
+        <p>Recepción de invitados</p>
+        <p>Ceremonia</p>
+        <p>Brindis</p>
+        <p>Comida</p>
+        <p>Fiesta</p>
+        <p>Despedida</p>
+      </div>
+    </section>
+
+    <section class="section action-section" id="confirmacion">
+      <h2>Confirma tu asistencia</h2>
+      <img class="action-image" src="../invitacion_7/invitacion_confirmacion_2.png" alt="Confirmar asistencia" loading="lazy">
+      <button id="openRsvpBtn" class="primary-btn" type="button" aria-expanded="false" aria-controls="rsvp-panel">Confirmar asistencia</button>
+
+      <div id="rsvp-panel" class="panel" hidden>
+        <label for="guestName">Tu nombre completo</label>
+        <input id="guestName" type="text" maxlength="100" autocomplete="name">
+
+        <fieldset>
+          <legend>¿Asistirás?</legend>
+          <div class="choice-row">
+            <button class="choice-btn" type="button" data-attendance="Sí">Sí, asistiré</button>
+            <button class="choice-btn" type="button" data-attendance="No">No podré asistir</button>
+          </div>
+        </fieldset>
+
+        <div id="guestControls" class="guest-controls">
+          <span>Invitados</span>
+          <button class="guest-step-btn" type="button" data-guest-step="-1" aria-label="Quitar invitado">−</button>
+          <span id="guestCount">1</span>
+          <button class="guest-step-btn" type="button" data-guest-step="1" aria-label="Agregar invitado">+</button>
+        </div>
+
+        <button id="submitRsvpBtn" class="primary-btn" type="button">Enviar confirmación →</button>
+        <p id="rsvp-success" class="status" hidden>Gracias, confirmación enviada ✨</p>
+      </div>
+    </section>
+
+    <section class="section action-section" id="regalos">
+      <h2>Nuestro mejor regalo</h2>
+      <p>Tu presencia es nuestro mayor regalo, pero si deseas tener un detalle con nosotros, una contribución para nuestro futuro significará muchísimo para nosotros.</p>
+      <img class="action-image" src="../invitacion_7/assets/fondo_verde_de_regalo.png" alt="Nuestro mejor regalo" loading="lazy">
+      <button id="giftToggle" class="primary-btn" type="button" aria-expanded="false" aria-controls="giftDetails">TIPOS DE REGALO</button>
+      <div id="giftDetails" class="panel" hidden>
+        <p>Elige la opción que prefieras ♡</p>
+        <h3>BCP</h3>
+        <div class="data-row"><span>Cuenta: 19335282760050</span><button type="button" class="copy-btn" data-copy="19335282760050">COPIAR</button></div>
+        <div class="data-row"><span>CCI: 00219313528276005017</span><button type="button" class="copy-btn" data-copy="00219313528276005017">COPIAR</button></div>
+        <h3>Yape</h3>
+        <img class="qr" src="../invitacion_7/assets/qr_yape.jpg" alt="QR de Yape" loading="lazy">
+        <h3>Regalo físico</h3>
+        <div class="data-row"><span>Urb. Alameda de la Rivera Mz. G Lt. 45, Ate</span><button type="button" class="copy-btn" data-copy="Urb. Alameda de la Rivera Mz. G Lt. 45, Ate">COPIAR</button></div>
+      </div>
+    </section>
+
+    <section class="section action-section" id="musica">
+      <h2>Música</h2>
+      <p>Toca la imagen para dejar tu canción</p>
+      <button id="openMusicBtn" class="image-button" type="button" aria-expanded="false" aria-controls="music-request-panel">
+        <img src="../invitacion_7/musica_2.png" alt="Pedir una canción" loading="lazy">
+      </button>
+
+      <div id="music-request-panel" class="panel" hidden>
+        <input id="musicGuestName" type="text" maxlength="100" autocomplete="name" placeholder="Tu nombre completo">
+        <input id="musicSongName" type="text" maxlength="150" placeholder="Nombre de la canción">
+        <input id="musicArtistName" type="text" maxlength="150" placeholder="Artista">
+        <textarea id="musicComment" maxlength="300" placeholder="Comentario o dedicatoria (opcional)"></textarea>
+        <button id="submitMusicBtn" class="primary-btn" type="button">Enviar pedido musical →</button>
+        <p id="music-success" class="status" hidden>Gracias, pedido musical enviado ✨</p>
+      </div>
+    </section>
+
+    <section class="section" id="preguntas">
+      <h2>Preguntas frecuentes</h2>
+      <details>
+        <summary>¿Hay estacionamiento?</summary>
+        <p>Cerca de la zona hay algunos estacionamientos. Como tendremos bebidas durante la celebración, recomendamos llegar en taxi o aplicativo.</p>
+      </details>
+      <details>
+        <summary>¿Tienes alguna alergia o restricción alimentaria?</summary>
+        <p>Cuéntanos con anticipación para poder considerarlo.</p>
+      </details>
+      <details>
+        <summary>¿Cuándo debo confirmar mi asistencia?</summary>
+        <p>Confirma tu asistencia desde el botón de esta invitación.</p>
+      </details>
+      <details>
+        <summary>¿La ceremonia y la recepción son en el mismo lugar?</summary>
+        <p>Sí. Ambas se realizarán en Casa Acapulco.</p>
+      </details>
+    </section>
+
+    <section class="section closing" id="cierre">
+      <img src="../invitacion_7/te_esperamos_2.gif" alt="Te esperamos" loading="lazy">
+      <h2>Te esperamos</h2>
+      <p>Antonio &amp; Lucero · 16.01.2027</p>
+    </section>
   </main>
 
   <script src="./app.js"></script>

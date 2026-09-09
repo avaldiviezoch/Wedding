@@ -1,46 +1,114 @@
-/* REGLA INVITACIÓN FINAL:
+/* REGLA INVITACIÓN FINAL
    Solo existen index.html, styles.css y app.js.
-   No crear parches ni archivos adicionales. Todo cambio se integra aquí. */
+   No crear parches ni archivos adicionales. Todo estilo se integra aquí. */
 
 :root{
-  --background:#f1e5da;
+  --cream:#f1e5da;
+  --cream-soft:#fbf8ef;
+  --olive:#5d644f;
+  --olive-dark:#3d4335;
+  --olive-soft:#6d7559;
+  --white:#fff;
+  --line:rgba(93,100,79,.22);
+  --shadow:0 12px 30px rgba(61,67,53,.09);
+  --radius:18px;
+  font-family:Georgia,'Times New Roman',serif;
+  color:var(--olive-dark);
+  background:var(--cream);
 }
 
-*{
-  box-sizing:border-box;
-}
+*{box-sizing:border-box}
+html{background:var(--cream);scroll-behavior:smooth}
+body{margin:0;min-width:320px;background:var(--cream);color:var(--olive-dark)}
+button,input,textarea{font:inherit}
+button{touch-action:manipulation}
+img{display:block;max-width:100%;height:auto}
 
-html,
-body{
-  margin:0;
-  width:100%;
-  min-height:100%;
-  background:var(--background);
-}
-
-body{
-  overflow:hidden;
-}
-
-#app{
+.entry-layer{
   position:fixed;
   inset:0;
+  z-index:100;
   width:100%;
   height:100%;
-  background:var(--background);
+  background:var(--cream);
+  transition:opacity .28s ease,visibility .28s ease;
 }
 
-#entryVideo{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  background:var(--background);
-  transition:opacity .25s ease;
+.entry-layer.is-finished{opacity:0;visibility:hidden;pointer-events:none}
+#entryVideo{width:100%;height:100%;object-fit:cover;background:var(--cream)}
+
+.invitation{width:min(100%,680px);margin:0 auto;background:var(--cream)}
+.section{padding:48px 24px;text-align:center;border-bottom:1px solid var(--line)}
+.section img{width:min(100%,520px);margin:24px auto 0}
+.section h1,.section h2,.section h3,.section p{margin-top:0}
+.section h2{margin-bottom:18px;font-size:clamp(30px,8vw,54px);font-weight:400;color:var(--olive)}
+.section h3{margin:20px 0 8px;font-size:22px;color:var(--olive)}
+.section p{max-width:520px;margin-left:auto;margin-right:auto;font-size:17px;line-height:1.55}
+
+.hero{padding-top:64px}
+.hero h1{margin:8px 0 14px;font-size:clamp(44px,12vw,84px);line-height:1;font-weight:400;color:var(--olive)}
+.eyebrow{margin-bottom:0;font-size:12px;letter-spacing:.28em;font-weight:700}
+.lead{font-size:20px;letter-spacing:.16em}
+
+.countdown{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:22px}
+.countdown-item{min-width:74px;padding:12px 10px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.22)}
+.countdown-item strong{display:block;font-size:24px;font-weight:400;color:var(--olive)}
+.countdown-item span{display:block;margin-top:3px;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+
+.green-message{background:var(--olive);color:var(--white)}
+.green-message p{margin:0 auto;font-size:clamp(19px,5vw,27px);font-style:italic;line-height:1.45}
+
+.program-list{display:grid;gap:8px;max-width:400px;margin:24px auto 0}
+.program-list p{width:100%;margin:0;padding:12px;border-bottom:1px solid var(--line)}
+
+.action-section{position:relative}
+.action-image{max-height:520px;object-fit:contain}
+.primary-btn,.choice-btn,.copy-btn{
+  border:1px solid var(--olive);
+  border-radius:999px;
+  background:var(--olive);
+  color:var(--white);
+  cursor:pointer;
+}
+.primary-btn{min-height:48px;padding:13px 24px;font-size:13px;letter-spacing:.06em}
+.choice-btn{padding:10px 16px;background:transparent;color:var(--olive)}
+.choice-btn.is-selected{background:var(--olive);color:var(--white)}
+.copy-btn{padding:8px 12px;font-size:10px;background:var(--cream-soft);color:var(--olive)}
+button:disabled{opacity:.55;cursor:wait}
+
+.panel{max-width:480px;margin:24px auto 0;padding:22px;border:1px solid var(--line);border-radius:var(--radius);background:var(--cream-soft);box-shadow:var(--shadow);text-align:left}
+.panel[hidden]{display:none}
+.panel label,.panel legend{font-size:13px;font-weight:700;color:var(--olive)}
+.panel input,.panel textarea{
+  width:100%;margin:8px 0 14px;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--white);color:var(--olive-dark);outline:none
+}
+.panel textarea{min-height:96px;resize:vertical}
+.panel fieldset{margin:0 0 16px;padding:0;border:0}
+.choice-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.guest-controls{display:flex;align-items:center;justify-content:center;gap:12px;margin:14px 0 20px}
+.guest-step-btn{width:36px;height:36px;border:1px solid var(--line);border-radius:50%;background:var(--white);color:var(--olive);cursor:pointer}
+.status{margin:14px 0 0!important;font-size:14px!important;color:var(--olive)!important}
+
+.data-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+.qr{width:150px!important;margin-top:14px!important}
+
+.image-button{display:block;width:min(100%,420px);margin:18px auto 0;padding:0;border:0;background:transparent;cursor:pointer}
+.image-button img{width:100%;margin:0}
+
+details{max-width:520px;margin:10px auto;padding:14px 16px;border:1px solid var(--line);border-radius:14px;text-align:left;background:rgba(255,255,255,.18)}
+summary{cursor:pointer;font-weight:700;color:var(--olive)}
+details p{margin:12px 0 0!important;font-size:14px!important}
+
+.closing{padding-bottom:72px;border-bottom:0}
+
+@media (max-width:480px){
+  .section{padding:40px 18px}
+  .panel{padding:18px}
+  .section p{font-size:15px}
+  .data-row{align-items:flex-start;flex-direction:column}
 }
 
-#entryVideo.is-finished{
-  opacity:0;
-  pointer-events:none;
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .entry-layer{transition:none}
 }
