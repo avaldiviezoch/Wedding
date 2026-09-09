@@ -28,6 +28,9 @@
         }
         html body .sat-inv6-crew-title{
           top:16.2%!important;
+          font-family:Georgia,'Times New Roman',serif!important;
+          font-style:italic!important;
+          font-weight:800!important;
         }
 
         /* Transición suave: la cabecera verde se desvanece sobre el mapa */
