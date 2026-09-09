@@ -27,16 +27,16 @@
           right:0!important;
         }
 
-        /* SOLO tripulación. El texto verde “Nada nos hará más felices…”
-           no se selecciona ni se modifica de ninguna forma. */
+        /* SOLO tripulación. Misma familia tipográfica que el texto verde,
+           sin seleccionar ni modificar el bloque verde. */
         html body .sat-inv6-crew-title,
         html body .sat-inv6-crew-copy{
-          font-family:'Cormorant Garamond',serif!important;
+          font-family:Georgia,'Times New Roman',serif!important;
           font-style:italic!important;
         }
         html body .sat-inv6-crew-title{
           top:16.2%!important;
-          font-weight:800!important;
+          font-weight:700!important;
         }
         html body .sat-inv6-crew-copy{
           font-weight:400!important;
