@@ -61,14 +61,13 @@
         html body #sat-inv6-photo-collage .photo-1{left:0!important}
         html body #sat-inv6-photo-collage .photo-2{right:0!important}
 
-        html body #inv6TornPaperMessage .inv6-torn-paper-text,
+        /* No tocar el texto de referencia: debe conservar exactamente su estilo original. */
         html body .sat-inv6-crew-title,
         html body .sat-inv6-crew-copy,
         html body .paper-section .inv6-between-lead{
           font-family:'Cormorant Garamond',serif!important;
           font-style:italic!important;
         }
-        html body #inv6TornPaperMessage .inv6-torn-paper-text,
         html body .sat-inv6-crew-copy,
         html body .paper-section .inv6-between-lead{font-weight:400!important}
         html body .sat-inv6-crew-title{top:16.2%!important;font-weight:700!important}
