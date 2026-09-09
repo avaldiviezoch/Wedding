@@ -93,6 +93,11 @@
         }
       `;
 
+      const programHeaderBg=doc.querySelector('#sat-inv6-paper-bottom-section .sat-inv6-paper-bg');
+      if(programHeaderBg){
+        programHeaderBg.src='./assets/fondo_verde_de_programacion.png';
+      }
+
       const dressSubtitle=doc.querySelector('.inv5-dress-subtitle');
       const dressWhite=doc.querySelector('.inv5-dress-white');
 
