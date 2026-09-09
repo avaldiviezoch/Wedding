@@ -102,16 +102,25 @@
         }
       `;
 
-      /* El generador base reconstruye esta sección varias veces y deja estilos inline !important.
-         Por eso fijamos directamente SOLO los dos nodos de tripulación al font acordado. */
-      const crewTitle=doc.querySelector('.sat-inv6-crew-title');
-      const crewCopy=doc.querySelector('.sat-inv6-crew-copy');
-      [crewTitle,crewCopy].forEach(el=>{
-        if(!el)return;
-        el.style.setProperty('font-family',"Georgia, 'Times New Roman', serif",'important');
-        el.style.setProperty('font-style','italic','important');
-        el.style.setProperty('font-weight','400','important');
-      });
+      const fixCrewFont=()=>{
+        const crewTitle=doc.querySelector('.sat-inv6-crew-title');
+        const crewCopy=doc.querySelector('.sat-inv6-crew-copy');
+        [crewTitle,crewCopy].forEach(el=>{
+          if(!el)return;
+          el.style.setProperty('font-family',"Georgia, 'Times New Roman', serif",'important');
+          el.style.setProperty('font-style','italic','important');
+          el.style.setProperty('font-weight','400','important');
+        });
+      };
+
+      /* El generador base reconstruye la tripulación varias veces.
+         Observamos SOLO esa reconstrucción y reaplicamos el font acordado al instante. */
+      fixCrewFont();
+      if(!doc.__inv7CrewFontObserver && doc.body){
+        const observer=new MutationObserver(fixCrewFont);
+        observer.observe(doc.body,{childList:true,subtree:true});
+        doc.__inv7CrewFontObserver=observer;
+      }
 
       const programHeaderBg=doc.querySelector('#sat-inv6-paper-bottom-section .sat-inv6-paper-bg');
       if(programHeaderBg){
