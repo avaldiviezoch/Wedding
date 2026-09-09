@@ -12,20 +12,18 @@
 
   const WEDDING_DATE = new Date('2027-01-16T16:00:00-05:00');
 
-  /* CONFIRMACIÓN — conservado exactamente desde la lógica vigente de N7 */
   const RSVP_URL = 'https://script.google.com/macros/s/AKfycbz1BtAqB93LrqW5RrocmRa6UGAQirQoKFkbIelSydJVJIKBDghtrvfz_-m-iFsWdSqw/exec';
   let attendanceValue = '';
   let guestAmount = 1;
 
-  /* PEDIDOS MUSICALES — conservado exactamente desde la lógica vigente de N7 */
   const MUSIC_REQUEST_URL = 'https://script.google.com/macros/s/AKfycbzrxfoPVuu5u1ZOn570xnSQfOeLHnt5oK8wiuksxKZCEpAVWkwehR5LlNZVJNkTJFli/exec';
   const MUSIC_INVITATION_NAME = 'Invitación 2';
 
   const entryLayer = document.getElementById('entryLayer');
   const video = document.getElementById('entryVideo');
   const app = document.getElementById('app');
-  let entryReady = false;
   let entryStarted = false;
+  let framePrepared = false;
 
   function revealInvitation() {
     if (!app || !entryLayer) return;
@@ -35,18 +33,25 @@
     window.setTimeout(() => entryLayer.remove(), 300);
   }
 
-  function markEntryReady() {
-    if (!video || entryReady) return;
-    entryReady = true;
+  function prepareFirstFrame() {
+    if (!video || framePrepared) return;
+    framePrepared = true;
     video.pause();
-    try { video.currentTime = 0; } catch (error) {}
+    try {
+      video.currentTime = 0.001;
+    } catch (error) {}
     entryLayer?.classList.add('is-ready');
   }
 
   function startEntryVideo() {
-    if (!video || !entryReady || entryStarted) return;
+    if (!video || entryStarted) return;
     entryStarted = true;
     entryLayer?.classList.add('is-playing');
+
+    try {
+      if (video.currentTime < 0.001) video.currentTime = 0.001;
+    } catch (error) {}
+
     const play = video.play();
     if (play && typeof play.catch === 'function') {
       play.catch(() => {
@@ -58,16 +63,29 @@
 
   if (video) {
     video.autoplay = false;
+    video.muted = true;
+    video.defaultMuted = true;
+    video.setAttribute('muted','');
+    video.setAttribute('playsinline','');
+    video.setAttribute('webkit-playsinline','');
     video.pause();
-    try { video.currentTime = 0; } catch (error) {}
-    video.addEventListener('loadeddata', markEntryReady, { once:true });
-    video.addEventListener('canplay', markEntryReady, { once:true });
+
+    video.addEventListener('loadedmetadata', prepareFirstFrame, { once:true });
+    video.addEventListener('loadeddata', prepareFirstFrame, { once:true });
+    video.addEventListener('canplay', prepareFirstFrame, { once:true });
     video.addEventListener('ended', revealInvitation, { once:true });
     video.addEventListener('error', revealInvitation, { once:true });
+
     entryLayer?.addEventListener('click', startEntryVideo);
-    entryLayer?.addEventListener('touchend', startEntryVideo, { passive:true });
+    entryLayer?.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        startEntryVideo();
+      }
+    });
+
     video.load();
-    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) markEntryReady();
+    if (video.readyState >= HTMLMediaElement.HAVE_METADATA) prepareFirstFrame();
   } else {
     revealInvitation();
   }
