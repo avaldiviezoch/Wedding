@@ -27,19 +27,16 @@
           right:0!important;
         }
 
-        /* SOLO tripulación. Misma familia tipográfica que el texto verde,
-           sin seleccionar ni modificar el bloque verde. */
+        /* SOLO tripulación. Mismo font visible del bloque verde acordado.
+           El bloque verde NO se selecciona ni se modifica. */
         html body .sat-inv6-crew-title,
         html body .sat-inv6-crew-copy{
           font-family:Georgia,'Times New Roman',serif!important;
           font-style:italic!important;
+          font-weight:400!important;
         }
         html body .sat-inv6-crew-title{
           top:16.2%!important;
-          font-weight:700!important;
-        }
-        html body .sat-inv6-crew-copy{
-          font-weight:400!important;
         }
 
         /* Transición suave: la cabecera verde se desvanece sobre el mapa */
@@ -104,6 +101,26 @@
           z-index:1!important;
         }
       `;
+
+      const fixCrewFont=()=>{
+        const crewTitle=doc.querySelector('.sat-inv6-crew-title');
+        const crewCopy=doc.querySelector('.sat-inv6-crew-copy');
+        [crewTitle,crewCopy].forEach(el=>{
+          if(!el)return;
+          el.style.setProperty('font-family',"Georgia, 'Times New Roman', serif",'important');
+          el.style.setProperty('font-style','italic','important');
+          el.style.setProperty('font-weight','400','important');
+        });
+      };
+
+      /* El generador base reconstruye la tripulación varias veces.
+         Observamos SOLO esa reconstrucción y reaplicamos el font acordado al instante. */
+      fixCrewFont();
+      if(!doc.__inv7CrewFontObserver && doc.body){
+        const observer=new MutationObserver(fixCrewFont);
+        observer.observe(doc.body,{childList:true,subtree:true});
+        doc.__inv7CrewFontObserver=observer;
+      }
 
       const programHeaderBg=doc.querySelector('#sat-inv6-paper-bottom-section .sat-inv6-paper-bg');
       if(programHeaderBg){
