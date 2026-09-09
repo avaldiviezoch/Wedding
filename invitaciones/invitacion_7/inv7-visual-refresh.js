@@ -27,8 +27,13 @@
           right:0!important;
         }
 
-        /* Solo posición/peso de tripulación. La familia y cursiva se copian
-           del texto de referencia ya renderizado, sin modificarlo. */
+        /* SOLO tripulación. El texto verde “Nada nos hará más felices…”
+           no se selecciona ni se modifica de ninguna forma. */
+        html body .sat-inv6-crew-title,
+        html body .sat-inv6-crew-copy{
+          font-family:'Cormorant Garamond',serif!important;
+          font-style:italic!important;
+        }
         html body .sat-inv6-crew-title{
           top:16.2%!important;
           font-weight:800!important;
@@ -99,19 +104,6 @@
           z-index:1!important;
         }
       `;
-
-      /* REGLA: #inv6TornPaperMessage .inv6-torn-paper-text nunca se modifica.
-         Solo leemos su estilo final real y lo aplicamos a los textos de tripulación. */
-      const reference=doc.querySelector('#inv6TornPaperMessage .inv6-torn-paper-text');
-      const crewTitle=doc.querySelector('.sat-inv6-crew-title');
-      const crewCopy=doc.querySelector('.sat-inv6-crew-copy');
-      if(reference && (crewTitle||crewCopy)){
-        const refStyle=doc.defaultView.getComputedStyle(reference);
-        [crewTitle,crewCopy].filter(Boolean).forEach(el=>{
-          el.style.setProperty('font-family',refStyle.fontFamily,'important');
-          el.style.setProperty('font-style',refStyle.fontStyle,'important');
-        });
-      }
 
       const programHeaderBg=doc.querySelector('#sat-inv6-paper-bottom-section .sat-inv6-paper-bg');
       if(programHeaderBg){
