@@ -26,11 +26,23 @@
         html body #sat-inv6-photo-collage .photo-2{
           right:0!important;
         }
+
+        /* Tipografía auditada: misma familia efectiva del texto “Nada nos hará más felices…” */
+        html body #inv6TornPaperMessage .inv6-torn-paper-text,
+        html body .sat-inv6-crew-title,
+        html body .sat-inv6-crew-copy,
+        html body .paper-section .inv6-between-lead{
+          font-family:'Cormorant Garamond',serif!important;
+          font-style:italic!important;
+        }
+        html body #inv6TornPaperMessage .inv6-torn-paper-text,
+        html body .sat-inv6-crew-copy,
+        html body .paper-section .inv6-between-lead{
+          font-weight:400!important;
+        }
         html body .sat-inv6-crew-title{
           top:16.2%!important;
-          font-family:Georgia,'Times New Roman',serif!important;
-          font-style:italic!important;
-          font-weight:800!important;
+          font-weight:700!important;
         }
 
         /* Transición suave: la cabecera verde se desvanece sobre el mapa */
