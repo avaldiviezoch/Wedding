@@ -26,11 +26,20 @@
         html body #sat-inv6-photo-collage .photo-2{
           right:0!important;
         }
-        html body .sat-inv6-crew-title{
-          top:16.2%!important;
+
+        /* Solo los textos de la sección de tripulación usan la misma fuente de
+           “Nada nos hará más felices…”. El texto de referencia NO se modifica. */
+        html body .sat-inv6-crew-title,
+        html body .sat-inv6-crew-copy{
           font-family:Georgia,'Times New Roman',serif!important;
           font-style:italic!important;
+        }
+        html body .sat-inv6-crew-title{
+          top:16.2%!important;
           font-weight:800!important;
+        }
+        html body .sat-inv6-crew-copy{
+          font-weight:400!important;
         }
 
         /* Transición suave: la cabecera verde se desvanece sobre el mapa */
