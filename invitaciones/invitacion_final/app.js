@@ -1,57 +1,40 @@
-/* REGLA INVITACIÓN FINAL
-   Solo existen index.html, styles.css y app.js.
-   No crear parches ni archivos adicionales. Toda lógica se integra aquí.
-
-   BLOQUES CRÍTICOS INAMOVIBLES:
-   - RSVP_URL + payload de confirmación conservados desde Invitación 7.
-   - MUSIC_REQUEST_URL + MUSIC_INVITATION_NAME + payload musical conservados desde Invitación 7.
-   No cambiar endpoints, nombres de campos ni comportamiento de envío sin autorización expresa. */
-
+/* INVITACIÓN FINAL — único JS. Sin parches ni scripts auxiliares locales. */
 (() => {
   'use strict';
 
   const WEDDING_DATE = new Date('2027-01-16T16:00:00-05:00');
-
-  const RSVP_URL = 'https://script.google.com/macros/s/AKfycbz1BtAqB93LrqW5RrocmRa6UGAQirQoKFkbIelSydJVJIKBDghtrvfz_-m-iFsWdSqw/exec';
-  let attendanceValue = '';
-  let guestAmount = 1;
-
-  const MUSIC_REQUEST_URL = 'https://script.google.com/macros/s/AKfycbzrxfoPVuu5u1ZOn570xnSQfOeLHnt5oK8wiuksxKZCEpAVWkwehR5LlNZVJNkTJFli/exec';
-  const MUSIC_INVITATION_NAME = 'Invitación 2';
+  const N7_TOKEN = '8c7e5b5c261e4b85ad15a220ca70e0cc66d1336feee740c08027d0c324646167';
+  const NATIVE_WIDGET = 'https://avaldiviezoch.github.io/Wedding/app_integral/js/modules/invitados/rsvp-native-widget.js?v=20260820-5b2';
 
   const entryLayer = document.getElementById('entryLayer');
   const video = document.getElementById('entryVideo');
-  const app = document.getElementById('app');
   let entryStarted = false;
-  let framePrepared = false;
 
-  function revealInvitation() {
-    if (!app || !entryLayer) return;
-    app.hidden = false;
-    document.body.style.overflow = 'auto';
+  function finishEntry() {
+    if (!entryLayer) return;
     entryLayer.classList.add('is-finished');
-    window.setTimeout(() => entryLayer.remove(), 300);
+    document.body.style.overflow = 'auto';
   }
 
-  function prepareFirstFrame() {
-    if (!video || framePrepared) return;
-    framePrepared = true;
+  function prepareVideo() {
+    if (!video) {
+      finishEntry();
+      return;
+    }
+    video.autoplay = false;
+    video.muted = true;
+    video.defaultMuted = true;
+    video.setAttribute('muted', '');
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
     video.pause();
-    try {
-      video.currentTime = 0.001;
-    } catch (error) {}
-    entryLayer?.classList.add('is-ready');
+    try { video.currentTime = 0.001; } catch (error) {}
   }
 
-  function startEntryVideo() {
+  function startEntry() {
     if (!video || entryStarted) return;
     entryStarted = true;
     entryLayer?.classList.add('is-playing');
-
-    try {
-      if (video.currentTime < 0.001) video.currentTime = 0.001;
-    } catch (error) {}
-
     const play = video.play();
     if (play && typeof play.catch === 'function') {
       play.catch(() => {
@@ -61,34 +44,27 @@
     }
   }
 
+  prepareVideo();
   if (video) {
-    video.autoplay = false;
-    video.muted = true;
-    video.defaultMuted = true;
-    video.setAttribute('muted','');
-    video.setAttribute('playsinline','');
-    video.setAttribute('webkit-playsinline','');
-    video.pause();
-
-    video.addEventListener('loadedmetadata', prepareFirstFrame, { once:true });
-    video.addEventListener('loadeddata', prepareFirstFrame, { once:true });
-    video.addEventListener('canplay', prepareFirstFrame, { once:true });
-    video.addEventListener('ended', revealInvitation, { once:true });
-    video.addEventListener('error', revealInvitation, { once:true });
-
-    entryLayer?.addEventListener('click', startEntryVideo);
-    entryLayer?.addEventListener('keydown', event => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        startEntryVideo();
-      }
+    ['loadedmetadata', 'loadeddata', 'canplay'].forEach(eventName => {
+      video.addEventListener(eventName, () => {
+        if (!entryStarted) {
+          video.pause();
+          try { if (video.currentTime < 0.001) video.currentTime = 0.001; } catch (error) {}
+        }
+      });
     });
-
+    video.addEventListener('ended', finishEntry, { once:true });
+    video.addEventListener('error', finishEntry, { once:true });
     video.load();
-    if (video.readyState >= HTMLMediaElement.HAVE_METADATA) prepareFirstFrame();
-  } else {
-    revealInvitation();
   }
+  entryLayer?.addEventListener('click', startEntry);
+  entryLayer?.addEventListener('keydown', event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      startEntry();
+    }
+  });
 
   function updateCountdown() {
     const root = document.getElementById('countdown');
@@ -103,84 +79,29 @@
       ['Horas', hours],
       ['Min', minutes],
       ['Seg', seconds]
-    ].map(([label,value]) => `<div class="countdown-item"><strong>${String(value).padStart(2,'0')}</strong><span>${label}</span></div>`).join('');
+    ].map(([label, value]) => `<div><strong>${String(value).padStart(2, '0')}</strong><span>${label}</span></div>`).join('');
   }
   updateCountdown();
   window.setInterval(updateCountdown, 1000);
 
-  function togglePanel(button, panel) {
+  function toggle(button, panel) {
     if (!button || !panel) return;
-    const open = panel.hidden;
-    panel.hidden = !open;
-    button.setAttribute('aria-expanded', String(open));
+    const willOpen = panel.hidden;
+    panel.hidden = !willOpen;
+    button.setAttribute('aria-expanded', String(willOpen));
   }
 
-  const openRsvpBtn = document.getElementById('openRsvpBtn');
+  const rsvpButton = document.getElementById('openRsvpBtn');
   const rsvpPanel = document.getElementById('rsvp-panel');
-  openRsvpBtn?.addEventListener('click', () => togglePanel(openRsvpBtn, rsvpPanel));
+  rsvpButton?.addEventListener('click', () => toggle(rsvpButton, rsvpPanel));
 
-  document.querySelectorAll('[data-attendance]').forEach(button => {
-    button.addEventListener('click', () => {
-      attendanceValue = button.dataset.attendance || '';
-      document.querySelectorAll('[data-attendance]').forEach(item => item.classList.toggle('is-selected', item === button));
-      const controls = document.getElementById('guestControls');
-      if (controls) controls.hidden = attendanceValue !== 'Sí';
-    });
-  });
+  const musicButton = document.getElementById('openMusicBtn');
+  const musicPanel = document.getElementById('music-request-panel');
+  musicButton?.addEventListener('click', () => toggle(musicButton, musicPanel));
 
-  document.querySelectorAll('[data-guest-step]').forEach(button => {
-    button.addEventListener('click', () => {
-      const delta = Number(button.dataset.guestStep || 0);
-      guestAmount = Math.min(6, Math.max(1, guestAmount + delta));
-      const counter = document.getElementById('guestCount');
-      if (counter) counter.textContent = String(guestAmount);
-    });
-  });
-
-  function sendRSVP() {
-    const input = document.getElementById('guestName');
-    const button = document.getElementById('submitRsvpBtn');
-    const panel = document.getElementById('rsvp-panel');
-    const success = document.getElementById('rsvp-success');
-    const name = input ? input.value.trim() : '';
-
-    if (!name || !attendanceValue) {
-      alert('Por favor completa tu nombre y confirma si asistirás.');
-      return;
-    }
-
-    if (button) {
-      button.disabled = true;
-      button.textContent = 'Enviando...';
-    }
-
-    fetch(RSVP_URL, {
-      method:'POST',
-      mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        nombre:name,
-        asistencia:attendanceValue,
-        cantidad:attendanceValue === 'Sí' ? guestAmount : ''
-      })
-    }).catch(() => {}).finally(() => {
-      if (panel) panel.hidden = true;
-      if (openRsvpBtn) openRsvpBtn.setAttribute('aria-expanded','false');
-      if (success) {
-        success.hidden = false;
-        success.removeAttribute('hidden');
-      }
-      if (button) {
-        button.disabled = false;
-        button.textContent = 'Enviar confirmación →';
-      }
-    });
-  }
-  document.getElementById('submitRsvpBtn')?.addEventListener('click', sendRSVP);
-
-  const giftToggle = document.getElementById('giftToggle');
+  const giftButton = document.getElementById('giftToggle');
   const giftDetails = document.getElementById('giftDetails');
-  giftToggle?.addEventListener('click', () => togglePanel(giftToggle, giftDetails));
+  giftButton?.addEventListener('click', () => toggle(giftButton, giftDetails));
 
   document.querySelectorAll('[data-copy]').forEach(button => {
     button.addEventListener('click', async () => {
@@ -189,80 +110,19 @@
       try {
         await navigator.clipboard.writeText(value);
         button.textContent = 'COPIADO';
-        window.setTimeout(() => { button.textContent = original; }, 1000);
+        window.setTimeout(() => { button.textContent = original; }, 1100);
       } catch (error) {
         button.textContent = original;
       }
     });
   });
 
-  const openMusicBtn = document.getElementById('openMusicBtn');
-  const musicPanel = document.getElementById('music-request-panel');
-  openMusicBtn?.addEventListener('click', () => togglePanel(openMusicBtn, musicPanel));
+  document.querySelectorAll('[data-mgd-rsvp-token],[data-mgd-music-token]').forEach(host => {
+    if (host.hasAttribute('data-mgd-rsvp-token')) host.setAttribute('data-mgd-rsvp-token', N7_TOKEN);
+    if (host.hasAttribute('data-mgd-music-token')) host.setAttribute('data-mgd-music-token', N7_TOKEN);
+  });
 
-  function buildMusicRequestId() {
-    const now = new Date();
-    const pad = value => String(value).padStart(2,'0');
-    const date = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
-    const time = `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-    const random = Math.random().toString(36).slice(2,7).toUpperCase();
-    return `PM-${date}-${time}-${random}`;
-  }
-
-  function sendMusicRequest() {
-    const name = (document.getElementById('musicGuestName')?.value || '').trim();
-    const song = (document.getElementById('musicSongName')?.value || '').trim();
-    const artist = (document.getElementById('musicArtistName')?.value || '').trim();
-    const comment = (document.getElementById('musicComment')?.value || '').trim();
-    const button = document.getElementById('submitMusicBtn');
-    const panel = document.getElementById('music-request-panel');
-    const success = document.getElementById('music-success');
-
-    if (!name || !song || !artist) {
-      alert('Por favor completa tu nombre, la canción y el artista.');
-      return;
-    }
-
-    const requestId = buildMusicRequestId();
-    const sentAt = new Date().toISOString();
-
-    if (button) {
-      button.disabled = true;
-      button.textContent = 'Enviando...';
-    }
-
-    fetch(MUSIC_REQUEST_URL, {
-      method:'POST',
-      mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        fecha_hora:sentAt,
-        fechaHora:sentAt,
-        nombre:name,
-        cancion:song,
-        artista:artist,
-        invitacion:MUSIC_INVITATION_NAME,
-        estado:'Pendiente',
-        id:requestId,
-        observacion:'',
-        comentario:comment
-      })
-    }).catch(() => {}).finally(() => {
-      if (panel) panel.hidden = true;
-      if (openMusicBtn) openMusicBtn.setAttribute('aria-expanded','false');
-      if (success) {
-        success.hidden = false;
-        success.removeAttribute('hidden');
-      }
-      if (button) {
-        button.disabled = false;
-        button.textContent = 'Enviar pedido musical →';
-      }
-      ['musicGuestName','musicSongName','musicArtistName','musicComment'].forEach(id => {
-        const field = document.getElementById(id);
-        if (field) field.value = '';
-      });
-    });
-  }
-  document.getElementById('submitMusicBtn')?.addEventListener('click', sendMusicRequest);
+  import(NATIVE_WIDGET).catch(error => {
+    console.error('[Invitación final] No se pudo cargar el widget nativo de confirmación/música.', error);
+  });
 })();
