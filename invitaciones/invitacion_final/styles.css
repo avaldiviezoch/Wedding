@@ -1,0 +1,46 @@
+/* REGLA INVITACIÓN FINAL:
+   Solo existen index.html, styles.css y app.js.
+   No crear parches ni archivos adicionales. Todo cambio se integra aquí. */
+
+:root{
+  --background:#f1e5da;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html,
+body{
+  margin:0;
+  width:100%;
+  min-height:100%;
+  background:var(--background);
+}
+
+body{
+  overflow:hidden;
+}
+
+#app{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  background:var(--background);
+}
+
+#entryVideo{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  background:var(--background);
+  transition:opacity .25s ease;
+}
+
+#entryVideo.is-finished{
+  opacity:0;
+  pointer-events:none;
+}
