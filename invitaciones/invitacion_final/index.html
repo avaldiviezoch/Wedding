@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f1e5da">
   <title>Antonio & Lucero</title>
+  <link rel="preload" href="../invitacion_7/video_entrada.mp4" as="video" type="video/mp4" fetchpriority="high">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
@@ -14,10 +15,14 @@
        Todo cambio se integra de forma estructurada en estos tres documentos.
        Los recursos visuales existentes se referencian desde invitacion_7; no se duplican aquí. -->
 
-  <div id="entryLayer" class="entry-layer">
+  <div id="entryLayer" class="entry-layer" role="button" tabindex="0" aria-label="Toca para entrar a la invitación">
     <video id="entryVideo" muted playsinline webkit-playsinline preload="auto">
-      <source src="../invitacion_7/video_entrada.mp4" type="video/mp4">
+      <source src="../invitacion_7/video_entrada.mp4#t=0.001" type="video/mp4">
     </video>
+    <div id="entryPrompt" class="entry-prompt" aria-hidden="true">
+      <span class="entry-prompt-title">TOCA LA PUERTA</span>
+      <span class="entry-prompt-subtitle">para entrar</span>
+    </div>
   </div>
 
   <main id="app" class="invitation" aria-label="Invitación de Antonio y Lucero" hidden>
