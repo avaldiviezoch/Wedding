@@ -24,6 +24,8 @@
   const entryLayer = document.getElementById('entryLayer');
   const video = document.getElementById('entryVideo');
   const app = document.getElementById('app');
+  let entryReady = false;
+  let entryStarted = false;
 
   function revealInvitation() {
     if (!app || !entryLayer) return;
@@ -33,11 +35,39 @@
     window.setTimeout(() => entryLayer.remove(), 300);
   }
 
+  function markEntryReady() {
+    if (!video || entryReady) return;
+    entryReady = true;
+    video.pause();
+    try { video.currentTime = 0; } catch (error) {}
+    entryLayer?.classList.add('is-ready');
+  }
+
+  function startEntryVideo() {
+    if (!video || !entryReady || entryStarted) return;
+    entryStarted = true;
+    entryLayer?.classList.add('is-playing');
+    const play = video.play();
+    if (play && typeof play.catch === 'function') {
+      play.catch(() => {
+        entryStarted = false;
+        entryLayer?.classList.remove('is-playing');
+      });
+    }
+  }
+
   if (video) {
+    video.autoplay = false;
+    video.pause();
+    try { video.currentTime = 0; } catch (error) {}
+    video.addEventListener('loadeddata', markEntryReady, { once:true });
+    video.addEventListener('canplay', markEntryReady, { once:true });
     video.addEventListener('ended', revealInvitation, { once:true });
     video.addEventListener('error', revealInvitation, { once:true });
-    const play = video.play();
-    if (play && typeof play.catch === 'function') play.catch(() => {});
+    entryLayer?.addEventListener('click', startEntryVideo);
+    entryLayer?.addEventListener('touchend', startEntryVideo, { passive:true });
+    video.load();
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) markEntryReady();
   } else {
     revealInvitation();
   }
