@@ -2,6 +2,7 @@
   const outer=document.getElementById('invite');
   if(!outer)return;
   const STYLE_ID='inv7-visible-refresh-20260831';
+  const CREW_FONT_ID='inv7-crew-cormorant-italic';
 
   function apply(){
     try{
@@ -11,6 +12,16 @@
       const f2=d2?.getElementById('inv5');
       const doc=f2?(f2.contentDocument||f2.contentWindow.document):null;
       if(!doc?.head)return false;
+
+      /* Carga únicamente la variante cursiva real usada por los textos de tripulación.
+         REGLA: el texto verde “Nada nos hará más felices…” no se selecciona ni se modifica. */
+      if(!doc.getElementById(CREW_FONT_ID)){
+        const fontLink=doc.createElement('link');
+        fontLink.id=CREW_FONT_ID;
+        fontLink.rel='stylesheet';
+        fontLink.href='https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,700&display=swap';
+        doc.head.appendChild(fontLink);
+      }
 
       let style=doc.getElementById(STYLE_ID);
       if(!style){
@@ -27,8 +38,7 @@
           right:0!important;
         }
 
-        /* SOLO tripulación. El texto verde “Nada nos hará más felices…”
-           no se selecciona ni se modifica de ninguna forma. */
+        /* SOLO tripulación */
         html body .sat-inv6-crew-title,
         html body .sat-inv6-crew-copy{
           font-family:'Cormorant Garamond',serif!important;
@@ -36,7 +46,7 @@
         }
         html body .sat-inv6-crew-title{
           top:16.2%!important;
-          font-weight:800!important;
+          font-weight:700!important;
         }
         html body .sat-inv6-crew-copy{
           font-weight:400!important;
