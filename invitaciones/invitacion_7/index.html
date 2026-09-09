@@ -7,8 +7,9 @@
   <title>Antonio & Lucero</title>
   <link rel="preload" href="./video_entrada.mp4" as="video" type="video/mp4" fetchpriority="high">
   <style>
-    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f1e5da}
-    #invite{position:fixed;inset:0;width:100%;height:100%;border:0;background:#f1e5da}
+    html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;background:#f1e5da}
+    #invite{position:fixed;left:0;top:0;width:100%;height:100%;min-height:100%;border:0;background:#f1e5da}
+    @supports(height:100dvh){html,body,#invite{height:100dvh;min-height:100dvh}}
     #entryPreview,#entryPoster{
       position:fixed;inset:0;width:100%;height:100%;z-index:999998;
       object-fit:cover;background:#f1e5da;pointer-events:none
@@ -56,7 +57,7 @@
   </style>
 </head>
 <body>
-  <iframe id="invite" src="./invitacion_6_base_final.html?v=20260831-cache-chain-1" title="Invitación Antonio y Lucero" allow="autoplay; fullscreen"></iframe>
+  <iframe id="invite" src="./invitacion_6_base_final.html?v=20260909-chrome-viewport-1" title="Invitación Antonio y Lucero" allow="autoplay; fullscreen"></iframe>
 
   <video id="entryPreview" autoplay muted playsinline webkit-playsinline preload="auto" disablepictureinpicture aria-hidden="true">
     <source src="./video_entrada.mp4#t=0.001" type="video/mp4">
@@ -79,6 +80,27 @@
     let loaderFinished = false;
     let posterCaptured = false;
     let handoffDone = false;
+
+    function syncVisualViewport(){
+      const h=Math.round(window.visualViewport?.height || window.innerHeight || document.documentElement.clientHeight || 0);
+      if(!h)return;
+      outer.style.setProperty('height',h+'px','important');
+      outer.style.setProperty('min-height',h+'px','important');
+      try{
+        const d1=outer.contentDocument||outer.contentWindow.document;
+        const f1=d1?.getElementById('inviteFrame');
+        if(f1){
+          f1.style.setProperty('height',h+'px','important');
+          f1.style.setProperty('min-height',h+'px','important');
+        }
+      }catch(e){}
+    }
+
+    window.visualViewport?.addEventListener('resize',syncVisualViewport);
+    window.visualViewport?.addEventListener('scroll',syncVisualViewport);
+    window.addEventListener('resize',syncVisualViewport);
+    outer.addEventListener('load',()=>[0,120,400,900].forEach(ms=>setTimeout(syncVisualViewport,ms)));
+    syncVisualViewport();
 
     function sizePoster() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -210,7 +232,7 @@
   <script src="./timeline-type-fidelity.js?v=20260827-timeline-type-1"></script>
   <script src="./restore-agreed-gift.js?v=20260827-agreed-gift-owner-2"></script>
   <script src="./gift-green-underlay.js?v=20260909-gift-bg-asset-1"></script>
-  <script src="./inv7-visual-refresh.js?v=20260909-cormorant-italic-real-2"></script>
+  <script src="./inv7-visual-refresh.js?v=20260909-font-sync-runtime-1"></script>
   <script src="./inv7-faq-final-tune.js?v=20260901-faq-images-crew-preload-1"></script>
   <script>
   (() => {
