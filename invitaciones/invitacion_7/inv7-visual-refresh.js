@@ -2,6 +2,7 @@
   const outer=document.getElementById('invite');
   if(!outer)return;
   const STYLE_ID='inv7-visible-refresh-20260831';
+  const CORMORANT_FONT_ID='inv7-cormorant-italic-real';
 
   function apply(){
     try{
@@ -11,6 +12,15 @@
       const f2=d2?.getElementById('inv5');
       const doc=f2?(f2.contentDocument||f2.contentWindow.document):null;
       if(!doc?.head)return false;
+
+      let fontLink=doc.getElementById(CORMORANT_FONT_ID);
+      if(!fontLink){
+        fontLink=doc.createElement('link');
+        fontLink.id=CORMORANT_FONT_ID;
+        fontLink.rel='stylesheet';
+        fontLink.href='https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400;1,700&display=swap';
+        doc.head.appendChild(fontLink);
+      }
 
       let style=doc.getElementById(STYLE_ID);
       if(!style){
@@ -27,7 +37,7 @@
           right:0!important;
         }
 
-        /* Tipografía auditada: misma familia efectiva del texto “Nada nos hará más felices…” */
+        /* Misma familia y cursiva real que el texto de referencia */
         html body #inv6TornPaperMessage .inv6-torn-paper-text,
         html body .sat-inv6-crew-title,
         html body .sat-inv6-crew-copy,
