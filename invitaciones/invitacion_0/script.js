@@ -10,6 +10,7 @@
   const rsvpHost = document.querySelector('[data-mgd-rsvp-token]');
   const giftButton = document.getElementById('giftToggle');
   const giftDetails = document.getElementById('giftDetails');
+  const handsSection = document.getElementById('handsSection');
   const musicButton = document.getElementById('openMusicBtn');
   const musicPanel = document.getElementById('music-request-panel');
   const musicHost = document.querySelector('[data-mgd-music-token]');
@@ -27,21 +28,25 @@
 
   function createPetals() {
     if (!petals) return;
+
     const petalCount = 55;
     for (let i = 0; i < petalCount; i += 1) {
       const petal = document.createElement('span');
       petal.className = 'petal';
+
       const left = Math.random() * 100;
       const fallDuration = 11 + Math.random() * 10;
       const swayDuration = 3 + Math.random() * 3;
       const spinDuration = 6 + Math.random() * 5;
       const delay = Math.random() * -18;
       const scale = 0.7 + Math.random() * 0.9;
+
       petal.style.left = `${left}vw`;
       petal.style.animationDuration = `${fallDuration}s, ${swayDuration}s, ${spinDuration}s`;
       petal.style.animationDelay = `${delay}s, ${delay}s, ${delay}s`;
       petal.style.transform = `scale(${scale})`;
       petal.style.opacity = (0.35 + Math.random() * 0.35).toFixed(2);
+
       petals.appendChild(petal);
     }
   }
@@ -54,10 +59,12 @@
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
     const pad = value => String(value).padStart(2, '0');
+
     const daysElement = document.querySelector('[data-countdown-days]');
     const hoursElement = document.querySelector('[data-countdown-hours]');
     const minutesElement = document.querySelector('[data-countdown-minutes]');
     const secondsElement = document.querySelector('[data-countdown-seconds]');
+
     if (daysElement) daysElement.textContent = String(days);
     if (hoursElement) hoursElement.textContent = pad(hours);
     if (minutesElement) minutesElement.textContent = pad(minutes);
@@ -69,7 +76,9 @@
     document.body.classList.remove('entry-open');
   }
 
-  function startFirstEntrance() { firstEntrance?.classList.add('is-active'); }
+  function startFirstEntrance() {
+    firstEntrance?.classList.add('is-active');
+  }
 
   function startSakeDeBinks() {
     const backgroundMusic = new Audio(SAKE_BINKS_URL);
@@ -90,27 +99,52 @@
     entryVideo.play().catch(() => {});
   }
 
-  function initClosingWriting() {
-    if (!closingWriting || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    closingWriting.style.clipPath = 'inset(0 100% 0 0)';
-    closingWriting.style.willChange = 'clip-path';
+  function initHandsReveal() {
+    if (!handsSection) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      handsSection.classList.add('is-visible');
+      return;
+    }
+
     const observer = new IntersectionObserver(entries => {
       const entry = entries[0];
       if (!entry?.isIntersecting) return;
+      handsSection.classList.add('is-visible');
       observer.disconnect();
-      const animation = closingWriting.animate([
-        { clipPath:'inset(0 100% 0 0)' },
-        { clipPath:'inset(0 0 0 0)' }
-      ], {
-        duration:2600,
-        easing:'cubic-bezier(.22,.61,.36,1)',
-        fill:'forwards'
-      });
+    }, { threshold:0.45 });
+
+    observer.observe(handsSection);
+  }
+
+  function initClosingWriting() {
+    if (!closingWriting || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    closingWriting.style.clipPath = 'inset(0 100% 0 0)';
+    closingWriting.style.willChange = 'clip-path';
+
+    const observer = new IntersectionObserver(entries => {
+      const entry = entries[0];
+      if (!entry?.isIntersecting) return;
+
+      observer.disconnect();
+      const animation = closingWriting.animate(
+        [
+          { clipPath:'inset(0 100% 0 0)' },
+          { clipPath:'inset(0 0 0 0)' }
+        ],
+        {
+          duration:2600,
+          easing:'cubic-bezier(.22,.61,.36,1)',
+          fill:'forwards'
+        }
+      );
       animation.addEventListener('finish', () => {
         closingWriting.style.clipPath = 'none';
         closingWriting.style.willChange = 'auto';
       }, { once:true });
     }, { threshold:0.65 });
+
     observer.observe(closingWriting);
   }
 
@@ -130,10 +164,12 @@
 
   function createMusicBurst() {
     if (!musicBurst || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
     const vectors = [
       [-76,-70,-24,1],[-42,-96,15,.86],[6,-100,-14,1.08],[54,-78,24,.92],[82,-34,-18,1.04],
       [76,18,22,.82],[38,56,-12,.96],[-18,52,18,.82],[-66,26,-28,.96],[-88,-22,16,.84]
     ];
+
     vectors.forEach(([x,y,rotation,scale], index) => {
       const note = document.createElementNS(SVG_NS, 'svg');
       const path = document.createElementNS(SVG_NS, 'path');
@@ -163,11 +199,14 @@
   async function copyGiftValue(button) {
     const value = button.dataset.copy;
     if (!value) return;
+
     try {
       await navigator.clipboard.writeText(value);
       const original = button.textContent;
       button.textContent = 'COPIADO';
-      window.setTimeout(() => { button.textContent = original; }, 1000);
+      window.setTimeout(() => {
+        button.textContent = original;
+      }, 1000);
     } catch (error) {
       console.error('[Invitación] No se pudo copiar el dato del regalo.', error);
     }
@@ -175,6 +214,7 @@
 
   createPetals();
   renderCountdown();
+  initHandsReveal();
   initClosingWriting();
   window.setInterval(renderCountdown, 1000);
 
