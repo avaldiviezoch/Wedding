@@ -1,172 +1,59 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#fbeed8" />
-  <title>Antonio & Lucero | Invitación</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#fbeed8">
+  <title>Antonio & Lucero | Invitación 3</title>
   <style>
-    html, body { margin: 0; min-height: 100%; background: #fbeed8; }
-    .loading-patch { position: fixed; inset: 0; display: grid; place-items: center; color: #355a35; font-family: system-ui, sans-serif; font-size: 13px; letter-spacing: .08em; background: #fbeed8; }
+    html,body{margin:0;min-height:100%;background:#fbeed8}
+    .loader{position:fixed;inset:0;display:grid;place-items:center;background:#fbeed8;color:#355a35;font:600 12px/1.4 system-ui,sans-serif;letter-spacing:.08em;text-align:center;padding:24px}
   </style>
 </head>
 <body>
-  <div class="loading-patch">Cargando invitación…</div>
-  <script>
-    (async function () {
-      const response = await fetch('invitacion_3_base.html?v=20260813-1', { cache: 'no-store' });
-      if (!response.ok) throw new Error('No se pudo cargar la invitación base');
-      let html = await response.text();
+<div class="loader" id="loader">Preparando invitación…</div>
+<script>
+(async()=>{
+  try{
+    const response=await fetch('invitacion_3_base.html',{cache:'force-cache'});
+    if(!response.ok) throw new Error('No se pudo cargar invitacion_3_base.html');
+    let html=await response.text();
 
-      const effectStyle = `<style id="faqExtraEffects">
-      .faq-illustration.faq-illustration-dj,
-      .faq-illustration.faq-illustration-gift {
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding-top: 8px;
-        overflow: visible;
-      }
+    html=html
+      .replaceAll('https://avaldiviezoch.github.io/Wedding/','./')
+      .replaceAll('https://raw.githubusercontent.com/avaldiviezoch/Wedding/refs/heads/main/','./')
+      .replaceAll('https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/','./')
+      .replaceAll('preload="auto"','preload="metadata"')
+      .replace("gif.src = cleanSrc + '?once=' + Date.now();","gif.src = cleanSrc + '?v=20260818-local';");
 
-      .faq-illustration.faq-illustration-dj img,
-      .faq-illustration.faq-illustration-gift img {
-        animation: faqFloat 4.8s ease-in-out infinite;
-        transform-origin: center center;
-        will-change: transform;
-      }
+    const extraStyle=`<style id="faqExtraEffects">
+      .faq-illustration.faq-illustration-dj,.faq-illustration.faq-illustration-gift{position:relative;display:flex;justify-content:center;align-items:center;padding-top:8px;overflow:visible}
+      .faq-illustration.faq-illustration-dj img,.faq-illustration.faq-illustration-gift img{animation:faqFloat 4.8s ease-in-out infinite;transform-origin:center;will-change:transform}
+      .faq-illustration.faq-illustration-dj::before,.faq-illustration.faq-illustration-dj::after{position:absolute;top:8%;font-size:clamp(22px,4vw,30px);color:#477957;opacity:.75;pointer-events:none}
+      .faq-illustration.faq-illustration-dj::before{content:'♪';left:12%;animation:musicNote 3.2s ease-in-out infinite}
+      .faq-illustration.faq-illustration-dj::after{content:'♫';right:12%;animation:musicNote 3.6s ease-in-out infinite .4s}
+      @keyframes faqFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+      @keyframes musicNote{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-12px);opacity:.95}}
+    </style>`;
+    html=html.replace('</head>',extraStyle+'\n</head>');
 
-      .faq-illustration.faq-illustration-dj::before,
-      .faq-illustration.faq-illustration-dj::after {
-        position: absolute;
-        top: 8%;
-        font-size: clamp(22px, 4vw, 30px);
-        color: #477957;
-        opacity: .75;
-        pointer-events: none;
-        filter: drop-shadow(0 3px 8px rgba(71,121,87,.16));
-      }
+    const giftAnswer='<div class="faq-answer">Sí. Podremos recibir regalos físicos durante la recepción y también encontrarás opciones de Yape o transferencia en la sección de regalos.</div>';
+    if(html.includes(giftAnswer) && !html.includes('faq-illustration-gift')){
+      html=html.replace(giftAnswer,giftAnswer+'<div class="faq-illustration faq-illustration-gift"><img src="pic_preguntas_3_5.png" alt="Ilustración para regalos" loading="lazy"></div>');
+    }
+    const musicAnswer='<div class="faq-answer">Las sugerencias se recibirán mediante el formulario antes de la boda. Durante la celebración, el DJ no recibirá pedidos en vivo.</div>';
+    if(html.includes(musicAnswer) && !html.includes('faq-illustration-dj')){
+      html=html.replace(musicAnswer,musicAnswer+'<div class="faq-illustration faq-illustration-dj"><img src="pic_preguntas_3_4.png" alt="Novios con consola de DJ" loading="lazy"></div>');
+    }
 
-      .faq-illustration.faq-illustration-dj::before {
-        content: "♪";
-        left: 12%;
-        animation: musicNoteLeft 3.2s ease-in-out infinite;
-      }
-
-      .faq-illustration.faq-illustration-dj::after {
-        content: "♫";
-        right: 12%;
-        animation: musicNoteRight 3.6s ease-in-out infinite .4s;
-      }
-
-      .faq-illustration.faq-illustration-gift::before,
-      .faq-illustration.faq-illustration-gift::after {
-        content: "";
-        position: absolute;
-        pointer-events: none;
-      }
-
-      .faq-illustration.faq-illustration-gift::before {
-        width: 24px;
-        height: 24px;
-        top: 12%;
-        right: 16%;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(239,106,103,.75) 0 35%, rgba(239,106,103,0) 70%);
-        animation: giftSparkle 2.8s ease-in-out infinite;
-      }
-
-      .faq-illustration.faq-illustration-gift::after {
-        width: 18px;
-        height: 18px;
-        left: 16%;
-        bottom: 14%;
-        background:
-          linear-gradient(#ef6a67,#ef6a67),
-          linear-gradient(#ef6a67,#ef6a67);
-        background-size: 100% 2px, 2px 100%;
-        background-position: center;
-        background-repeat: no-repeat;
-        transform: rotate(45deg);
-        opacity: .7;
-        animation: giftSparkleSmall 3.1s ease-in-out infinite .35s;
-      }
-
-      .faq details[open] .faq-illustration.faq-illustration-gift img {
-        animation: giftBounce 2.4s ease-in-out infinite;
-      }
-
-      @keyframes faqFloat {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-8px); }
-      }
-
-      @keyframes musicNoteLeft {
-        0%, 100% { transform: translateY(0) rotate(-8deg); opacity: .4; }
-        50% { transform: translateY(-12px) rotate(6deg); opacity: .95; }
-      }
-
-      @keyframes musicNoteRight {
-        0%, 100% { transform: translateY(0) rotate(8deg); opacity: .45; }
-        50% { transform: translateY(-14px) rotate(-4deg); opacity: .98; }
-      }
-
-      @keyframes giftBounce {
-        0%, 100% { transform: translateY(0) scale(1); }
-        30% { transform: translateY(-5px) scale(1.015); }
-        60% { transform: translateY(0) scale(1); }
-      }
-
-      @keyframes giftSparkle {
-        0%, 100% { transform: scale(.7); opacity: 0; }
-        30% { opacity: .6; }
-        50% { transform: scale(1.05); opacity: .95; }
-        80% { opacity: .35; }
-      }
-
-      @keyframes giftSparkleSmall {
-        0%, 100% { transform: rotate(45deg) scale(.65); opacity: 0; }
-        40% { opacity: .85; }
-        60% { transform: rotate(45deg) scale(1); }
-      }
-      </style>`;
-
-      const giftOld = `        <details>
-          <summary>¿Podemos llevar un regalo?</summary>
-          <div class="faq-answer">Sí. Podremos recibir regalos físicos durante la recepción y también encontrarás opciones de Yape o transferencia en la sección de regalos.</div>
-        </details>`;
-      const giftNew = `        <details>
-          <summary>¿Podemos llevar un regalo?</summary>
-          <div class="faq-answer">Sí. Podremos recibir regalos físicos durante la recepción y también encontrarás opciones de Yape o transferencia en la sección de regalos.</div>
-          <div class="faq-illustration faq-illustration-gift">
-            <img src="pic_preguntas_3_5.png" onerror="this.classList.add('media-error')" alt="Ilustración para la pregunta de regalos" loading="lazy" />
-          </div>
-        </details>`;
-
-      const musicOld = `        <details>
-          <summary>¿Podemos solicitar canciones durante la fiesta?</summary>
-          <div class="faq-answer">Las sugerencias se recibirán mediante el formulario antes de la boda. Durante la celebración, el DJ no recibirá pedidos en vivo.</div>
-        </details>`;
-      const musicNew = `        <details>
-          <summary>¿Podemos solicitar canciones durante la fiesta?</summary>
-          <div class="faq-answer">Las sugerencias se recibirán mediante el formulario antes de la boda. Durante la celebración, el DJ no recibirá pedidos en vivo.</div>
-          <div class="faq-illustration faq-illustration-dj">
-            <img src="pic_preguntas_3_4.png" onerror="this.classList.add('media-error')" alt="Ilustración de los novios con audífonos y consola de DJ" loading="lazy" />
-          </div>
-        </details>`;
-
-      if (!html.includes(giftOld) || !html.includes(musicOld)) throw new Error('No se encontraron las preguntas que debían actualizarse');
-      if (!html.includes('faqExtraEffects')) {
-        html = html.replace('</head>', `${effectStyle}\n</head>`);
-      }
-      html = html.replace(giftOld, giftNew).replace(musicOld, musicNew);
-      document.open();
-      document.write(html);
-      document.close();
-    })().catch(function (error) {
-      console.error(error);
-      location.replace('invitacion_3_base.html?v=20260813-1');
-    });
-  </script>
+    document.open();
+    document.write(html);
+    document.close();
+  }catch(error){
+    console.error('Invitación 3:',error);
+    document.getElementById('loader').textContent='No se pudo cargar la invitación. Recarga la página para volver a intentar.';
+  }
+})();
+</script>
 </body>
 </html>
