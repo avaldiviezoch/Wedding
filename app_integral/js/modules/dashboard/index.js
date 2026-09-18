@@ -5,6 +5,7 @@
 'use strict';
 const root=()=>document.getElementById('homeDashboard');
 let uid='',weddingId='',epoch=0;
+const GUEST_STORAGE_KEY='planificador_bodas_invitados_v1';
 const $=id=>document.getElementById(id);
 const n=v=>Number.isFinite(Number(v))?Number(v):0;
 const pct=(a,b)=>b>0?Math.max(0,Math.min(100,Math.round(a*100/b))):0;
@@ -27,6 +28,8 @@ function visibility(){
  const ready=authenticated&&home&&menu&&Boolean(weddingId);
  r.setAttribute('aria-hidden',ready?'false':'true');
 }
+function guestTotal(){try{const raw=localStorage.getItem(GUEST_STORAGE_KEY);const state=raw?JSON.parse(raw):{};return Array.isArray(state?.guests)?state.guests.length:0}catch(_){return 0}}
+function renderGuestTotal(){if(!uid||!weddingId)return;const total=guestTotal();set('dashGuestsRatio',String(total));set('dashGuestsConfirmed','—');set('dashGuestsPending','—');set('dashGuestsPercent','—');ring('dashGuestsRing',0)}
 function render(d={}){
  if(!uid||!weddingId)return;
  if(d.weddingId&&String(d.weddingId)!==weddingId)return;
@@ -45,12 +48,12 @@ function render(d={}){
 function context(detail){
  const next=String(detail?.id||''); if(next===weddingId)return;
  clear(); weddingId=next; root()?.setAttribute('data-wedding-id',weddingId); visibility();
- if(weddingId)window.dispatchEvent(new CustomEvent('migrandia:dashboard-request',{detail:{uid,weddingId,epoch}}));
+ if(weddingId){renderGuestTotal();window.dispatchEvent(new CustomEvent('migrandia:dashboard-request',{detail:{uid,weddingId,epoch}}));}
 }
 window.addEventListener('migrandia:auth',e=>{const d=e.detail||{};if(d.authenticated!==true){uid='';clear();visibility();return}const next=String(d.uid||'');if(next!==uid){uid=next;clear()}context(window.WeddingPlannerWeddingContext||{});visibility()});
 window.addEventListener('migrandia:wedding-context',e=>context(e.detail||{}));
 window.addEventListener('migrandia:dashboard-data',e=>render(e.detail||{}));
-window.addEventListener('migrandia:datachange',()=>{if(uid&&weddingId)window.dispatchEvent(new CustomEvent('migrandia:dashboard-request',{detail:{uid,weddingId,epoch}}))});
+window.addEventListener('migrandia:datachange',()=>{if(uid&&weddingId){renderGuestTotal();window.dispatchEvent(new CustomEvent('migrandia:dashboard-request',{detail:{uid,weddingId,epoch}}))}});
 window.addEventListener('hashchange',visibility);new MutationObserver(visibility).observe(document.body,{attributes:true,attributeFilter:['class']});
 document.addEventListener('DOMContentLoaded',()=>{clear();context(window.WeddingPlannerWeddingContext||{});visibility()},{once:true});
 })();
