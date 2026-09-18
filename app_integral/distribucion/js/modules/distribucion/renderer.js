@@ -401,6 +401,7 @@
   }
 
   function addSquareTable() {
+    if(window.MiGranDiaDistributionAdapter?.mode==='app-integral-bridge')return null;
     const item = addElement('table', { record: false, assignGuests: false });
     if (!item) return null;
     contractApi.normalizeSquareTable(item);
@@ -1256,8 +1257,9 @@
     const lower = neighborCapacity(model.capacity, -1);
     const upper = neighborCapacity(model.capacity, 1);
     const lowerBlocked = lower == null ? [] : (capacityApi.blockedSeatsForCapacity?.(table, lower) || []);
-    seatMinus.disabled = lower == null || lowerBlocked.length > 0 || model.locked;
-    seatPlus.disabled = upper == null || model.locked;
+    const canonical=Boolean(table?.sharedTableId);
+    seatMinus.disabled = canonical || lower == null || lowerBlocked.length > 0 || model.locked;
+    seatPlus.disabled = canonical || upper == null || model.locked;
     seatCountButton.textContent = `${model.capacity} sillas`;
 
     if (firstBlocked?.length) {
@@ -1282,6 +1284,9 @@
     section.hidden = false;
     shapeSelect.value = model.shape;
     capacitySelect.value = String(model.capacity);
+    const canonical=Boolean(table.sharedTableId);
+    shapeSelect.disabled=canonical||model.locked;
+    capacitySelect.disabled=canonical||model.locked;
     updateSeatLayoutOptions(table);
     updateCapacityAvailability(table, model);
     badge.textContent = `${model.seats.occupied}/${model.seats.capacity}`;
@@ -1294,6 +1299,7 @@
   function applyTransition(request) {
     const table = currentTable();
     if (!table) return Object.freeze({ ok:false, reason:'missing-table' });
+    if(table.sharedTableId&&(Object.prototype.hasOwnProperty.call(request,'shape')||Object.prototype.hasOwnProperty.call(request,'capacity')))return Object.freeze({ok:false,reason:'canonical-read-only'});
     const result = capacityApi.transitionTable(table, request);
     refresh();
     return result;
