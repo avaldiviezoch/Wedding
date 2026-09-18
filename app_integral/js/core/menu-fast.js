@@ -120,8 +120,42 @@
     return String(location.hash || '').replace(/^#/, '').split(/[/?&]/)[0].trim().toLowerCase();
   }
 
+  const NEW_DISTRIBUTION_URL = new URL('distribucion/index.html?v=20260918-readonly1', document.baseURI).href;
+  function mountNewDistribution() {
+    if (currentModule() !== 'distribucion') return false;
+    const workspace = document.getElementById('unifiedWorkspace');
+    if (!workspace) return false;
+    let frame = workspace.querySelector('iframe[data-mgd-new-distribution="true"]');
+    if (!frame) {
+      workspace.replaceChildren();
+      frame = document.createElement('iframe');
+      frame.dataset.mgdNewDistribution = 'true';
+      frame.title = 'Distribución y diseño';
+      frame.src = NEW_DISTRIBUTION_URL;
+      frame.setAttribute('loading','eager');
+      frame.setAttribute('referrerpolicy','same-origin');
+      frame.style.width='100%';
+      frame.style.height='100%';
+      frame.style.border='0';
+      workspace.appendChild(frame);
+    }
+    frame.hidden = false;
+    workspace.removeAttribute('hidden');
+    workspace.setAttribute('aria-hidden','false');
+    document.body.classList.add('module-view');
+    document.documentElement.classList.add('mgd-module-surface-active');
+    const loader = document.getElementById('unifiedLoader');
+    loader?.classList.add('show');
+    loader?.setAttribute('aria-hidden','false');
+    const finish=()=>{loader?.classList.remove('show');loader?.setAttribute('aria-hidden','true');};
+    if(frame.dataset.loaded==='true') finish();
+    else frame.addEventListener('load',()=>{frame.dataset.loaded='true';finish();},{once:true});
+    return true;
+  }
+
   function restoreVisibleSurface(reason = 'resume') {
     if (document.hidden) return;
+    if (currentModule() === 'distribucion') mountNewDistribution();
     const moduleId = currentModule();
     const workspace = document.getElementById('unifiedWorkspace');
     const loader = document.getElementById('unifiedLoader');
@@ -160,6 +194,7 @@
 
     const video = document.getElementById('heroVideo');
     if (video && !document.body.classList.contains('module-view') && video.paused) video.play()?.catch?.(() => {});
+    if(moduleId==='distribucion') mountNewDistribution();
     window.dispatchEvent(new CustomEvent('migrandia:resume', {
       detail: { reason, module: moduleId, preserved: Boolean(workspace?.children.length) }
     }));
