@@ -140,6 +140,7 @@
     doc.documentElement.dataset.mgdMasterTheme = VERSION;
 
     if (activeModule === 'distribucion') {
+      if (doc.defaultView?.frameElement?.dataset?.mgdNewDistribution === 'true') return true;
       useDistributionTheme(doc);
       annotateStatus(doc);
       return true;
