@@ -31,8 +31,6 @@ const seatEditor=document.getElementById('seatEditor');
 const seatCount=document.getElementById('seatCount');
 const guestList=document.getElementById('guestList');
 const guestSearch=document.getElementById('guestSearch');
-const newGuestName=document.getElementById('newGuestName');
-const bulkGuests=document.getElementById('bulkGuests');
 const selLabel=document.getElementById('selLabel');
 const selX=document.getElementById('selX');
 const selY=document.getElementById('selY');
@@ -503,95 +501,27 @@ function renderGuestManager(){
   guestList.replaceChildren();
   filtered.forEach(guest=>{
     const row=document.createElement('div');
-    row.className='guest-row guest-drag-source';
-    row.draggable=true;
+    row.className='guest-row';
+    row.draggable=false;
     row.dataset.guestId=guest.id;
-    row.title='Arrastra este invitado hacia una silla';
+    row.title='Asignación gestionada desde el módulo Invitados';
     const info=document.createElement('div');
     const strong=document.createElement('strong');strong.textContent=guest.name;
     const small=document.createElement('small');const location=assignments.get(guest.id);small.textContent=location?`${location.tableLabel} · Asiento ${location.seatNumber}`:'Sin asignar';
     info.append(strong,small);
-    const handle=document.createElement('span');handle.className='guest-drag-handle';handle.textContent='⋮⋮';handle.setAttribute('aria-hidden','true');
-    row.append(info,handle);guestList.appendChild(row);
+    row.append(info);guestList.appendChild(row);
   });
 }
 
-function draggedGuestId(event){
-  return event.dataTransfer?.getData('text/mgd-guest')||event.dataTransfer?.getData('text/plain')||'';
-}
-function clearSeatDropFeedback(){
-  planner.querySelectorAll('.seat-drop-target').forEach(node=>node.classList.remove('is-seat-drop','is-seat-drop-blocked'));
-}
-function seatDropTarget(event){
-  return event.target?.closest?.('.seat-drop-target[data-table-id][data-seat-index]')||null;
-}
-function assignGuestToSeat(guestId,tableId,seatIndex){
-  const guest=guestById(guestId),table=getItem(tableId),index=Number(seatIndex);
-  if(!guest||!table||table.type!=='table'||!Number.isInteger(index))return false;
-  ensureTableSeats(table);
-  if(index<0||index>=table.seats.length)return false;
-  const occupied=table.seats[index];
-  if(occupied&&occupied!==guestId)return false;
-  clearGuestFromOtherSeats(guestId,table.id,index);
-  table.seats[index]=guestId;
-  setSelection([table.id],table.id);
-  commitMutation();
-  return true;
-}
-
-guestList.addEventListener('dragstart',event=>{
-  const source=event.target.closest?.('.guest-drag-source[data-guest-id]');
-  if(!source||!event.dataTransfer)return;
-  event.dataTransfer.effectAllowed='move';
-  event.dataTransfer.setData('text/mgd-guest',source.dataset.guestId);
-  event.dataTransfer.setData('text/plain',source.dataset.guestId);
-  source.classList.add('is-dragging');
-  planner.classList.add('is-guest-dragging');
-});
-guestList.addEventListener('dragend',event=>{
-  event.target.closest?.('.guest-drag-source')?.classList.remove('is-dragging');
-  planner.classList.remove('is-guest-dragging');
-  clearSeatDropFeedback();
-});
-planner.addEventListener('dragover',event=>{
-  const guestId=draggedGuestId(event);
-  const seat=seatDropTarget(event);
-  if(!guestId||!seat)return;
-  event.preventDefault();
-  clearSeatDropFeedback();
-  const occupied=seat.dataset.guestId;
-  const blocked=Boolean(occupied&&occupied!==guestId);
-  seat.classList.add(blocked?'is-seat-drop-blocked':'is-seat-drop');
-  if(event.dataTransfer)event.dataTransfer.dropEffect=blocked?'none':'move';
-});
-planner.addEventListener('dragleave',event=>{
-  const seat=seatDropTarget(event);
-  if(seat)seat.classList.remove('is-seat-drop','is-seat-drop-blocked');
-});
-planner.addEventListener('drop',event=>{
-  const guestId=draggedGuestId(event);
-  const seat=seatDropTarget(event);
-  if(!guestId||!seat)return;
-  event.preventDefault();
-  event.stopPropagation();
-  const tableId=seat.dataset.tableId;
-  const seatIndex=Number(seat.dataset.seatIndex);
-  const occupied=seat.dataset.guestId;
-  clearSeatDropFeedback();
-  planner.classList.remove('is-guest-dragging');
-  if(occupied&&occupied!==guestId)return;
-  assignGuestToSeat(guestId,tableId,seatIndex);
-});
 function renderSeatEditor(table){
   seatEditor.replaceChildren();
   if(!table||table.type!=='table'){seatEditorWrap.hidden=true;return;}
   seatEditorWrap.hidden=false;ensureTableSeats(table);seatCount.textContent=String(table.capacity);
-  const assignments=guestAssignmentMap();
   table.seats.forEach((guestId,index)=>{
-    const row=document.createElement('div');row.className='seat-row';const number=document.createElement('span');number.className='seat-number';number.textContent=String(index+1);
-    const select=document.createElement('select');const blank=document.createElement('option');blank.value='';blank.textContent='— Sin asignar —';select.appendChild(blank);
-    guests.forEach(guest=>{const option=document.createElement('option');option.value=guest.id;option.textContent=guest.name;const location=assignments.get(guest.id);if(location&&!(location.tableId===table.id&&location.seatIndex===index))option.disabled=true;if(guestId===guest.id)option.selected=true;select.appendChild(option);});
-    select.addEventListener('change',()=>{const next=select.value||null;if(next)clearGuestFromOtherSeats(next,table.id,index);table.seats[index]=next;commitMutation();});row.append(number,select);seatEditor.appendChild(row);
+    const row=document.createElement('div');row.className='seat-row';
+    const number=document.createElement('span');number.className='seat-number';number.textContent=String(index+1);
+    const value=document.createElement('span');value.className='seat-readonly-value';value.textContent=guestId?(guestById(guestId)?.name||'Invitado'):'— Sin asignar —';
+    row.append(number,value);seatEditor.appendChild(row);
   });
 }
 function fillProperties(item){
@@ -683,14 +613,6 @@ document.getElementById('btnAlignNow').addEventListener('click',()=>{const items
 document.getElementById('btnCenter').addEventListener('click',()=>updateSelected(item=>{item.x=724;item.y=543;}));
 document.getElementById('btnRotateLeft').addEventListener('click',()=>updateSelected(item=>{item.rotation=(item.rotation||0)-15;}));
 document.getElementById('btnRotateRight').addEventListener('click',()=>updateSelected(item=>{item.rotation=(item.rotation||0)+15;}));
-document.getElementById('btnClearSeats').addEventListener('click',()=>{const item=selected();if(!item||item.type!=='table'||isItemLocked(item))return;ensureTableSeats(item);item.seats=item.seats.map(()=>null);commitMutation();});
-
-function addGuestNames(names){const clean=names.map(name=>String(name||'').trim()).filter(Boolean);if(!clean.length)return;clean.forEach(name=>guests.push({id:`guest-${guestUid++}`,name}));commitMutation();}
-document.getElementById('btnAddGuest').addEventListener('click',()=>{addGuestNames([newGuestName.value]);newGuestName.value='';newGuestName.focus();});
-newGuestName.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();document.getElementById('btnAddGuest').click();}});
-document.getElementById('btnAddBulkGuests').addEventListener('click',()=>{addGuestNames(bulkGuests.value.split(/\r?\n|,/));bulkGuests.value='';});guestSearch.addEventListener('input',renderGuestManager);
-document.getElementById('btnAssignSequential').addEventListener('click',()=>{elements.filter(item=>item.type==='table').forEach(table=>{ensureTableSeats(table);table.seats=table.seats.map(()=>null);});let index=0;for(const table of elements.filter(item=>item.type==='table'))for(let seat=0;seat<table.capacity&&index<guests.length;seat++,index++)table.seats[seat]=guests[index].id;commitMutation();});
-document.getElementById('btnClearAssignments').addEventListener('click',()=>{elements.filter(item=>item.type==='table').forEach(table=>{ensureTableSeats(table);table.seats=table.seats.map(()=>null);});commitMutation();});
 
 [showGrid,showClearance,showLabels,showNames].forEach(control=>{control.addEventListener('change',()=>{pushHistory();render();});});
 document.getElementById('toggleBg').addEventListener('click',event=>{bgVisible=!bgVisible;event.currentTarget.textContent=bgVisible?'Ocultar plano':'Mostrar plano';pushHistory();render();});
