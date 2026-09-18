@@ -56,7 +56,7 @@ const proposalList=document.getElementById('proposalList');
 const proposalNameTop=document.getElementById('proposalNameTop');
 const proposalNameCanvas=document.getElementById('proposalNameCanvas');
 
-const SAMPLE_NAMES=[]; // Producción: los invitados llegan exclusivamente del contrato canónico del padre.
+// Invitados productivos: se hidratan únicamente desde el adaptador de solo lectura.
 const BASE_TABLE=Object.freeze({widthM:3.4,heightM:3.4,radiusM:.915,capacity:10,color:'#d9b978'});
 const TYPE_DEFAULTS=Object.freeze({
   table:{label:'Mesa 10 personas',widthM:3.4,heightM:3.4,capacity:10,color:'#d9b978',shape:'table'},
@@ -264,7 +264,7 @@ function redoHistory(){
 }
 function commitMutation(){pushHistory();render();saveCurrentProposalSnapshot();}
 
-function seedGuests(){
+function hydrateCanonicalGuests(){
   const adapter=window.MiGranDiaDistributionAdapter;
   const source=adapter?.readGuests?.()||[];
   guests=source.map((guest)=>({
@@ -683,7 +683,7 @@ function renderProposalList(){proposalList.replaceChildren();proposals.forEach(p
 document.getElementById('btnProposals').addEventListener('click',()=>{renderProposalList();proposalModal.hidden=false;});document.getElementById('closeProposalModal').addEventListener('click',()=>proposalModal.hidden=true);document.getElementById('btnNewProposal').addEventListener('click',()=>createProposal(`Propuesta ${proposals.length+1}`));document.getElementById('btnDuplicateProposal').addEventListener('click',()=>createProposal(`${proposals.find(item=>item.id===currentProposalId)?.name||'Propuesta'} copia`,true));proposalModal.addEventListener('click',event=>{if(event.target===proposalModal)proposalModal.hidden=true;});
 
 function initialState(){
-  seedGuests();elements=[];const table=addElement('table',{record:false,assignGuests:true});table.x=724;table.y=543;setSelection([table.id],table.id);hiddenLayers={};lockedLayers={};measurements=[];measurementUid=1;scaleInput.value=32;showGrid.checked=true;showClearance.checked=true;showLabels.checked=true;showNames.checked=true;bgVisible=true;bgPosition={x:0,y:0};zoom=1;setZoom(1);historyPast=[];historyFuture=[];pushHistory();render();
+  hydrateCanonicalGuests();elements=[];const table=addElement('table',{record:false,assignGuests:true});table.x=724;table.y=543;setSelection([table.id],table.id);hiddenLayers={};lockedLayers={};measurements=[];measurementUid=1;scaleInput.value=32;showGrid.checked=true;showClearance.checked=true;showLabels.checked=true;showNames.checked=true;bgVisible=true;bgPosition={x:0,y:0};zoom=1;setZoom(1);historyPast=[];historyFuture=[];pushHistory();render();
 }
 function resetCurrent(){initialState();saveCurrentProposalSnapshot();}
 document.getElementById('resetLab').addEventListener('click',resetCurrent);
@@ -754,7 +754,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   };
 
   initialState = function phase2InitialState() {
-    seedGuests();
+    hydrateCanonicalGuests();
     elements = [];
     const table = addElement('table', { record: false, assignGuests: false });
     table.x = CENTER_X;
@@ -2176,7 +2176,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     restoreState(clone(proposal.state));
     pushHistory();
     proposalNameTop.textContent = proposal.name;
-    proposalNameCanvas.textContent = `${proposal.name} · laboratorio`;
+    proposalNameCanvas.textContent = `${proposal.name}`;
     renderProposalList();
     return true;
   }
@@ -2215,14 +2215,14 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     proposal.updatedAt = new Date().toISOString();
     if (proposal.id === currentProposalId) {
       proposalNameTop.textContent = proposal.name;
-      proposalNameCanvas.textContent = `${proposal.name} · laboratorio`;
+      proposalNameCanvas.textContent = `${proposal.name}`;
     }
     renderProposalList();
   }
 
   function deleteProposalP1(id) {
     if (proposals.length <= 1) {
-      window.alert('Debe quedar al menos una propuesta en el laboratorio.');
+      window.alert('Debe quedar al menos una propuesta en Distribución.');
       return;
     }
     const proposal = proposals.find((entry) => entry.id === id);
@@ -2450,7 +2450,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     drawAreas: Object.keys(DRAW_AREA_PRESETS),
     autoLayout: AUTO_LAYOUT.map(([type, x, y]) => ({ type, x, y })),
     background: { visiblePerProposal: true },
-    proposals: { max: MAX_PROPOSALS, memoryOnly: false, create: true, duplicate: true, rename: true, delete: true, switch: true },
+    proposals: { max: MAX_PROPOSALS, readOnlyIntegration: true, create: true, duplicate: true, rename: true, delete: true, switch: true },
     status: 'ready'
   });
 })();
@@ -2529,7 +2529,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   renderProposalList();
 
   window.MiGranDiaDistributionPhase2P1ProposalPreview = Object.freeze({
-    memoryOnly: false,
+    readOnlyIntegration: true,
     svgPreview: true,
     updatedAt: true,
     status: 'ready'
@@ -2721,7 +2721,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
       currentProposalId = ids.has(requested) ? requested : proposals[0].id;
       const active = proposals.find((proposal) => proposal.id === currentProposalId) || proposals[0];
       proposalNameTop.textContent = active.name;
-      proposalNameCanvas.textContent = `${active.name} · laboratorio`;
+      proposalNameCanvas.textContent = `${active.name}`;
       historyPast = [];
       historyFuture = [];
       restoreState(clone(active.state));
@@ -3016,7 +3016,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     png: { width: CANVAS_W, height: CANVAS_H },
     finalView: true,
     mobile: { sheets: true, fab: true, pinchZoom: true, wheelZoom: true },
-    memoryOnly: false,
+    readOnlyIntegration: true,
     status: 'ready'
   });
 })();
