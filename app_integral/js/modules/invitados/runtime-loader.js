@@ -9,7 +9,10 @@
     return new URL(`js/modules/invitados/${file}?v=${version}`, document.baseURI).href;
   }
 
-  // Distribución nueva se monta exclusivamente desde menu-fast.js.\n  // Este loader ya no inicia ningún runtime legacy de Distribución.\n\n
+  // Distribución nueva se monta exclusivamente desde menu-fast.js.
+  // Este loader ya no inicia ningún runtime legacy de Distribución.
+
+
   function loadBaseRuntime() {
     if (baseRuntime) return baseRuntime;
     baseRuntime = Promise.all([
