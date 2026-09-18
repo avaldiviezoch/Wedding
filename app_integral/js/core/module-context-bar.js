@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260830-module-context4';
+  const VERSION = '20260918-bar-prod1';
   const ROLE_LABELS = {
     owner: 'Propietario',
     admin: 'Administrador',
@@ -40,6 +40,8 @@
     if (role) {
       role.textContent = ROLE_LABELS[context.role] || context.role || 'Mi acceso';
       role.dataset.role = context.role || '';
+      const barRole = document.getElementById('moduleAccountBarRole');
+      if (barRole) barRole.textContent = ROLE_LABELS[context.role] || context.role || 'Mi acceso';
       role.title = context.role === 'owner'
         ? 'Esta es tu boda'
         : `Estás participando como ${ROLE_LABELS[context.role] || context.role || 'colaborador'}`;
@@ -55,10 +57,12 @@
     const image = document.getElementById('moduleAccountAvatar');
     const fallback = document.getElementById('moduleAccountInitials');
     const popoverName = document.getElementById('moduleAccountName');
+    const barName = document.getElementById('moduleAccountBarName');
     const popoverEmail = document.getElementById('moduleAccountEmail');
     const button = document.getElementById('moduleAccountButton');
 
     if (popoverName) popoverName.textContent = nameText;
+    if (barName) barName.textContent = nameText;
     if (popoverEmail) popoverEmail.textContent = emailText;
     if (fallback) fallback.textContent = initials(nameText);
     if (button) button.setAttribute('aria-label', `Cuenta de ${nameText}`);
