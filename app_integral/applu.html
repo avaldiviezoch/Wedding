@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="css/core/auth-guard.css?v=20260817171255">
   <link rel="stylesheet" href="css/modules/auth-premium.css?v=20260814-1144-auth1">
   <link rel="stylesheet" href="css/modules/invitaciones.css?v=20260817-layout-refine-v5">
-  <link rel="stylesheet" href="css/core/module-context-bar.css?v=20260830-account-menu6">
+  <link rel="stylesheet" href="css/core/module-context-bar.css?v=20260918-bar-prod1">
 </head>
 
 <body class="auth-locked">
@@ -181,47 +181,14 @@
     </div>
   </section>
 
-  <nav class="module-quick-nav" id="moduleQuickNav" aria-label="Navegación y contexto de la boda">
-    <button class="module-quick-home" id="moduleQuickHome" type="button" aria-label="Volver al menú"><span class="module-home-arrow" aria-hidden="true">←</span><span class="module-home-label">Menú</span></button>
+  <nav class="module-quick-nav" id="moduleQuickNav" aria-label="Navegación de Mi Gran Día">
+    <button class="module-quick-home" id="moduleQuickHome" type="button" aria-label="Volver al inicio"><span class="mgd-brand-mark" aria-hidden="true">MGD</span><span class="mgd-brand-copy"><strong>Mi Gran Día</strong><small id="moduleWeddingName">Mi boda</small></span></button>
     <button class="module-mobile-tabs" id="moduleMobileTabs" type="button" aria-label="Mostrar módulos">Módulos</button>
     <div class="module-quick-scroll" aria-label="Cambiar de módulo">
-      <button class="module-quick-tab" type="button" data-quick-module="checklist">Checklist</button><button class="module-quick-tab" type="button" data-quick-module="presupuesto">Presupuesto</button><button class="module-quick-tab" type="button" data-quick-module="proveedores">Proveedores</button><button class="module-quick-tab" type="button" data-quick-module="invitados">Invitados</button><button class="module-quick-tab" type="button" data-quick-module="distribucion">Distribución</button><button class="module-quick-tab" type="button" data-quick-module="cronograma">Cronograma</button><button class="module-quick-tab" type="button" data-quick-module="invitaciones">Invitaciones</button><button class="module-quick-tab" type="button" data-quick-module="musica">Música</button>
+      <button class="module-quick-tab" type="button" data-quick-module="checklist"><img src="https://avaldiviezoch.github.io/invitaciones/mi-gran-dia/barra/icons/checklist.png" alt="" aria-hidden="true"><span>Checklist</span></button><button class="module-quick-tab" type="button" data-quick-module="presupuesto"><img src="https://avaldiviezoch.github.io/invitaciones/mi-gran-dia/barra/icons/presupuesto.png" alt="" aria-hidden="true"><span>Presupuesto</span></button><button class="module-quick-tab" type="button" data-quick-module="proveedores"><img src="https://avaldiviezoch.github.io/invitaciones/mi-gran-dia/barra/icons/proveedores.png" alt="" aria-hidden="true"><span>Proveedores</span></button><button class="module-quick-tab" type="button" data-quick-module="invitados"><img src="https://avaldiviezoch.github.io/invitaciones/mi-gran-dia/barra/icons/invitados.png" alt="" aria-hidden="true"><span>Invitados</span></button><button class="module-quick-tab" type="button" data-quick-module="distribucion"><img src="https://avaldiviezoch.github.io/invitaciones/mi-gran-dia/barra/icons/distribucion.png" alt="" aria-hidden="true"><span>Distribución</span></button><button class="module-quick-tab" type="button" data-quick-module="cronograma"><img src="https://avaldiviezoch.github.io/invitaciones/mi-gran-dia/barra/icons/cronograma.png" alt="" aria-hidden="true"><span>Cronograma</span></button><button class="module-quick-tab" type="button" data-quick-module="invitaciones"><img src="https://avaldiviezoch.github.io/invitaciones/mi-gran-dia/barra/icons/invitaciones.png" alt="" aria-hidden="true"><span>Invitaciones</span></button><button class="module-quick-tab" type="button" data-quick-module="musica"><img src="https://avaldiviezoch.github.io/invitaciones/mi-gran-dia/barra/icons/musica.png" alt="" aria-hidden="true"><span>Música</span></button>
     </div>
-    <div class="module-context-actions">
-      <button class="module-context-chip" id="moduleWeddingButton" type="button" aria-label="Cambiar boda o administrar accesos">
-        <span class="module-context-label" id="moduleWeddingCaption">Tu boda</span>
-        <strong class="module-context-name" id="moduleWeddingName">Mi boda</strong>
-        <span class="module-context-role" id="moduleWeddingRole">Propietario</span>
-      </button>
-      <div class="module-account-wrap" id="moduleAccountWrap">
-        <button class="module-account-chip" id="moduleAccountButton" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Abrir cuenta">
-          <img class="module-account-avatar" id="moduleAccountAvatar" alt="">
-          <span class="module-account-initials" id="moduleAccountInitials">MGD</span>
-        </button>
-        <div class="module-account-popover" role="dialog" aria-label="Cuenta activa">
-          <strong id="moduleAccountName">Mi cuenta</strong>
-          <span id="moduleAccountEmail"></span>
-          <button class="module-account-logout" id="moduleContextLogout" type="button">Cerrar sesión</button>
-        </div>
-      </div>
-    </div>
+    <div class="module-context-actions"><div class="module-account-wrap" id="moduleAccountWrap">
+      <button class="module-account-chip" id="moduleAccountButton" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Abrir cuenta"><img class="module-account-avatar" id="moduleAccountAvatar" alt="Foto de perfil"><span class="module-account-initials" id="moduleAccountInitials">MGD</span><span class="module-account-copy"><strong id="moduleAccountBarName">Mi cuenta</strong><small id="moduleAccountBarRole">Mi acceso</small></span><span class="module-account-chevron" aria-hidden="true">⌄</span></button>
+      <div class="module-account-popover" role="dialog" aria-label="Cuenta activa"><strong id="moduleAccountName">Mi cuenta</strong><span id="moduleAccountEmail"></span><button class="module-context-chip" id="moduleWeddingButton" type="button" aria-label="Cambiar boda o administrar accesos"><span class="module-context-label">Boda activa</span><strong class="module-context-name">Cambiar o administrar boda</strong><span class="module-context-role" id="moduleWeddingRole">Propietario</span></button><button class="module-account-logout" id="moduleContextLogout" type="button">Cerrar sesión</button></div>
+    </div></div>
   </nav>
-
-  <section class="unified-workspace" id="unifiedWorkspace" aria-label="Módulos integrados"></section>
-  <button class="module-session-logout" id="moduleSessionLogout" type="button" aria-label="Cerrar sesión">Cerrar sesión</button>
-  <button class="unified-home-button" id="unifiedHomeButton" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="m15 18-6-6 6-6"/></svg>Volver al menú</button>
-  <div class="unified-loader" id="unifiedLoader" aria-hidden="true"><div class="unified-loader-card"><div class="unified-loader-spinner"></div><strong id="unifiedLoaderText">Abriendo módulo…</strong></div></div>
-
-  <script src="js/core/accordion-fast.js?v=20260820163843-nav"></script>
-  <script src="js/core/module-context-bar.js?v=20260830-module-context3"></script>
-  <script src="js/core/menu-fast.js?v=20260820163843-master"></script>
-  <script src="js/modules/invitados/runtime-loader.js?v=20260819-empty-onboarding1"></script>
-  <script src="js/modules/invitaciones/index.js?v=20260820163843-invitaciones"></script>
-
-<script src="js/legacy/applu-script-01.js?v=20260820163843-legacy"></script>
-  <script defer src="js/core/auth-dialog-hardening.js?v=20260821-task7b"></script>
-  <script type="module" src="js/services/firebase.js?v=20260830-account-menu6"></script>
-  <script defer src="js/modules/configuracion/invite-direct.js?v=20260819043411-bfdb0fee-direct"></script>
-
-</body>
-</html>
