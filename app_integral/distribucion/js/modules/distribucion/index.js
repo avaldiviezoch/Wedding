@@ -347,6 +347,12 @@ function refreshCanonicalReadOnlyState(){
   saveCurrentProposalSnapshot();
 }
 window.addEventListener('migrandia:distribution-snapshot-ready',()=>refreshCanonicalReadOnlyState());
+window.addEventListener('migrandia:distribution-context-clear',()=>{
+  guests=[];elements=[];selectedIds=[];selectedId='';measurements=[];
+  historyPast=[];historyFuture=[];proposals=[];currentProposalId='';
+  guestUid=1;measurementUid=1;
+  render();
+});
 function makeTableSeats(assign=false){return Array.from({length:BASE_TABLE.capacity},(_,index)=>assign?(guests[index]?.id||null):null);}
 function addElement(type,{record=true,assignGuests=false}={}){
   const base=TYPE_DEFAULTS[type];if(!base)return null;
