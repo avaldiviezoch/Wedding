@@ -15,20 +15,23 @@
   root.createMockAppLuAdapter = createMockAppLuAdapter;
 })();
 
+const parentBridge = (()=>{try{return window.parent!==window ? window.parent.MiGranDiaDistributionGuestLink : null}catch(_){return null}})();
+function canonical(){try{return parentBridge?.readState?.()||{guests:[],tables:[]}}catch(_){return{guests:[],tables:[]}}}
 window.MiGranDiaDistributionAdapter = Object.freeze({
-  mode:'memory-only',
+  mode: parentBridge ? 'app-integral-bridge' : 'memory-only',
   storageWrites:false,
   firebase:false,
   firestore:false,
-  readGuests(){
-    return typeof guests !== 'undefined' ? structuredClone(guests) : [];
-  },
-  readTables(){
-    return typeof elements !== 'undefined'
-      ? structuredClone(elements.filter((item)=>item?.type === 'table'))
-      : [];
-  }
+  readGuests(){ return structuredClone(canonical().guests||[]); },
+  readTables(){ return structuredClone(canonical().tables||[]); },
+  syncNow(){ try{parentBridge?.syncNow?.()}catch(_){} },
+  contract:Object.freeze({guestId:'id',tableId:'id',seatId:'seatId',seatNumber:'seatNumber'})
 });
+if(parentBridge){
+  const sync=()=>window.MiGranDiaDistributionAdapter.syncNow();
+  window.addEventListener('load',sync,{once:true});
+  window.addEventListener('focus',sync);
+}
 
 /* Margen libre editable por eje para mesas rectangulares.
    Redonda/cuadrada conservan un único margen simétrico. Memory-only. */
