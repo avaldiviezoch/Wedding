@@ -8,6 +8,7 @@ let uid='',weddingId='',epoch=0;
 const GUEST_STORAGE_KEY='planificador_bodas_invitados_v1';
 const CHECKLIST_STORAGE_KEY='planificador_bodas_checklist_v1';
 const BUDGET_STORAGE_KEY='planificador_bodas_presupuesto_v5_etiquetas';
+const TIMELINE_STORAGE_KEY='planificador_bodas_cronograma_v1';
 const $=id=>document.getElementById(id);
 const n=v=>Number.isFinite(Number(v))?Number(v):0;
 const pct=(a,b)=>b>0?Math.max(0,Math.min(100,Math.round(a*100/b))):0;
@@ -35,6 +36,9 @@ function checklistStats(){try{const raw=localStorage.getItem(CHECKLIST_STORAGE_K
 function renderChecklist(){if(!uid||!weddingId)return;const c=checklistStats(),pending=Math.max(0,c.total-c.completed),p=pct(c.completed,c.total);set('dashChecklistRatio',`${c.completed} / ${c.total}`);set('dashChecklistDone',c.completed);set('dashChecklistPending',pending);set('dashChecklistPercent',p+'%');ring('dashChecklistRing',p)}
 function budgetStats(){try{const raw=localStorage.getItem(BUDGET_STORAGE_KEY);const state=raw?JSON.parse(raw):{};const items=Array.isArray(state?.items)?state.items:[];const planned=items.reduce((sum,item)=>sum+n(item?.planned),0);const paid=items.reduce((sum,item)=>sum+n(item?.paid),0);return{planned,paid}}catch(_){return{planned:0,paid:0}}}
 function renderBudget(){if(!uid||!weddingId)return;const b=budgetStats(),balance=Math.max(0,b.planned-b.paid),p=pct(b.paid,b.planned);set('dashBudgetPaid',money(b.paid));set('dashBudgetTotal',money(b.planned));set('dashBudgetBalance',money(balance));set('dashBudgetPercent',p+'%');ring('dashBudgetRing',p);const prog=$('dashBudgetProgress');if(prog)prog.style.width=p+'%'}
+function timelineStats(){try{const raw=localStorage.getItem(TIMELINE_STORAGE_KEY);const state=raw?JSON.parse(raw):{};const events=Array.isArray(state?.events)?state.events:[];const ordered=[...events].sort((a,b)=>n(a?.order)-n(b?.order)||String(a?.time||'').localeCompare(String(b?.time||'')));return{total:events.length,weddingDate:String(state?.settings?.weddingDate||''),first:ordered[0]||null}}catch(_){return{total:0,weddingDate:'',first:null}}}
+function formatWeddingDay(value){if(!value)return '—';const d=new Date(value+'T12:00:00');return Number.isNaN(d.getTime())?'—':new Intl.DateTimeFormat('es-PE',{day:'2-digit',month:'short'}).format(d).replace('.','').toUpperCase()}
+function renderTimeline(){if(!uid||!weddingId)return;const t=timelineStats();set('dashTimelineRatio',`${t.total} eventos`);set('dashTimelinePercent',formatWeddingDay(t.weddingDate));ring('dashTimelineRing',0);set('dashNextMilestone',t.first?.title||'Sin eventos');set('dashNextDate',t.first?.time||'—')}
 function renderGuestTotal(){if(!uid||!weddingId)return;const total=guestTotal();set('dashGuestsRatio',String(total));set('dashGuestsConfirmed','0');set('dashGuestsPending',String(total));set('dashGuestsPercent','0%');ring('dashGuestsRing',0)}
 function render(d={}){
  if(!uid||!weddingId)return;
@@ -54,12 +58,12 @@ function render(d={}){
 function context(detail){
  const next=String(detail?.id||''); if(next===weddingId)return;
  clear(); weddingId=next; root()?.setAttribute('data-wedding-id',weddingId); visibility();
- if(weddingId){renderGuestTotal();renderChecklist();renderBudget();window.dispatchEvent(new CustomEvent('migrandia:dashboard-request',{detail:{uid,weddingId,epoch}}));}
+ if(weddingId){renderGuestTotal();renderChecklist();renderBudget();renderTimeline();window.dispatchEvent(new CustomEvent('migrandia:dashboard-request',{detail:{uid,weddingId,epoch}}));}
 }
 window.addEventListener('migrandia:auth',e=>{const d=e.detail||{};if(d.authenticated!==true){uid='';clear();visibility();return}const next=String(d.uid||'');if(next!==uid){uid=next;clear()}context(window.WeddingPlannerWeddingContext||{});visibility()});
 window.addEventListener('migrandia:wedding-context',e=>context(e.detail||{}));
 window.addEventListener('migrandia:dashboard-data',e=>render(e.detail||{}));
-window.addEventListener('migrandia:datachange',()=>{if(uid&&weddingId){renderGuestTotal();renderChecklist();renderBudget();window.dispatchEvent(new CustomEvent('migrandia:dashboard-request',{detail:{uid,weddingId,epoch}}))}});
+window.addEventListener('migrandia:datachange',()=>{if(uid&&weddingId){renderGuestTotal();renderChecklist();renderBudget();renderTimeline();window.dispatchEvent(new CustomEvent('migrandia:dashboard-request',{detail:{uid,weddingId,epoch}}))}});
 window.addEventListener('hashchange',visibility);new MutationObserver(visibility).observe(document.body,{attributes:true,attributeFilter:['class']});
 document.addEventListener('DOMContentLoaded',()=>{clear();context(window.WeddingPlannerWeddingContext||{});visibility()},{once:true});
 })();
