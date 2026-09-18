@@ -15,37 +15,39 @@
   root.createMockAppLuAdapter = createMockAppLuAdapter;
 })();
 
-const parentBridge = (()=>{try{return window.parent!==window ? window.parent.MiGranDiaDistributionGuestLink : null}catch(_){return null}})();
-const canonicalActions = (()=>{try{return window.parent!==window ? window.parent.MiGranDiaTablesCanonicalActions : null}catch(_){return null}})();
-function canonical(){try{return parentBridge?.readState?.()||{guests:[],tables:[]}}catch(_){return{guests:[],tables:[]}}}
+function parentApi(name){try{return window.parent!==window ? window.parent[name] : null}catch(_){return null}}
+function canonical(){
+  try{return parentApi('MiGranDiaInvitadosCanonicalRead')?.readState?.()||{guests:[],tables:[]}}
+  catch(_){return{guests:[],tables:[]}}
+}
+function canonicalActions(){return parentApi('MiGranDiaTablesCanonicalActions')}
 window.MiGranDiaDistributionAdapter = Object.freeze({
-  mode: parentBridge ? 'app-integral-bridge' : 'memory-only',
+  mode: 'canonical-adapter',
   storageWrites:false,
-  canonicalAssignmentWrites:Boolean(canonicalActions),
+  canonicalAssignmentWrites:Boolean(canonicalActions()),
   firebase:false,
   firestore:false,
   readGuests(){ return structuredClone(canonical().guests||[]); },
   readTables(){ return structuredClone(canonical().tables||[]); },
   addGuest(name){
-    if(!canonicalActions?.addGuest)return Object.freeze({ok:false,reason:'canonical-actions-unavailable'});
-    return canonicalActions.addGuest(String(name||''));
+    if(!canonicalActions()?.addGuest)return Object.freeze({ok:false,reason:'canonical-actions-unavailable'});
+    return canonicalActions().addGuest(String(name||''));
   },
   assignGuest(guestId,tableId,seatNumber=null){
-    if(!canonicalActions?.assignGuest)return Object.freeze({ok:false,reason:'canonical-actions-unavailable'});
-    return canonicalActions.assignGuest(String(guestId),String(tableId),seatNumber);
+    if(!canonicalActions()?.assignGuest)return Object.freeze({ok:false,reason:'canonical-actions-unavailable'});
+    return canonicalActions().assignGuest(String(guestId),String(tableId),seatNumber);
   },
   unassignGuest(guestId){
-    if(!canonicalActions?.unassignGuest)return Object.freeze({ok:false,reason:'canonical-actions-unavailable'});
-    return canonicalActions.unassignGuest(String(guestId));
+    if(!canonicalActions()?.unassignGuest)return Object.freeze({ok:false,reason:'canonical-actions-unavailable'});
+    return canonicalActions().unassignGuest(String(guestId));
   },
   // Seguridad producción: no escribe storage directamente. Las asignaciones
   // se delegan al propietario canónico Mesas/Invitados.
-  // No invoca syncNow() del bridge legacy porque ese flujo puede terminar escribiendo
-  // localStorage/IndexedDB. La UI nueva solo consume snapshots canónicos.
+  // La UI nueva consume snapshots canónicos y no depende del bridge legacy.
   syncNow(){ return false; },
   contract:Object.freeze({guestId:'id',tableId:'id',seatId:'seatId',seatNumber:'seatNumber'})
 });
-if(parentBridge){
+if(window.parent!==window){
   const announceSnapshot=(reason='refresh')=>{
     const state=canonical();
     window.dispatchEvent(new CustomEvent('migrandia:distribution-snapshot-ready',{

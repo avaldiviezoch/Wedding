@@ -120,7 +120,7 @@
     return String(location.hash || '').replace(/^#/, '').split(/[/?&]/)[0].trim().toLowerCase();
   }
 
-  const NEW_DISTRIBUTION_URL = new URL('distribucion/index.html?v=20260918-production1', document.baseURI).href;
+  const NEW_DISTRIBUTION_URL = new URL('distribucion/index.html?v=20260918-clean1', document.baseURI).href;
   function unmountNewDistributionIfInactive() {
     if (currentModule() === 'distribucion') return;
     const workspace=document.getElementById('unifiedWorkspace');
@@ -136,6 +136,7 @@
       workspace.replaceChildren();
       frame = document.createElement('iframe');
       frame.dataset.mgdNewDistribution = 'true';
+      frame.className = 'unified-frame';
       frame.title = 'Distribución y diseño';
       frame.src = NEW_DISTRIBUTION_URL;
       frame.setAttribute('loading','eager');
@@ -145,6 +146,9 @@
       frame.style.border='0';
       workspace.appendChild(frame);
     }
+    frame.classList.add('unified-frame');
+    workspace.querySelectorAll('iframe').forEach(other => { if (other !== frame) other.remove(); });
+    [...workspace.children].forEach(node => { if (node !== frame) node.remove(); });
     frame.hidden = false;
     workspace.removeAttribute('hidden');
     workspace.setAttribute('aria-hidden','false');
