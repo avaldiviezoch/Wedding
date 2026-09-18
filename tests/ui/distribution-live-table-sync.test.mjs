@@ -17,7 +17,7 @@ test('Mesas refreshes the live Distribución iframe after an external table-stru
   assert.match(distribution, /tablesChanged=beforeTables!==tableSig\(nr\)/);
   assert.match(distribution, /if\(wr&&tablesChanged\)refreshLiveFrame\(c\)/);
   assert.match(distribution, /contentWindow\.location\.reload\(\)/);
-  assert.match(runtime, /distribucion\/index\.js\?v=20260901-distribution-live-tables2/);
+  assert.doesNotMatch(runtime, /js\/modules\/distribucion\/(?:index|background-persistence)\.js/);
 });
 
 test('the live refresh waits for Distribución autosave and refuses to reload on save error', () => {
