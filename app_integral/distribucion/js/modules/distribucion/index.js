@@ -272,9 +272,56 @@ function hydrateCanonicalGuests(){
     name:String(guest.name||'Invitado'),
     sourceGuestId:String(guest.id||''),
     status:guest.status||'',
-    rsvpStatus:guest.rsvpStatus||''
+    rsvpStatus:guest.rsvpStatus||'',
+    tableId:guest.tableId?String(guest.tableId):'',
+    seatId:guest.seatId?String(guest.seatId):'',
+    seatNumber:Number.isInteger(Number(guest.seatNumber))&&Number(guest.seatNumber)>0?Number(guest.seatNumber):null
   })).filter((guest)=>guest.id);
   guestUid=guests.length+1;
+}
+function hydrateCanonicalTables(){
+  const adapter=window.MiGranDiaDistributionAdapter;
+  const source=adapter?.readTables?.()||[];
+  const guestById=new Map(guests.map((guest)=>[String(guest.id),guest]));
+  return source.map((table,index)=>{
+    const capacity=Math.max(1,Number(table.capacity)||Number(table.seats?.length)||10);
+    const seatIds=Array.from({length:capacity},(_,seatIndex)=>String(table.seats?.[seatIndex]?.id||''));
+    const assigned=Array(capacity).fill(null);
+    guests.forEach((guest)=>{
+      if(String(guest.tableId||'')!==String(table.id||''))return;
+      const seatIndex=Number(guest.seatNumber)-1;
+      if(Number.isInteger(seatIndex)&&seatIndex>=0&&seatIndex<capacity&&!assigned[seatIndex])assigned[seatIndex]=guest.id;
+    });
+    (Array.isArray(table.guestIds)?table.guestIds:[]).forEach((guestId)=>{
+      const guest=guestById.get(String(guestId));
+      if(!guest||assigned.includes(guest.id))return;
+      const free=assigned.findIndex((value)=>value===null);
+      if(free>=0)assigned[free]=guest.id;
+    });
+    const position=nextPosition(index);
+    return {
+      id:String(table.id||makeId('table')),
+      type:'table',
+      shape:'table',
+      label:String(table.name||`Mesa ${index+1}`),
+      x:Number(table.x)||position.x,
+      y:Number(table.y)||position.y,
+      widthM:BASE_TABLE.widthM,
+      heightM:BASE_TABLE.heightM,
+      rotation:Number(table.rotation)||0,
+      color:BASE_TABLE.color,
+      locked:false,
+      capacity,
+      seats:assigned,
+      canonicalSeatIds:seatIds,
+      sharedTableId:String(table.id||''),
+      sharedTableType:String(table.type||'round')
+    };
+  }).filter((table)=>table.sharedTableId);
+}
+function hydrateCanonicalReadOnlyState(){
+  hydrateCanonicalGuests();
+  elements=hydrateCanonicalTables();
 }
 function makeTableSeats(assign=false){return Array.from({length:BASE_TABLE.capacity},(_,index)=>assign?(guests[index]?.id||null):null);}
 function addElement(type,{record=true,assignGuests=false}={}){
@@ -683,7 +730,7 @@ function renderProposalList(){proposalList.replaceChildren();proposals.forEach(p
 document.getElementById('btnProposals').addEventListener('click',()=>{renderProposalList();proposalModal.hidden=false;});document.getElementById('closeProposalModal').addEventListener('click',()=>proposalModal.hidden=true);document.getElementById('btnNewProposal').addEventListener('click',()=>createProposal(`Propuesta ${proposals.length+1}`));document.getElementById('btnDuplicateProposal').addEventListener('click',()=>createProposal(`${proposals.find(item=>item.id===currentProposalId)?.name||'Propuesta'} copia`,true));proposalModal.addEventListener('click',event=>{if(event.target===proposalModal)proposalModal.hidden=true;});
 
 function initialState(){
-  hydrateCanonicalGuests();elements=[];const table=addElement('table',{record:false,assignGuests:true});table.x=724;table.y=543;setSelection([table.id],table.id);hiddenLayers={};lockedLayers={};measurements=[];measurementUid=1;scaleInput.value=32;showGrid.checked=true;showClearance.checked=true;showLabels.checked=true;showNames.checked=true;bgVisible=true;bgPosition={x:0,y:0};zoom=1;setZoom(1);historyPast=[];historyFuture=[];pushHistory();render();
+  hydrateCanonicalReadOnlyState();const table=elements[0]||null;if(table)setSelection([table.id],table.id);else setSelection([],'');hiddenLayers={};lockedLayers={};measurements=[];measurementUid=1;scaleInput.value=32;showGrid.checked=true;showClearance.checked=true;showLabels.checked=true;showNames.checked=true;bgVisible=true;bgPosition={x:0,y:0};zoom=1;setZoom(1);historyPast=[];historyFuture=[];pushHistory();render();
 }
 function resetCurrent(){initialState();saveCurrentProposalSnapshot();}
 document.getElementById('resetLab').addEventListener('click',resetCurrent);
@@ -754,12 +801,10 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   };
 
   initialState = function phase2InitialState() {
-    hydrateCanonicalGuests();
-    elements = [];
-    const table = addElement('table', { record: false, assignGuests: false });
-    table.x = CENTER_X;
-    table.y = CENTER_Y;
-    setSelection([table.id], table.id);
+    hydrateCanonicalReadOnlyState();
+    const table = elements[0] || null;
+    if (table) setSelection([table.id], table.id);
+    else setSelection([], '');
     hiddenLayers = {};
     lockedLayers = {};
     measurements = [];
