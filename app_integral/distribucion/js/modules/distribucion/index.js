@@ -326,6 +326,27 @@ function hydrateCanonicalReadOnlyState(){
   hydrateCanonicalGuests();
   elements=hydrateCanonicalTables();
 }
+function refreshCanonicalReadOnlyState(){
+  const previousLayout=new Map(elements.filter(item=>item.type==='table'&&item.sharedTableId).map(item=>[
+    String(item.sharedTableId),
+    {x:item.x,y:item.y,rotation:item.rotation,locked:item.locked}
+  ]));
+  hydrateCanonicalReadOnlyState();
+  elements.forEach(item=>{
+    if(item.type!=='table'||!item.sharedTableId)return;
+    const layout=previousLayout.get(String(item.sharedTableId));
+    if(!layout)return;
+    item.x=layout.x;item.y=layout.y;item.rotation=layout.rotation;item.locked=layout.locked;
+  });
+  const selectedCanonical=selected()?.sharedTableId;
+  const selectedTable=selectedCanonical?elements.find(item=>String(item.sharedTableId)===String(selectedCanonical)):null;
+  if(selectedTable)setSelection([selectedTable.id],selectedTable.id);
+  else clearSelection();
+  historyPast=[];historyFuture=[];pushHistory();
+  render();
+  saveCurrentProposalSnapshot();
+}
+window.addEventListener('migrandia:distribution-snapshot-ready',()=>refreshCanonicalReadOnlyState());
 function makeTableSeats(assign=false){return Array.from({length:BASE_TABLE.capacity},(_,index)=>assign?(guests[index]?.id||null):null);}
 function addElement(type,{record=true,assignGuests=false}={}){
   const base=TYPE_DEFAULTS[type];if(!base)return null;
