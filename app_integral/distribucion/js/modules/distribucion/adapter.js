@@ -40,8 +40,15 @@ if(parentBridge){
   window.addEventListener('load',()=>announceSnapshot('load'),{once:true});
   window.addEventListener('focus',()=>announceSnapshot('focus'));
   window.addEventListener('message',(event)=>{
-    if(event.source!==window.parent)return;
-    if(event.data?.type==='MIGRANDIA_DISTRIBUTION_REFRESH')announceSnapshot('parent-refresh');
+    if(event.source!==window.parent||event.origin!==location.origin)return;
+    if(event.data?.type!=='MIGRANDIA_DISTRIBUTION_REFRESH')return;
+    const reason=String(event.data?.reason||'parent-refresh');
+    if(reason==='logout'||(reason==='wedding-context'&&!event.data?.detail?.id)){
+      window.dispatchEvent(new CustomEvent('migrandia:distribution-context-clear',{detail:{reason}}));
+      return;
+    }
+    if(reason==='auth'&&event.data?.detail?.hydrating)return;
+    announceSnapshot(reason);
   });
 }
 
