@@ -113,9 +113,24 @@ function bind(f){if(!(f instanceof HTMLIFrameElement))return;let d;try{d=f.conte
 function scan(){document.getElementById('unifiedWorkspace')?.querySelectorAll('iframe').forEach(f=>{if(f.dataset.mgdDistGuestLoad===V)return;f.dataset.mgdDistGuestLoad=V;f.addEventListener('load',()=>setTimeout(()=>bind(f),40));bind(f)})}
 function external(){clearTimeout(extTimer);extTimer=setTimeout(()=>document.getElementById('unifiedWorkspace')?.querySelectorAll('iframe').forEach(f=>{const c=ctl.get(f);if(c)push(c)}),120)}
 function start(){const w=document.getElementById('unifiedWorkspace');if(!w)return;if(!obs){obs=new MutationObserver(scan);obs.observe(w,{childList:true})}scan()}
-window.addEventListener('migrandia:datachange',e=>{if(lock||String(e.detail?.source||'').startsWith('distribucion'))return;external()});
-window.addEventListener('storage',e=>{if(e.key===GK||e.key===SK)external()});
+window.addEventListener('migrandia:datachange',e=>{
+ if(lock||String(e.detail?.source||'').startsWith('distribucion'))return;
+ notifyDistributionFrames('datachange',{source:String(e.detail?.source||'')});
+ external();
+});
+window.addEventListener('storage',e=>{
+ if(e.key!==GK&&e.key!==SK)return;
+ notifyDistributionFrames('storage-change',{key:e.key});
+ external();
+});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)return;clearTimeout(resumeTimer);resumeTimer=setTimeout(()=>document.getElementById('unifiedWorkspace')?.querySelectorAll('iframe').forEach(f=>{const c=ctl.get(f);if(c&&!c.busy&&!c.init)poll(c).catch(console.warn)}),120)});
 window.addEventListener('message',e=>{if(e.data?.type!=='MIGRANDIA_DISTRIBUTION_CHANGED')return;document.getElementById('unifiedWorkspace')?.querySelectorAll('iframe').forEach(f=>{if(f.contentWindow!==e.source)return;const c=ctl.get(f);if(!c)return;setTimeout(()=>pull(c,false).then(()=>push(c)).catch(console.warn),60)})});
 window.MiGranDiaDistributionGuestLink=Object.freeze({version:V,syncNow(){scan();external()},readState:read});
+function notifyDistributionFrames(reason,detail={}){
+ document.getElementById('unifiedWorkspace')?.querySelectorAll('iframe').forEach(frame=>{
+  try{frame.contentWindow?.postMessage({type:'MIGRANDIA_DISTRIBUTION_REFRESH',reason,detail},location.origin)}catch(_){}
+ });
+}
+window.addEventListener('migrandia:wedding-context',event=>notifyDistributionFrames('wedding-context',{id:String(event.detail?.id||'')}));
+window.addEventListener('migrandia:auth',event=>notifyDistributionFrames(event.detail?.authenticated?'auth':'logout',{authenticated:Boolean(event.detail?.authenticated),hydrating:Boolean(event.detail?.hydrating)}));
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
