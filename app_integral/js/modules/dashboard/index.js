@@ -29,7 +29,7 @@ function visibility(){
  r.setAttribute('aria-hidden',ready?'false':'true');
 }
 function guestTotal(){try{const raw=localStorage.getItem(GUEST_STORAGE_KEY);const state=raw?JSON.parse(raw):{};return Array.isArray(state?.guests)?state.guests.length:0}catch(_){return 0}}
-function renderGuestTotal(){if(!uid||!weddingId)return;const total=guestTotal();set('dashGuestsRatio',String(total));set('dashGuestsConfirmed','—');set('dashGuestsPending','—');set('dashGuestsPercent','—');ring('dashGuestsRing',0)}
+function renderGuestTotal(){if(!uid||!weddingId)return;const total=guestTotal();set('dashGuestsRatio',String(total));set('dashGuestsConfirmed','0');set('dashGuestsPending',String(total));set('dashGuestsPercent','0%');ring('dashGuestsRing',0)}
 function render(d={}){
  if(!uid||!weddingId)return;
  if(d.weddingId&&String(d.weddingId)!==weddingId)return;
