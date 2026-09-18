@@ -353,6 +353,9 @@ window.addEventListener('migrandia:distribution-context-clear',()=>{
   guestUid=1;measurementUid=1;
   render();
 });
+function isCanonicalTable(item){return Boolean(item?.type==='table'&&item?.sharedTableId);}
+function canonicalTableMutationBlocked(item=selected()){return isCanonicalTable(item);}
+
 function makeTableSeats(assign=false){return Array.from({length:BASE_TABLE.capacity},(_,index)=>assign?(guests[index]?.id||null):null);}
 function addElement(type,{record=true,assignGuests=false}={}){
   const base=TYPE_DEFAULTS[type];if(!base)return null;
@@ -1448,7 +1451,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
 
   function duplicatePrimarySelection() {
     const item = selected();
-    if (!item || isItemLocked(item)) return false;
+    if (!item || isItemLocked(item) || canonicalTableMutationBlocked(item)) return false;
     const copy = clonePlannerItem(item);
     copy.id = makeId(item.type);
     copy.x = clampX((Number(item.x) || 0) + DUPLICATE_OFFSET);
@@ -1463,7 +1466,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   }
 
   copySelectedPlannerItems = function phase2P1CopySelectedPlannerItems() {
-    const items = selectedItems();
+    const items = selectedItems().filter((item)=>!isCanonicalTable(item));
     if (!items.length) return false;
     copiedPlannerItems = items.map(clonePlannerItem);
     pasteSequence = 0;
@@ -1604,7 +1607,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
       const alignButton = document.getElementById('btnAlignNow');
 
       if (deleteButton) deleteButton.disabled = unlocked.length === 0;
-      if (duplicateButton) duplicateButton.disabled = !primary || isItemLocked(primary);
+      if (duplicateButton) duplicateButton.disabled = !primary || isItemLocked(primary) || isCanonicalTable(primary);
       if (frontButton) frontButton.disabled = unlocked.length === 0;
       if (backButton) backButton.disabled = unlocked.length === 0;
       if (alignButton) alignButton.disabled = items.length < 2 || !alignable;
