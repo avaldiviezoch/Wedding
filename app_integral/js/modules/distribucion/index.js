@@ -118,4 +118,11 @@ window.addEventListener('storage',e=>{if(e.key===GK||e.key===SK)external()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)return;clearTimeout(resumeTimer);resumeTimer=setTimeout(()=>document.getElementById('unifiedWorkspace')?.querySelectorAll('iframe').forEach(f=>{const c=ctl.get(f);if(c&&!c.busy&&!c.init)poll(c).catch(console.warn)}),120)});
 window.addEventListener('message',e=>{if(e.data?.type!=='MIGRANDIA_DISTRIBUTION_CHANGED')return;document.getElementById('unifiedWorkspace')?.querySelectorAll('iframe').forEach(f=>{if(f.contentWindow!==e.source)return;const c=ctl.get(f);if(!c)return;setTimeout(()=>pull(c,false).then(()=>push(c)).catch(console.warn),60)})});
 window.MiGranDiaDistributionGuestLink=Object.freeze({version:V,syncNow(){scan();external()},readState:read});
+function notifyDistributionFrames(reason,detail={}){
+ document.getElementById('unifiedWorkspace')?.querySelectorAll('iframe').forEach(frame=>{
+  try{frame.contentWindow?.postMessage({type:'MIGRANDIA_DISTRIBUTION_REFRESH',reason,detail},location.origin)}catch(_){}
+ });
+}
+window.addEventListener('migrandia:wedding-context',event=>notifyDistributionFrames('wedding-context',{id:String(event.detail?.id||'')}));
+window.addEventListener('migrandia:auth',event=>notifyDistributionFrames(event.detail?.authenticated?'auth':'logout',{authenticated:Boolean(event.detail?.authenticated),hydrating:Boolean(event.detail?.hydrating)}));
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
