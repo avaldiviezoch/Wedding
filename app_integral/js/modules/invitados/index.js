@@ -192,6 +192,20 @@ function readGuestState() {
   }
 }
 
+window.MiGranDiaInvitadosCanonicalRead = Object.freeze({
+  version: '20260918-distribucion-clean1',
+  readState() {
+    const data = readGuestState();
+    return Object.freeze({
+      guests: Object.freeze(data.guests.map((guest) => Object.freeze({ ...guest }))),
+      tables: Object.freeze(data.tables.map((table) => Object.freeze({
+        ...table,
+        seats: Object.freeze((Array.isArray(table.seats) ? table.seats : []).map((seat) => Object.freeze({ ...seat })))
+      })))
+    });
+  }
+});
+
 function buildSharedState(data) {
   const guests = Array.isArray(data.guests) ? data.guests : [];
   const tables = Array.isArray(data.tables) ? data.tables : [];
