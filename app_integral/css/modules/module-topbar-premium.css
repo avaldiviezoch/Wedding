@@ -281,3 +281,16 @@ body.module-view .unified-loader{
   .module-quick-home,.module-quick-tab,.module-session-logout{transition:none !important;}
   .module-quick-scroll{scroll-behavior:auto !important;}
 }
+
+/* Distribución nueva: una sola superficie, debajo de la barra global. */
+body.module-view .unified-workspace:has(> iframe[data-mgd-new-distribution="true"]){
+  background:#f4f5f7 !important;
+}
+body.module-view .unified-workspace > iframe[data-mgd-new-distribution="true"]{
+  position:absolute !important;
+  inset:72px 0 0 !important;
+  width:100% !important;
+  height:calc(100% - 72px) !important;
+  border:0 !important;
+  background:#f4f5f7 !important;
+}
