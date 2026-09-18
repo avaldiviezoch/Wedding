@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260918-bar-prod1';
+  const VERSION = '20260918-bar-dev1';
   const ROLE_LABELS = {
     owner: 'Propietario',
     admin: 'Administrador',
