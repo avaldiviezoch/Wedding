@@ -1,6 +1,6 @@
-/* Distribución · adapter de laboratorio
+/* Distribución · adaptador de integración
    REGLA PRINCIPAL: STORAGE NO SE TOCA.
-   Esta frontera es exclusivamente memory-only. */
+   Esta frontera es exclusivamente de lectura. */
 (() => {
   const root = window.MiGranDiaDistributionAdapters ||= {};
   function createMockAppLuAdapter(seed = {}) {
@@ -31,13 +31,18 @@ window.MiGranDiaDistributionAdapter = Object.freeze({
   contract:Object.freeze({guestId:'id',tableId:'id',seatId:'seatId',seatNumber:'seatNumber'})
 });
 if(parentBridge){
-  const announceSnapshot=()=>{
+  const announceSnapshot=(reason='refresh')=>{
+    const state=canonical();
     window.dispatchEvent(new CustomEvent('migrandia:distribution-snapshot-ready',{
-      detail:{ mode:'read-only', guests:window.MiGranDiaDistributionAdapter.readGuests().length, tables:window.MiGranDiaDistributionAdapter.readTables().length }
+      detail:{ mode:'read-only', reason, guests:Array.isArray(state.guests)?state.guests.length:0, tables:Array.isArray(state.tables)?state.tables.length:0 }
     }));
   };
-  window.addEventListener('load',announceSnapshot,{once:true});
-  window.addEventListener('focus',announceSnapshot);
+  window.addEventListener('load',()=>announceSnapshot('load'),{once:true});
+  window.addEventListener('focus',()=>announceSnapshot('focus'));
+  window.addEventListener('message',(event)=>{
+    if(event.source!==window.parent)return;
+    if(event.data?.type==='MIGRANDIA_DISTRIBUTION_REFRESH')announceSnapshot('parent-refresh');
+  });
 }
 
 /* Margen libre editable por eje para mesas rectangulares.
