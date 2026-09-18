@@ -56,7 +56,7 @@ const proposalList=document.getElementById('proposalList');
 const proposalNameTop=document.getElementById('proposalNameTop');
 const proposalNameCanvas=document.getElementById('proposalNameCanvas');
 
-const SAMPLE_NAMES=['Lucero','Antonio','María','Carlos','Rosa','Jorge','Paola','Diego','Ana','Luis'];
+const SAMPLE_NAMES=[]; // Producción: los invitados llegan exclusivamente del contrato canónico del padre.
 const BASE_TABLE=Object.freeze({widthM:3.4,heightM:3.4,radiusM:.915,capacity:10,color:'#d9b978'});
 const TYPE_DEFAULTS=Object.freeze({
   table:{label:'Mesa 10 personas',widthM:3.4,heightM:3.4,capacity:10,color:'#d9b978',shape:'table'},
@@ -265,7 +265,16 @@ function redoHistory(){
 function commitMutation(){pushHistory();render();saveCurrentProposalSnapshot();}
 
 function seedGuests(){
-  guests=SAMPLE_NAMES.map(name=>({id:`guest-${guestUid++}`,name}));
+  const adapter=window.MiGranDiaDistributionAdapter;
+  const source=adapter?.readGuests?.()||[];
+  guests=source.map((guest)=>({
+    id:String(guest.id||''),
+    name:String(guest.name||'Invitado'),
+    sourceGuestId:String(guest.id||''),
+    status:guest.status||'',
+    rsvpStatus:guest.rsvpStatus||''
+  })).filter((guest)=>guest.id);
+  guestUid=guests.length+1;
 }
 function makeTableSeats(assign=false){return Array.from({length:BASE_TABLE.capacity},(_,index)=>assign?(guests[index]?.id||null):null);}
 function addElement(type,{record=true,assignGuests=false}={}){
@@ -667,10 +676,10 @@ document.addEventListener('keydown',event=>{
 
 function proposalSnapshot(){return stateSnapshot();}
 function saveCurrentProposalSnapshot(){const proposal=proposals.find(item=>item.id===currentProposalId);if(proposal)proposal.state=clone(proposalSnapshot());}
-function switchProposal(id){saveCurrentProposalSnapshot();const proposal=proposals.find(item=>item.id===id);if(!proposal)return;currentProposalId=id;proposalNameTop.textContent=proposal.name;proposalNameCanvas.textContent=`${proposal.name} · laboratorio`;historyPast=[];historyFuture=[];restoreState(clone(proposal.state));pushHistory();renderProposalList();}
+function switchProposal(id){saveCurrentProposalSnapshot();const proposal=proposals.find(item=>item.id===id);if(!proposal)return;currentProposalId=id;proposalNameTop.textContent=proposal.name;proposalNameCanvas.textContent=proposal.name;historyPast=[];historyFuture=[];restoreState(clone(proposal.state));pushHistory();renderProposalList();}
 function createProposal(name='Nueva propuesta',copyCurrent=false){saveCurrentProposalSnapshot();const state=copyCurrent?proposalSnapshot():blankState();const proposal={id:makeId('proposal'),name,state:clone(state)};proposals.push(proposal);switchProposal(proposal.id);}
 function blankState(){const old=stateSnapshot();return{...old,elements:[],selectedIds:[],selectedId:'',measurements:[],hiddenLayers:{},lockedLayers:{}};}
-function renderProposalList(){proposalList.replaceChildren();proposals.forEach(proposal=>{const row=document.createElement('div');row.className=`proposal-row${proposal.id===currentProposalId?' active':''}`;const info=document.createElement('button');info.type='button';info.className='proposal-open';const strong=document.createElement('strong');strong.textContent=proposal.name;const small=document.createElement('small');small.textContent=proposal.id===currentProposalId?'Actual':'Abrir propuesta';info.append(strong,small);info.addEventListener('click',()=>switchProposal(proposal.id));const rename=document.createElement('button');rename.type='button';rename.textContent='✎';rename.title='Renombrar';rename.addEventListener('click',()=>{const next=prompt('Nombre de la propuesta',proposal.name);if(next?.trim()){proposal.name=next.trim();if(proposal.id===currentProposalId){proposalNameTop.textContent=proposal.name;proposalNameCanvas.textContent=`${proposal.name} · laboratorio`;}renderProposalList();}});const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.title='Eliminar';remove.disabled=proposals.length===1;remove.addEventListener('click',()=>{if(proposals.length===1)return;const index=proposals.findIndex(item=>item.id===proposal.id);proposals.splice(index,1);if(currentProposalId===proposal.id)switchProposal(proposals[Math.max(0,index-1)].id);else renderProposalList();});row.append(info,rename,remove);proposalList.appendChild(row);});}
+function renderProposalList(){proposalList.replaceChildren();proposals.forEach(proposal=>{const row=document.createElement('div');row.className=`proposal-row${proposal.id===currentProposalId?' active':''}`;const info=document.createElement('button');info.type='button';info.className='proposal-open';const strong=document.createElement('strong');strong.textContent=proposal.name;const small=document.createElement('small');small.textContent=proposal.id===currentProposalId?'Actual':'Abrir propuesta';info.append(strong,small);info.addEventListener('click',()=>switchProposal(proposal.id));const rename=document.createElement('button');rename.type='button';rename.textContent='✎';rename.title='Renombrar';rename.addEventListener('click',()=>{const next=prompt('Nombre de la propuesta',proposal.name);if(next?.trim()){proposal.name=next.trim();if(proposal.id===currentProposalId){proposalNameTop.textContent=proposal.name;proposalNameCanvas.textContent=proposal.name;}renderProposalList();}});const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.title='Eliminar';remove.disabled=proposals.length===1;remove.addEventListener('click',()=>{if(proposals.length===1)return;const index=proposals.findIndex(item=>item.id===proposal.id);proposals.splice(index,1);if(currentProposalId===proposal.id)switchProposal(proposals[Math.max(0,index-1)].id);else renderProposalList();});row.append(info,rename,remove);proposalList.appendChild(row);});}
 document.getElementById('btnProposals').addEventListener('click',()=>{renderProposalList();proposalModal.hidden=false;});document.getElementById('closeProposalModal').addEventListener('click',()=>proposalModal.hidden=true);document.getElementById('btnNewProposal').addEventListener('click',()=>createProposal(`Propuesta ${proposals.length+1}`));document.getElementById('btnDuplicateProposal').addEventListener('click',()=>createProposal(`${proposals.find(item=>item.id===currentProposalId)?.name||'Propuesta'} copia`,true));proposalModal.addEventListener('click',event=>{if(event.target===proposalModal)proposalModal.hidden=true;});
 
 function initialState(){
@@ -680,7 +689,7 @@ function resetCurrent(){initialState();saveCurrentProposalSnapshot();}
 document.getElementById('resetLab').addEventListener('click',resetCurrent);
 
 initialState();
-proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposalSnapshot())}];currentProposalId=proposals[0].id;proposalNameTop.textContent=proposals[0].name;proposalNameCanvas.textContent=`${proposals[0].name} · laboratorio`;renderProposalList();saveCurrentProposalSnapshot();
+proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposalSnapshot())}];currentProposalId=proposals[0].id;proposalNameTop.textContent=proposals[0].name;proposalNameCanvas.textContent=proposals[0].name;renderProposalList();saveCurrentProposalSnapshot();
 
 
 /* ===== pruebas/distribucion/phase2-p0.js ===== */
@@ -2441,7 +2450,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     drawAreas: Object.keys(DRAW_AREA_PRESETS),
     autoLayout: AUTO_LAYOUT.map(([type, x, y]) => ({ type, x, y })),
     background: { visiblePerProposal: true },
-    proposals: { max: MAX_PROPOSALS, memoryOnly: true, create: true, duplicate: true, rename: true, delete: true, switch: true },
+    proposals: { max: MAX_PROPOSALS, memoryOnly: false, create: true, duplicate: true, rename: true, delete: true, switch: true },
     status: 'ready'
   });
 })();
@@ -2520,7 +2529,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   renderProposalList();
 
   window.MiGranDiaDistributionPhase2P1ProposalPreview = Object.freeze({
-    memoryOnly: true,
+    memoryOnly: false,
     svgPreview: true,
     updatedAt: true,
     status: 'ready'
@@ -3007,7 +3016,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     png: { width: CANVAS_W, height: CANVAS_H },
     finalView: true,
     mobile: { sheets: true, fab: true, pinchZoom: true, wheelZoom: true },
-    memoryOnly: true,
+    memoryOnly: false,
     status: 'ready'
   });
 })();
