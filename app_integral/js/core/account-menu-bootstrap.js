@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260918-bar-prod1';
+  const VERSION = '20260918-bar-clean1';
   const CONTROLLER_VERSION = '20260918-bar-prod1';
   let controllerPromise = null;
 
