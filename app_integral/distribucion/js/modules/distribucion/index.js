@@ -347,6 +347,17 @@ function refreshCanonicalReadOnlyState(){
   saveCurrentProposalSnapshot();
 }
 window.addEventListener('migrandia:distribution-snapshot-ready',()=>refreshCanonicalReadOnlyState());
+const canonicalGuestName=document.getElementById('canonicalGuestName');
+const btnCanonicalAddGuest=document.getElementById('btnCanonicalAddGuest');
+function addCanonicalGuest(){
+  const name=String(canonicalGuestName?.value||'').trim();
+  if(!name)return;
+  const result=window.MiGranDiaDistributionAdapter?.addGuest?.(name);
+  if(!result?.ok){toast(result?.reason==='canonical-actions-unavailable'?'No se pudo conectar con Invitados.':'No se pudo agregar el invitado.',true);return;}
+  canonicalGuestName.value='';
+}
+btnCanonicalAddGuest?.addEventListener('click',addCanonicalGuest);
+canonicalGuestName?.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();addCanonicalGuest();}});
 window.addEventListener('migrandia:distribution-context-clear',()=>{
   guests=[];elements=[];selectedIds=[];selectedId='';measurements=[];
   historyPast=[];historyFuture=[];proposals=[];currentProposalId='';
