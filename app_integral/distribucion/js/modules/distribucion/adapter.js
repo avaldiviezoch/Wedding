@@ -26,6 +26,10 @@ window.MiGranDiaDistributionAdapter = Object.freeze({
   firestore:false,
   readGuests(){ return structuredClone(canonical().guests||[]); },
   readTables(){ return structuredClone(canonical().tables||[]); },
+  addGuest(name){
+    if(!canonicalActions?.addGuest)return Object.freeze({ok:false,reason:'canonical-actions-unavailable'});
+    return canonicalActions.addGuest(String(name||''));
+  },
   assignGuest(guestId,tableId,seatNumber=null){
     if(!canonicalActions?.assignGuest)return Object.freeze({ok:false,reason:'canonical-actions-unavailable'});
     return canonicalActions.assignGuest(String(guestId),String(tableId),seatNumber);
