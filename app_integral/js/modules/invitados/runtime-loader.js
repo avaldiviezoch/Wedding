@@ -9,15 +9,9 @@
     return new URL(`js/modules/invitados/${file}?v=${version}`, document.baseURI).href;
   }
 
-  // Distribución: solo se carga el vínculo de datos. La capa visual dinámica queda
-  // fuera del flujo activo para evitar que una interfaz se pinte sobre otra.
-  import(new URL('js/modules/distribucion/index.js?v=20260901-distribution-live-tables2', document.baseURI).href)
-    .catch((error) => console.warn('No se pudo iniciar el vínculo Invitados ↔ Distribución:', error));
+  // Distribución nueva se monta exclusivamente desde menu-fast.js.
+  // Este loader ya no inicia ningún runtime legacy de Distribución.
 
-  // Distribución: conserva y recupera la imagen del plano por propuesta.
-  // También corrige una sola vez propuestas antiguas guardadas con el plano oculto.
-  import(new URL('js/modules/distribucion/background-persistence.js?v=20260829-bg-persistence1', document.baseURI).href)
-    .catch((error) => console.warn('No se pudo iniciar la recuperación del plano de Distribución:', error));
 
   function loadBaseRuntime() {
     if (baseRuntime) return baseRuntime;
