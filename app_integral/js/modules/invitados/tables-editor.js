@@ -269,6 +269,36 @@ function unassignGuest(guestId) {
   toast(`${guest.name || 'Invitado'} quedó sin mesa.`);
 }
 
+window.MiGranDiaTablesCanonicalActions = Object.freeze({
+  version: VERSION,
+  assignGuest(guestId, tableId, seatNumber = null) {
+    const preferredSeat = Number.isInteger(Number(seatNumber)) && Number(seatNumber) > 0 ? Number(seatNumber) - 1 : null;
+    const before = readState();
+    const guest = before.guests.find((item) => String(item.id) === String(guestId));
+    const table = before.tables.find((item) => String(item.id) === String(tableId));
+    if (!guest || !table) return Object.freeze({ ok:false, reason:'missing-record' });
+    assignGuest(String(guestId), String(tableId), preferredSeat);
+    const after = readState();
+    const updated = after.guests.find((item) => String(item.id) === String(guestId));
+    return Object.freeze({
+      ok:Boolean(updated && String(updated.tableId || '') === String(tableId)),
+      guestId:String(guestId),
+      tableId:String(updated?.tableId || ''),
+      seatId:String(updated?.seatId || ''),
+      seatNumber:updated?.seatNumber ?? null
+    });
+  },
+  unassignGuest(guestId) {
+    const before = readState();
+    const guest = before.guests.find((item) => String(item.id) === String(guestId));
+    if (!guest) return Object.freeze({ ok:false, reason:'missing-guest' });
+    unassignGuest(String(guestId));
+    const after = readState();
+    const updated = after.guests.find((item) => String(item.id) === String(guestId));
+    return Object.freeze({ ok:Boolean(updated && !updated.tableId), guestId:String(guestId) });
+  }
+});
+
 function nextTableName(tables) {
   const used = new Set(tables.map((table) => String(table.name || '').trim()));
   let number = 1;
