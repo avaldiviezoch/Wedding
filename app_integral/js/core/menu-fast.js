@@ -121,6 +121,12 @@
   }
 
   const NEW_DISTRIBUTION_URL = new URL('distribucion/index.html?v=20260918-readonly1', document.baseURI).href;
+  function unmountNewDistributionIfInactive() {
+    if (currentModule() === 'distribucion') return;
+    const workspace=document.getElementById('unifiedWorkspace');
+    workspace?.querySelectorAll('iframe[data-mgd-new-distribution="true"]').forEach(frame=>frame.remove());
+  }
+
   function mountNewDistribution() {
     if (currentModule() !== 'distribucion') return false;
     const workspace = document.getElementById('unifiedWorkspace');
@@ -156,6 +162,7 @@
   function restoreVisibleSurface(reason = 'resume') {
     if (document.hidden) return;
     if (currentModule() === 'distribucion') mountNewDistribution();
+    else unmountNewDistributionIfInactive();
     const moduleId = currentModule();
     const workspace = document.getElementById('unifiedWorkspace');
     const loader = document.getElementById('unifiedLoader');
