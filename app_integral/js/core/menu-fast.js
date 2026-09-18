@@ -120,7 +120,7 @@
     return String(location.hash || '').replace(/^#/, '').split(/[/?&]/)[0].trim().toLowerCase();
   }
 
-  const NEW_DISTRIBUTION_URL = new URL('distribucion/index.html?v=20260918-readonly1', document.baseURI).href;
+  const NEW_DISTRIBUTION_URL = new URL('distribucion/index.html?v=20260918-production1', document.baseURI).href;
   function unmountNewDistributionIfInactive() {
     if (currentModule() === 'distribucion') return;
     const workspace=document.getElementById('unifiedWorkspace');
@@ -151,11 +151,17 @@
     document.body.classList.add('module-view');
     document.documentElement.classList.add('mgd-module-surface-active');
     const loader = document.getElementById('unifiedLoader');
-    loader?.classList.add('show');
-    loader?.setAttribute('aria-hidden','false');
     const finish=()=>{loader?.classList.remove('show');loader?.setAttribute('aria-hidden','true');};
     if(frame.dataset.loaded==='true') finish();
-    else frame.addEventListener('load',()=>{frame.dataset.loaded='true';finish();},{once:true});
+    else {
+      loader?.classList.add('show');
+      loader?.setAttribute('aria-hidden','false');
+      frame.addEventListener('load',()=>{
+        frame.dataset.loaded='true';
+        finish();
+        try{frame.contentWindow?.postMessage({type:'MIGRANDIA_DISTRIBUTION_REFRESH',reason:'route-load',detail:{}},location.origin)}catch(_){}
+      },{once:true});
+    }
     return true;
   }
 
@@ -175,7 +181,7 @@
       if (!document.documentElement.classList.contains('mgd-module-surface-active')) document.documentElement.classList.add('mgd-module-surface-active');
       if (workspace.hidden) workspace.removeAttribute('hidden');
       if (workspace.getAttribute('aria-hidden') !== 'false') workspace.setAttribute('aria-hidden', 'false');
-      if (workspace.children.length) {
+      if (workspace.children.length && workspace.querySelector('iframe[data-mgd-new-distribution="true"]')?.dataset.loaded === 'true') {
         loader?.classList.remove('show');
         loader?.setAttribute('aria-hidden', 'true');
       }
