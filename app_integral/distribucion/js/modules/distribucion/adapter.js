@@ -15,11 +15,14 @@
   root.createMockAppLuAdapter = createMockAppLuAdapter;
 })();
 
-const parentBridge = (()=>{try{return window.parent!==window ? window.parent.MiGranDiaDistributionGuestLink : null}catch(_){return null}})();
-const canonicalActions = (()=>{try{return window.parent!==window ? window.parent.MiGranDiaTablesCanonicalActions : null}catch(_){return null}})();
-function canonical(){try{return parentBridge?.readState?.()||{guests:[],tables:[]}}catch(_){return{guests:[],tables:[]}}}
+function parentApi(name){try{return window.parent!==window ? window.parent[name] : null}catch(_){return null}}
+function canonical(){
+  try{return parentApi('MiGranDiaInvitadosCanonicalRead')?.readState?.()||{guests:[],tables:[]}}
+  catch(_){return{guests:[],tables:[]}}
+}
+function canonicalActions(){return parentApi('MiGranDiaTablesCanonicalActions')}
 window.MiGranDiaDistributionAdapter = Object.freeze({
-  mode: parentBridge ? 'app-integral-bridge' : 'memory-only',
+  mode: 'canonical-adapter',
   storageWrites:false,
   canonicalAssignmentWrites:Boolean(canonicalActions),
   firebase:false,
@@ -27,15 +30,15 @@ window.MiGranDiaDistributionAdapter = Object.freeze({
   readGuests(){ return structuredClone(canonical().guests||[]); },
   readTables(){ return structuredClone(canonical().tables||[]); },
   addGuest(name){
-    if(!canonicalActions?.addGuest)return Object.freeze({ok:false,reason:'canonical-actions-unavailable'});
+    if(!canonicalActions()?.addGuest)return Object.freeze({ok:false,reason:'canonical-actions-unavailable'});
     return canonicalActions.addGuest(String(name||''));
   },
   assignGuest(guestId,tableId,seatNumber=null){
-    if(!canonicalActions?.assignGuest)return Object.freeze({ok:false,reason:'canonical-actions-unavailable'});
+    if(!canonicalActions()?.assignGuest)return Object.freeze({ok:false,reason:'canonical-actions-unavailable'});
     return canonicalActions.assignGuest(String(guestId),String(tableId),seatNumber);
   },
   unassignGuest(guestId){
-    if(!canonicalActions?.unassignGuest)return Object.freeze({ok:false,reason:'canonical-actions-unavailable'});
+    if(!canonicalActions()?.unassignGuest)return Object.freeze({ok:false,reason:'canonical-actions-unavailable'});
     return canonicalActions.unassignGuest(String(guestId));
   },
   // Seguridad producción: no escribe storage directamente. Las asignaciones
