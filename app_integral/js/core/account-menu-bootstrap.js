@@ -55,10 +55,7 @@
     if (!nav) return false;
 
     const home = document.getElementById('moduleQuickHome');
-    if (home && !home.querySelector('.module-home-arrow')) {
-      home.setAttribute('aria-label', 'Volver al menú');
-      home.innerHTML = '<span class="module-home-arrow" aria-hidden="true">←</span><span class="module-home-label">Menú</span>';
-    }
+    if (home) home.setAttribute('aria-label', 'Volver al inicio');
 
     if (!document.getElementById('moduleMobileTabs')) {
       const mobileTabs = document.createElement('button');
