@@ -19,18 +19,7 @@
   import(new URL('js/modules/distribucion/background-persistence.js?v=20260829-bg-persistence1', document.baseURI).href)
     .catch((error) => console.warn('No se pudo iniciar la recuperación del plano de Distribución:', error));
 
-  function ensureSharedShellStyles() {
-    const id = 'mgdModuleTopbarPremiumCss';
-    if (document.getElementById(id)) return;
-    const link = document.createElement('link');
-    link.id = id;
-    link.rel = 'stylesheet';
-    link.href = new URL(`css/modules/module-topbar-premium.css?v=${VERSION}`, document.baseURI).href;
-    document.head.appendChild(link);
-  }
-
   function loadBaseRuntime() {
-    ensureSharedShellStyles();
     if (baseRuntime) return baseRuntime;
     baseRuntime = Promise.all([
       import(moduleUrl('index.js', '20260819-1615-distribution-source1')),

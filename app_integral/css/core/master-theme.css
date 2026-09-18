@@ -56,58 +56,7 @@ body.module-view .unified-loader-spinner{
   border-top-color:var(--mgd-olive) !important;
 }
 
-/* Navegación superior: mismo lenguaje que Cronograma REFINE. */
-body.module-view .module-quick-nav{
-  border:1px solid rgba(127,137,98,.16) !important;
-  border-radius:16px !important;
-  background:rgba(255,255,255,.88) !important;
-  box-shadow:0 8px 26px rgba(0,0,0,.045) !important;
-  backdrop-filter:blur(16px) saturate(1.08) !important;
-  -webkit-backdrop-filter:blur(16px) saturate(1.08) !important;
-}
-
-body.module-view .module-quick-home,
-body.module-view .module-quick-tab{
-  border-radius:11px !important;
-  color:#65625f !important;
-  background:transparent !important;
-  box-shadow:none !important;
-  font-weight:800 !important;
-}
-
-body.module-view .module-quick-home{
-  color:var(--mgd-text) !important;
-  background:#f3f0eb !important;
-}
-
-body.module-view .module-quick-home:hover,
-body.module-view .module-quick-tab:hover{
-  color:var(--mgd-text) !important;
-  background:#fff !important;
-  border-color:rgba(127,137,98,.16) !important;
-  box-shadow:0 8px 18px rgba(59,65,56,.08) !important;
-}
-
-body.module-view .module-quick-tab.active,
-body.module-view .module-quick-tab.is-active,
-body.module-view .module-quick-tab[aria-current='page']{
-  color:#fff !important;
-  border-color:var(--mgd-olive) !important;
-  background:var(--mgd-olive) !important;
-  box-shadow:0 8px 18px rgba(111,120,86,.20) !important;
-}
-
-body.module-view .module-session-logout{
-  color:#875d66 !important;
-  border-color:rgba(177,119,130,.22) !important;
-  background:rgba(255,255,255,.92) !important;
-  box-shadow:0 10px 25px rgba(75,55,60,.08) !important;
-}
-body.module-view .module-session-logout:hover{
-  color:#fff !important;
-  border-color:var(--mgd-rose) !important;
-  background:var(--mgd-rose) !important;
-}
+/* La barra global se estiliza exclusivamente en module-context-bar.css. */
 
 /* =========================================================
    SUPERFICIES COMUNES EN TODOS LOS MÓDULOS
