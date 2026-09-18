@@ -24,13 +24,20 @@ window.MiGranDiaDistributionAdapter = Object.freeze({
   firestore:false,
   readGuests(){ return structuredClone(canonical().guests||[]); },
   readTables(){ return structuredClone(canonical().tables||[]); },
-  syncNow(){ try{parentBridge?.syncNow?.()}catch(_){} },
+  // Seguridad producción: este adaptador es estrictamente READ-ONLY.
+  // No invoca syncNow() del bridge legacy porque ese flujo puede terminar escribiendo
+  // localStorage/IndexedDB. La UI nueva solo consume snapshots canónicos.
+  syncNow(){ return false; },
   contract:Object.freeze({guestId:'id',tableId:'id',seatId:'seatId',seatNumber:'seatNumber'})
 });
 if(parentBridge){
-  const sync=()=>window.MiGranDiaDistributionAdapter.syncNow();
-  window.addEventListener('load',sync,{once:true});
-  window.addEventListener('focus',sync);
+  const announceSnapshot=()=>{
+    window.dispatchEvent(new CustomEvent('migrandia:distribution-snapshot-ready',{
+      detail:{ mode:'read-only', guests:window.MiGranDiaDistributionAdapter.readGuests().length, tables:window.MiGranDiaDistributionAdapter.readTables().length }
+    }));
+  };
+  window.addEventListener('load',announceSnapshot,{once:true});
+  window.addEventListener('focus',announceSnapshot);
 }
 
 /* Margen libre editable por eje para mesas rectangulares.
