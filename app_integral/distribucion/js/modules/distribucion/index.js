@@ -555,8 +555,17 @@ function renderSeatEditor(table){
   table.seats.forEach((guestId,index)=>{
     const row=document.createElement('div');row.className='seat-row';
     const number=document.createElement('span');number.className='seat-number';number.textContent=String(index+1);
-    const value=document.createElement('span');value.className='seat-readonly-value';value.textContent=guestId?(guestById(guestId)?.name||'Invitado'):'— Sin asignar —';
-    row.append(number,value);seatEditor.appendChild(row);
+    const select=document.createElement('select');select.className='seat-canonical-select';select.dataset.seatIndex=String(index);
+    const empty=document.createElement('option');empty.value='';empty.textContent='— Sin asignar —';select.appendChild(empty);
+    guests.forEach(guest=>{const option=document.createElement('option');option.value=guest.id;option.textContent=guest.name;option.selected=String(guestId||'')===String(guest.id);select.appendChild(option);});
+    select.addEventListener('change',()=>{
+      const adapter=window.MiGranDiaDistributionAdapter;
+      const result=select.value
+        ? adapter?.assignGuest?.(select.value,table.sharedTableId,index+1)
+        : guestId ? adapter?.unassignGuest?.(guestId) : {ok:true};
+      if(!result?.ok){toast(result?.reason==='canonical-actions-unavailable'?'No se pudo conectar con Mesas e Invitados.':'No se pudo actualizar esta silla.',true);renderSeatEditor(table);return;}
+    });
+    row.append(number,select);seatEditor.appendChild(row);
   });
 }
 function fillProperties(item){
