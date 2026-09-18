@@ -297,10 +297,13 @@ function hydrateCanonicalTables(){
       if(free>=0)assigned[free]=guest.id;
     });
     const position=nextPosition(index);
-    return {
+    const canonicalType=['round','square','rectangular'].includes(String(table.type||'').toLowerCase())
+      ? String(table.type).toLowerCase() : 'round';
+    const hydrated={
       id:String(table.id||makeId('table')),
       type:'table',
-      shape:'table',
+      shape:canonicalType==='round'?'table':'rect',
+      tableShape:canonicalType,
       label:String(table.name||`Mesa ${index+1}`),
       x:Number(table.x)||position.x,
       y:Number(table.y)||position.y,
@@ -313,8 +316,10 @@ function hydrateCanonicalTables(){
       seats:assigned,
       canonicalSeatIds:seatIds,
       sharedTableId:String(table.id||''),
-      sharedTableType:String(table.type||'round')
+      sharedTableType:canonicalType
     };
+    const applyPhysical=window.MiGranDiaDistributionEngine?.physicalDimensions?.applyToTable;
+    return typeof applyPhysical==='function'?applyPhysical(hydrated):hydrated;
   }).filter((table)=>table.sharedTableId);
 }
 function hydrateCanonicalReadOnlyState(){
