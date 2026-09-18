@@ -271,6 +271,15 @@ function unassignGuest(guestId) {
 
 window.MiGranDiaTablesCanonicalActions = Object.freeze({
   version: VERSION,
+  addGuest(name) {
+    const clean = String(name || '').trim().replace(/\s+/g, ' ');
+    if (!clean) return Object.freeze({ ok:false, reason:'empty-name' });
+    const data = normalizeData(readState(), false);
+    const guest = { id:uid('guest'), name:clean, status:'pending', invitationSent:false, side:'ambos', relation:'', restriction:'Ninguna', tableId:'', seatId:'', seatNumber:null, notes:'' };
+    data.guests.push(guest);
+    writeState(data, 'table-guest-created');
+    return Object.freeze({ ok:true, guest:{...guest} });
+  },
   assignGuest(guestId, tableId, seatNumber = null) {
     const preferredSeat = Number.isInteger(Number(seatNumber)) && Number(seatNumber) > 0 ? Number(seatNumber) - 1 : null;
     const before = readState();
