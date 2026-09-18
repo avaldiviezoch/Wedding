@@ -106,8 +106,6 @@
     new MutationObserver(scanFrames).observe(workspace, { childList: true });
     scanFrames();
   }
-
-  ensureSharedShellStyles();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindWorkspace, { once: true });
   else bindWorkspace();
 })();
