@@ -90,10 +90,8 @@
   }, true);
 
   window.addEventListener('hashchange', () => {
-    const hash = location.hash.toLowerCase();
-    if (hash.includes('invitados') || hash.includes('distribucion')) loadBaseRuntime();
+    if (location.hash.toLowerCase().includes('invitados')) loadBaseRuntime();
   });
-  if (location.hash.toLowerCase().includes('distribucion')) loadBaseRuntime();
 
   function bindWorkspace() {
     const workspace = document.getElementById('unifiedWorkspace');
