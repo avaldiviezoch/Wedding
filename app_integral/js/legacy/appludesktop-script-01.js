@@ -970,6 +970,36 @@
     restoreHistorySnapshot(next);
   }
 
+  async function notifyDeletedTables(items=[]){
+    const tables=items
+      .filter(item=>item?.type==='table')
+      .map(item=>({
+        elementId:String(item.id),
+        sharedTableId:String(item.sharedTableId||'')
+      }));
+    if(!tables.length)return;
+
+    // Un borrado estructural no espera el autosave normal de 850 ms.
+    // Primero persistimos el snapshot YA sin la mesa y recién después
+    // avisamos al adaptador canónico.
+    clearTimeout(autosaveTimer);
+    if(autosaveInProgress){
+      autosaveQueued=true;
+      while(autosaveInProgress){
+        await new Promise(resolve=>setTimeout(resolve,40));
+      }
+    }
+    await saveCurrentProposal({silent:true});
+
+    try{
+      window.parent?.postMessage({
+        type:'MIGRANDIA_DISTRIBUTION_CHANGED',
+        reason:'table-delete',
+        tables
+      },'*');
+    }catch(_){}
+  }
+
   function commitMutation(){
     render();
     scheduleHistoryRecord();
@@ -2257,9 +2287,11 @@
   document.getElementById('btnDelete').onclick=()=>{
     if(!selectedIds.length) return;
     const ids=new Set(selectedIds);
+    const removed=elements.filter(e=>ids.has(e.id));
     elements=elements.filter(e=>!ids.has(e.id));
     clearSelection();
     guestVersion++;lastSeatEditorKey='';renderGuestManager();commitMutation();
+    void notifyDeletedTables(removed);
   };
   document.getElementById('btnDuplicate').onclick=()=>{
     const i=getItem(selectedId); if(!i || isItemLocked(i))return;
@@ -2433,12 +2465,14 @@
       if(!removableIds.size) return;
 
       e.preventDefault();
+      const removed=elements.filter(element=>removableIds.has(element.id));
       elements=elements.filter(element=>!removableIds.has(element.id));
       clearSelection();
       guestVersion++;
       lastSeatEditorKey='';
       renderGuestManager();
       commitMutation();
+      void notifyDeletedTables(removed);
     }else if(e.key.toLowerCase()==='r'){
       e.preventDefault();
       if(isItemLocked(item)) return;
@@ -2468,7 +2502,9 @@
 
   document.getElementById('btnClear').onclick=()=>{
     if(confirm('¿Eliminar todos los elementos colocados?')){
+      const removed=elements.slice();
       elements=[];clearSelection();measurements=[];guestVersion++;lastSeatEditorKey='';renderGuestManager();commitMutation();
+      void notifyDeletedTables(removed);
     }
   };
 
