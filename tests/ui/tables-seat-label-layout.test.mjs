@@ -6,26 +6,23 @@ const editor = readFileSync(
   new URL('../../app_integral/js/modules/invitados/tables-editor.js', import.meta.url),
   'utf8'
 );
-const css = readFileSync(
-  new URL('../../app_integral/css/modules/invitados-tables-editor.css', import.meta.url),
+const oldLook = readFileSync(
+  new URL('../../app_integral/js/modules/invitados/tables-old-look.js', import.meta.url),
   'utf8'
 );
-const distribution = readFileSync(
-  new URL('../../app_integral/js/modules/distribucion/index.js', import.meta.url),
+const oldLookCss = readFileSync(
+  new URL('../../app_integral/css/modules/invitados-tables-old-look.css', import.meta.url),
   'utf8'
 );
 
-test('Mesas coloca etiquetas fuera de las sillas con anclaje radial como Distribución', () => {
-  assert.match(editor, /labelRadiusX = radiusX \+ 34/);
-  assert.match(editor, /labelRadiusY = radiusY \+ 34/);
-  assert.match(editor, /labelAnchor = cos > \.28 \? 'start' : cos < -\.28 \? 'end' : 'middle'/);
-  assert.match(editor, /data-anchor="\$\{esc\(position\.labelAnchor \|\| 'middle'\)\}"/);
-  assert.match(css, /\.mgd-seat-label\[data-anchor="start"\]/);
-  assert.match(css, /\.mgd-seat-label\[data-anchor="end"\]/);
-  assert.match(css, /\.mgd-seat-label\[data-anchor="middle"\]/);
+test('Mesas muestra una sola etiqueta visible por silla', () => {
+  assert.doesNotMatch(editor, /class="mgd-seat-label"/);
+  assert.match(oldLook, /seat\.dataset\.seatLabel = shortSeatLabel\(seat\)/);
+  assert.match(oldLook, /if \(!seat\?\.dataset\?\.guestId\) return 'Asiento'/);
+  assert.match(oldLookCss, /content:attr\(data-seat-label\)/);
 });
 
-test('Mesas y Distribución comparten el criterio start end middle para nombres', () => {
-  assert.match(distribution, /anchor=cos>\.28\?'start':cos<-\.28\?'end':'middle'/);
-  assert.match(editor, /'start'.*'end'.*'middle'/s);
+test('la etiqueta conservada cambia de Asiento al nombre del invitado', () => {
+  assert.match(oldLook, /const name = title\.split\('·'\)\[0\]\.trim\(\)/);
+  assert.match(oldLook, /return name \|\| 'Invitado'/);
 });
