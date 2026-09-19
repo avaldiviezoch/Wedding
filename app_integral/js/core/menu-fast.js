@@ -144,6 +144,18 @@
     });
   }
 
+  let distributionWorkspaceObserver = null;
+
+  function ensureDistributionWorkspaceObserver(workspace) {
+    if (distributionWorkspaceObserver) return;
+    distributionWorkspaceObserver = new MutationObserver(() => {
+      if (currentModule() !== 'distribucion') return;
+      const frame = workspace.querySelector('iframe[data-mgd-new-distribution="true"]');
+      if (frame) suppressLegacyWorkspace(workspace, frame);
+    });
+    distributionWorkspaceObserver.observe(workspace, { childList: true });
+  }
+
   function unmountNewDistributionIfInactive() {
     if (currentModule() === 'distribucion') return false;
     const workspace=document.getElementById('unifiedWorkspace');
@@ -179,6 +191,7 @@
     frame.hidden = false;
     frame.removeAttribute('aria-hidden');
     suppressLegacyWorkspace(workspace, frame);
+    ensureDistributionWorkspaceObserver(workspace);
     workspace.dataset.mgdNewDistributionActive='true';
     workspace.removeAttribute('hidden');
     workspace.setAttribute('aria-hidden','false');
