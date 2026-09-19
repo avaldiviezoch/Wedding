@@ -124,7 +124,7 @@
     return String(location.hash || '').replace(/^#/, '').split(/[/?&]/)[0].trim().toLowerCase();
   }
 
-  const DISTRIBUTION_URL = 'https://avaldiviezoch.github.io/invitaciones/mi-gran-dia/distribucion-limpia/index.html?v=20260918-nav1';
+  const DISTRIBUTION_URL = 'https://avaldiviezoch.github.io/invitaciones/mi-gran-dia/distribucion-limpia/index.html?v=20260918-sync1';
 
   function getDistributionFrame(workspace = document.getElementById('unifiedWorkspace')) {
     return workspace?.querySelector('iframe[data-mgd-distribution-frame="true"]') || null;
