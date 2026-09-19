@@ -372,10 +372,8 @@ function addElement(type,{record=true,assignGuests=false}={}){
   const base=TYPE_DEFAULTS[type];if(!base)return null;
   const position=nextPosition(elements.length);
   const number=elements.filter(item=>item.type===type).length+1;
-  const isGuestTable=type==='table'||type==='table-square'||type==='table-rectangular';
-  const tableNumber=elements.filter(x=>x.type==='table').length+1;
-  const item={id:makeId(type),type:isGuestTable?'table':type,shape:base.shape,label:isGuestTable?`Mesa ${tableNumber}`:(number>1?`${base.label} ${number}`:base.label),x:position.x,y:position.y,widthM:base.widthM,heightM:base.heightM,rotation:0,color:base.color,locked:false};
-  if(isGuestTable){item.tableShape=base.tableShape||'round';item.capacity=BASE_TABLE.capacity;item.seats=makeTableSeats(assignGuests);}
+  const item={id:makeId(type),type,shape:base.shape,label:type==='table'?`Mesa ${elements.filter(x=>x.type==='table').length+1}`:(number>1?`${base.label} ${number}`:base.label),x:position.x,y:position.y,widthM:base.widthM,heightM:base.heightM,rotation:0,color:base.color,locked:false};
+  if(type==='table'){item.capacity=BASE_TABLE.capacity;item.seats=makeTableSeats(assignGuests);}
   elements.push(item);setSelection([item.id],item.id);if(record)pushHistory();render();return item;
 }
 
@@ -706,7 +704,7 @@ function switchProposal(id){saveCurrentProposalSnapshot();const proposal=proposa
 function createProposal(name='Nueva propuesta',copyCurrent=false){saveCurrentProposalSnapshot();const state=copyCurrent?proposalSnapshot():blankState();const proposal={id:makeId('proposal'),name,state:clone(state)};proposals.push(proposal);switchProposal(proposal.id);}
 function blankState(){const old=stateSnapshot();return{...old,elements:[],selectedIds:[],selectedId:'',measurements:[],hiddenLayers:{},lockedLayers:{}};}
 function renderProposalList(){proposalList.replaceChildren();proposals.forEach(proposal=>{const row=document.createElement('div');row.className=`proposal-row${proposal.id===currentProposalId?' active':''}`;const info=document.createElement('button');info.type='button';info.className='proposal-open';const strong=document.createElement('strong');strong.textContent=proposal.name;const small=document.createElement('small');small.textContent=proposal.id===currentProposalId?'Actual':'Abrir propuesta';info.append(strong,small);info.addEventListener('click',()=>switchProposal(proposal.id));const rename=document.createElement('button');rename.type='button';rename.textContent='✎';rename.title='Renombrar';rename.addEventListener('click',()=>{const next=prompt('Nombre de la propuesta',proposal.name);if(next?.trim()){proposal.name=next.trim();if(proposal.id===currentProposalId){proposalNameTop.textContent=proposal.name;proposalNameCanvas.textContent=proposal.name;}renderProposalList();}});const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.title='Eliminar';remove.disabled=proposals.length===1;remove.addEventListener('click',()=>{if(proposals.length===1)return;const index=proposals.findIndex(item=>item.id===proposal.id);proposals.splice(index,1);if(currentProposalId===proposal.id)switchProposal(proposals[Math.max(0,index-1)].id);else renderProposalList();});row.append(info,rename,remove);proposalList.appendChild(row);});}
-// Propuestas se controla una sola vez desde el bloque espacial P1.
+document.getElementById('btnProposals').addEventListener('click',()=>{renderProposalList();proposalModal.hidden=false;});document.getElementById('closeProposalModal').addEventListener('click',()=>proposalModal.hidden=true);document.getElementById('btnNewProposal').addEventListener('click',()=>createProposal(`Propuesta ${proposals.length+1}`));document.getElementById('btnDuplicateProposal').addEventListener('click',()=>createProposal(`${proposals.find(item=>item.id===currentProposalId)?.name||'Propuesta'} copia`,true));proposalModal.addEventListener('click',event=>{if(event.target===proposalModal)proposalModal.hidden=true;});
 
 function initialState(){
   hydrateCanonicalReadOnlyState();const table=elements[0]||null;if(table)setSelection([table.id],table.id);else setSelection([],'');hiddenLayers={};lockedLayers={};measurements=[];measurementUid=1;scaleInput.value=32;showGrid.checked=true;showClearance.checked=true;showLabels.checked=true;showNames.checked=true;bgVisible=true;bgPosition={x:0,y:0};zoom=1;setZoom(1);historyPast=[];historyFuture=[];pushHistory();render();
@@ -715,7 +713,7 @@ function resetCurrent(){initialState();saveCurrentProposalSnapshot();}
 document.getElementById('resetLab').addEventListener('click',resetCurrent);
 
 initialState();
-proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposalSnapshot())}];currentProposalId=proposals[0].id;proposalNameTop.textContent=proposals[0].name;proposalNameCanvas.textContent=proposals[0].name;renderProposalList();saveCurrentProposalSnapshot();proposalModal.hidden=true;
+proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposalSnapshot())}];currentProposalId=proposals[0].id;proposalNameTop.textContent=proposals[0].name;proposalNameCanvas.textContent=proposals[0].name;renderProposalList();saveCurrentProposalSnapshot();
 
 
 /* ===== pruebas/distribucion/phase2-p0.js ===== */

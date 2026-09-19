@@ -159,11 +159,8 @@
 
       const quickModule = target.closest('[data-quick-module]');
       if (quickModule && nav.contains(quickModule)) {
-        const moduleId = String(quickModule.dataset.quickModule || '').trim().toLowerCase();
-        if (!moduleId) return;
         nav.classList.remove('module-tabs-open');
-        if (activeModule() !== moduleId) location.hash = moduleId;
-        else renderActiveModule();
+        requestAnimationFrame(renderActiveModule);
       }
     }, { signal });
 
