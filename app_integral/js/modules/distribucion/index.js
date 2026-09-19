@@ -1,5 +1,5 @@
 export const moduleId='distribucion';
-const V='20260901-distribution-live-tables2';
+const V='20260919-canonical-sync1';
 const GK='planificador_bodas_invitados_v1';
 const SK='planificador_bodas_datos_compartidos_v1';
 const LK='migrandia_distribucion_invitados_link_v1';
@@ -91,6 +91,80 @@ const put=(db,st,v)=>new Promise((ok,no)=>{try{let q=db.transaction(st,'readwrit
 async function planner(w){try{const db=await openDb(w);try{const m=await get(db,MS,'activeProposalId'),aid=m?.value||w.localStorage.getItem(AK),r=aid?await get(db,PS,aid):null;if(r)return{b:'idb',aid:String(aid),r}}finally{db.close()}}catch(_){}try{const m=JSON.parse(w.localStorage.getItem(LM)||'{}'),a=m.activeProposalId||w.localStorage.getItem(AK),r=(m.proposals||[]).find(x=>String(x.id)===String(a))||(m.proposals||[])[0];return{b:'ls',aid:r?String(r.id):String(a||''),r:r||null}}catch(_){return{b:'ls',aid:'',r:null}}}
 async function writePlan(w,p,r){const z={...r,updatedAt:new Date().toISOString()};if(p.b==='idb')try{const db=await openDb(w);try{await put(db,PS,z);return z}finally{db.close()}}catch(_){}try{const m=JSON.parse(w.localStorage.getItem(LM)||'{}'),a=Array.isArray(m.proposals)?m.proposals:[],i=a.findIndex(x=>String(x.id)===String(z.id));i>=0?a[i]=z:a.push(z);m.proposals=a;m.activeProposalId=z.id;w.localStorage.setItem(LM,JSON.stringify(m));w.localStorage.setItem(AK,String(z.id));return z}catch(_){return null}}
 const proj=r=>JSON.stringify({g:r?.data?.guests||[],t:lt(r?.data||{}).map(e=>({id:e.id,label:e.label,capacity:e.capacity,seats:e.seats,sharedTableId:e.sharedTableId})),uid:r?.data?.uid||0});
+
+function patchLegacyTableDom(c,d,l,p){
+ try{
+  const doc=c.frame.contentDocument;
+  const layer=doc?.getElementById('itemsLayer');
+  if(!layer||!p?.tables)return;
+  const tableMap=new Map((d.tables||[]).map(t=>[String(t.id),t]));
+  const groups=[...layer.querySelectorAll('.draggable[data-id]')];
+  Object.entries(p.tables).forEach(([cid,eid])=>{
+   const table=tableMap.get(String(cid)); if(!table)return;
+   const n=cap(table.capacity||table.seats?.length||10);
+   const group=groups.find(g=>String(g.getAttribute('data-id'))===String(eid)); if(!group)return;
+
+   [...group.children].filter(node=>String(node.tagName).toLowerCase()==='text').forEach(node=>{
+    if(/^\d+\s+personas$/i.test(String(node.textContent||'').trim())) node.textContent=`${n} personas`;
+   });
+
+   const chairs=[...group.children].filter(node=>{
+    if(String(node.tagName).toLowerCase()!=='g')return false;
+    const circle=[...node.children].find(x=>String(x.tagName).toLowerCase()==='circle');
+    const text=[...node.children].find(x=>String(x.tagName).toLowerCase()==='text'&&/^\d+$/.test(String(x.textContent||'').trim()));
+    return Boolean(circle&&text);
+   }).sort((a,b)=>Number(a.querySelector('text')?.textContent||0)-Number(b.querySelector('text')?.textContent||0));
+
+   let chairOrbit=0;
+   if(chairs[0]){
+    const circle=chairs[0].querySelector('circle');
+    chairOrbit=Math.hypot(Number(circle?.getAttribute('cx')||0),Number(circle?.getAttribute('cy')||0));
+   }
+   chairs.forEach((chair,index)=>{
+    if(index>=n){chair.style.display='none';return}
+    chair.style.display='';
+    if(!chairOrbit)return;
+    const angle=(Math.PI*2*index/n)-Math.PI/2;
+    const x=Math.cos(angle)*chairOrbit,y=Math.sin(angle)*chairOrbit;
+    const circle=chair.querySelector('circle'), text=chair.querySelector('text');
+    circle?.setAttribute('cx',x.toFixed(1));circle?.setAttribute('cy',y.toFixed(1));
+    text?.setAttribute('x',x.toFixed(1));text?.setAttribute('y',(y+3).toFixed(1));text.textContent=String(index+1);
+   });
+
+   const legacyLabels=[...group.children].filter(node=>String(node.tagName).toLowerCase()==='g'&&node.querySelector('title')&&/Asiento\s+\d+/i.test(node.querySelector('title')?.textContent||''));
+   legacyLabels.forEach(label=>label.style.display='none');
+   group.querySelectorAll('.mgd-canonical-guest-label').forEach(node=>node.remove());
+
+   const groupRotation=Number(String(group.getAttribute('transform')||'').match(/rotate\(([-\d.]+)/)?.[1]||0);
+   const labelOrbit=chairOrbit?chairOrbit*(2.18/1.33):64;
+   const assigned=(d.guests||[])
+    .filter(g=>String(g.tableId||'')===String(cid))
+    .sort((a,b)=>(Number(a.seatNumber)||999)-(Number(b.seatNumber)||999));
+   assigned.forEach(guest=>{
+    const seatIndex=Number(guest.seatNumber)-1;
+    if(!Number.isInteger(seatIndex)||seatIndex<0||seatIndex>=n)return;
+    const angle=(Math.PI*2*seatIndex/n)-Math.PI/2;
+    const x=Math.cos(angle)*labelOrbit,y=Math.sin(angle)*labelOrbit;
+    const cos=Math.cos(angle),anchor=cos>.28?'start':cos<-.28?'end':'middle',dx=cos>.28?5:cos<-.28?-5:0;
+    const full=String(guest.name||'Invitado').trim()||'Invitado';
+    const compact=full.length>18?full.slice(0,17)+'…':full;
+    const ns='http://www.w3.org/2000/svg';
+    const wrap=doc.createElementNS(ns,'g');
+    wrap.setAttribute('class','mgd-canonical-guest-label');
+    wrap.setAttribute('transform',`translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${-groupRotation})`);
+    wrap.setAttribute('pointer-events','none');
+    const title=doc.createElementNS(ns,'title');
+    title.textContent=`Asiento ${seatIndex+1}: ${full}`;
+    const label=doc.createElementNS(ns,'text');
+    label.setAttribute('x',String(dx));label.setAttribute('y','3');label.setAttribute('text-anchor',anchor);
+    label.setAttribute('font-size','9.5');label.setAttribute('font-weight','800');label.setAttribute('fill','#2d2924');
+    label.setAttribute('stroke','#ffffff');label.setAttribute('stroke-width','4');label.setAttribute('paint-order','stroke');
+    label.textContent=`${seatIndex+1}. ${compact}`;
+    wrap.append(title,label);group.appendChild(wrap);
+   });
+  });
+ }catch(_){}
+}
 function plannerSaveState(c){try{return String(c.frame.contentDocument?.getElementById('autosaveStatus')?.dataset?.state||'')}catch(_){return''}}
 function deferPush(c){clearTimeout(c.pushTimer);c.pushTimer=setTimeout(()=>push(c),220)}
 function refreshLiveFrame(c){
@@ -103,7 +177,7 @@ function refreshLiveFrame(c){
   try{c.frame.contentWindow.location.reload()}catch(_){}
  },120);
 }
-async function push(c){if(c.busy||!c.frame.isConnected)return;const state=plannerSaveState(c);if(state==='saving'){deferPush(c);return}if(state==='error'){console.warn('Distribución: sincronización pospuesta por un error de guardado.');return}c.busy=true;try{const p=await planner(c.frame.contentWindow);if(!p.r?.data||!p.aid)return;const d=read(),l=lread(),before=proj(p.r),beforeTables=tableSig(p.r),nr=cp(p.r);nr.data=cp(nr.data);pushSnap(nr.data,d,l,p.aid);lsave(l);c.aid=p.aid;if(before!==proj(nr)){const tablesChanged=beforeTables!==tableSig(nr),wr=await writePlan(c.frame.contentWindow,p,nr);c.last=wr?.updatedAt||'';if(wr&&tablesChanged)refreshLiveFrame(c)}else c.last=p.r.updatedAt||''}finally{c.busy=false}}
+async function push(c){if(c.busy||!c.frame.isConnected)return;const state=plannerSaveState(c);if(state==='saving'){deferPush(c);return}if(state==='error'){console.warn('Distribución: sincronización pospuesta por un error de guardado.');return}c.busy=true;try{const p=await planner(c.frame.contentWindow);if(!p.r?.data||!p.aid)return;const d=read(),l=lread(),before=proj(p.r),beforeTables=tableSig(p.r),nr=cp(p.r);nr.data=cp(nr.data);pushSnap(nr.data,d,l,p.aid);lsave(l);c.aid=p.aid;if(before!==proj(nr)){const tablesChanged=beforeTables!==tableSig(nr),wr=await writePlan(c.frame.contentWindow,p,nr);c.last=wr?.updatedAt||'';if(wr&&tablesChanged)refreshLiveFrame(c)}else c.last=p.r.updatedAt||'';setTimeout(()=>patchLegacyTableDom(c,d,l,pe(l,p.aid)),40)}finally{c.busy=false}}
 async function pull(c,initial=false){if(c.busy||!c.frame.isConnected)return; c.busy=true;try{const p=await planner(c.frame.contentWindow);if(!p.r?.data||!p.aid)return;const old=read(),l=lread(),d=pullSnap(p.r.data,old,l,p.aid,initial);pe(l,p.aid).initialized=true;lsave(l);if(sig(old)!==sig(d))save(d,initial?'distribucion-migration':'distribucion-seating');c.aid=p.aid;c.last=p.r.updatedAt||''}finally{c.busy=false}}
 async function init(c){if(c.init)return;c.init=true;try{let p;for(let i=0;i<15;i++){p=await planner(c.frame.contentWindow);if(p.r?.data&&p.aid)break;await new Promise(r=>setTimeout(r,160))}if(!p?.r?.data)return;let d=read(),l=lread(),x=pe(l,p.aid);if(!x.initialized){const before=sig(d);mapTables(d,p.r.data,x,'union');const rev=guestMap(d,p.r.data,l);let legacy=0;Object.values(x.tables).forEach(eid=>{const e=lt(p.r.data).find(z=>String(z.id)===String(eid));(e?.seats||[]).forEach(v=>{if(rev.has(Number(v)))legacy++})});if(!d.guests.some(g=>g.tableId)&&legacy)d=pullSnap(p.r.data,d,l,p.aid,true);x.initialized=true;lsave(l);if(sig(read())!==sig(d)||before!==sig(d))d=save(d,'distribucion-migration');c.aid=p.aid;await push(c);return}c.aid=p.aid;await push(c)}finally{c.init=false}}
 function seatChange(c,s){const l=lread(),p=pe(l,c.aid||''),eid=String(s.dataset.tableId||''),i=Number(s.dataset.seatIndex),cid=Object.entries(p.tables).find(([,v])=>String(v)===eid)?.[0];if(!cid||!Number.isInteger(i)||i<0)return;let d=read(),t=d.tables.find(x=>String(x.id)===cid);if(!t||i>=t.capacity)return;guestMap(d,{guests:[]},l);const rev=new Map(Object.entries(l.guestIds).map(([g,v])=>[Number(v),g])),gid=s.value===''?'':rev.get(Number(s.value))||'';d.guests.forEach(g=>{const here=String(g.tableId||'')===cid&&Number(g.seatNumber)===i+1,sel=gid&&String(g.id)===gid;if(here&&!sel){g.tableId='';g.seatId='';g.seatNumber=null}if(sel){g.tableId=t.id;g.seatNumber=i+1;g.seatId=t.seats[i].id}});lsave(l);save(d,'distribucion-seat-change')}
