@@ -1,4 +1,4 @@
-const VERSION = '20260919-seat-label-layout2';
+const VERSION = '20260919-single-seat-label1';
 const STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 const CSS_URL = new URL(`css/modules/invitados-tables-editor.css?v=${VERSION}`, document.baseURI).href;
@@ -464,13 +464,7 @@ function seatMarkup(data, table, index, position) {
     style="left:${position.x}px;top:${position.y}px"
     title="Quitar de esta mesa"
     aria-label="Quitar a ${esc(visibleName)} de la mesa"
-  >×</button><span
-    class="mgd-seat-label"
-    data-anchor="${esc(position.labelAnchor || 'middle')}"
-    style="left:${position.labelX ?? position.x}px;top:${position.labelY ?? position.y}px"
-    title="${esc(visibleName)}"
-    aria-hidden="true"
-  >${index + 1}. ${esc(visibleName)}</span>`;
+  >×</button>`;
 }
 
 function tableMarkup(data, table) {
