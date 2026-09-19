@@ -5,6 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0b0b">
   <title>Planificador de bodas</title>
+  <script>
+    (() => {
+      const moduleId = String(location.hash || '').replace(/^#/, '').split(/[/?&]/)[0].trim().toLowerCase();
+      const modules = new Set(['checklist','presupuesto','proveedores','invitados','distribucion','cronograma','invitaciones','musica','documentos','configuracion']);
+      if (modules.has(moduleId)) document.documentElement.classList.add('mgd-deep-module');
+    })();
+  </script>
+  <style>
+    html.mgd-deep-module body > main.app{visibility:hidden}
+    html.mgd-deep-module #unifiedWorkspace,
+    html.mgd-deep-module #moduleQuickNav{visibility:visible}
+  </style>
 
   <link rel="stylesheet" href="css/legacy/applu-style-01.css">
   <link rel="stylesheet" href="css/core/auth-guard.css?v=20260817171255">
@@ -209,7 +221,7 @@
   <script src="js/core/accordion-fast.js?v=20260820163843-nav"></script>
   <script src="js/modules/dashboard/index.js?v=20260918-timeline1"></script>
   <script src="js/core/module-context-bar.js?v=20260918-bar-dev1"></script>
-  <script src="js/core/menu-fast.js?v=20260918-distribucion-clean3"></script>
+  <script src="js/core/menu-fast.js?v=20260918-navigation-refresh1"></script>
   <script src="js/modules/invitados/runtime-loader.js?v=20260918-distribucion-clean3"></script>
   <script src="js/modules/invitaciones/index.js?v=20260820163843-invitaciones"></script>
 
