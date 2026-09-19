@@ -32,3 +32,16 @@ test('the live table refresh does not introduce Firestore or destructive remote 
   assert.doesNotMatch(distribution, /\b(?:setDoc|addDoc|updateDoc|deleteDoc|writeBatch|runTransaction)\b/);
   assert.doesNotMatch(distribution, /firebase(?:-firestore)?/i);
 });
+
+
+test('visual-only Distribución edits do not enter the table/invitation synchronization cycle', () => {
+  assert.match(distribution, /const linkSig=/);
+  assert.match(distribution, /const nextLink=linkSig\(p\.r\)/);
+  assert.match(distribution, /if\(c\.link&&nextLink===c\.link\)return/);
+  const linkSigBlock = distribution.match(/const linkSig=r=>JSON\.stringify\(\{[\s\S]*?\n\}\);/)?.[0] || '';
+  assert.ok(linkSigBlock, 'linkSig must be present');
+  assert.doesNotMatch(linkSigBlock, /\bx\s*:/);
+  assert.doesNotMatch(linkSigBlock, /\by\s*:/);
+  assert.doesNotMatch(linkSigBlock, /rotation/);
+  assert.doesNotMatch(linkSigBlock, /hiddenLayers|lockedLayers|measurements|bgVisible/);
+});
