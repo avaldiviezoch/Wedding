@@ -1,5 +1,5 @@
 export const moduleId='distribucion';
-const V='20260919-resume-performance1';
+const V='20260919-canonical-label-rotation1';
 const GK='planificador_bodas_invitados_v1';
 const SK='planificador_bodas_datos_compartidos_v1';
 const LK='migrandia_distribucion_invitados_link_v1';
@@ -154,24 +154,42 @@ function patchLegacyTableDom(c,d,l,p){
    assigned.forEach(guest=>{
     const seatIndex=Number(guest.seatNumber)-1;
     if(!Number.isInteger(seatIndex)||seatIndex<0||seatIndex>=n)return;
-    const angle=(Math.PI*2*seatIndex/n)-Math.PI/2;
-    const x=Math.cos(angle)*labelOrbit,y=Math.sin(angle)*labelOrbit;
-    const cos=Math.cos(angle),anchor=cos>.28?'start':cos<-.28?'end':'middle',dx=cos>.28?5:cos<-.28?-5:0;
+
+    // Misma regla probada en el entorno de desarrollo:
+    // la posición orbita con la mesa, pero el texto se contra-rota y
+    // el anclaje se decide según el ángulo FINAL en pantalla.
+    const localAngle=(Math.PI*2*seatIndex/n)-Math.PI/2;
+    const worldAngle=localAngle+(groupRotation*Math.PI/180);
+    const x=Math.cos(localAngle)*labelOrbit;
+    const y=Math.sin(localAngle)*labelOrbit;
+    const worldCos=Math.cos(worldAngle);
+    const anchor=worldCos>.28?'start':worldCos<-.28?'end':'middle';
+    const dx=anchor==='start'?4:anchor==='end'?-4:0;
+
     const full=String(guest.name||'Invitado').trim()||'Invitado';
     const compact=full.length>18?full.slice(0,17)+'…':full;
     const ns='http://www.w3.org/2000/svg';
     const wrap=doc.createElementNS(ns,'g');
     wrap.setAttribute('class','mgd-canonical-guest-label');
+    wrap.setAttribute('data-seat-index',String(seatIndex));
     wrap.setAttribute('transform',`translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${-groupRotation})`);
     wrap.setAttribute('pointer-events','none');
     const title=doc.createElementNS(ns,'title');
     title.textContent=`Asiento ${seatIndex+1}: ${full}`;
     const label=doc.createElementNS(ns,'text');
-    label.setAttribute('x',String(dx));label.setAttribute('y','3');label.setAttribute('text-anchor',anchor);
-    label.setAttribute('font-size','9.5');label.setAttribute('font-weight','800');label.setAttribute('fill','#2d2924');
-    label.setAttribute('stroke','#ffffff');label.setAttribute('stroke-width','4');label.setAttribute('paint-order','stroke');
+    label.setAttribute('x',String(dx));
+    label.setAttribute('y','3');
+    label.setAttribute('text-anchor',anchor);
+    label.setAttribute('dominant-baseline','middle');
+    label.setAttribute('font-size','9.5');
+    label.setAttribute('font-weight','800');
+    label.setAttribute('fill','#2d2924');
+    label.setAttribute('stroke','#ffffff');
+    label.setAttribute('stroke-width','4');
+    label.setAttribute('paint-order','stroke');
     label.textContent=`${seatIndex+1}. ${compact}`;
-    wrap.append(title,label);group.appendChild(wrap);
+    wrap.append(title,label);
+    group.appendChild(wrap);
    });
   });
  }catch(_){}
