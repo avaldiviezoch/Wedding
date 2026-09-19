@@ -971,6 +971,22 @@
     restoreHistorySnapshot(next);
   }
 
+  function notifyDeletedTables(items=[]){
+    const tables=items
+      .filter(item=>item?.type==='table')
+      .map(item=>({
+        elementId:String(item.id),
+        sharedTableId:String(item.sharedTableId||'')
+      }));
+    if(!tables.length)return;
+    try{
+      window.parent?.postMessage({
+        type:'MIGRANDIA_DISTRIBUTION_TABLES_DELETED',
+        tables
+      },'*');
+    }catch(_){}
+  }
+
   function commitMutation(){
     render();
     scheduleHistoryRecord();
@@ -2258,6 +2274,8 @@
   document.getElementById('btnDelete').onclick=()=>{
     if(!selectedIds.length) return;
     const ids=new Set(selectedIds);
+    const removed=elements.filter(e=>ids.has(e.id));
+    notifyDeletedTables(removed);
     elements=elements.filter(e=>!ids.has(e.id));
     clearSelection();
     guestVersion++;lastSeatEditorKey='';renderGuestManager();commitMutation();
@@ -2434,6 +2452,8 @@
       if(!removableIds.size) return;
 
       e.preventDefault();
+      const removed=elements.filter(element=>removableIds.has(element.id));
+      notifyDeletedTables(removed);
       elements=elements.filter(element=>!removableIds.has(element.id));
       clearSelection();
       guestVersion++;
@@ -2469,6 +2489,7 @@
 
   document.getElementById('btnClear').onclick=()=>{
     if(confirm('¿Eliminar todos los elementos colocados?')){
+      notifyDeletedTables(elements);
       elements=[];clearSelection();measurements=[];guestVersion++;lastSeatEditorKey='';renderGuestManager();commitMutation();
     }
   };
