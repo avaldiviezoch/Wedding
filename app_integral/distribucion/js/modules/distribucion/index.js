@@ -372,8 +372,10 @@ function addElement(type,{record=true,assignGuests=false}={}){
   const base=TYPE_DEFAULTS[type];if(!base)return null;
   const position=nextPosition(elements.length);
   const number=elements.filter(item=>item.type===type).length+1;
-  const item={id:makeId(type),type,shape:base.shape,label:type==='table'?`Mesa ${elements.filter(x=>x.type==='table').length+1}`:(number>1?`${base.label} ${number}`:base.label),x:position.x,y:position.y,widthM:base.widthM,heightM:base.heightM,rotation:0,color:base.color,locked:false};
-  if(type==='table'){item.capacity=BASE_TABLE.capacity;item.seats=makeTableSeats(assignGuests);}
+  const isGuestTable=type==='table'||type==='table-square'||type==='table-rectangular';
+  const tableNumber=elements.filter(x=>x.type==='table').length+1;
+  const item={id:makeId(type),type:isGuestTable?'table':type,shape:base.shape,label:isGuestTable?`Mesa ${tableNumber}`:(number>1?`${base.label} ${number}`:base.label),x:position.x,y:position.y,widthM:base.widthM,heightM:base.heightM,rotation:0,color:base.color,locked:false};
+  if(isGuestTable){item.tableShape=base.tableShape||'round';item.capacity=BASE_TABLE.capacity;item.seats=makeTableSeats(assignGuests);}
   elements.push(item);setSelection([item.id],item.id);if(record)pushHistory();render();return item;
 }
 
