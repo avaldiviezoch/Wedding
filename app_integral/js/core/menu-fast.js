@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260819-mobile-popup-gesture1';
+  const VERSION = '20260918-navigation-refresh1';
   let passthrough = false;
   let queuedClick = false;
   const MODULE_HASHES = new Set([
@@ -58,6 +58,10 @@
   function initHeroVideo() {
     const video = document.getElementById('heroVideo');
     if (!video || video.dataset.mgdHeroVideo === VERSION) return;
+    if (MODULE_HASHES.has(currentModule())) {
+      video.pause?.();
+      return;
+    }
     video.dataset.mgdHeroVideo = VERSION;
 
     const localUrl = new URL('anillo_loop_planifcador.mp4', document.baseURI).href;
@@ -120,9 +124,111 @@
     return String(location.hash || '').replace(/^#/, '').split(/[/?&]/)[0].trim().toLowerCase();
   }
 
+  const DISTRIBUTION_URL = 'https://avaldiviezoch.github.io/invitaciones/mi-gran-dia/distribucion-limpia/index.html?v=20260918-nav1';
+
+  function getDistributionFrame(workspace = document.getElementById('unifiedWorkspace')) {
+    return workspace?.querySelector('iframe[data-mgd-distribution-frame="true"]') || null;
+  }
+
+  function hideNonDistributionSurfaces(workspace, distributionFrame) {
+    [...workspace.children].forEach((node) => {
+      if (node === distributionFrame) return;
+      node.hidden = true;
+      node.setAttribute('aria-hidden', 'true');
+    });
+  }
+
+  function showLegacySurfaceFor(moduleId, workspace) {
+    const distributionFrame = getDistributionFrame(workspace);
+    if (distributionFrame) {
+      distributionFrame.hidden = true;
+      distributionFrame.setAttribute('aria-hidden', 'true');
+    }
+    workspace?.removeAttribute('data-mgd-distribution-active');
+    document.documentElement.classList.remove('mgd-distribucion-host-active');
+
+    if (!moduleId) {
+      document.documentElement.classList.remove('mgd-deep-module');
+      return;
+    }
+
+    // El router legacy conserva el resto de módulos. Solo dejamos de ocultarlos
+    // cuando Distribución ya no está activa para evitar destruir sus estados.
+    [...(workspace?.children || [])].forEach((node) => {
+      if (node === distributionFrame) return;
+      if (node.hasAttribute('data-mgd-suppressed-by-distribution')) {
+        node.hidden = node.dataset.mgdWasHiddenBeforeDistribution === 'true';
+        if (!node.hidden) node.removeAttribute('aria-hidden');
+        node.removeAttribute('data-mgd-suppressed-by-distribution');
+        delete node.dataset.mgdWasHiddenBeforeDistribution;
+      }
+    });
+  }
+
+  function mountDistribution() {
+    if (currentModule() !== 'distribucion') return false;
+    const workspace = document.getElementById('unifiedWorkspace');
+    if (!workspace) return false;
+
+    document.documentElement.classList.add('mgd-deep-module', 'mgd-distribucion-host-active');
+    document.body.classList.add('module-view');
+    document.documentElement.classList.add('mgd-module-surface-active');
+    workspace.removeAttribute('hidden');
+    workspace.setAttribute('aria-hidden', 'false');
+    workspace.dataset.mgdDistributionActive = 'true';
+
+    let frame = getDistributionFrame(workspace);
+    if (!frame) {
+      frame = document.createElement('iframe');
+      frame.dataset.mgdDistributionFrame = 'true';
+      frame.className = 'unified-frame';
+      frame.title = 'Distribución y diseño';
+      frame.src = DISTRIBUTION_URL;
+      frame.setAttribute('loading', 'eager');
+      frame.setAttribute('referrerpolicy', 'same-origin');
+      frame.style.width = '100%';
+      frame.style.height = '100%';
+      frame.style.border = '0';
+      workspace.appendChild(frame);
+    }
+
+    [...workspace.children].forEach((node) => {
+      if (node === frame) return;
+      if (!node.hasAttribute('data-mgd-suppressed-by-distribution')) {
+        node.dataset.mgdWasHiddenBeforeDistribution = node.hidden ? 'true' : 'false';
+        node.setAttribute('data-mgd-suppressed-by-distribution', 'true');
+      }
+    });
+    hideNonDistributionSurfaces(workspace, frame);
+
+    frame.hidden = false;
+    frame.removeAttribute('aria-hidden');
+
+    const loader = document.getElementById('unifiedLoader');
+    const finish = () => {
+      frame.dataset.loaded = 'true';
+      loader?.classList.remove('show');
+      loader?.setAttribute('aria-hidden', 'true');
+    };
+
+    if (frame.dataset.loaded === 'true') {
+      finish();
+    } else {
+      loader?.classList.add('show');
+      loader?.setAttribute('aria-hidden', 'false');
+      if (frame.dataset.mgdLoadBound !== VERSION) {
+        frame.dataset.mgdLoadBound = VERSION;
+        frame.addEventListener('load', finish);
+      }
+    }
+    return true;
+  }
+
   function restoreVisibleSurface(reason = 'resume') {
     if (document.hidden) return;
     const moduleId = currentModule();
+    if (moduleId === 'distribucion') mountDistribution();
+    else showLegacySurfaceFor(moduleId, document.getElementById('unifiedWorkspace'));
     const workspace = document.getElementById('unifiedWorkspace');
     const loader = document.getElementById('unifiedLoader');
     const moduleRequested = MODULE_HASHES.has(moduleId);
@@ -152,6 +258,7 @@
         }, 0);
       }
     } else if (!moduleId) {
+      document.documentElement.classList.remove('mgd-deep-module');
       document.body.classList.remove('module-view');
       document.documentElement.classList.remove('mgd-module-surface-active');
       loader?.classList.remove('show');
@@ -159,7 +266,10 @@
     }
 
     const video = document.getElementById('heroVideo');
-    if (video && !document.body.classList.contains('module-view') && video.paused) video.play()?.catch?.(() => {});
+    if (video) {
+      if (moduleRequested) video.pause?.();
+      else if (video.paused) video.play()?.catch?.(() => {});
+    }
     window.dispatchEvent(new CustomEvent('migrandia:resume', {
       detail: { reason, module: moduleId, preserved: Boolean(workspace?.children.length) }
     }));
@@ -182,6 +292,14 @@
   window.addEventListener('pageshow', (event) => scheduleSurfaceRestore(event.persisted ? 'bfcache' : 'pageshow'));
   window.addEventListener('focus', () => scheduleSurfaceRestore('focus'));
   window.addEventListener('migrandia:auth-resume', () => scheduleSurfaceRestore('auth-resume'));
+  window.addEventListener('hashchange', () => scheduleSurfaceRestore('hashchange'));
+
+  // Restaura una ruta profunda desde el primer ciclo de JS. Así F5 en
+  // #distribucion no cae visualmente a la portada ni reinicia el video.
+  if (MODULE_HASHES.has(currentModule())) {
+    document.documentElement.classList.add('mgd-deep-module');
+    queueMicrotask(() => restoreVisibleSurface('initial-route'));
+  }
 
   preloadAuthCore();
   loadResponsiveCss();
