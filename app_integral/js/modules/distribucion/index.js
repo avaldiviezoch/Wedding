@@ -131,20 +131,36 @@ function patchLegacyTableDom(c,d,l,p){
     text?.setAttribute('x',x.toFixed(1));text?.setAttribute('y',(y+3).toFixed(1));text.textContent=String(index+1);
    });
 
-   const labels=[...group.children].filter(node=>String(node.tagName).toLowerCase()==='g'&&node.querySelector('title')&&/Asiento\s+\d+/i.test(node.querySelector('title')?.textContent||''));
-   labels.forEach(label=>{
-    const m=String(label.querySelector('title')?.textContent||'').match(/Asiento\s+(\d+)/i);
-    const seatIndex=Number(m?.[1]||0)-1;
-    if(seatIndex<0||seatIndex>=n){label.style.display='none';return}
-    label.style.display='';
-    const transform=String(label.getAttribute('transform')||'');
-    const tm=transform.match(/translate\(([-\d.]+)\s+([-\d.]+)\)/);
-    const orbit=tm?Math.hypot(Number(tm[1]),Number(tm[2])):0;
-    if(!orbit)return;
+   const legacyLabels=[...group.children].filter(node=>String(node.tagName).toLowerCase()==='g'&&node.querySelector('title')&&/Asiento\s+\d+/i.test(node.querySelector('title')?.textContent||''));
+   legacyLabels.forEach(label=>label.style.display='none');
+   group.querySelectorAll('.mgd-canonical-guest-label').forEach(node=>node.remove());
+
+   const groupRotation=Number(String(group.getAttribute('transform')||'').match(/rotate\(([-\d.]+)/)?.[1]||0);
+   const labelOrbit=chairOrbit?chairOrbit*(2.18/1.33):64;
+   const assigned=(d.guests||[])
+    .filter(g=>String(g.tableId||'')===String(cid))
+    .sort((a,b)=>(Number(a.seatNumber)||999)-(Number(b.seatNumber)||999));
+   assigned.forEach(guest=>{
+    const seatIndex=Number(guest.seatNumber)-1;
+    if(!Number.isInteger(seatIndex)||seatIndex<0||seatIndex>=n)return;
     const angle=(Math.PI*2*seatIndex/n)-Math.PI/2;
-    const x=Math.cos(angle)*orbit,y=Math.sin(angle)*orbit;
-    const rotate=transform.match(/rotate\(([^)]+)\)/)?.[1];
-    label.setAttribute('transform',`translate(${x.toFixed(1)} ${y.toFixed(1)})${rotate?` rotate(${rotate})`:''}`);
+    const x=Math.cos(angle)*labelOrbit,y=Math.sin(angle)*labelOrbit;
+    const cos=Math.cos(angle),anchor=cos>.28?'start':cos<-.28?'end':'middle',dx=cos>.28?5:cos<-.28?-5:0;
+    const full=String(guest.name||'Invitado').trim()||'Invitado';
+    const compact=full.length>18?full.slice(0,17)+'…':full;
+    const ns='http://www.w3.org/2000/svg';
+    const wrap=doc.createElementNS(ns,'g');
+    wrap.setAttribute('class','mgd-canonical-guest-label');
+    wrap.setAttribute('transform',`translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${-groupRotation})`);
+    wrap.setAttribute('pointer-events','none');
+    const title=doc.createElementNS(ns,'title');
+    title.textContent=`Asiento ${seatIndex+1}: ${full}`;
+    const label=doc.createElementNS(ns,'text');
+    label.setAttribute('x',String(dx));label.setAttribute('y','3');label.setAttribute('text-anchor',anchor);
+    label.setAttribute('font-size','9.5');label.setAttribute('font-weight','800');label.setAttribute('fill','#2d2924');
+    label.setAttribute('stroke','#ffffff');label.setAttribute('stroke-width','4');label.setAttribute('paint-order','stroke');
+    label.textContent=`${seatIndex+1}. ${compact}`;
+    wrap.append(title,label);group.appendChild(wrap);
    });
   });
  }catch(_){}
@@ -161,7 +177,7 @@ function refreshLiveFrame(c){
   try{c.frame.contentWindow.location.reload()}catch(_){}
  },120);
 }
-async function push(c){if(c.busy||!c.frame.isConnected)return;const state=plannerSaveState(c);if(state==='saving'){deferPush(c);return}if(state==='error'){console.warn('Distribución: sincronización pospuesta por un error de guardado.');return}c.busy=true;try{const p=await planner(c.frame.contentWindow);if(!p.r?.data||!p.aid)return;const d=read(),l=lread(),before=proj(p.r),nr=cp(p.r);nr.data=cp(nr.data);pushSnap(nr.data,d,l,p.aid);lsave(l);c.aid=p.aid;if(before!==proj(nr)){const wr=await writePlan(c.frame.contentWindow,p,nr);c.last=wr?.updatedAt||'';if(wr)refreshLiveFrame(c)}else c.last=p.r.updatedAt||'';setTimeout(()=>patchLegacyTableDom(c,d,l,pe(l,p.aid)),40)}finally{c.busy=false}}
+async function push(c){if(c.busy||!c.frame.isConnected)return;const state=plannerSaveState(c);if(state==='saving'){deferPush(c);return}if(state==='error'){console.warn('Distribución: sincronización pospuesta por un error de guardado.');return}c.busy=true;try{const p=await planner(c.frame.contentWindow);if(!p.r?.data||!p.aid)return;const d=read(),l=lread(),before=proj(p.r),beforeTables=tableSig(p.r),nr=cp(p.r);nr.data=cp(nr.data);pushSnap(nr.data,d,l,p.aid);lsave(l);c.aid=p.aid;if(before!==proj(nr)){const tablesChanged=beforeTables!==tableSig(nr),wr=await writePlan(c.frame.contentWindow,p,nr);c.last=wr?.updatedAt||'';if(wr&&tablesChanged)refreshLiveFrame(c)}else c.last=p.r.updatedAt||'';setTimeout(()=>patchLegacyTableDom(c,d,l,pe(l,p.aid)),40)}finally{c.busy=false}}
 async function pull(c,initial=false){if(c.busy||!c.frame.isConnected)return; c.busy=true;try{const p=await planner(c.frame.contentWindow);if(!p.r?.data||!p.aid)return;const old=read(),l=lread(),d=pullSnap(p.r.data,old,l,p.aid,initial);pe(l,p.aid).initialized=true;lsave(l);if(sig(old)!==sig(d))save(d,initial?'distribucion-migration':'distribucion-seating');c.aid=p.aid;c.last=p.r.updatedAt||''}finally{c.busy=false}}
 async function init(c){if(c.init)return;c.init=true;try{let p;for(let i=0;i<15;i++){p=await planner(c.frame.contentWindow);if(p.r?.data&&p.aid)break;await new Promise(r=>setTimeout(r,160))}if(!p?.r?.data)return;let d=read(),l=lread(),x=pe(l,p.aid);if(!x.initialized){const before=sig(d);mapTables(d,p.r.data,x,'union');const rev=guestMap(d,p.r.data,l);let legacy=0;Object.values(x.tables).forEach(eid=>{const e=lt(p.r.data).find(z=>String(z.id)===String(eid));(e?.seats||[]).forEach(v=>{if(rev.has(Number(v)))legacy++})});if(!d.guests.some(g=>g.tableId)&&legacy)d=pullSnap(p.r.data,d,l,p.aid,true);x.initialized=true;lsave(l);if(sig(read())!==sig(d)||before!==sig(d))d=save(d,'distribucion-migration');c.aid=p.aid;await push(c);return}c.aid=p.aid;await push(c)}finally{c.init=false}}
 function seatChange(c,s){const l=lread(),p=pe(l,c.aid||''),eid=String(s.dataset.tableId||''),i=Number(s.dataset.seatIndex),cid=Object.entries(p.tables).find(([,v])=>String(v)===eid)?.[0];if(!cid||!Number.isInteger(i)||i<0)return;let d=read(),t=d.tables.find(x=>String(x.id)===cid);if(!t||i>=t.capacity)return;guestMap(d,{guests:[]},l);const rev=new Map(Object.entries(l.guestIds).map(([g,v])=>[Number(v),g])),gid=s.value===''?'':rev.get(Number(s.value))||'';d.guests.forEach(g=>{const here=String(g.tableId||'')===cid&&Number(g.seatNumber)===i+1,sel=gid&&String(g.id)===gid;if(here&&!sel){g.tableId='';g.seatId='';g.seatNumber=null}if(sel){g.tableId=t.id;g.seatNumber=i+1;g.seatId=t.seats[i].id}});lsave(l);save(d,'distribucion-seat-change')}
