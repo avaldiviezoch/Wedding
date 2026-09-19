@@ -235,6 +235,15 @@
   window.addEventListener('focus', () => scheduleSurfaceRestore('focus'));
   window.addEventListener('migrandia:auth-resume', () => scheduleSurfaceRestore('auth-resume'));
   window.addEventListener('hashchange', () => scheduleSurfaceRestore('hashchange'));
+  const refreshDistributionFrame = (reason, detail = {}) => {
+    if (currentModule() !== 'distribucion') return;
+    const frame = document.querySelector('#unifiedWorkspace iframe[data-mgd-new-distribution="true"]');
+    if (!frame?.contentWindow) return;
+    try { frame.contentWindow.postMessage({ type:'MIGRANDIA_DISTRIBUTION_REFRESH', reason, detail }, location.origin); } catch (_) {}
+  };
+  document.addEventListener('migrandia:datachange', (event) => refreshDistributionFrame('datachange', event.detail || {}));
+  window.addEventListener('migrandia:wedding-context', (event) => refreshDistributionFrame('wedding-context', event.detail || {}));
+  window.addEventListener('migrandia:auth', (event) => refreshDistributionFrame('auth', event.detail || {}));
 
   preloadAuthCore();
   loadResponsiveCss();
