@@ -240,7 +240,9 @@
       if (!document.documentElement.classList.contains('mgd-module-surface-active')) document.documentElement.classList.add('mgd-module-surface-active');
       if (workspace.hidden) workspace.removeAttribute('hidden');
       if (workspace.getAttribute('aria-hidden') !== 'false') workspace.setAttribute('aria-hidden', 'false');
-      if (workspace.children.length) {
+      const distributionFrame = getDistributionFrame(workspace);
+      const distributionStillLoading = moduleId === 'distribucion' && distributionFrame?.dataset.loaded !== 'true';
+      if (workspace.children.length && !distributionStillLoading) {
         loader?.classList.remove('show');
         loader?.setAttribute('aria-hidden', 'true');
       }
