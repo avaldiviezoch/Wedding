@@ -120,59 +120,8 @@
     return String(location.hash || '').replace(/^#/, '').split(/[/?&]/)[0].trim().toLowerCase();
   }
 
-  const NEW_DISTRIBUTION_URL = new URL('distribucion/index.html?v=20260918-clean1', document.baseURI).href;
-  function unmountNewDistributionIfInactive() {
-    if (currentModule() === 'distribucion') return;
-    const workspace=document.getElementById('unifiedWorkspace');
-    workspace?.querySelectorAll('iframe[data-mgd-new-distribution="true"]').forEach(frame=>frame.remove());
-  }
-
-  function mountNewDistribution() {
-    if (currentModule() !== 'distribucion') return false;
-    const workspace = document.getElementById('unifiedWorkspace');
-    if (!workspace) return false;
-    let frame = workspace.querySelector('iframe[data-mgd-new-distribution="true"]');
-    if (!frame) {
-      workspace.replaceChildren();
-      frame = document.createElement('iframe');
-      frame.dataset.mgdNewDistribution = 'true';
-      frame.className = 'unified-frame';
-      frame.title = 'Distribución y diseño';
-      frame.src = NEW_DISTRIBUTION_URL;
-      frame.setAttribute('loading','eager');
-      frame.setAttribute('referrerpolicy','same-origin');
-      frame.style.width='100%';
-      frame.style.height='100%';
-      frame.style.border='0';
-      workspace.appendChild(frame);
-    }
-    frame.classList.add('unified-frame');
-    workspace.querySelectorAll('iframe').forEach(other => { if (other !== frame) other.remove(); });
-    [...workspace.children].forEach(node => { if (node !== frame) node.remove(); });
-    frame.hidden = false;
-    workspace.removeAttribute('hidden');
-    workspace.setAttribute('aria-hidden','false');
-    document.body.classList.add('module-view');
-    document.documentElement.classList.add('mgd-module-surface-active');
-    const loader = document.getElementById('unifiedLoader');
-    const finish=()=>{loader?.classList.remove('show');loader?.setAttribute('aria-hidden','true');};
-    if(frame.dataset.loaded==='true') finish();
-    else {
-      loader?.classList.add('show');
-      loader?.setAttribute('aria-hidden','false');
-      frame.addEventListener('load',()=>{
-        frame.dataset.loaded='true';
-        finish();
-        try{frame.contentWindow?.postMessage({type:'MIGRANDIA_DISTRIBUTION_REFRESH',reason:'route-load',detail:{}},location.origin)}catch(_){}
-      },{once:true});
-    }
-    return true;
-  }
-
   function restoreVisibleSurface(reason = 'resume') {
     if (document.hidden) return;
-    if (currentModule() === 'distribucion') mountNewDistribution();
-    else unmountNewDistributionIfInactive();
     const moduleId = currentModule();
     const workspace = document.getElementById('unifiedWorkspace');
     const loader = document.getElementById('unifiedLoader');
@@ -185,7 +134,7 @@
       if (!document.documentElement.classList.contains('mgd-module-surface-active')) document.documentElement.classList.add('mgd-module-surface-active');
       if (workspace.hidden) workspace.removeAttribute('hidden');
       if (workspace.getAttribute('aria-hidden') !== 'false') workspace.setAttribute('aria-hidden', 'false');
-      if (workspace.children.length && workspace.querySelector('iframe[data-mgd-new-distribution="true"]')?.dataset.loaded === 'true') {
+      if (workspace.children.length) {
         loader?.classList.remove('show');
         loader?.setAttribute('aria-hidden', 'true');
       }
@@ -211,7 +160,6 @@
 
     const video = document.getElementById('heroVideo');
     if (video && !document.body.classList.contains('module-view') && video.paused) video.play()?.catch?.(() => {});
-    if(moduleId==='distribucion') mountNewDistribution();
     window.dispatchEvent(new CustomEvent('migrandia:resume', {
       detail: { reason, module: moduleId, preserved: Boolean(workspace?.children.length) }
     }));
