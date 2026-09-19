@@ -1469,16 +1469,40 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     copy.seats = Array.from({ length: capacity }, () => null);
   }
 
+  function duplicateCanonicalTable(item, offset = DUPLICATE_OFFSET) {
+    const result = window.MiGranDiaDistributionAdapter?.duplicateTable?.(item.sharedTableId);
+    if (!result?.ok || !result.table?.id) {
+      toast(result?.reason === 'canonical-actions-unavailable' ? 'No se pudo conectar con Mesas e Invitados.' : 'No se pudo duplicar la mesa.', true);
+      return null;
+    }
+    const copy = clonePlannerItem(item);
+    copy.id = String(result.table.id);
+    copy.sharedTableId = String(result.table.id);
+    copy.label = String(result.table.name || `${item.label} copia`);
+    copy.capacity = Number(result.table.capacity) || item.capacity;
+    copy.seats = Array.from({ length: copy.capacity }, () => null);
+    copy.x = clampX((Number(item.x) || 0) + offset);
+    copy.y = clampY((Number(item.y) || 0) + offset);
+    copy.locked = false;
+    return copy;
+  }
+
   function duplicatePrimarySelection() {
     const item = selected();
-    if (!item || isItemLocked(item) || canonicalTableMutationBlocked(item)) return false;
-    const copy = clonePlannerItem(item);
-    copy.id = makeId(item.type);
-    copy.x = clampX((Number(item.x) || 0) + DUPLICATE_OFFSET);
-    copy.y = clampY((Number(item.y) || 0) + DUPLICATE_OFFSET);
-    copy.label = `${item.label} copia`;
-    copy.locked = false;
-    clearCopiedTableSeats(copy);
+    if (!item || isItemLocked(item)) return false;
+    const copy = isCanonicalTable(item)
+      ? duplicateCanonicalTable(item)
+      : (() => {
+          const next = clonePlannerItem(item);
+          next.id = makeId(item.type);
+          next.x = clampX((Number(item.x) || 0) + DUPLICATE_OFFSET);
+          next.y = clampY((Number(item.y) || 0) + DUPLICATE_OFFSET);
+          next.label = `${item.label} copia`;
+          next.locked = false;
+          clearCopiedTableSeats(next);
+          return next;
+        })();
+    if (!copy) return false;
     elements.push(copy);
     setSelection([copy.id], copy.id);
     commitMutation();
@@ -1486,7 +1510,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   }
 
   copySelectedPlannerItems = function phase2P1CopySelectedPlannerItems() {
-    const items = selectedItems().filter((item)=>!isCanonicalTable(item));
+    const items = selectedItems();
     if (!items.length) return false;
     copiedPlannerItems = items.map(clonePlannerItem);
     pasteSequence = 0;
@@ -1497,7 +1521,13 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
     if (!copiedPlannerItems.length) return false;
     pasteSequence += 1;
     const offset = PASTE_OFFSET * pasteSequence;
-    const copies = copiedPlannerItems.map((sourceItem) => {
+    const copies = [];
+    copiedPlannerItems.forEach((sourceItem) => {
+      if (isCanonicalTable(sourceItem)) {
+        const canonicalCopy = duplicateCanonicalTable(sourceItem, offset);
+        if (canonicalCopy) copies.push(canonicalCopy);
+        return;
+      }
       const copy = clonePlannerItem(sourceItem);
       copy.id = makeId(sourceItem.type);
       copy.label = `${sourceItem.label} copia`;
@@ -1506,8 +1536,9 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
       copy.locked = false;
       clearCopiedTableSeats(copy);
       if (copy.type === 'tent') hiddenLayers.tent = false;
-      return copy;
+      copies.push(copy);
     });
+    if (!copies.length) return false;
     elements.push(...copies);
     setSelection(copies.map((item) => item.id), copies[0]?.id || '');
     commitMutation();
@@ -1517,8 +1548,18 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
   function deleteUnlockedSelection() {
     const unlocked = unlockedSelectedItems();
     if (!unlocked.length) return false;
-    const ids = new Set(unlocked.map((item) => item.id));
-    elements = elements.filter((item) => !ids.has(item.id));
+    const deletedIds = new Set();
+    for (const item of unlocked) {
+      if (isCanonicalTable(item)) {
+        const result = window.MiGranDiaDistributionAdapter?.deleteTable?.(item.sharedTableId);
+        if (result?.ok) deletedIds.add(item.id);
+        else if (result?.reason !== 'cancelled') toast(result?.reason === 'canonical-actions-unavailable' ? 'No se pudo conectar con Mesas e Invitados.' : 'No se pudo eliminar la mesa.', true);
+      } else {
+        deletedIds.add(item.id);
+      }
+    }
+    if (!deletedIds.size) return false;
+    elements = elements.filter((item) => !deletedIds.has(item.id));
     const survivors = selectedIds.filter((id) => getItem(id));
     setSelection(survivors, survivors.includes(selectedId) ? selectedId : (survivors[0] || ''));
     commitMutation();
@@ -1627,7 +1668,7 @@ proposals=[{id:makeId('proposal'),name:'Propuesta principal',state:clone(proposa
       const alignButton = document.getElementById('btnAlignNow');
 
       if (deleteButton) deleteButton.disabled = unlocked.length === 0;
-      if (duplicateButton) duplicateButton.disabled = !primary || isItemLocked(primary) || isCanonicalTable(primary);
+      if (duplicateButton) duplicateButton.disabled = !primary || isItemLocked(primary);
       if (frontButton) frontButton.disabled = unlocked.length === 0;
       if (backButton) backButton.disabled = unlocked.length === 0;
       if (alignButton) alignButton.disabled = items.length < 2 || !alignable;
