@@ -121,11 +121,47 @@
   }
 
   const NEW_DISTRIBUTION_URL = new URL('distribucion/index.html?v=20260918-final-ui4', document.baseURI).href;
+  function suppressLegacyWorkspace(workspace, distributionFrame) {
+    [...workspace.children].forEach((node) => {
+      if (node === distributionFrame) return;
+      if (!node.hasAttribute('data-mgd-suppressed-by-distribution')) {
+        node.dataset.mgdDistributionWasHidden = node.hidden ? 'true' : 'false';
+      }
+      node.hidden = true;
+      node.setAttribute('aria-hidden', 'true');
+      node.setAttribute('data-mgd-suppressed-by-distribution', 'true');
+    });
+  }
+
+  function restoreLegacyWorkspace(workspace) {
+    if (!workspace) return;
+    [...workspace.children].forEach((node) => {
+      if (!node.hasAttribute('data-mgd-suppressed-by-distribution')) return;
+      node.hidden = node.dataset.mgdDistributionWasHidden === 'true';
+      if (!node.hidden) node.removeAttribute('aria-hidden');
+      node.removeAttribute('data-mgd-suppressed-by-distribution');
+      delete node.dataset.mgdDistributionWasHidden;
+    });
+  }
+
+  let distributionWorkspaceObserver = null;
+
+  function ensureDistributionWorkspaceObserver(workspace) {
+    if (distributionWorkspaceObserver) return;
+    distributionWorkspaceObserver = new MutationObserver(() => {
+      if (currentModule() !== 'distribucion') return;
+      const frame = workspace.querySelector('iframe[data-mgd-new-distribution="true"]');
+      if (frame) suppressLegacyWorkspace(workspace, frame);
+    });
+    distributionWorkspaceObserver.observe(workspace, { childList: true });
+  }
+
   function unmountNewDistributionIfInactive() {
     if (currentModule() === 'distribucion') return false;
     const workspace=document.getElementById('unifiedWorkspace');
     const frames=[...(workspace?.querySelectorAll('iframe[data-mgd-new-distribution="true"]')||[])];
     frames.forEach(frame=>frame.remove());
+    restoreLegacyWorkspace(workspace);
     if (frames.length) {
       workspace?.removeAttribute('data-mgd-new-distribution-active');
       document.documentElement.classList.remove('mgd-distribucion-host-active');
@@ -139,7 +175,6 @@
     if (!workspace) return false;
     let frame = workspace.querySelector('iframe[data-mgd-new-distribution="true"]');
     if (!frame) {
-      workspace.replaceChildren();
       frame = document.createElement('iframe');
       frame.dataset.mgdNewDistribution = 'true';
       frame.className = 'unified-frame';
@@ -153,9 +188,11 @@
       workspace.appendChild(frame);
     }
     frame.classList.add('unified-frame');
-    workspace.querySelectorAll('iframe').forEach(other => { if (other !== frame) other.remove(); });
-    [...workspace.children].forEach(node => { if (node !== frame) node.remove(); });
     frame.hidden = false;
+    frame.removeAttribute('aria-hidden');
+    suppressLegacyWorkspace(workspace, frame);
+    ensureDistributionWorkspaceObserver(workspace);
+    workspace.dataset.mgdNewDistributionActive='true';
     workspace.removeAttribute('hidden');
     workspace.setAttribute('aria-hidden','false');
     document.body.classList.add('module-view');
@@ -178,11 +215,7 @@
   function restoreVisibleSurface(reason = 'resume') {
     if (document.hidden) return;
     if (currentModule() === 'distribucion') mountNewDistribution();
-    else if (unmountNewDistributionIfInactive()) {
-      // El iframe nuevo reemplaza el workspace completo. Al salir de Distribución
-      // hay que pedir al router canónico que reconstruya el módulo destino.
-      queueMicrotask(() => window.dispatchEvent(new Event('hashchange')));
-    }
+    else unmountNewDistributionIfInactive();
     const moduleId = currentModule();
     const workspace = document.getElementById('unifiedWorkspace');
     const loader = document.getElementById('unifiedLoader');
