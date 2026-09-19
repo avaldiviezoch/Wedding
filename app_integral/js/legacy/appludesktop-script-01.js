@@ -1457,11 +1457,19 @@
 
   function isItemLocked(item){ return Boolean(item && (item.locked || lockedLayers[item.type])); }
 
+  function tableSeatCapacity(item){
+    const raw=Number(item?.capacity || item?.seats?.length || 10);
+    if(!Number.isFinite(raw)) return 10;
+    return Math.max(1,Math.min(40,Math.round(raw)));
+  }
+
   function ensureTableSeats(item){
     if(item && item.type==='table'){
-      if(!Array.isArray(item.seats)) item.seats=Array(10).fill(null);
-      item.seats=item.seats.slice(0,10);
-      while(item.seats.length<10) item.seats.push(null);
+      const capacity=tableSeatCapacity(item);
+      item.capacity=capacity;
+      if(!Array.isArray(item.seats)) item.seats=Array(capacity).fill(null);
+      item.seats=item.seats.slice(0,capacity);
+      while(item.seats.length<capacity) item.seats.push(null);
     }
     return item;
   }
@@ -1513,11 +1521,11 @@
     const tables=elements.filter(e=>e.type==='table').sort((a,b)=>a.id-b.id);
     tables.forEach(table=>{
       ensureTableSeats(table);
-      table.seats=Array(10).fill(null);
+      table.seats=Array(tableSeatCapacity(table)).fill(null);
     });
     let index=0;
     tables.forEach(table=>{
-      for(let seat=0;seat<10 && index<guests.length;seat++){
+      for(let seat=0;seat<tableSeatCapacity(table) && index<guests.length;seat++){
         table.seats[seat]=guests[index++].id;
       }
     });
@@ -1526,7 +1534,7 @@
     renderGuestManager();
     render();
     if(showMessage){
-      const capacity=tables.length*10;
+      const capacity=tables.reduce((sum,table)=>sum+tableSeatCapacity(table),0);
       alert(`Se asignaron ${Math.min(guests.length,capacity)} invitados por orden de lista.`);
     }
   }
@@ -1534,7 +1542,7 @@
   function clearAllAssignments(){
     elements.filter(e=>e.type==='table').forEach(table=>{
       ensureTableSeats(table);
-      table.seats=Array(10).fill(null);
+      table.seats=Array(tableSeatCapacity(table)).fill(null);
     });
     guestVersion++;
     lastSeatEditorKey='';
@@ -1650,16 +1658,17 @@
     return ids;
   }
 
-  function chairMarkup(tableRadius){
+  function chairMarkup(tableRadius,capacity=10){
+    const count=Math.max(1,Math.min(40,Number(capacity)||10));
     const chairR = Math.max(7, tableRadius*.12);
     const orbit = tableRadius*1.33;
     let out='';
-    for(let i=0;i<10;i++){
-      const a = (Math.PI*2*i/10)-Math.PI/2;
+    for(let i=0;i<count;i++){
+      const a = (Math.PI*2*i/count)-Math.PI/2;
       const x = Math.cos(a)*orbit;
       const y = Math.sin(a)*orbit;
       out += `
-        <g>
+        <g class="table-chair" data-seat-index="${i}">
           <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${chairR.toFixed(1)}" fill="#f5efe5" stroke="#785e45" stroke-width="2"/>
           <text x="${x.toFixed(1)}" y="${(y+3).toFixed(1)}" text-anchor="middle" font-size="8" font-weight="800" fill="#684d34">${i+1}</text>
         </g>`;
@@ -1670,12 +1679,13 @@
   function guestLabelsMarkup(item,tableRadius){
     if(!showGuestLabels.checked) return '';
     ensureTableSeats(item);
+    const count=tableSeatCapacity(item);
     const labelOrbit=tableRadius*2.18;
     let out='';
-    for(let i=0;i<10;i++){
+    for(let i=0;i<count;i++){
       const guest=guestById(item.seats[i]);
       if(!guest) continue;
-      const a=(Math.PI*2*i/10)-Math.PI/2;
+      const a=(Math.PI*2*i/count)-Math.PI/2;
       const x=Math.cos(a)*labelOrbit;
       const y=Math.sin(a)*labelOrbit;
       const cos=Math.cos(a);
@@ -1773,12 +1783,12 @@
         return `
         <g class="draggable" data-id="${item.id}" transform="translate(${item.x} ${item.y}) rotate(${item.rotation})" style="cursor:grab" filter="url(#softShadow)">
           <circle r="${clearR}" fill="${item.color}" fill-opacity=".16" stroke="${stroke}" stroke-width="${strokeW}" stroke-dasharray="${showClearance.checked?'9 7':'0'}"/>
-          ${showClearance.checked ? chairMarkup(tableR) : ''}
+          ${showClearance.checked ? chairMarkup(tableR,tableSeatCapacity(item)) : ''}
           ${guestLabelsMarkup(item,tableR)}
           <circle r="${tableR}" fill="${item.color}" stroke="#755e43" stroke-width="3"/>
           <circle r="${tableR*.55}" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2"/>
           <text style="display:${labelDisplay}" text-anchor="middle" y="-3" font-size="18" font-weight="800" fill="#342a20">${esc(item.label)}</text>
-          <text style="display:${labelDisplay}" text-anchor="middle" y="20" font-size="14" fill="#342a20">10 personas</text>
+          <text style="display:${labelDisplay}" text-anchor="middle" y="20" font-size="14" fill="#342a20">${tableSeatCapacity(item)} personas</text>
           ${rotationHandleMarkup(item,clearR,selected)}
         </g>`;
       }
