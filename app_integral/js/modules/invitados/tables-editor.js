@@ -1,4 +1,4 @@
-const VERSION = '20260919-single-seat-label1';
+const VERSION = '20260919-guest-drag-reliability1';
 const STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 const CSS_URL = new URL(`css/modules/invitados-tables-editor.css?v=${VERSION}`, document.baseURI).href;
@@ -21,6 +21,7 @@ let searchText = '';
 let saveTimer = 0;
 let toastTimer = 0;
 let renderTimer = 0;
+let draggingGuestId = '';
 
 function uid(prefix = 'id') {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 9)}`;
@@ -597,7 +598,10 @@ function mountEditor(frame, doc) {
 }
 
 function dragGuestId(event) {
-  return event.dataTransfer?.getData('text/mgd-guest') || event.dataTransfer?.getData('text/plain') || '';
+  return event.dataTransfer?.getData('text/mgd-guest')
+    || event.dataTransfer?.getData('text/plain')
+    || draggingGuestId
+    || '';
 }
 
 function bindEditorEvents(doc) {
@@ -650,16 +654,18 @@ function bindEditorEvents(doc) {
   });
 
   root.addEventListener('dragstart', (event) => {
-    const guestSource = event.target.closest('[data-guest-id]');
+    const guestSource = event.target.closest('.mgd-guest-item[data-guest-id]');
     if (!guestSource) return;
+    draggingGuestId = guestSource.dataset.guestId || '';
     if (!event.dataTransfer) return;
     event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('text/mgd-guest', guestSource.dataset.guestId);
-    event.dataTransfer.setData('text/plain', guestSource.dataset.guestId);
+    event.dataTransfer.setData('text/mgd-guest', draggingGuestId);
+    event.dataTransfer.setData('text/plain', draggingGuestId);
     root.querySelectorAll('.mgd-table-card').forEach((card) => card.classList.add('is-drop-ready'));
   });
 
   root.addEventListener('dragend', () => {
+    draggingGuestId = '';
     root.querySelectorAll('.mgd-table-card').forEach((card) => card.classList.remove('is-drop-ready', 'is-drop-over'));
     root.querySelectorAll('.mgd-seat').forEach((seat) => seat.classList.remove('is-seat-drop'));
   });
@@ -670,6 +676,7 @@ function bindEditorEvents(doc) {
     const unassigned = event.target.closest('#mgdUnassignedDrop');
     if (!seat && !table && !unassigned) return;
     event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
     if (seat) seat.classList.add('is-seat-drop');
     if (table) table.classList.add('is-drop-over');
     if (unassigned) unassigned.classList.add('is-over');
@@ -690,8 +697,19 @@ function bindEditorEvents(doc) {
     if (!unassigned && !seat && !table) return;
     event.preventDefault();
     event.stopPropagation();
+
+    draggingGuestId = '';
     if (unassigned) return unassignGuest(guestId);
-    if (seat) return assignGuest(guestId, seat.dataset.tableId, Number(seat.dataset.seatIndex));
+
+    if (seat) {
+      const seatGuestId = String(seat.dataset.guestId || '');
+      const isOccupiedByOther = seatGuestId && seatGuestId !== String(guestId);
+      // Al soltar sobre una mesa, caer por unos píxeles sobre una silla ocupada
+      // no debe cancelar el drop: se usa la primera silla libre de esa mesa.
+      if (isOccupiedByOther) return assignGuest(guestId, seat.dataset.tableId);
+      return assignGuest(guestId, seat.dataset.tableId, Number(seat.dataset.seatIndex));
+    }
+
     if (table) return assignGuest(guestId, table.dataset.tableId);
   });
 }
