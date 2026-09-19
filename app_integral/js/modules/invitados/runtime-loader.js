@@ -4,14 +4,22 @@
   const VERSION = '20260830-tables-access-recovery1';
   let baseRuntime = null;
   let rsvpRuntime = null;
+  let distributionRuntime = null;
 
   function moduleUrl(file, version) {
     return new URL(`js/modules/invitados/${file}?v=${version}`, document.baseURI).href;
   }
 
-  // Distribución nueva se monta exclusivamente desde menu-fast.js.
-  // Este loader ya no inicia ningún runtime legacy de Distribución.
-
+  function loadDistributionRuntime() {
+    if (distributionRuntime) return distributionRuntime;
+    const url = new URL('js/modules/distribucion/index.js?v=20260919-canonical-sync1', document.baseURI).href;
+    distributionRuntime = import(url).catch((error) => {
+      console.error('No se pudo iniciar la vinculación de Distribución:', error);
+      distributionRuntime = null;
+      throw error;
+    });
+    return distributionRuntime;
+  }
 
   function loadBaseRuntime() {
     if (baseRuntime) return baseRuntime;
@@ -85,15 +93,20 @@
   }
 
   document.addEventListener('click', (event) => {
-    const target = event.target.closest('[data-module="invitados"],[data-quick-module="invitados"]');
-    if (target) loadBaseRuntime();
+    const guestTarget = event.target.closest('[data-module="invitados"],[data-quick-module="invitados"]');
+    if (guestTarget) loadBaseRuntime();
+    const distributionTarget = event.target.closest('[data-module="distribucion"],[data-quick-module="distribucion"]');
+    if (distributionTarget) loadDistributionRuntime();
   }, true);
 
   window.addEventListener('hashchange', () => {
-    if (location.hash.toLowerCase().includes('invitados')) loadBaseRuntime();
+    const hash = location.hash.toLowerCase();
+    if (hash.includes('invitados')) loadBaseRuntime();
+    if (hash.includes('distribucion')) loadDistributionRuntime();
   });
 
   function bindWorkspace() {
+    loadDistributionRuntime();
     const workspace = document.getElementById('unifiedWorkspace');
     if (!workspace || workspace.dataset.mgdInvitadosRuntimeObserver === VERSION) return;
     workspace.dataset.mgdInvitadosRuntimeObserver = VERSION;
