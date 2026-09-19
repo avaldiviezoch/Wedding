@@ -122,9 +122,15 @@
 
   const NEW_DISTRIBUTION_URL = new URL('distribucion/index.html?v=20260918-final-ui4', document.baseURI).href;
   function unmountNewDistributionIfInactive() {
-    if (currentModule() === 'distribucion') return;
+    if (currentModule() === 'distribucion') return false;
     const workspace=document.getElementById('unifiedWorkspace');
-    workspace?.querySelectorAll('iframe[data-mgd-new-distribution="true"]').forEach(frame=>frame.remove());
+    const frames=[...(workspace?.querySelectorAll('iframe[data-mgd-new-distribution="true"]')||[])];
+    frames.forEach(frame=>frame.remove());
+    if (frames.length) {
+      workspace?.removeAttribute('data-mgd-new-distribution-active');
+      document.documentElement.classList.remove('mgd-distribucion-host-active');
+    }
+    return frames.length > 0;
   }
 
   function mountNewDistribution() {
@@ -172,7 +178,11 @@
   function restoreVisibleSurface(reason = 'resume') {
     if (document.hidden) return;
     if (currentModule() === 'distribucion') mountNewDistribution();
-    else unmountNewDistributionIfInactive();
+    else if (unmountNewDistributionIfInactive()) {
+      // El iframe nuevo reemplaza el workspace completo. Al salir de Distribución
+      // hay que pedir al router canónico que reconstruya el módulo destino.
+      queueMicrotask(() => window.dispatchEvent(new Event('hashchange')));
+    }
     const moduleId = currentModule();
     const workspace = document.getElementById('unifiedWorkspace');
     const loader = document.getElementById('unifiedLoader');
