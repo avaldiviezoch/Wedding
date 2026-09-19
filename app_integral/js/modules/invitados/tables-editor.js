@@ -1,4 +1,4 @@
-const VERSION = '20260919-visible-seat-labels1';
+const VERSION = '20260919-seat-label-layout2';
 const STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 const CSS_URL = new URL(`css/modules/invitados-tables-editor.css?v=${VERSION}`, document.baseURI).href;
@@ -403,7 +403,16 @@ function seatPositions(type, capacity, tableW, tableH) {
     const radiusY = tableH / 2 + 24;
     for (let i = 0; i < capacity; i++) {
       const angle = -Math.PI / 2 + (Math.PI * 2 * i / capacity);
-      positions.push({ x: centerX + Math.cos(angle) * radiusX, y: centerY + Math.sin(angle) * radiusY });
+      const x = centerX + Math.cos(angle) * radiusX;
+      const y = centerY + Math.sin(angle) * radiusY;
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      const labelRadiusX = radiusX + 34;
+      const labelRadiusY = radiusY + 34;
+      const labelX = centerX + cos * labelRadiusX;
+      const labelY = centerY + sin * labelRadiusY;
+      const labelAnchor = cos > .28 ? 'start' : cos < -.28 ? 'end' : 'middle';
+      positions.push({ x, y, labelX, labelY, labelAnchor });
     }
     return { positions, visualW, visualH };
   }
@@ -420,7 +429,15 @@ function seatPositions(type, capacity, tableW, tableH) {
     else if ((d -= outerW) < outerH) { x = left + outerW; y = top + d; }
     else if ((d -= outerH) < outerW) { x = left + outerW - d; y = top + outerH; }
     else { d -= outerW; x = left; y = top + outerH - d; }
-    positions.push({ x, y });
+    const dx = x - centerX;
+    const dy = y - centerY;
+    const distance = Math.hypot(dx, dy) || 1;
+    const ux = dx / distance;
+    const uy = dy / distance;
+    const labelX = x + ux * 34;
+    const labelY = y + uy * 34;
+    const labelAnchor = ux > .32 ? 'start' : ux < -.32 ? 'end' : 'middle';
+    positions.push({ x, y, labelX, labelY, labelAnchor });
   }
   return { positions, visualW, visualH };
 }
@@ -449,7 +466,8 @@ function seatMarkup(data, table, index, position) {
     aria-label="Quitar a ${esc(visibleName)} de la mesa"
   >×</button><span
     class="mgd-seat-label"
-    style="left:${position.x}px;top:${position.y}px"
+    data-anchor="${esc(position.labelAnchor || 'middle')}"
+    style="left:${position.labelX ?? position.x}px;top:${position.labelY ?? position.y}px"
     title="${esc(visibleName)}"
     aria-hidden="true"
   >${index + 1}. ${esc(visibleName)}</span>`;
