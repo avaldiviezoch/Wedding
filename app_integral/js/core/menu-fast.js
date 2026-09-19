@@ -120,7 +120,7 @@
     return String(location.hash || '').replace(/^#/, '').split(/[/?&]/)[0].trim().toLowerCase();
   }
 
-  const NEW_DISTRIBUTION_URL = new URL('distribucion/index.html?v=20260918-final-ui2', document.baseURI).href;
+  const NEW_DISTRIBUTION_URL = new URL('distribucion/index.html?v=20260918-final-ui3', document.baseURI).href;
   function unmountNewDistributionIfInactive() {
     if (currentModule() === 'distribucion') return;
     const workspace=document.getElementById('unifiedWorkspace');
