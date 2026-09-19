@@ -41,6 +41,14 @@ window.MiGranDiaDistributionAdapter = Object.freeze({
     if(!canonicalActions()?.unassignGuest)return Object.freeze({ok:false,reason:'canonical-actions-unavailable'});
     return canonicalActions().unassignGuest(String(guestId));
   },
+  duplicateTable(tableId){
+    if(!canonicalActions()?.duplicateTable)return Object.freeze({ok:false,reason:'canonical-actions-unavailable'});
+    return canonicalActions().duplicateTable(String(tableId));
+  },
+  deleteTable(tableId){
+    if(!canonicalActions()?.deleteTable)return Object.freeze({ok:false,reason:'canonical-actions-unavailable'});
+    return canonicalActions().deleteTable(String(tableId));
+  },
   // Seguridad producción: no escribe storage directamente. Las asignaciones
   // se delegan al propietario canónico Mesas/Invitados.
   // La UI nueva consume snapshots canónicos y no depende del bridge legacy.

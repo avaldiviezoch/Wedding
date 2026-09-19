@@ -305,6 +305,44 @@ window.MiGranDiaTablesCanonicalActions = Object.freeze({
     const after = readState();
     const updated = after.guests.find((item) => String(item.id) === String(guestId));
     return Object.freeze({ ok:Boolean(updated && !updated.tableId), guestId:String(guestId) });
+  },
+  duplicateTable(tableId) {
+    const before = normalizeData(readState(), false);
+    const source = before.tables.find((item) => String(item.id) === String(tableId));
+    if (!source) return Object.freeze({ ok:false, reason:'missing-table' });
+    const copy = {
+      ...source,
+      id: uid('table'),
+      name: nextTableName(before.tables),
+      seats: createSeats([], source.capacity),
+      positionX: null,
+      positionY: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    before.tables.push(copy);
+    writeState(before, 'table-duplicated');
+    return Object.freeze({ ok:true, table:{...copy, seats:copy.seats.map((seat)=>({...seat}))} });
+  },
+  deleteTable(tableId, options = {}) {
+    const data = normalizeData(readState(), false);
+    const table = data.tables.find((item) => String(item.id) === String(tableId));
+    if (!table) return Object.freeze({ ok:false, reason:'missing-table' });
+    const assigned = guestsAtTable(data, table.id);
+    if (options.confirm !== false) {
+      const message = assigned.length
+        ? `Esta mesa tiene ${assigned.length} invitado${assigned.length === 1 ? '' : 's'} asignado${assigned.length === 1 ? '' : 's'}. Si la eliminas, volverán a “Sin mesa”. ¿Eliminar mesa?`
+        : '¿Eliminar esta mesa?';
+      if (!window.confirm(message)) return Object.freeze({ ok:false, reason:'cancelled' });
+    }
+    assigned.forEach((guest) => {
+      guest.tableId = '';
+      guest.seatId = '';
+      guest.seatNumber = null;
+    });
+    data.tables = data.tables.filter((item) => String(item.id) !== String(table.id));
+    writeState(data, 'table-deleted');
+    return Object.freeze({ ok:true, tableId:String(table.id), unassignedGuests:assigned.length });
   }
 });
 
