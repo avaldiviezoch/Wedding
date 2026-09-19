@@ -1,4 +1,4 @@
-const VERSION = '20260819-empty-onboarding1';
+const VERSION = '20260919-visible-seat-labels1';
 const STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 const CSS_URL = new URL(`css/modules/invitados-tables-editor.css?v=${VERSION}`, document.baseURI).href;
@@ -439,14 +439,20 @@ function seatMarkup(data, table, index, position) {
     aria-label="${esc(occupied ? `${guest.name || 'Invitado'}, silla ${index + 1}` : `Silla ${index + 1} libre`)}"
   >${occupied ? esc(initials(guest.name)) : ''}</button>`;
   if (!occupied) return seat;
+  const visibleName = String(guest.name || 'Invitado').trim() || 'Invitado';
   return `${seat}<button
     class="mgd-seat-remove"
     type="button"
     data-unassign-guest="${esc(guest.id)}"
     style="left:${position.x}px;top:${position.y}px"
     title="Quitar de esta mesa"
-    aria-label="Quitar a ${esc(guest.name || 'este invitado')} de la mesa"
-  >×</button>`;
+    aria-label="Quitar a ${esc(visibleName)} de la mesa"
+  >×</button><span
+    class="mgd-seat-label"
+    style="left:${position.x}px;top:${position.y}px"
+    title="${esc(visibleName)}"
+    aria-hidden="true"
+  >${index + 1}. ${esc(visibleName)}</span>`;
 }
 
 function tableMarkup(data, table) {
