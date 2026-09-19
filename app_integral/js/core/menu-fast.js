@@ -120,7 +120,7 @@
     return String(location.hash || '').replace(/^#/, '').split(/[/?&]/)[0].trim().toLowerCase();
   }
 
-  const NEW_DISTRIBUTION_URL = new URL('distribucion/index.html?v=20260918-final-ui3', document.baseURI).href;
+  const NEW_DISTRIBUTION_URL = new URL('distribucion/index.html?v=20260918-final-ui4', document.baseURI).href;
   function unmountNewDistributionIfInactive() {
     if (currentModule() === 'distribucion') return;
     const workspace=document.getElementById('unifiedWorkspace');
@@ -234,6 +234,16 @@
   window.addEventListener('pageshow', (event) => scheduleSurfaceRestore(event.persisted ? 'bfcache' : 'pageshow'));
   window.addEventListener('focus', () => scheduleSurfaceRestore('focus'));
   window.addEventListener('migrandia:auth-resume', () => scheduleSurfaceRestore('auth-resume'));
+  window.addEventListener('hashchange', () => scheduleSurfaceRestore('hashchange'));
+  const refreshDistributionFrame = (reason, detail = {}) => {
+    if (currentModule() !== 'distribucion') return;
+    const frame = document.querySelector('#unifiedWorkspace iframe[data-mgd-new-distribution="true"]');
+    if (!frame?.contentWindow) return;
+    try { frame.contentWindow.postMessage({ type:'MIGRANDIA_DISTRIBUTION_REFRESH', reason, detail }, location.origin); } catch (_) {}
+  };
+  document.addEventListener('migrandia:datachange', (event) => refreshDistributionFrame('datachange', event.detail || {}));
+  window.addEventListener('migrandia:wedding-context', (event) => refreshDistributionFrame('wedding-context', event.detail || {}));
+  window.addEventListener('migrandia:auth', (event) => refreshDistributionFrame('auth', event.detail || {}));
 
   preloadAuthCore();
   loadResponsiveCss();
