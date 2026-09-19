@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260918-navigation-refresh1';
+  const VERSION = '20260919-tab-resume1';
   let passthrough = false;
   let queuedClick = false;
   const MODULE_HASHES = new Set([
@@ -10,6 +10,8 @@
   ]);
   let resumeQueued = false;
   let resumeReason = '';
+  let resumeTimer = 0;
+  let lastResumeAt = 0;
   let routeRepairQueued = false;
 
   function preloadAuthCore() {
@@ -80,6 +82,10 @@
     video.preload = 'auto';
 
     const tryPlay = () => {
+      if (document.hidden || MODULE_HASHES.has(currentModule())) {
+        video.pause?.();
+        return;
+      }
       if (!video.paused && !video.ended) return;
       const promise = video.play();
       if (promise?.catch) promise.catch(() => {});
@@ -109,10 +115,12 @@
     });
 
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) tryPlay();
+      if (document.hidden) video.pause?.();
+      else tryPlay();
     });
-    window.addEventListener('pageshow', tryPlay);
-    window.addEventListener('focus', tryPlay);
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) tryPlay();
+    });
     document.addEventListener('pointerdown', tryPlay, { once: true, passive: true });
     document.addEventListener('touchstart', tryPlay, { once: true, passive: true });
 
@@ -176,19 +184,27 @@
   function scheduleSurfaceRestore(reason) {
     if (document.hidden) return;
     resumeReason = reason;
+    const immediate = reason === 'hashchange' || reason === 'auth-resume' || reason === 'initial-route';
+    const now = performance.now();
+    if (!immediate && now - lastResumeAt < 300) return;
     if (resumeQueued) return;
     resumeQueued = true;
-    queueMicrotask(() => {
+    clearTimeout(resumeTimer);
+    const run = () => {
       resumeQueued = false;
+      lastResumeAt = performance.now();
       restoreVisibleSurface(resumeReason);
-    });
+    };
+    if (immediate) queueMicrotask(run);
+    else resumeTimer = window.setTimeout(run, 90);
   }
 
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) scheduleSurfaceRestore('visibilitychange');
   });
-  window.addEventListener('pageshow', (event) => scheduleSurfaceRestore(event.persisted ? 'bfcache' : 'pageshow'));
-  window.addEventListener('focus', () => scheduleSurfaceRestore('focus'));
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) scheduleSurfaceRestore('bfcache');
+  });
   window.addEventListener('migrandia:auth-resume', () => scheduleSurfaceRestore('auth-resume'));
   window.addEventListener('hashchange', () => scheduleSurfaceRestore('hashchange'));
 

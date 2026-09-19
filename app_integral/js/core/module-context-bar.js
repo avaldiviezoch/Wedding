@@ -173,9 +173,9 @@
     window.addEventListener('migrandia:auth', renderAccount, { signal });
     window.addEventListener('migrandia:auth-resume', renderAccount, { signal });
     window.addEventListener('migrandia:resume', () => {
+      // Al volver a la pestaña solo cambia la visibilidad/ruta; la boda y la cuenta
+      // ya tienen eventos propios y no deben reconstruirse en cada reanudación.
       renderActiveModule();
-      renderWeddingContext();
-      renderAccount();
     }, { signal });
 
     const accountCard = document.getElementById('accountCard');

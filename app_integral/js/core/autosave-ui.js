@@ -129,14 +129,28 @@
     doc.querySelectorAll('button,input[type="button"],input[type="submit"],[role="button"],.btn,.button').forEach(control => processControl(control, id));
   }
 
+  function processAddedNode(node, doc, moduleId) {
+    if (!(node instanceof doc.defaultView.Element)) return;
+    const id = MODULES.has(moduleId) ? moduleId : currentModule();
+    const selector = 'button,input[type="button"],input[type="submit"],[role="button"],.btn,.button';
+    if (node.matches?.(selector)) processControl(node, id);
+    node.querySelectorAll?.(selector).forEach(control => processControl(control, id));
+  }
+
   function observeDocument(doc, moduleId) {
     if (!doc?.body) return;
     scanDocument(doc, moduleId);
     if (observedDocs.has(doc)) return;
     observedDocs.add(doc);
 
-    const observer = new MutationObserver(() => {
-      requestAnimationFrame(() => scanDocument(doc, currentModule() || moduleId));
+    const observer = new MutationObserver((records) => {
+      if (doc.hidden) return;
+      const id = currentModule() || moduleId;
+      requestAnimationFrame(() => {
+        records.forEach(record => {
+          record.addedNodes.forEach(node => processAddedNode(node, doc, id));
+        });
+      });
     });
     observer.observe(doc.body, { childList:true, subtree:true });
   }
