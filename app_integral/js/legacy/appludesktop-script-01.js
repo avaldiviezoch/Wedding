@@ -1680,23 +1680,33 @@
     if(!showGuestLabels.checked) return '';
     ensureTableSeats(item);
     const count=tableSeatCapacity(item);
-    const labelOrbit=tableRadius*2.18;
+    const rotationDeg=Number(item.rotation)||0;
+    const rotationRad=rotationDeg*Math.PI/180;
+    const labelOrbit=tableRadius*2.30;
     let out='';
     for(let i=0;i<count;i++){
       const guest=guestById(item.seats[i]);
       if(!guest) continue;
-      const a=(Math.PI*2*i/count)-Math.PI/2;
-      const x=Math.cos(a)*labelOrbit;
-      const y=Math.sin(a)*labelOrbit;
-      const cos=Math.cos(a);
-      const anchor=cos>.28?'start':cos<-.28?'end':'middle';
-      const dx=cos>.28?5:cos<-.28?-5:0;
+
+      // La etiqueta orbita con la mesa, pero el texto se contra-rota
+      // para permanecer horizontal y legible en pantalla.
+      const localAngle=(Math.PI*2*i/count)-Math.PI/2;
+      const screenAngle=localAngle+rotationRad;
+      const x=Math.cos(localAngle)*labelOrbit;
+      const y=Math.sin(localAngle)*labelOrbit;
+      const screenCos=Math.cos(screenAngle);
+      const screenSin=Math.sin(screenAngle);
+      const anchor=screenCos>.28?'start':screenCos<-.28?'end':'middle';
+      const dx=screenCos>.28?7:screenCos<-.28?-7:0;
+      const dy=screenSin<-.45?-5:screenSin>.45?10:3;
       const label=`${i+1}. ${compactGuestName(guest.name)}`;
+
       out += `
-        <g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${-item.rotation})" pointer-events="none">
+        <g class="guest-seat-label" data-seat-index="${i}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${-rotationDeg})" pointer-events="none">
           <title>Asiento ${i+1}: ${esc(guest.name)}</title>
-          <text x="${dx}" y="3" text-anchor="${anchor}" font-size="9.5" font-weight="800"
-            fill="#2d2924" stroke="#ffffff" stroke-width="4" paint-order="stroke">${esc(label)}</text>
+          <text x="${dx}" y="${dy}" text-anchor="${anchor}" dominant-baseline="middle"
+            font-size="9.5" font-weight="800" fill="#2d2924"
+            stroke="#ffffff" stroke-width="4" paint-order="stroke">${esc(label)}</text>
         </g>`;
     }
     return out;
