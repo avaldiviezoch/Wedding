@@ -1,5 +1,5 @@
 export const moduleId='distribucion';
-const V='20260919-canonical-label-rotation1';
+const V='20260919-protect-canonical-seats1';
 const GK='planificador_bodas_invitados_v1';
 const SK='planificador_bodas_datos_compartidos_v1';
 const LK='migrandia_distribucion_invitados_link_v1';
@@ -86,9 +86,43 @@ function mapTables(d,s,p,mode='union'){
 function pullSnap(s,x,l,pid,initial=false){
  let d=norm(x);const p=pe(l,pid);mapTables(d,s,p,initial?'union':'pull');const rev=guestMap(d,s,l);
  if(p.ready)(s.guests||[]).forEach(g=>{const n=Number(g.id);if(!Number.isFinite(n)||rev.has(n)||!String(g.name||'').trim())return;const same=d.guests.find(x=>txt(x.name)===txt(g.name));if(same){l.guestIds[String(same.id)]=n;rev.set(n,String(same.id));return}const z={id:id('guest'),name:String(g.name).trim(),status:'pending',invitationSent:false,side:'ambos',relation:'',restriction:'Ninguna',tableId:'',seatId:'',seatNumber:null,notes:''};d.guests.push(z);l.guestIds[String(z.id)]=n;rev.set(n,String(z.id))});
- const controlled=new Set(Object.keys(p.tables));d.guests.forEach(g=>{if(controlled.has(String(g.tableId||''))){g.tableId='';g.seatId='';g.seatNumber=null}});
+
+ // Las asignaciones Invitado -> Mesa -> Silla son canónicas en Invitados/Mesas.
+ // Un cambio visual de Distribución (mover, rotar, zoom, capas, etiquetas, etc.)
+ // NUNCA puede vaciar ni reconstruir tableId/seatId/seatNumber.
+ // Solo se permite importar asientos una vez durante una migración inicial y
+ // únicamente cuando el estado canónico aún no tiene ninguna asignación.
+ const importLegacySeats=Boolean(initial&&!d.guests.some(g=>String(g.tableId||'')));
+
  const cm=new Map(d.tables.map(t=>[String(t.id),t])), assigned=new Set();
- Object.entries(p.tables).forEach(([cid,eid])=>{const e=lt(s).find(x=>String(x.id)===String(eid)),t=cm.get(cid);if(!e||!t)return;const a=e.seats||[],hi=a.reduce((m,v,i)=>v!==null&&v!==''&&v!==undefined?Math.max(m,i+1):m,0),n=cap(e.capacity||a.length||t.capacity,hi),nn=String(e.label||t.name).trim()||t.name;if(nn!==t.name||n!==t.capacity)t.updatedAt=new Date().toISOString();t.name=nn;t.capacity=n;t.seats=seats(t.seats,n);a.forEach((v,i)=>{if(v===null||v===''||v===undefined||i>=n)return;const gid=rev.get(Number(v));if(!gid||assigned.has(gid))return;const g=d.guests.find(q=>String(q.id)===gid);if(!g)return;g.tableId=t.id;g.seatNumber=i+1;g.seatId=t.seats[i].id;assigned.add(gid)})});
+ Object.entries(p.tables).forEach(([cid,eid])=>{
+  const e=lt(s).find(x=>String(x.id)===String(eid)),t=cm.get(cid);
+  if(!e||!t)return;
+  const a=e.seats||[];
+  const legacyHigh=a.reduce((m,v,i)=>v!==null&&v!==''&&v!==undefined?Math.max(m,i+1):m,0);
+  const canonicalHigh=d.guests
+   .filter(g=>String(g.tableId||'')===String(t.id))
+   .reduce((m,g)=>Math.max(m,Number(g.seatNumber)||0),0);
+  const n=cap(e.capacity||a.length||t.capacity,Math.max(legacyHigh,canonicalHigh));
+  const nn=String(e.label||t.name).trim()||t.name;
+  if(nn!==t.name||n!==t.capacity)t.updatedAt=new Date().toISOString();
+  t.name=nn;
+  t.capacity=n;
+  t.seats=seats(t.seats,n);
+
+  if(!importLegacySeats)return;
+  a.forEach((v,i)=>{
+   if(v===null||v===''||v===undefined||i>=n)return;
+   const gid=rev.get(Number(v));
+   if(!gid||assigned.has(gid))return;
+   const g=d.guests.find(q=>String(q.id)===gid);
+   if(!g)return;
+   g.tableId=t.id;
+   g.seatNumber=i+1;
+   g.seatId=t.seats[i].id;
+   assigned.add(gid);
+  });
+ });
  return norm(d);
 }
 function pushSnap(s,x,l,pid){
