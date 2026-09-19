@@ -234,6 +234,7 @@
   window.addEventListener('pageshow', (event) => scheduleSurfaceRestore(event.persisted ? 'bfcache' : 'pageshow'));
   window.addEventListener('focus', () => scheduleSurfaceRestore('focus'));
   window.addEventListener('migrandia:auth-resume', () => scheduleSurfaceRestore('auth-resume'));
+  window.addEventListener('hashchange', () => scheduleSurfaceRestore('hashchange'));
 
   preloadAuthCore();
   loadResponsiveCss();
