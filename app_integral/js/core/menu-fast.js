@@ -120,53 +120,11 @@
     return String(location.hash || '').replace(/^#/, '').split(/[/?&]/)[0].trim().toLowerCase();
   }
 
-  const NEW_DISTRIBUTION_URL = new URL('distribucion/index.html?v=20260918-final-ui4', document.baseURI).href;
-  function suppressLegacyWorkspace(workspace, distributionFrame) {
-    [...workspace.children].forEach((node) => {
-      if (node === distributionFrame) return;
-      if (!node.hasAttribute('data-mgd-suppressed-by-distribution')) {
-        node.dataset.mgdDistributionWasHidden = node.hidden ? 'true' : 'false';
-      }
-      node.hidden = true;
-      node.setAttribute('aria-hidden', 'true');
-      node.setAttribute('data-mgd-suppressed-by-distribution', 'true');
-    });
-  }
-
-  function restoreLegacyWorkspace(workspace) {
-    if (!workspace) return;
-    [...workspace.children].forEach((node) => {
-      if (!node.hasAttribute('data-mgd-suppressed-by-distribution')) return;
-      node.hidden = node.dataset.mgdDistributionWasHidden === 'true';
-      if (!node.hidden) node.removeAttribute('aria-hidden');
-      node.removeAttribute('data-mgd-suppressed-by-distribution');
-      delete node.dataset.mgdDistributionWasHidden;
-    });
-  }
-
-  let distributionWorkspaceObserver = null;
-
-  function ensureDistributionWorkspaceObserver(workspace) {
-    if (distributionWorkspaceObserver) return;
-    distributionWorkspaceObserver = new MutationObserver(() => {
-      if (currentModule() !== 'distribucion') return;
-      const frame = workspace.querySelector('iframe[data-mgd-new-distribution="true"]');
-      if (frame) suppressLegacyWorkspace(workspace, frame);
-    });
-    distributionWorkspaceObserver.observe(workspace, { childList: true });
-  }
-
+  const NEW_DISTRIBUTION_URL = new URL('distribucion/index.html?v=20260918-clean1', document.baseURI).href;
   function unmountNewDistributionIfInactive() {
-    if (currentModule() === 'distribucion') return false;
+    if (currentModule() === 'distribucion') return;
     const workspace=document.getElementById('unifiedWorkspace');
-    const frames=[...(workspace?.querySelectorAll('iframe[data-mgd-new-distribution="true"]')||[])];
-    frames.forEach(frame=>frame.remove());
-    restoreLegacyWorkspace(workspace);
-    if (frames.length) {
-      workspace?.removeAttribute('data-mgd-new-distribution-active');
-      document.documentElement.classList.remove('mgd-distribucion-host-active');
-    }
-    return frames.length > 0;
+    workspace?.querySelectorAll('iframe[data-mgd-new-distribution="true"]').forEach(frame=>frame.remove());
   }
 
   function mountNewDistribution() {
@@ -175,6 +133,7 @@
     if (!workspace) return false;
     let frame = workspace.querySelector('iframe[data-mgd-new-distribution="true"]');
     if (!frame) {
+      workspace.replaceChildren();
       frame = document.createElement('iframe');
       frame.dataset.mgdNewDistribution = 'true';
       frame.className = 'unified-frame';
@@ -188,11 +147,9 @@
       workspace.appendChild(frame);
     }
     frame.classList.add('unified-frame');
+    workspace.querySelectorAll('iframe').forEach(other => { if (other !== frame) other.remove(); });
+    [...workspace.children].forEach(node => { if (node !== frame) node.remove(); });
     frame.hidden = false;
-    frame.removeAttribute('aria-hidden');
-    suppressLegacyWorkspace(workspace, frame);
-    ensureDistributionWorkspaceObserver(workspace);
-    workspace.dataset.mgdNewDistributionActive='true';
     workspace.removeAttribute('hidden');
     workspace.setAttribute('aria-hidden','false');
     document.body.classList.add('module-view');
@@ -277,16 +234,6 @@
   window.addEventListener('pageshow', (event) => scheduleSurfaceRestore(event.persisted ? 'bfcache' : 'pageshow'));
   window.addEventListener('focus', () => scheduleSurfaceRestore('focus'));
   window.addEventListener('migrandia:auth-resume', () => scheduleSurfaceRestore('auth-resume'));
-  window.addEventListener('hashchange', () => scheduleSurfaceRestore('hashchange'));
-  const refreshDistributionFrame = (reason, detail = {}) => {
-    if (currentModule() !== 'distribucion') return;
-    const frame = document.querySelector('#unifiedWorkspace iframe[data-mgd-new-distribution="true"]');
-    if (!frame?.contentWindow) return;
-    try { frame.contentWindow.postMessage({ type:'MIGRANDIA_DISTRIBUTION_REFRESH', reason, detail }, location.origin); } catch (_) {}
-  };
-  document.addEventListener('migrandia:datachange', (event) => refreshDistributionFrame('datachange', event.detail || {}));
-  window.addEventListener('migrandia:wedding-context', (event) => refreshDistributionFrame('wedding-context', event.detail || {}));
-  window.addEventListener('migrandia:auth', (event) => refreshDistributionFrame('auth', event.detail || {}));
 
   preloadAuthCore();
   loadResponsiveCss();
