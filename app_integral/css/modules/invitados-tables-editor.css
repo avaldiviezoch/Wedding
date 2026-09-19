@@ -222,33 +222,6 @@
 .mgd-seat.is-occupied::before{display:none}
 .mgd-seat.is-occupied:hover{transform:scale(1.12);z-index:8}
 .mgd-seat.is-seat-drop{background:#e8efe2;border-color:rgba(111,125,93,.65);transform:scale(1.12)}
-.mgd-seat-label{
-  position:absolute;
-  z-index:3;
-  max-width:126px;
-  margin:0;
-  padding:2px 5px;
-  overflow:hidden;
-  color:#2d2924;
-  font-size:9.5px;
-  font-weight:800;
-  line-height:1.15;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-  pointer-events:none;
-  text-shadow:
-    -2px -2px 0 rgba(255,255,255,.96),
-     2px -2px 0 rgba(255,255,255,.96),
-    -2px  2px 0 rgba(255,255,255,.96),
-     2px  2px 0 rgba(255,255,255,.96),
-     0 0 4px rgba(255,255,255,.96);
-}
-.mgd-seat-label[data-anchor="middle"]{transform:translate(-50%,-50%);text-align:center}
-.mgd-seat-label[data-anchor="start"]{transform:translate(0,-50%);text-align:left}
-.mgd-seat-label[data-anchor="end"]{transform:translate(-100%,-50%);text-align:right}
-@media (max-width:700px){
-  .mgd-seat-label{max-width:96px;font-size:8.5px}
-}
 .mgd-seat-remove{
   position:absolute;
   z-index:14;
