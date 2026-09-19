@@ -73,7 +73,7 @@ function migrateVisibleOnce(win,proposal,doc,image,toggle){
 }
 
 function bind(frame){
-  if(!(frame instanceof HTMLIFrameElement)||frame.dataset.mgdNewDistribution==='true')return;
+  if(!(frame instanceof HTMLIFrameElement))return;
   let doc,win;
   try{doc=frame.contentDocument;win=frame.contentWindow}catch(_){return}
   if(!isDistribution(doc)||!win)return;
