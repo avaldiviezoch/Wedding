@@ -45,6 +45,19 @@
   const btnUndo = document.getElementById('btnUndo');
   const btnRedo = document.getElementById('btnRedo');
   const btnPresentation = document.getElementById('btnPresentation');
+  let btnGuestLabels = document.getElementById('btnGuestLabels');
+  if (!btnGuestLabels && btnPresentation?.parentElement) {
+    btnGuestLabels = document.createElement('button');
+    btnGuestLabels.id = 'btnGuestLabels';
+    btnGuestLabels.type = 'button';
+    btnGuestLabels.className = btnPresentation.className;
+    btnPresentation.insertAdjacentElement('beforebegin', btnGuestLabels);
+  }
+  const syncGuestLabelsButton = () => {
+    if (!btnGuestLabels) return;
+    btnGuestLabels.textContent = showGuestLabels.checked ? 'Ocultar etiquetas' : 'Mostrar etiquetas';
+    btnGuestLabels.setAttribute('aria-pressed', showGuestLabels.checked ? 'false' : 'true');
+  };
   const btnMeasure = document.getElementById('btnMeasure');
   const btnClearMeasures = document.getElementById('btnClearMeasures');
   const measureModeNote = document.getElementById('measureModeNote');
@@ -403,6 +416,7 @@
     showClearance.checked=settings.showClearance!==undefined ? Boolean(settings.showClearance) : showClearance.checked;
     showLabels.checked=settings.showLabels!==undefined ? Boolean(settings.showLabels) : showLabels.checked;
     showGuestLabels.checked=settings.showGuestLabels!==undefined ? Boolean(settings.showGuestLabels) : showGuestLabels.checked;
+    syncGuestLabelsButton();
     showGrid.checked=settings.showGrid!==undefined ? Boolean(settings.showGrid) : showGrid.checked;
     bgVisible=settings.bgVisible!==undefined ? Boolean(settings.bgVisible) : true;
 
@@ -2327,7 +2341,7 @@
   showClearance.addEventListener('change',()=>{render();scheduleHistoryRecord();});
   showLabels.addEventListener('change',()=>{render();scheduleHistoryRecord();});
   showSeatNames?.addEventListener('change',()=>{render();scheduleHistoryRecord();});
-  showGuestLabels.addEventListener('change',()=>{render();scheduleHistoryRecord();});
+  showGuestLabels.addEventListener('change',()=>{syncGuestLabelsButton();render();scheduleHistoryRecord();});
   showGrid.addEventListener('change',()=>{
     gridLayer.setAttribute('opacity',showGrid.checked?'.72':'0');
     scheduleAutosave();
@@ -2607,7 +2621,14 @@
 
   btnUndo.addEventListener('click',undoHistory);
   btnRedo.addEventListener('click',redoHistory);
-  btnPresentation.addEventListener('click',()=>{
+  syncGuestLabelsButton();
+  btnGuestLabels?.addEventListener('click',()=>{
+    showGuestLabels.checked=!showGuestLabels.checked;
+    syncGuestLabelsButton();
+    render();
+    scheduleHistoryRecord();
+  });
+    btnPresentation.addEventListener('click',()=>{
     document.body.classList.toggle('presentation-mode');
     btnPresentation.textContent=document.body.classList.contains('presentation-mode') ? 'Salir vista' : 'Vista final';
   });
