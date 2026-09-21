@@ -628,6 +628,16 @@ function setUpperSummaryValue(doc, labelPattern, value, replacementLabel = '') {
   return Boolean(output);
 }
 
+function claimUpperRsvpSummary(doc) {
+  // These cards are owned by RSVP. Never expose guest-list counters while
+  // the asynchronous RSVP snapshot for the active wedding is still loading.
+  setUpperSummaryValue(doc, /^\s*confirmados\b/i, '—');
+  if (!setUpperSummaryValue(doc, /^\s*confirmaciones\b/i, '—')) {
+    setUpperSummaryValue(doc, /^\s*pendientes\b/i, '—', 'CONFIRMACIONES');
+  }
+  setUpperSummaryValue(doc, /^\s*no asistir[aá]n\b/i, '—');
+}
+
 function renderKpis(doc) {
   const kpi = calculateKpis();
   const values = {
@@ -1142,6 +1152,7 @@ function injectRsvpIntoFrame(frame) {
 
   guestFrame = frame;
   guestDocument = doc;
+  claimUpperRsvpSummary(doc);
   ensureStyles(doc);
 
   const tabs = doc.querySelector('.view-tabs');
@@ -1196,7 +1207,10 @@ window.addEventListener('migrandia:wedding-context', () => {
   responses = [];
   responseManagement = new Map();
   rsvpConfig = null;
-  if (guestDocument?.getElementById('rsvpNativeView')) refreshPanel(guestDocument);
+  if (guestDocument?.getElementById('rsvpNativeView')) {
+    claimUpperRsvpSummary(guestDocument);
+    refreshPanel(guestDocument);
+  }
   scanFrames();
 });
 
