@@ -1,4 +1,4 @@
-const VERSION = '20260919-guest-drag-reliability1';
+const VERSION = '20260921-guest-transfer-dnd1';
 const STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 const CSS_URL = new URL(`css/modules/invitados-tables-editor.css?v=${VERSION}`, document.baseURI).href;
@@ -227,8 +227,12 @@ function guestsAtTable(data, tableId) {
 function guestAtSeat(data, tableId, seatIndex) {
   return data.guests.find((guest) => String(guest.tableId || '') === String(tableId) && Number(guest.seatNumber) === seatIndex + 1);
 }
-function firstFreeSeat(data, table) {
-  const occupied = new Set(guestsAtTable(data, table.id).map((guest) => Number(guest.seatNumber) - 1));
+function firstFreeSeat(data, table, movingGuestId = '') {
+  const occupied = new Set(
+    guestsAtTable(data, table.id)
+      .filter((guest) => String(guest.id) !== String(movingGuestId || ''))
+      .map((guest) => Number(guest.seatNumber) - 1)
+  );
   return table.seats.findIndex((_, index) => !occupied.has(index));
 }
 
@@ -238,7 +242,7 @@ function assignGuest(guestId, tableId, preferredSeat = null) {
   const guest = data.guests.find((item) => String(item.id) === String(guestId));
   if (!table || !guest) return;
 
-  let seatIndex = Number.isInteger(preferredSeat) ? preferredSeat : firstFreeSeat(data, table);
+  let seatIndex = Number.isInteger(preferredSeat) ? preferredSeat : firstFreeSeat(data, table, guest.id);
   if (seatIndex < 0 || seatIndex >= table.capacity) {
     toast('Esta mesa ya está completa.');
     return;
@@ -654,8 +658,8 @@ function bindEditorEvents(doc) {
   });
 
   root.addEventListener('dragstart', (event) => {
-    const guestSource = event.target.closest('.mgd-guest-item[data-guest-id]');
-    if (!guestSource) return;
+    const guestSource = event.target.closest('[data-guest-id][draggable="true"]');
+    if (!guestSource || event.target.closest('[data-unassign-guest]')) return;
     draggingGuestId = guestSource.dataset.guestId || '';
     if (!event.dataTransfer) return;
     event.dataTransfer.effectAllowed = 'move';
