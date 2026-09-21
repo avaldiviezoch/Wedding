@@ -1,4 +1,4 @@
-const VERSION = '20260921-list-jitter-fix1';
+const VERSION = '20260921-observer-perf1';
 const STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 const CSS_URL = new URL(`css/modules/invitados-tables-editor.css?v=${VERSION}`, document.baseURI).href;
@@ -874,14 +874,7 @@ function bindFrame(frame) {
     frame.dataset.mgdTablesLoadBound = VERSION;
     frame.addEventListener('load', () => setTimeout(() => bindFrame(frame), 80));
   }
-  if (!doc.documentElement.dataset.mgdTablesObserver) {
-    doc.documentElement.dataset.mgdTablesObserver = VERSION;
-    const observer = new MutationObserver(() => {
-      const view = doc.getElementById('tablesView');
-      if (view && !view.querySelector('#mgdTablesEditor')) mountEditor(frame, doc);
-    });
-    observer.observe(doc.body, { childList: true, subtree: true });
-  }
+
   return true;
 }
 
@@ -892,8 +885,6 @@ function scanFrames() {
   }
 }
 
-const rootObserver = new MutationObserver(scanFrames);
-rootObserver.observe(document.documentElement, { childList: true, subtree: true });
 document.addEventListener('DOMContentLoaded', scanFrames);
 window.addEventListener('load', scanFrames);
 window.addEventListener('migrandia:wedding-context', () => {

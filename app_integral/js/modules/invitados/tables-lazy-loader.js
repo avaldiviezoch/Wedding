@@ -106,7 +106,7 @@ import { TABLES_FINAL_STYLE_VERSION, tablesFinalStyleReady, tablesFinalStyleStat
 
   function loadTablesRuntime() {
     if (tablesRuntime) return tablesRuntime;
-    tablesRuntime = import(new URL('tables-editor-entry.js?v=20260921-list-jitter-fix1', import.meta.url).href)
+    tablesRuntime = import(new URL('tables-editor-entry.js?v=20260921-observer-perf1', import.meta.url).href)
       .then((runtime) => {
         const workspace = document.getElementById('unifiedWorkspace');
         workspace?.querySelectorAll('iframe').forEach((frame) => {

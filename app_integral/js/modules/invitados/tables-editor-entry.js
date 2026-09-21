@@ -20,7 +20,7 @@ function preloadFinalStyle() {
 }
 
 preloadFinalStyle();
-await import('./tables-editor.js?v=20260921-list-jitter-fix1');
+await import('./tables-editor.js?v=20260921-observer-perf1');
 await Promise.all([
   import('./tables-stable-polish.js?v=20260816-1440-stable-name1'),
   import('./tables-old-look.js?v=20260816-1545-fast-tables1')
