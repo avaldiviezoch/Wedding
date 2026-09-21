@@ -16,7 +16,7 @@
   function loadBaseRuntime() {
     if (baseRuntime) return baseRuntime;
     baseRuntime = Promise.all([
-      import(moduleUrl('index.js', '20260921-rsvp-single-owner-tabs1')),
+      import(moduleUrl('index.js', '20260921-rsvp-load-on-entry1')),
       import(moduleUrl('ui-copy.js', '20260830-guests-bridge-cleanup1')),
       import(moduleUrl('tables-access-recovery.js', '20260830-tables-access-recovery1')),
       import(moduleUrl('tables-lazy-loader.js', '20260921-list-jitter-fix1'))
