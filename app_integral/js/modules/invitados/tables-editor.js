@@ -1,4 +1,4 @@
-const VERSION = '20260921-seated-transfer1';
+const VERSION = '20260921-canonical-guest-sync1';
 const STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 const CSS_URL = new URL(`css/modules/invitados-tables-editor.css?v=${VERSION}`, document.baseURI).href;
@@ -564,6 +564,15 @@ function scheduleRender() {
   renderTimer = setTimeout(() => renderEditor(), 30);
 }
 
+function refreshFromCanonicalGuestState() {
+  // Guest identity/profile always comes from the canonical guest record.
+  // Re-rendering from STORAGE_KEY preserves tableId/seatId/seatNumber while
+  // immediately reflecting create/edit/delete and any future guest fields
+  // consumed by this view.
+  if (!activeDoc?.getElementById('tablesView')) return;
+  scheduleRender();
+}
+
 function renderEditor() {
   const view = activeDoc?.getElementById('tablesView');
   if (!view) return;
@@ -865,6 +874,22 @@ function bindFrame(frame) {
     frame.dataset.mgdTablesLoadBound = VERSION;
     frame.addEventListener('load', () => setTimeout(() => bindFrame(frame), 80));
   }
+  if (!doc.documentElement.dataset.mgdCanonicalGuestSync) {
+    doc.documentElement.dataset.mgdCanonicalGuestSync = VERSION;
+    doc.addEventListener('input', (event) => {
+      if (event.target?.closest?.('#tablesView')) return;
+      queueMicrotask(refreshFromCanonicalGuestState);
+    }, true);
+    doc.addEventListener('change', (event) => {
+      if (event.target?.closest?.('#tablesView')) return;
+      queueMicrotask(refreshFromCanonicalGuestState);
+    }, true);
+    doc.addEventListener('click', (event) => {
+      if (event.target?.closest?.('#tablesView')) return;
+      queueMicrotask(refreshFromCanonicalGuestState);
+    }, true);
+  }
+
   if (!doc.documentElement.dataset.mgdTablesObserver) {
     doc.documentElement.dataset.mgdTablesObserver = VERSION;
     const observer = new MutationObserver(() => {
