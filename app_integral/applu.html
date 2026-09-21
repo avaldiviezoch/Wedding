@@ -10,12 +10,17 @@
       const moduleId = String(location.hash || '').replace(/^#/, '').split(/[/?&]/)[0].trim().toLowerCase();
       const modules = new Set(['checklist','presupuesto','proveedores','invitados','distribucion','cronograma','invitaciones','musica','documentos','configuracion']);
       if (modules.has(moduleId)) document.documentElement.classList.add('mgd-deep-module');
+      // Invitados has three RSVP-owned summary cards whose data arrives
+      // asynchronously. Hide only their numeric values before first paint so
+      // legacy guest counters can never flash as RSVP values.
+      if (moduleId === 'invitados') document.documentElement.classList.add('mgd-rsvp-kpis-pending');
     })();
   </script>
   <style>
     html.mgd-deep-module body > main.app{visibility:hidden}
     html.mgd-deep-module #unifiedWorkspace,
     html.mgd-deep-module #moduleQuickNav{visibility:visible}
+    html.mgd-rsvp-kpis-pending #unifiedWorkspace iframe{visibility:hidden}
   </style>
 
   <link rel="stylesheet" href="css/legacy/applu-style-01.css">
