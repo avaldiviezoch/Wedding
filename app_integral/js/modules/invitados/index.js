@@ -640,7 +640,7 @@ function renderKpis(doc) {
   };
 
   setSummary(/^\s*confirmados\b/i, kpi.peopleConfirmed);
-  setSummary(/^\s*pendientes\b/i, kpi.confirmed, 'CONFIRMACIONES');
+  setSummary(/^\s*confirmaciones\b/i, kpi.confirmed);
   setSummary(/^\s*no asistir[aá]n\b/i, kpi.declined);
 }
 
