@@ -1109,9 +1109,11 @@ async function refreshPanel(doc) {
     }
     renderResponses(doc);
     restartSubscriptions(doc);
+    document.documentElement.classList.remove('mgd-rsvp-kpis-pending');
     setSyncState(doc, rsvpConfig.token ? 'Bandeja RSVP conectada · revisión manual' : 'Configura y publica tu formulario');
   } catch (error) {
     console.error('No se pudo cargar RSVP:', error);
+    document.documentElement.classList.remove('mgd-rsvp-kpis-pending');
     setSyncState(doc, error?.message || 'No se pudo cargar RSVP.', 'error');
   }
 }
