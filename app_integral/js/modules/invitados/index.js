@@ -608,6 +608,26 @@ function renderIntegration(doc) {
   });
 }
 
+function upperSummaryCards(doc) {
+  return [...doc.querySelectorAll('.stat-card,.stat,.summary-card,.kpi-card')]
+    .filter((card) => !card.closest('#rsvpNativeView'));
+}
+
+function setUpperSummaryValue(doc, labelPattern, value, replacementLabel = '') {
+  const card = upperSummaryCards(doc).find((item) => labelPattern.test(String(item.textContent || '').trim()));
+  if (!card) return false;
+  const output = card.querySelector('[data-value],.value,.stat-value,.number,strong,b');
+  if (output) output.textContent = String(value);
+  if (replacementLabel) {
+    const label = [...card.querySelectorAll('span,small,label,p,div')].find((node) =>
+      labelPattern.test(String(node.textContent || '').trim()) &&
+      !node.querySelector('[data-value],.value,.stat-value,.number,strong,b')
+    );
+    if (label) label.textContent = replacementLabel;
+  }
+  return Boolean(output);
+}
+
 function renderKpis(doc) {
   const kpi = calculateKpis();
   const values = {
@@ -622,26 +642,29 @@ function renderKpis(doc) {
     if (el) el.textContent = String(value);
   });
 
-  // Read-only bridge: the upper guest summary mirrors the same RSVP counters.
-  // Match cards by their visible label so Total / Con mesa / Sin mesa remain untouched.
-  const cards = [...doc.querySelectorAll('.stat-card,.stat,.summary-card,.kpi-card')];
-  const setSummary = (labelPattern, value, replacementLabel = '') => {
-    const card = cards.find((item) => labelPattern.test(String(item.textContent || '').trim()));
-    if (!card) return;
-    const output = card.querySelector('[data-value],.value,.stat-value,.number,strong,b');
-    if (output) output.textContent = String(value);
-    if (replacementLabel) {
-      const label = [...card.querySelectorAll('span,small,label,p,div')].find((node) =>
-        /pendientes/i.test(String(node.textContent || '').trim()) &&
-        !node.querySelector('[data-value],.value,.stat-value,.number,strong,b')
-      );
-      if (label) label.textContent = replacementLabel;
-    }
-  };
+  // Upper summary is a read-only projection of RSVP for these three cards.
+  // Guest-list changes must never be a source for Confirmaciones.
+  setUpperSummaryValue(doc, /^\s*confirmados\b/i, kpi.peopleConfirmed);
+  if (!setUpperSummaryValue(doc, /^\s*confirmaciones\b/i, kpi.confirmed)) {
+    setUpperSummaryValue(doc, /^\s*pendientes\b/i, kpi.confirmed, 'CONFIRMACIONES');
+  }
+  setUpperSummaryValue(doc, /^\s*no asistir[aá]n\b/i, kpi.declined);
+}
 
-  setSummary(/^\s*confirmados\b/i, kpi.peopleConfirmed);
-  setSummary(/^\s*pendientes\b/i, kpi.confirmed, 'CONFIRMACIONES');
-  setSummary(/^\s*no asistir[aá]n\b/i, kpi.declined);
+function bindUpperRsvpSummary(doc) {
+  const host = upperSummaryCards(doc)[0]?.parentElement;
+  if (!host || host.dataset.rsvpKpiGuard === '1') return;
+  host.dataset.rsvpKpiGuard = '1';
+  let syncing = false;
+  const sync = () => {
+    if (syncing) return;
+    syncing = true;
+    queueMicrotask(() => {
+      renderKpis(doc);
+      syncing = false;
+    });
+  };
+  new MutationObserver(sync).observe(host, { childList: true, subtree: true, characterData: true });
 }
 
 function optionMarkup(guest, selectedIds) {
@@ -1125,12 +1148,15 @@ function injectRsvpIntoFrame(frame) {
   if (doc.getElementById('rsvpNativeView')) {
     guestFrame = frame;
     guestDocument = doc;
+    bindUpperRsvpSummary(doc);
+    renderKpis(doc);
     return true;
   }
 
   guestFrame = frame;
   guestDocument = doc;
   ensureStyles(doc);
+  bindUpperRsvpSummary(doc);
 
   const tabs = doc.querySelector('.view-tabs');
   const tab = doc.createElement('button');
