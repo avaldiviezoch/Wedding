@@ -651,22 +651,6 @@ function renderKpis(doc) {
   setUpperSummaryValue(doc, /^\s*no asistir[aá]n\b/i, kpi.declined);
 }
 
-function bindUpperRsvpSummary(doc) {
-  const host = upperSummaryCards(doc)[0]?.parentElement;
-  if (!host || host.dataset.rsvpKpiGuard === '1') return;
-  host.dataset.rsvpKpiGuard = '1';
-  let syncing = false;
-  const sync = () => {
-    if (syncing) return;
-    syncing = true;
-    queueMicrotask(() => {
-      renderKpis(doc);
-      syncing = false;
-    });
-  };
-  new MutationObserver(sync).observe(host, { childList: true, subtree: true, characterData: true });
-}
-
 function optionMarkup(guest, selectedIds) {
   const selected = selectedIds.has(guest.id) ? 'selected' : '';
   const detail = [guest.status ? statusLabel(guest.status) : '', guest.relation || ''].filter(Boolean).join(' · ');
@@ -1148,7 +1132,6 @@ function injectRsvpIntoFrame(frame) {
   if (doc.getElementById('rsvpNativeView')) {
     guestFrame = frame;
     guestDocument = doc;
-    bindUpperRsvpSummary(doc);
     renderKpis(doc);
     return true;
   }
@@ -1156,7 +1139,6 @@ function injectRsvpIntoFrame(frame) {
   guestFrame = frame;
   guestDocument = doc;
   ensureStyles(doc);
-  bindUpperRsvpSummary(doc);
 
   const tabs = doc.querySelector('.view-tabs');
   const tab = doc.createElement('button');
