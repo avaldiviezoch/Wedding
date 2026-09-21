@@ -1117,6 +1117,24 @@ function leaveRsvpView(doc) {
   doc.getElementById('rsvpNativeTab')?.classList.remove('active');
 }
 
+function bindUpperSummaryGuard(frame, doc) {
+  if (frame.dataset.rsvpSummaryGuard === '1') return;
+  const cards = [...doc.querySelectorAll('.stat-card,.stat,.summary-card,.kpi-card')];
+  if (!cards.length) return;
+  frame.dataset.rsvpSummaryGuard = '1';
+  let scheduled = false;
+  const sync = () => {
+    if (scheduled) return;
+    scheduled = true;
+    queueMicrotask(() => {
+      scheduled = false;
+      renderKpis(doc);
+    });
+  };
+  const observer = new MutationObserver(sync);
+  cards.forEach((card) => observer.observe(card, { childList: true, subtree: true, characterData: true }));
+}
+
 function injectRsvpIntoFrame(frame) {
   let doc;
   try { doc = frame.contentDocument; } catch (_) { return false; }
@@ -1125,12 +1143,15 @@ function injectRsvpIntoFrame(frame) {
   if (doc.getElementById('rsvpNativeView')) {
     guestFrame = frame;
     guestDocument = doc;
+    bindUpperSummaryGuard(frame, doc);
+    renderKpis(doc);
     return true;
   }
 
   guestFrame = frame;
   guestDocument = doc;
   ensureStyles(doc);
+  bindUpperSummaryGuard(frame, doc);
 
   const tabs = doc.querySelector('.view-tabs');
   const tab = doc.createElement('button');
