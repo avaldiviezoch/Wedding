@@ -1182,8 +1182,6 @@ function scanFrames() {
   }, 60);
 }
 
-const observer = new MutationObserver(scanFrames);
-observer.observe(document.documentElement, { childList: true, subtree: true });
 document.addEventListener('DOMContentLoaded', scanFrames);
 window.addEventListener('load', scanFrames);
 window.addEventListener('migrandia:wedding-context', () => {
@@ -1199,4 +1197,3 @@ window.addEventListener('migrandia:wedding-context', () => {
 });
 
 if (document.readyState !== 'loading') scanFrames();
-
