@@ -13,7 +13,13 @@
   const scaleInput = document.getElementById('scaleInput');
   const showClearance = document.getElementById('showClearance');
   const showLabels = document.getElementById('showLabels');
-  const showGuestLabels = document.getElementById('showGuestLabels');
+  let showGuestLabels = document.getElementById('showGuestLabels');
+  if (!showGuestLabels && showLabels?.parentElement?.parentElement) {
+    const label = document.createElement('label');
+    label.innerHTML = '<input id="showGuestLabels" type="checkbox" checked><span>Mostrar etiquetas de invitados</span>';
+    showLabels.parentElement.insertAdjacentElement('afterend', label);
+    showGuestLabels = label.querySelector('#showGuestLabels');
+  }
   const showGrid = document.getElementById('showGrid');
 
   const selectionForm = document.getElementById('selectionForm');
