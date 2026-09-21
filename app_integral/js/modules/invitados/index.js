@@ -1134,10 +1134,9 @@ function leaveRsvpView(doc) {
   const panel = doc.getElementById('rsvpNativeView');
   if (panel) panel.hidden = true;
   doc.getElementById('rsvpNativeTab')?.classList.remove('active');
-  // Legacy views recalculate their own guest-list summary while changing tabs.
-  // RSVP owns these three upper cards, so project the already-loaded RSVP state
-  // once the legacy click handler has completed.
-  queueMicrotask(() => renderKpis(doc));
+  // Legacy views may recalculate their guest-list summary during navigation.
+  // RSVP is the single owner of these three cards in every Invitados tab.
+  renderKpis(doc);
 }
 
 function injectRsvpIntoFrame(frame) {
@@ -1166,8 +1165,14 @@ function injectRsvpIntoFrame(frame) {
   tab.addEventListener('click', () => activateRsvpView(doc));
   tabs.appendChild(tab);
 
+  // Bind in capture phase: legacy tab handlers recalculate their summary
+  // during the same click. Project RSVP-owned cards before that render and
+  // again at the end of the same event turn, without waiting for a fetch.
   doc.querySelectorAll('[data-view]').forEach((button) => {
-    button.addEventListener('click', () => leaveRsvpView(doc));
+    button.addEventListener('click', () => {
+      renderKpis(doc);
+      queueMicrotask(() => leaveRsvpView(doc));
+    }, true);
   });
 
   const panel = doc.createElement('section');
