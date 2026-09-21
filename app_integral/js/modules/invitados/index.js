@@ -1122,6 +1122,10 @@ function leaveRsvpView(doc) {
   const panel = doc.getElementById('rsvpNativeView');
   if (panel) panel.hidden = true;
   doc.getElementById('rsvpNativeTab')?.classList.remove('active');
+  // Legacy views recalculate their own guest-list summary while changing tabs.
+  // RSVP owns these three upper cards, so project the already-loaded RSVP state
+  // once the legacy click handler has completed.
+  queueMicrotask(() => renderKpis(doc));
 }
 
 function injectRsvpIntoFrame(frame) {
