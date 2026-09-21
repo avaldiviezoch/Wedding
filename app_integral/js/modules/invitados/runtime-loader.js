@@ -19,7 +19,7 @@
       import(moduleUrl('index.js', '20260921-kpi-no-stale-flash1')),
       import(moduleUrl('ui-copy.js', '20260830-guests-bridge-cleanup1')),
       import(moduleUrl('tables-access-recovery.js', '20260830-tables-access-recovery1')),
-      import(moduleUrl('tables-lazy-loader.js', '20260921-guest-transfer-dnd1'))
+      import(moduleUrl('tables-lazy-loader.js', '20260921-canonical-guest-sync1'))
     ]).catch((error) => {
       console.error('No se pudo iniciar Invitados:', error);
       baseRuntime = null;
