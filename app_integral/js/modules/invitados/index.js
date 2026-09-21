@@ -621,6 +621,27 @@ function renderKpis(doc) {
     const el = doc.getElementById(id);
     if (el) el.textContent = String(value);
   });
+
+  // Read-only bridge: the upper guest summary mirrors the same RSVP counters.
+  // Match cards by their visible label so Total / Con mesa / Sin mesa remain untouched.
+  const cards = [...doc.querySelectorAll('.stat-card,.stat,.summary-card,.kpi-card')];
+  const setSummary = (labelPattern, value, replacementLabel = '') => {
+    const card = cards.find((item) => labelPattern.test(String(item.textContent || '').trim()));
+    if (!card) return;
+    const output = card.querySelector('[data-value],.value,.stat-value,.number,strong,b');
+    if (output) output.textContent = String(value);
+    if (replacementLabel) {
+      const label = [...card.querySelectorAll('span,small,label,p,div')].find((node) =>
+        /pendientes/i.test(String(node.textContent || '').trim()) &&
+        !node.querySelector('[data-value],.value,.stat-value,.number,strong,b')
+      );
+      if (label) label.textContent = replacementLabel;
+    }
+  };
+
+  setSummary(/^\s*confirmados\b/i, kpi.peopleConfirmed);
+  setSummary(/^\s*pendientes\b/i, kpi.confirmed, 'CONFIRMACIONES');
+  setSummary(/^\s*no asistir[aá]n\b/i, kpi.declined);
 }
 
 function optionMarkup(guest, selectedIds) {
