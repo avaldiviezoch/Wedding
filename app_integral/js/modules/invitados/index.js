@@ -628,18 +628,12 @@ function setUpperSummaryValue(doc, labelPattern, value, replacementLabel = '') {
   return Boolean(output);
 }
 
-function claimUpperRsvpSummary(doc) {
-  // These cards are owned by RSVP. Never expose guest-list counters while
-  // the asynchronous RSVP snapshot for the active wedding is still loading.
-  setUpperSummaryValue(doc, /^\s*confirmados\b/i, '—');
-  if (!setUpperSummaryValue(doc, /^\s*confirmaciones\b/i, '—')) {
-    setUpperSummaryValue(doc, /^\s*pendientes\b/i, '—', 'CONFIRMACIONES');
-  }
-  setUpperSummaryValue(doc, /^\s*no asistir[aá]n\b/i, '—');
-}
-
-function renderKpis(doc) {
+function renderRsvpKpis(doc) {
   const kpi = calculateKpis();
+
+  // One calculation and one renderer feed both KPI surfaces. The lower RSVP
+  // cards are the canonical presentation; the upper summary mirrors the same
+  // values instead of maintaining a second KPI implementation.
   const values = {
     rsvpKpiResponses: kpi.responses,
     rsvpKpiConfirmed: kpi.confirmed,
@@ -652,13 +646,11 @@ function renderKpis(doc) {
     if (el) el.textContent = String(value);
   });
 
-  // Upper summary is a read-only projection of RSVP for these three cards.
-  // Guest-list changes must never be a source for Confirmaciones.
-  setUpperSummaryValue(doc, /^\s*confirmados\b/i, kpi.peopleConfirmed);
-  if (!setUpperSummaryValue(doc, /^\s*confirmaciones\b/i, kpi.confirmed)) {
-    setUpperSummaryValue(doc, /^\s*pendientes\b/i, kpi.confirmed, 'CONFIRMACIONES');
+  setUpperSummaryValue(doc, /^\s*confirmados\b/i, values.rsvpKpiPeople);
+  if (!setUpperSummaryValue(doc, /^\s*confirmaciones\b/i, values.rsvpKpiConfirmed)) {
+    setUpperSummaryValue(doc, /^\s*pendientes\b/i, values.rsvpKpiConfirmed, 'CONFIRMACIONES');
   }
-  setUpperSummaryValue(doc, /^\s*no asistir[aá]n\b/i, kpi.declined);
+  setUpperSummaryValue(doc, /^\s*no asistir[aá]n\b/i, values.rsvpKpiDeclined);
 }
 
 function optionMarkup(guest, selectedIds) {
@@ -699,7 +691,7 @@ function renderResponses(doc) {
 
   if (!latest.length) {
     host.innerHTML = '<div class="rsvp-empty">Todavía no hay respuestas. Cuando alguien use el formulario digital, aparecerá aquí exactamente como la persona lo escribió.</div>';
-    renderKpis(doc);
+    renderRsvpKpis(doc);
     return;
   }
 
@@ -782,7 +774,7 @@ function renderResponses(doc) {
       </article>`;
   }).join('');
 
-  renderKpis(doc);
+  renderRsvpKpis(doc);
 }
 
 function updateMenuVisibility(doc) {
@@ -1136,7 +1128,7 @@ function leaveRsvpView(doc) {
   doc.getElementById('rsvpNativeTab')?.classList.remove('active');
   // Legacy views may recalculate their guest-list summary during navigation.
   // RSVP is the single owner of these three cards in every Invitados tab.
-  renderKpis(doc);
+  renderRsvpKpis(doc);
 }
 
 function injectRsvpIntoFrame(frame) {
@@ -1154,8 +1146,7 @@ function injectRsvpIntoFrame(frame) {
 
   guestFrame = frame;
   guestDocument = doc;
-  claimUpperRsvpSummary(doc);
-  ensureStyles(doc);
+    ensureStyles(doc);
 
   const tabs = doc.querySelector('.view-tabs');
   const tab = doc.createElement('button');
@@ -1171,7 +1162,7 @@ function injectRsvpIntoFrame(frame) {
   // again at the end of the same event turn, without waiting for a fetch.
   doc.querySelectorAll('[data-view]').forEach((button) => {
     button.addEventListener('click', () => {
-      renderKpis(doc);
+      renderRsvpKpis(doc);
       queueMicrotask(() => leaveRsvpView(doc));
     }, true);
   });
@@ -1185,8 +1176,7 @@ function injectRsvpIntoFrame(frame) {
   bindPanel(doc);
   // Load RSVP as soon as Invitados is mounted, not when the Confirmaciones
   // tab is opened. This snapshot owns the upper cards in every subview.
-  claimUpperRsvpSummary(doc);
-  refreshPanel(doc);
+    refreshPanel(doc);
   return true;
 }
 
@@ -1219,7 +1209,6 @@ window.addEventListener('migrandia:wedding-context', () => {
   responseManagement = new Map();
   rsvpConfig = null;
   if (guestDocument?.getElementById('rsvpNativeView')) {
-    claimUpperRsvpSummary(guestDocument);
     refreshPanel(guestDocument);
   }
   scanFrames();
