@@ -621,6 +621,17 @@ function renderKpis(doc) {
     const el = doc.getElementById(id);
     if (el) el.textContent = String(value);
   });
+
+  // Read-only bridge: keep the module's upper summary in sync with RSVP.
+  // Never writes guest/local/shared storage and never mutates RSVP data.
+  const summaryValues = [kpi.responses, kpi.peopleConfirmed, kpi.unreviewed, kpi.declined];
+  const summaryCards = [...doc.querySelectorAll('.stat-card,.stat,.summary-card,.kpi-card')];
+  if (summaryCards.length >= 4) {
+    summaryCards.slice(0, 4).forEach((card, index) => {
+      const output = card.querySelector('[data-value],.value,.stat-value,.number,strong,b');
+      if (output) output.textContent = String(summaryValues[index]);
+    });
+  }
 }
 
 function optionMarkup(guest, selectedIds) {
