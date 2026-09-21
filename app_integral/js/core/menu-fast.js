@@ -233,6 +233,18 @@
     backdrop.setAttribute('aria-hidden', open ? 'false' : 'true');
   }
 
+  function goHomeMenu() {
+    if (location.hash) history.pushState({ module: 'home' }, '', location.pathname + location.search);
+    document.documentElement.classList.remove('mgd-deep-module', 'mgd-module-surface-active');
+    document.body.classList.remove('module-view');
+    const workspace = document.getElementById('unifiedWorkspace');
+    workspace?.setAttribute('aria-hidden', 'true');
+    document.getElementById('unifiedLoader')?.classList.remove('show');
+    initHeroVideo();
+    setMenu(true);
+    window.dispatchEvent(new CustomEvent('migrandia:resume', { detail: { reason: 'home-menu', module: '', preserved: Boolean(workspace?.children.length) } }));
+  }
+
   function authState() {
     const guard = window.WeddingPlannerAuthGuard;
     if (!guard?.ready) return { ready: false, authenticated: false };
@@ -276,6 +288,15 @@
     button.dataset.mgdFastMenu = VERSION;
     button.disabled = false;
     initHeroVideo();
+
+    document.addEventListener('click', (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      const homeControl = target?.closest('#moduleQuickHome,#unifiedHomeButton');
+      if (!homeControl) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      goHomeMenu();
+    }, true);
 
     button.addEventListener('click', (event) => {
       if (passthrough) return;
