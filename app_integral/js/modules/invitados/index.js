@@ -1147,7 +1147,8 @@ function injectRsvpIntoFrame(frame) {
   if (doc.getElementById('rsvpNativeView')) {
     guestFrame = frame;
     guestDocument = doc;
-    renderKpis(doc);
+    // Do not project the legacy/empty in-memory counters on re-entry.
+    // The first injection owns loading RSVP for the whole Invitados module.
     return true;
   }
 
@@ -1182,6 +1183,9 @@ function injectRsvpIntoFrame(frame) {
   const mapView = doc.getElementById('mapView');
   mapView?.insertAdjacentElement('afterend', panel);
   bindPanel(doc);
+  // Load RSVP as soon as Invitados is mounted, not when the Confirmaciones
+  // tab is opened. This snapshot owns the upper cards in every subview.
+  claimUpperRsvpSummary(doc);
   refreshPanel(doc);
   return true;
 }
