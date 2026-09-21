@@ -23,3 +23,15 @@ test('dragover declara efecto move y el dragend limpia el estado', () => {
   assert.match(editor, /event\.dataTransfer\.dropEffect = 'move'/);
   assert.match(editor, /root\.addEventListener\('dragend',[\s\S]*draggingGuestId = ''/);
 });
+
+
+test('invitado sentado también puede iniciar drag hacia otra mesa', () => {
+  assert.match(editor, /closest\('\[data-guest-id\]\[draggable="true"\]'\)/);
+  assert.match(editor, /firstFreeSeat\(data, table, guest\.id\)/);
+});
+
+test('desasignar limpia mesa y silla y el contador se deriva del estado canónico', () => {
+  assert.match(editor, /guest\.tableId = '';[\s\S]*guest\.seatId = '';[\s\S]*guest\.seatNumber = null;/);
+  assert.match(editor, /const assigned = guestsAtTable\(data, table\.id\);[\s\S]*const occupied = assigned\.length;/);
+  assert.match(editor, /Math\.max\(0, table\.capacity - occupied\)/);
+});
