@@ -13,6 +13,7 @@
   const scaleInput = document.getElementById('scaleInput');
   const showClearance = document.getElementById('showClearance');
   const showLabels = document.getElementById('showLabels');
+  const showSeatNames = document.getElementById('showSeatNames') || document.getElementById('showNames');
   let showGuestLabels = document.getElementById('showGuestLabels');
   if (!showGuestLabels && showLabels?.parentElement?.parentElement) {
     const label = document.createElement('label');
@@ -1694,7 +1695,7 @@
     return ids;
   }
 
-  function chairMarkup(tableRadius,capacity=10){
+  function chairMarkup(item,tableRadius,capacity=10){
     const count=Math.max(1,Math.min(40,Number(capacity)||10));
     const chairR = Math.max(7, tableRadius*.12);
     const orbit = tableRadius*1.33;
@@ -1703,10 +1704,14 @@
       const a = (Math.PI*2*i/count)-Math.PI/2;
       const x = Math.cos(a)*orbit;
       const y = Math.sin(a)*orbit;
+      const guest=guestById(item?.seats?.[i]);
+      const seatText=(showSeatNames?.checked && guest) ? compactGuestName(guest.name) : String(i+1);
+      const fontSize=(showSeatNames?.checked && guest) ? 6.5 : 8;
       out += `
         <g class="table-chair" data-seat-index="${i}">
           <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${chairR.toFixed(1)}" fill="#f5efe5" stroke="#785e45" stroke-width="2"/>
-          <text x="${x.toFixed(1)}" y="${(y+3).toFixed(1)}" text-anchor="middle" font-size="8" font-weight="800" fill="#684d34">${i+1}</text>
+          <title>${guest ? esc(guest.name) : `Asiento ${i+1}`}</title>
+          <text x="${x.toFixed(1)}" y="${(y+3).toFixed(1)}" text-anchor="middle" font-size="${fontSize}" font-weight="800" fill="#684d34">${esc(seatText)}</text>
         </g>`;
     }
     return out;
@@ -1829,7 +1834,7 @@
         return `
         <g class="draggable" data-id="${item.id}" transform="translate(${item.x} ${item.y}) rotate(${item.rotation})" style="cursor:grab" filter="url(#softShadow)">
           <circle r="${clearR}" fill="${item.color}" fill-opacity=".16" stroke="${stroke}" stroke-width="${strokeW}" stroke-dasharray="${showClearance.checked?'9 7':'0'}"/>
-          ${showClearance.checked ? chairMarkup(tableR,tableSeatCapacity(item)) : ''}
+          ${showClearance.checked ? chairMarkup(item,tableR,tableSeatCapacity(item)) : ''}
           ${guestLabelsMarkup(item,tableR)}
           <circle r="${tableR}" fill="${item.color}" stroke="#755e43" stroke-width="3"/>
           <circle r="${tableR*.55}" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2"/>
@@ -2321,6 +2326,7 @@
   scaleInput.addEventListener('input',()=>{render();scheduleHistoryRecord();});
   showClearance.addEventListener('change',()=>{render();scheduleHistoryRecord();});
   showLabels.addEventListener('change',()=>{render();scheduleHistoryRecord();});
+  showSeatNames?.addEventListener('change',()=>{render();scheduleHistoryRecord();});
   showGuestLabels.addEventListener('change',()=>{render();scheduleHistoryRecord();});
   showGrid.addEventListener('change',()=>{
     gridLayer.setAttribute('opacity',showGrid.checked?'.72':'0');
