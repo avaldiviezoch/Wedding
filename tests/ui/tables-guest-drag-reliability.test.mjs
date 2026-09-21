@@ -23,3 +23,10 @@ test('dragover declara efecto move y el dragend limpia el estado', () => {
   assert.match(editor, /event\.dataTransfer\.dropEffect = 'move'/);
   assert.match(editor, /root\.addEventListener\('dragend',[\s\S]*draggingGuestId = ''/);
 });
+
+
+test('invitado ya sentado puede seleccionarse y moverse a otra mesa sin pasar por Sin mesa', () => {
+  assert.match(editor, /closest\('\.mgd-seat\[data-table-id\]\[data-guest-id\]'\)/);
+  assert.match(editor, /selectedGuestId = occupiedSeat\.dataset\.guestId \|\| ''/);
+  assert.match(editor, /if \(table && selectedGuestId\) return assignGuest\(selectedGuestId, table\.dataset\.tableId\)/);
+});

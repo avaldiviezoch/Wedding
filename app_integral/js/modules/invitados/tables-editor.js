@@ -1,4 +1,4 @@
-const VERSION = '20260921-guest-transfer-dnd1';
+const VERSION = '20260921-seated-transfer1';
 const STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 const CSS_URL = new URL(`css/modules/invitados-tables-editor.css?v=${VERSION}`, document.baseURI).href;
@@ -636,6 +636,12 @@ function bindEditorEvents(doc) {
     const guestItem = event.target.closest('.mgd-guest-item[data-guest-id]');
     if (guestItem) {
       selectedGuestId = String(selectedGuestId) === String(guestItem.dataset.guestId) ? '' : guestItem.dataset.guestId;
+      return renderEditor();
+    }
+
+    const occupiedSeat = event.target.closest('.mgd-seat[data-table-id][data-guest-id]');
+    if (occupiedSeat && !selectedGuestId) {
+      selectedGuestId = occupiedSeat.dataset.guestId || '';
       return renderEditor();
     }
 
