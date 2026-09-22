@@ -139,6 +139,7 @@ const proj=r=>JSON.stringify({g:r?.data?.guests||[],t:lt(r?.data||{}).map(e=>({i
 
 function patchLegacyTableDom(c,d,l,p){
  try{
+  ensureGuestLabelToggle(c);
   const doc=c.frame.contentDocument;
   const layer=doc?.getElementById('itemsLayer');
   if(!layer||!p?.tables)return;
@@ -208,6 +209,7 @@ function patchLegacyTableDom(c,d,l,p){
     wrap.setAttribute('data-seat-index',String(seatIndex));
     wrap.setAttribute('transform',`translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${-groupRotation})`);
     wrap.setAttribute('pointer-events','none');
+    if(c.hideGuestLabels) wrap.style.display='none';
     const title=doc.createElementNS(ns,'title');
     title.textContent=`Asiento ${seatIndex+1}: ${full}`;
     const label=doc.createElementNS(ns,'text');
@@ -228,6 +230,29 @@ function patchLegacyTableDom(c,d,l,p){
   });
  }catch(_){}
 }
+function ensureGuestLabelToggle(c){
+ try{
+  const doc=c.frame.contentDocument;
+  const presentation=doc?.getElementById('btnPresentation');
+  if(!presentation)return;
+  let button=doc.getElementById('mgdToggleGuestLabels');
+  if(!button){
+   button=doc.createElement('button');
+   button.id='mgdToggleGuestLabels';
+   button.type='button';
+   button.className=presentation.className;
+   presentation.insertAdjacentElement('afterend',button);
+   button.addEventListener('click',()=>{
+    c.hideGuestLabels=!c.hideGuestLabels;
+    doc.querySelectorAll('.mgd-canonical-guest-label').forEach(node=>node.style.display=c.hideGuestLabels?'none':'');
+    button.textContent=c.hideGuestLabels?'Mostrar etiquetas':'Ocultar etiquetas';
+    button.setAttribute('aria-pressed',c.hideGuestLabels?'true':'false');
+   });
+  }
+  button.textContent=c.hideGuestLabels?'Mostrar etiquetas':'Ocultar etiquetas';
+  button.setAttribute('aria-pressed',c.hideGuestLabels?'true':'false');
+ }catch(_){}
+}
 function plannerSaveState(c){try{return String(c.frame.contentDocument?.getElementById('autosaveStatus')?.dataset?.state||'')}catch(_){return''}}
 function deferPush(c){clearTimeout(c.pushTimer);c.pushTimer=setTimeout(()=>push(c),220)}
 function refreshLiveFrame(c){
@@ -246,7 +271,7 @@ async function init(c){if(c.init)return;c.init=true;try{let p;for(let i=0;i<15;i
 function seatChange(c,s){const l=lread(),p=pe(l,c.aid||''),eid=String(s.dataset.tableId||''),i=Number(s.dataset.seatIndex),cid=Object.entries(p.tables).find(([,v])=>String(v)===eid)?.[0];if(!cid||!Number.isInteger(i)||i<0)return;let d=read(),t=d.tables.find(x=>String(x.id)===cid);if(!t||i>=t.capacity)return;guestMap(d,{guests:[]},l);const rev=new Map(Object.entries(l.guestIds).map(([g,v])=>[Number(v),g])),gid=s.value===''?'':rev.get(Number(s.value))||'';d.guests.forEach(g=>{const here=String(g.tableId||'')===cid&&Number(g.seatNumber)===i+1,sel=gid&&String(g.id)===gid;if(here&&!sel){g.tableId='';g.seatId='';g.seatNumber=null}if(sel){g.tableId=t.id;g.seatNumber=i+1;g.seatId=t.seats[i].id}});lsave(l);save(d,'distribucion-seat-change')}
 async function poll(c){if(document.hidden||!String(location.hash||'').toLowerCase().includes('distribucion'))return;if(!c.frame.isConnected){clearInterval(c.timer);return}if(c.busy||c.init)return;const p=await planner(c.frame.contentWindow);if(!p.r?.data)return;if(c.aid&&String(p.aid)!==String(c.aid)){c.aid=String(p.aid);c.link='';await pull(c,false);await push(c);return}if(String(p.r.updatedAt||'')===String(c.last||''))return;const nextLink=linkSig(p.r);c.last=p.r.updatedAt||'';if(c.link&&nextLink===c.link)return;c.link=nextLink;await pull(c,false);await push(c)}
 function isDist(d){return!!(d?.getElementById('planner')&&d.getElementById('itemsLayer')&&d.getElementById('seatEditor')&&d.getElementById('proposalModal'))}
-function bind(f){if(!(f instanceof HTMLIFrameElement))return;let d;try{d=f.contentDocument}catch(_){return}if(!isDist(d))return;let c=ctl.get(f);if(!c){c={frame:f,aid:'',last:'',link:'',busy:false,init:false,timer:0,reloadTimer:0,pushTimer:0,doc:null};ctl.set(f,c)}if(c.doc===d)return;c.doc=d;clearInterval(c.timer);if(d.documentElement.dataset.mgdDistGuestLink!==V){d.documentElement.dataset.mgdDistGuestLink=V;d.addEventListener('change',e=>{const s=e.target?.closest?.('#seatEditor select[data-seat-index]');if(s){seatChange(c,s);setTimeout(()=>poll(c),420)}},true)}c.timer=setInterval(()=>poll(c).catch(console.warn),800);init(c).catch(e=>console.warn('Distribución: vínculo con Invitados',e))}
+function bind(f){if(!(f instanceof HTMLIFrameElement))return;let d;try{d=f.contentDocument}catch(_){return}if(!isDist(d))return;let c=ctl.get(f);if(!c){c={frame:f,aid:'',last:'',link:'',busy:false,init:false,timer:0,reloadTimer:0,pushTimer:0,doc:null,hideGuestLabels:false};ctl.set(f,c)}if(c.doc===d)return;c.doc=d;clearInterval(c.timer);ensureGuestLabelToggle(c);if(d.documentElement.dataset.mgdDistGuestLink!==V){d.documentElement.dataset.mgdDistGuestLink=V;d.addEventListener('change',e=>{const s=e.target?.closest?.('#seatEditor select[data-seat-index]');if(s){seatChange(c,s);setTimeout(()=>poll(c),420)}},true)}c.timer=setInterval(()=>poll(c).catch(console.warn),800);init(c).catch(e=>console.warn('Distribución: vínculo con Invitados',e))}
 function scan(){document.getElementById('unifiedWorkspace')?.querySelectorAll('iframe').forEach(f=>{if(f.dataset.mgdDistGuestLoad===V)return;f.dataset.mgdDistGuestLoad=V;f.addEventListener('load',()=>setTimeout(()=>bind(f),40));bind(f)})}
 function external(){clearTimeout(extTimer);extTimer=setTimeout(()=>document.getElementById('unifiedWorkspace')?.querySelectorAll('iframe').forEach(f=>{const c=ctl.get(f);if(c)push(c)}),120)}
 function start(){const w=document.getElementById('unifiedWorkspace');if(!w)return;if(!obs){obs=new MutationObserver(scan);obs.observe(w,{childList:true})}scan()}
