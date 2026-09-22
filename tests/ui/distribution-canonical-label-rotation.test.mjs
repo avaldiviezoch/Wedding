@@ -2,24 +2,37 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 
+const desktop = readFileSync(
+  new URL('../../app_integral/js/legacy/appludesktop-script-01.js', import.meta.url),
+  'utf8'
+);
+const mobile = readFileSync(
+  new URL('../../app_integral/js/legacy/applumovil-script-01.js', import.meta.url),
+  'utf8'
+);
 const adapter = readFileSync(
   new URL('../../app_integral/js/modules/distribucion/index.js', import.meta.url),
   'utf8'
 );
-const dev = readFileSync(
-  new URL('../../pruebas/distribucion/phase2-p0.js', import.meta.url),
-  'utf8'
-);
 
-test('adaptador canónico usa el ángulo final en pantalla igual que el entorno de desarrollo', () => {
-  assert.match(dev, /const worldAngle = angle \+ \(Number\(parentRotation\) \|\| 0\) \* Math\.PI \/ 180/);
-  assert.match(adapter, /const worldAngle=localAngle\+\(groupRotation\*Math\.PI\/180\)/);
-  assert.match(adapter, /const worldCos=Math\.cos\(worldAngle\)/);
-  assert.match(adapter, /anchor=worldCos>\.28\?'start':worldCos<-\.28\?'end':'middle'/);
+for (const [name, source] of [['desktop', desktop], ['móvil', mobile]]) {
+  test(`renderer único de etiquetas en ${name} usa el ángulo final en pantalla`, () => {
+    assert.match(source, /function guestLabelsMarkup\(item,tableRadius\)/);
+    assert.match(source, /const screenAngle=localAngle\+rotationRad/);
+    assert.match(source, /const screenCos=Math\.cos\(screenAngle\)/);
+    assert.match(source, /rotate\(\$\{-rotationDeg\}\)/);
+    assert.match(source, /class="guest-seat-label"/);
+  });
+}
+
+test('adaptador no vuelve a crear etiquetas canónicas duplicadas', () => {
+  assert.doesNotMatch(adapter, /mgd-canonical-guest-label/);
+  assert.doesNotMatch(adapter, /hideGuestLabels/);
+  assert.doesNotMatch(adapter, /legacyLabels\.forEach/);
 });
 
-test('texto se contra-rota para permanecer horizontal', () => {
-  assert.match(adapter, /rotate\(\$\{-groupRotation\}\)/);
-  assert.match(adapter, /dominant-baseline','middle'/);
-  assert.match(adapter, /data-seat-index/);
+test('botón superior controla directamente showGuestLabels', () => {
+  assert.match(adapter, /getElementById\('showGuestLabels'\)/);
+  assert.match(adapter, /guestLabels\.checked=!guestLabels\.checked/);
+  assert.match(adapter, /guestLabels\.dispatchEvent\(new Event\('change',\{bubbles:true\}\)\)/);
 });
