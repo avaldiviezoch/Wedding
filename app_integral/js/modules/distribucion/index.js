@@ -184,8 +184,13 @@ function ensureGuestLabelToggle(c){
  try{
   const doc=c.frame.contentDocument;
   const presentation=doc?.getElementById('btnPresentation');
-  const guestLabels=doc?.getElementById('showGuestLabels');
-  if(!presentation||!guestLabels)return;
+  if(!presentation)return;
+  if(!doc.getElementById('mgdGuestLabelVisibilityStyle')){
+   const style=doc.createElement('style');
+   style.id='mgdGuestLabelVisibilityStyle';
+   style.textContent='.mgd-hide-guest-labels .guest-seat-label{display:none}';
+   doc.head.appendChild(style);
+  }
   let button=doc.getElementById('mgdToggleGuestLabels');
   if(!button){
    button=doc.createElement('button');
@@ -194,14 +199,14 @@ function ensureGuestLabelToggle(c){
    button.className=presentation.className;
    presentation.insertAdjacentElement('afterend',button);
    button.addEventListener('click',()=>{
-    guestLabels.checked=!guestLabels.checked;
-    guestLabels.dispatchEvent(new Event('change',{bubbles:true}));
-    button.textContent=guestLabels.checked?'Ocultar etiquetas':'Mostrar etiquetas';
-    button.setAttribute('aria-pressed',guestLabels.checked?'false':'true');
+    const hidden=doc.documentElement.classList.toggle('mgd-hide-guest-labels');
+    button.textContent=hidden?'Mostrar etiquetas':'Ocultar etiquetas';
+    button.setAttribute('aria-pressed',hidden?'true':'false');
    });
   }
-  button.textContent=guestLabels.checked?'Ocultar etiquetas':'Mostrar etiquetas';
-  button.setAttribute('aria-pressed',guestLabels.checked?'false':'true');
+  const hidden=doc.documentElement.classList.contains('mgd-hide-guest-labels');
+  button.textContent=hidden?'Mostrar etiquetas':'Ocultar etiquetas';
+  button.setAttribute('aria-pressed',hidden?'true':'false');
  }catch(_){}
 }
 function plannerSaveState(c){try{return String(c.frame.contentDocument?.getElementById('autosaveStatus')?.dataset?.state||'')}catch(_){return''}}
