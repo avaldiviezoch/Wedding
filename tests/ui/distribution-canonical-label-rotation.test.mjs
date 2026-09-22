@@ -31,8 +31,9 @@ test('adaptador no vuelve a crear etiquetas canónicas duplicadas', () => {
   assert.doesNotMatch(adapter, /legacyLabels\.forEach/);
 });
 
-test('botón superior controla directamente showGuestLabels', () => {
-  assert.match(adapter, /getElementById\('showGuestLabels'\)/);
-  assert.match(adapter, /guestLabels\.checked=!guestLabels\.checked/);
-  assert.match(adapter, /guestLabels\.dispatchEvent\(new Event\('change',\{bubbles:true\}\)\)/);
+test('botón superior oculta el renderer sobreviviente sin tocar persistencia', () => {
+  assert.match(adapter, /\\.mgd-hide-guest-labels \\.guest-seat-label\\{display:none\\}/);
+  assert.match(adapter, /classList\\.toggle\\('mgd-hide-guest-labels'\\)/);
+  assert.doesNotMatch(adapter, /guestLabels\\.dispatchEvent/);
+  assert.doesNotMatch(adapter, /mgd-canonical-guest-label/);
 });
