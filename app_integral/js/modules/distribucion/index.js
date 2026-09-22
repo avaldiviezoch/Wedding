@@ -177,56 +177,6 @@ function patchLegacyTableDom(c,d,l,p){
     text?.setAttribute('x',x.toFixed(1));text?.setAttribute('y',(y+3).toFixed(1));text.textContent=String(index+1);
    });
 
-   const legacyLabels=[...group.children].filter(node=>String(node.tagName).toLowerCase()==='g'&&node.querySelector('title')&&/Asiento\s+\d+/i.test(node.querySelector('title')?.textContent||''));
-   legacyLabels.forEach(label=>label.style.display='none');
-   group.querySelectorAll('.mgd-canonical-guest-label').forEach(node=>node.remove());
-
-   const groupRotation=Number(String(group.getAttribute('transform')||'').match(/rotate\(([-\d.]+)/)?.[1]||0);
-   const labelOrbit=chairOrbit?chairOrbit*(2.18/1.33):64;
-   const assigned=(d.guests||[])
-    .filter(g=>String(g.tableId||'')===String(cid))
-    .sort((a,b)=>(Number(a.seatNumber)||999)-(Number(b.seatNumber)||999));
-   assigned.forEach(guest=>{
-    const seatIndex=Number(guest.seatNumber)-1;
-    if(!Number.isInteger(seatIndex)||seatIndex<0||seatIndex>=n)return;
-
-    // Misma regla probada en el entorno de desarrollo:
-    // la posición orbita con la mesa, pero el texto se contra-rota y
-    // el anclaje se decide según el ángulo FINAL en pantalla.
-    const localAngle=(Math.PI*2*seatIndex/n)-Math.PI/2;
-    const worldAngle=localAngle+(groupRotation*Math.PI/180);
-    const x=Math.cos(localAngle)*labelOrbit;
-    const y=Math.sin(localAngle)*labelOrbit;
-    const worldCos=Math.cos(worldAngle);
-    const anchor=worldCos>.28?'start':worldCos<-.28?'end':'middle';
-    const dx=anchor==='start'?4:anchor==='end'?-4:0;
-
-    const full=String(guest.name||'Invitado').trim()||'Invitado';
-    const compact=full.length>18?full.slice(0,17)+'…':full;
-    const ns='http://www.w3.org/2000/svg';
-    const wrap=doc.createElementNS(ns,'g');
-    wrap.setAttribute('class','mgd-canonical-guest-label');
-    wrap.setAttribute('data-seat-index',String(seatIndex));
-    wrap.setAttribute('transform',`translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${-groupRotation})`);
-    wrap.setAttribute('pointer-events','none');
-    if(c.hideGuestLabels) wrap.style.display='none';
-    const title=doc.createElementNS(ns,'title');
-    title.textContent=`Asiento ${seatIndex+1}: ${full}`;
-    const label=doc.createElementNS(ns,'text');
-    label.setAttribute('x',String(dx));
-    label.setAttribute('y','3');
-    label.setAttribute('text-anchor',anchor);
-    label.setAttribute('dominant-baseline','middle');
-    label.setAttribute('font-size','9.5');
-    label.setAttribute('font-weight','800');
-    label.setAttribute('fill','#2d2924');
-    label.setAttribute('stroke','#ffffff');
-    label.setAttribute('stroke-width','4');
-    label.setAttribute('paint-order','stroke');
-    label.textContent=`${seatIndex+1}. ${compact}`;
-    wrap.append(title,label);
-    group.appendChild(wrap);
-   });
   });
  }catch(_){}
 }
@@ -234,7 +184,8 @@ function ensureGuestLabelToggle(c){
  try{
   const doc=c.frame.contentDocument;
   const presentation=doc?.getElementById('btnPresentation');
-  if(!presentation)return;
+  const guestLabels=doc?.getElementById('showGuestLabels');
+  if(!presentation||!guestLabels)return;
   let button=doc.getElementById('mgdToggleGuestLabels');
   if(!button){
    button=doc.createElement('button');
@@ -243,14 +194,14 @@ function ensureGuestLabelToggle(c){
    button.className=presentation.className;
    presentation.insertAdjacentElement('afterend',button);
    button.addEventListener('click',()=>{
-    c.hideGuestLabels=!c.hideGuestLabels;
-    doc.querySelectorAll('.mgd-canonical-guest-label').forEach(node=>node.style.display=c.hideGuestLabels?'none':'');
-    button.textContent=c.hideGuestLabels?'Mostrar etiquetas':'Ocultar etiquetas';
-    button.setAttribute('aria-pressed',c.hideGuestLabels?'true':'false');
+    guestLabels.checked=!guestLabels.checked;
+    guestLabels.dispatchEvent(new Event('change',{bubbles:true}));
+    button.textContent=guestLabels.checked?'Ocultar etiquetas':'Mostrar etiquetas';
+    button.setAttribute('aria-pressed',guestLabels.checked?'false':'true');
    });
   }
-  button.textContent=c.hideGuestLabels?'Mostrar etiquetas':'Ocultar etiquetas';
-  button.setAttribute('aria-pressed',c.hideGuestLabels?'true':'false');
+  button.textContent=guestLabels.checked?'Ocultar etiquetas':'Mostrar etiquetas';
+  button.setAttribute('aria-pressed',guestLabels.checked?'false':'true');
  }catch(_){}
 }
 function plannerSaveState(c){try{return String(c.frame.contentDocument?.getElementById('autosaveStatus')?.dataset?.state||'')}catch(_){return''}}
@@ -271,7 +222,7 @@ async function init(c){if(c.init)return;c.init=true;try{let p;for(let i=0;i<15;i
 function seatChange(c,s){const l=lread(),p=pe(l,c.aid||''),eid=String(s.dataset.tableId||''),i=Number(s.dataset.seatIndex),cid=Object.entries(p.tables).find(([,v])=>String(v)===eid)?.[0];if(!cid||!Number.isInteger(i)||i<0)return;let d=read(),t=d.tables.find(x=>String(x.id)===cid);if(!t||i>=t.capacity)return;guestMap(d,{guests:[]},l);const rev=new Map(Object.entries(l.guestIds).map(([g,v])=>[Number(v),g])),gid=s.value===''?'':rev.get(Number(s.value))||'';d.guests.forEach(g=>{const here=String(g.tableId||'')===cid&&Number(g.seatNumber)===i+1,sel=gid&&String(g.id)===gid;if(here&&!sel){g.tableId='';g.seatId='';g.seatNumber=null}if(sel){g.tableId=t.id;g.seatNumber=i+1;g.seatId=t.seats[i].id}});lsave(l);save(d,'distribucion-seat-change')}
 async function poll(c){if(document.hidden||!String(location.hash||'').toLowerCase().includes('distribucion'))return;if(!c.frame.isConnected){clearInterval(c.timer);return}if(c.busy||c.init)return;const p=await planner(c.frame.contentWindow);if(!p.r?.data)return;if(c.aid&&String(p.aid)!==String(c.aid)){c.aid=String(p.aid);c.link='';await pull(c,false);await push(c);return}if(String(p.r.updatedAt||'')===String(c.last||''))return;const nextLink=linkSig(p.r);c.last=p.r.updatedAt||'';if(c.link&&nextLink===c.link)return;c.link=nextLink;await pull(c,false);await push(c)}
 function isDist(d){return!!(d?.getElementById('planner')&&d.getElementById('itemsLayer')&&d.getElementById('seatEditor')&&d.getElementById('proposalModal'))}
-function bind(f){if(!(f instanceof HTMLIFrameElement))return;let d;try{d=f.contentDocument}catch(_){return}if(!isDist(d))return;let c=ctl.get(f);if(!c){c={frame:f,aid:'',last:'',link:'',busy:false,init:false,timer:0,reloadTimer:0,pushTimer:0,doc:null,hideGuestLabels:false};ctl.set(f,c)}if(c.doc===d)return;c.doc=d;clearInterval(c.timer);ensureGuestLabelToggle(c);if(d.documentElement.dataset.mgdDistGuestLink!==V){d.documentElement.dataset.mgdDistGuestLink=V;d.addEventListener('change',e=>{const s=e.target?.closest?.('#seatEditor select[data-seat-index]');if(s){seatChange(c,s);setTimeout(()=>poll(c),420)}},true)}c.timer=setInterval(()=>poll(c).catch(console.warn),800);init(c).catch(e=>console.warn('Distribución: vínculo con Invitados',e))}
+function bind(f){if(!(f instanceof HTMLIFrameElement))return;let d;try{d=f.contentDocument}catch(_){return}if(!isDist(d))return;let c=ctl.get(f);if(!c){c={frame:f,aid:'',last:'',link:'',busy:false,init:false,timer:0,reloadTimer:0,pushTimer:0,doc:null};ctl.set(f,c)}if(c.doc===d)return;c.doc=d;clearInterval(c.timer);ensureGuestLabelToggle(c);if(d.documentElement.dataset.mgdDistGuestLink!==V){d.documentElement.dataset.mgdDistGuestLink=V;d.addEventListener('change',e=>{const s=e.target?.closest?.('#seatEditor select[data-seat-index]');if(s){seatChange(c,s);setTimeout(()=>poll(c),420)}},true)}c.timer=setInterval(()=>poll(c).catch(console.warn),800);init(c).catch(e=>console.warn('Distribución: vínculo con Invitados',e))}
 function scan(){document.getElementById('unifiedWorkspace')?.querySelectorAll('iframe').forEach(f=>{if(f.dataset.mgdDistGuestLoad===V)return;f.dataset.mgdDistGuestLoad=V;f.addEventListener('load',()=>setTimeout(()=>bind(f),40));bind(f)})}
 function external(){clearTimeout(extTimer);extTimer=setTimeout(()=>document.getElementById('unifiedWorkspace')?.querySelectorAll('iframe').forEach(f=>{const c=ctl.get(f);if(c)push(c)}),120)}
 function start(){const w=document.getElementById('unifiedWorkspace');if(!w)return;if(!obs){obs=new MutationObserver(scan);obs.observe(w,{childList:true})}scan()}
