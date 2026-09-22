@@ -33,7 +33,7 @@ test('adaptador no vuelve a crear etiquetas canónicas duplicadas', () => {
 
 test('botón superior oculta el renderer sobreviviente sin tocar persistencia', () => {
   assert.match(adapter, /\.mgd-hide-guest-labels \.guest-seat-label\{display:none\}/);
-  assert.match(adapter, /classList\\.toggle\\('mgd-hide-guest-labels'\\)/);
-  assert.doesNotMatch(adapter, /guestLabels\\.dispatchEvent/);
+  assert.match(adapter, /classList\.toggle\('mgd-hide-guest-labels'\)/);
+  assert.doesNotMatch(adapter, /guestLabels\.dispatchEvent/);
   assert.doesNotMatch(adapter, /mgd-canonical-guest-label/);
 });
