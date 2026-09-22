@@ -1831,7 +1831,7 @@
         <g class="draggable" data-id="${item.id}" transform="translate(${item.x} ${item.y}) rotate(${item.rotation})" style="cursor:grab" filter="url(#softShadow)">
           <circle r="${clearR}" fill="${item.color}" fill-opacity=".16" stroke="${stroke}" stroke-width="${strokeW}" stroke-dasharray="${showClearance.checked?'9 7':'0'}"/>
           ${showClearance.checked ? chairMarkup(tableR,tableSeatCapacity(item)) : ''}
-          ${guestLabelsMarkup(item,tableR)}
+
           <circle r="${tableR}" fill="${item.color}" stroke="#755e43" stroke-width="3"/>
           <circle r="${tableR*.55}" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2"/>
           <text style="display:${labelDisplay}" text-anchor="middle" y="-3" font-size="18" font-weight="800" fill="#342a20">${esc(item.label)}</text>
