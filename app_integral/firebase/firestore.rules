@@ -211,16 +211,33 @@ service cloud.firestore {
             && request.resource.data.role == pendingInvitationRole(weddingId)
             && isValidCollaboratorRole(request.resource.data.role)
             && request.resource.data.status == 'active'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'role',
+              'status',
+              'joinedAt'
+            ])
           );
 
         allow update: if (
             isOwner(weddingId)
             && resource.data.role != 'owner'
             && isValidCollaboratorRole(request.resource.data.role)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'role',
+              'status',
+              'removedAt',
+              'updatedAt'
+            ])
           ) || (
             isAdmin(weddingId)
             && resource.data.role in ['editor', 'provider', 'viewer']
             && request.resource.data.role in ['editor', 'provider', 'viewer']
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'role',
+              'status',
+              'removedAt',
+              'updatedAt'
+            ])
           ) || (
             signedIn()
             && memberUid == request.auth.uid
@@ -287,6 +304,12 @@ service cloud.firestore {
           (
             resource.data.email == authEmail()
             && request.resource.data.role == resource.data.role
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'status',
+              'acceptedBy',
+              'acceptedAt',
+              'updatedAt'
+            ])
           )
           || (
             canManageTeam(resource.data.weddingId)
@@ -294,6 +317,14 @@ service cloud.firestore {
             && request.resource.data.status == 'pending'
             && isValidCollaboratorRole(request.resource.data.role)
             && (request.resource.data.role != 'admin' || isOwner(resource.data.weddingId))
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'weddingName',
+              'role',
+              'status',
+              'invitedBy',
+              'invitedByEmail',
+              'updatedAt'
+            ])
           )
         );
 
