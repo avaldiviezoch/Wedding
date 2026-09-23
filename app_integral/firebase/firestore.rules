@@ -221,6 +221,16 @@ service cloud.firestore {
             isAdmin(weddingId)
             && resource.data.role in ['editor', 'provider', 'viewer']
             && request.resource.data.role in ['editor', 'provider', 'viewer']
+          ) || (
+            signedIn()
+            && memberUid == request.auth.uid
+            && resource.data.get('status', 'active') == 'removed'
+            && hasPendingInvitation(weddingId)
+            && request.resource.data.uid == request.auth.uid
+            && request.resource.data.email == authEmail()
+            && request.resource.data.role == pendingInvitationRole(weddingId)
+            && isValidCollaboratorRole(request.resource.data.role)
+            && request.resource.data.status == 'active'
           );
 
         allow delete: if isOwner(weddingId)
@@ -271,13 +281,21 @@ service cloud.firestore {
         );
 
       allow update: if signedIn()
-        && (
-          resource.data.email == authEmail()
-          || canManageTeam(resource.data.weddingId)
-        )
         && request.resource.data.weddingId == resource.data.weddingId
         && request.resource.data.email == resource.data.email
-        && request.resource.data.role == resource.data.role;
+        && (
+          (
+            resource.data.email == authEmail()
+            && request.resource.data.role == resource.data.role
+          )
+          || (
+            canManageTeam(resource.data.weddingId)
+            && request.resource.data.invitedBy == request.auth.uid
+            && request.resource.data.status == 'pending'
+            && isValidCollaboratorRole(request.resource.data.role)
+            && (request.resource.data.role != 'admin' || isOwner(resource.data.weddingId))
+          )
+        );
 
       allow delete: if signedIn()
         && (
