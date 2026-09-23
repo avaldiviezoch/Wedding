@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Descargar casa - Mi Lu</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f6f1eb;
+      color: #2f302b;
+      padding: 24px;
+    }
+    .card {
+      width: min(560px, 100%);
+      background: #fff;
+      border: 1px solid #e6ded5;
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 14px 36px rgba(60, 45, 35, .08);
+    }
+    h1 { margin: 0 0 10px; font-size: 28px; }
+    p { margin: 0 0 18px; line-height: 1.5; color: #6d6963; }
+    button, a.action {
+      width: 100%; border: 0; border-radius: 12px; padding: 14px 18px;
+      font-size: 16px; font-weight: 700; cursor: pointer; text-decoration: none;
+      text-align: center; display: block;
+    }
+    #downloadBtn { background: #7f8962; color: #fff; }
+    #downloadBtn:hover { background: #6f7856; }
+    .secondary { margin-top: 10px; background: #f1eee9; color: #45433f; }
+    #status {
+      margin-top: 16px; padding: 12px 14px; border-radius: 10px;
+      background: #f7f7f5; font-size: 14px; color: #5f5c57; white-space: pre-wrap;
+    }
+    .ok { background: #edf4e9 !important; color: #536344 !important; }
+    .err { background: #f8ecec !important; color: #8b4f57 !important; }
+    small { display:block; margin-top:14px; color:#8a857f; line-height:1.45; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Descargar foto de la casa</h1>
+    <p>Busca la imagen del plano guardada por <b>Mi Lu · Distribución y diseño</b>.</p>
+
+    <button id="downloadBtn" type="button">Descargar foto de la casa</button>
+    <a class="action secondary" href="./applu.html#distribucion" target="_blank" rel="noopener">Abrir Mi Lu · Distribución</a>
+
+    <div id="status">Listo para buscar la imagen.</div>
+
+    <small>Este archivo está dentro del mismo GitHub Pages de Mi Lu para poder leer el localStorage del módulo Distribución.</small>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'migrandia_distribucion_background_v1';
+    const ACTIVE_KEY = 'eventPlannerActiveProposalIdV1';
+    const statusEl = document.getElementById('status');
+
+    function setStatus(text, type='') {
+      statusEl.textContent = text;
+      statusEl.className = type;
+    }
+
+    function getSavedImage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return '';
+        const data = JSON.parse(raw);
+        if (!data || typeof data !== 'object') return '';
+
+        const active = localStorage.getItem(ACTIVE_KEY) || '__default__';
+        const preferred = data[active];
+        if (typeof preferred === 'string' && preferred) return preferred;
+
+        return Object.values(data).find(v =>
+          typeof v === 'string' &&
+          (v.startsWith('data:image/') || v.startsWith('blob:') || v.startsWith('http://') || v.startsWith('https://'))
+        ) || '';
+      } catch (e) {
+        console.error(e);
+        return '';
+      }
+    }
+
+    function extensionFromSource(src) {
+      if (src.startsWith('data:image/jpeg') || src.startsWith('data:image/jpg')) return 'jpg';
+      if (src.startsWith('data:image/webp')) return 'webp';
+      if (src.startsWith('data:image/svg')) return 'svg';
+      return 'png';
+    }
+
+    async function downloadImage(src) {
+      const ext = extensionFromSource(src);
+      const filename = 'casa_distribucion.' + ext;
+
+      if (src.startsWith('data:') || src.startsWith('blob:')) {
+        const a = document.createElement('a');
+        a.href = src;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        return;
+      }
+
+      try {
+        const response = await fetch(src, { mode: 'cors' });
+        if (!response.ok) throw new Error('No se pudo descargar la imagen.');
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+      } catch (e) {
+        const a = document.createElement('a');
+        a.href = src;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        throw e;
+      }
+    }
+
+    document.getElementById('downloadBtn').addEventListener('click', async () => {
+      setStatus('Buscando la imagen guardada de Distribución...');
+      const src = getSavedImage();
+
+      if (!src) {
+        setStatus('No encontré una imagen guardada.\n\nAbre Mi Lu → Distribución y diseño, verifica que se vea la casa y vuelve a pulsar este botón.', 'err');
+        return;
+      }
+
+      try {
+        await downloadImage(src);
+        setStatus('Imagen encontrada. Se inició la descarga.', 'ok');
+      } catch (e) {
+        setStatus('Encontré la imagen, pero el navegador bloqueó la descarga directa. La abrí en otra pestaña para que puedas guardarla.', 'err');
+      }
+    });
+  </script>
+</body>
+</html>
