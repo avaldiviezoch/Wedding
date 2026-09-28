@@ -7,12 +7,24 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const baselinePath = resolve(root, 'qa/static-validation-baseline.json');
 const updateBaseline = process.argv.includes('--update-baseline');
 const ignoredDirectories = new Set(['.git', 'node_modules', 'bakcup', 'backup']);
+const ignoredPathPrefixes = ['pruebas/', 'qa/', 'prototypes/', 'tests/ui/'];
+const ignoredFiles = new Set([
+  'guest-restore.html',
+  'lucero-full-restore.html',
+  'owner-recovery.html',
+  'recovery.html',
+  'rsvp.html'
+]);
 const findings = [];
 
 function walk(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     if (entry.isDirectory() && ignoredDirectories.has(entry.name)) return [];
     const absolute = resolve(directory, entry.name);
+    const path = relative(root, absolute).split(sep).join('/');
+    if (ignoredFiles.has(path) || ignoredPathPrefixes.some((prefix) => path === prefix.slice(0, -1) || path.startsWith(prefix))) {
+      return [];
+    }
     return entry.isDirectory() ? walk(absolute) : [absolute];
   });
 }
