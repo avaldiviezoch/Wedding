@@ -1,0 +1,54 @@
+@import url('./master-theme.css?v=20260817-master-v1');
+
+/* Guard visual central del planificador. */
+body.auth-locked .modules,
+body.auth-locked .unified-workspace,
+body.auth-locked .module-quick-nav,
+body.auth-locked .unified-home-button,
+body.auth-locked .module-session-logout,
+body.auth-locked .wedding-workspace-modal,
+body.auth-locked .create-wedding-sheet,
+body.auth-locked .unified-loader {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/*
+ * Cuando Firebase ya reconoció al usuario, el body queda unos instantes como
+ * auth-locked + auth-hydrating mientras se restaura la boda activa. Los módulos
+ * son HTML estático y no necesitan esperar esa restauración para mostrarse.
+ * Los enseñamos de inmediato y sólo bloqueamos los enlaces que sí necesitan
+ * contexto de boda hasta que termine la hidratación.
+ */
+body.auth-locked.auth-hydrating .modules {
+  display: grid !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+body.auth-locked.auth-hydrating .module-toggle {
+  pointer-events: auto !important;
+}
+
+body.auth-locked.auth-hydrating .module-link {
+  pointer-events: none !important;
+  opacity: .62;
+}
+
+body.auth-locked.auth-hydrating .modules::after {
+  content: 'Cargando datos de tu boda…';
+  display: block;
+  padding: 2px 4px 0;
+  color: rgba(255,255,255,.48);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+body.auth-hydrating .menu-button {
+  opacity: .82;
+  cursor: pointer;
+}
+
+/* v2: módulos visibles mientras se restaura la sesión autenticada. */

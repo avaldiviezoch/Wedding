@@ -1,0 +1,203 @@
+/* Mi Gran Dia · Mesas antiguas con estetica del editor nuevo.
+   Solo presentacion: no modifica datos ni eventos del modulo heredado. */
+
+#tablesView.mgd-tables-legacy-skin{
+  --mgd-legacy-ink:#2f342d;
+  --mgd-legacy-muted:#74796f;
+  --mgd-legacy-line:rgba(78,88,72,.14);
+  --mgd-legacy-paper:#f7f3ec;
+  --mgd-legacy-accent:#6f7d5d;
+  --mgd-legacy-accent-soft:rgba(111,125,93,.11);
+  --mgd-legacy-warm:#c8aa91;
+  color:var(--mgd-legacy-ink);
+  padding:20px 18px 30px!important;
+  background:
+    radial-gradient(circle at 18% 0%,rgba(200,170,145,.10),transparent 34%),
+    linear-gradient(180deg,rgba(255,255,255,.70),rgba(248,244,237,.94));
+}
+
+#tablesView.mgd-tables-legacy-skin,
+#tablesView.mgd-tables-legacy-skin *{
+  box-sizing:border-box;
+}
+
+#tablesView.mgd-tables-legacy-skin h1,
+#tablesView.mgd-tables-legacy-skin h2,
+#tablesView.mgd-tables-legacy-skin h3{
+  color:var(--mgd-legacy-ink);
+  letter-spacing:-.02em;
+}
+
+#tablesView.mgd-tables-legacy-skin button,
+#tablesView.mgd-tables-legacy-skin input,
+#tablesView.mgd-tables-legacy-skin select{
+  font:inherit;
+}
+
+#tablesView.mgd-tables-legacy-skin button{
+  border-radius:12px;
+  border-color:var(--mgd-legacy-line);
+  transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease,background .14s ease;
+}
+
+#tablesView.mgd-tables-legacy-skin button:hover{
+  border-color:rgba(111,125,93,.32);
+  box-shadow:0 7px 18px rgba(56,63,50,.08);
+}
+
+/* Contenedores que el adaptador reconoce como grilla/listado de mesas. */
+#tablesView.mgd-tables-legacy-skin .mgd-legacy-table-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(330px,1fr))!important;
+  gap:20px!important;
+  align-items:start!important;
+  padding:4px!important;
+}
+
+/* Tarjeta exterior de cada mesa antigua. */
+#tablesView.mgd-tables-legacy-skin .mgd-legacy-table-card{
+  position:relative!important;
+  min-width:0!important;
+  min-height:350px!important;
+  padding:18px!important;
+  border:1px solid var(--mgd-legacy-line)!important;
+  border-radius:22px!important;
+  background:rgba(255,255,255,.86)!important;
+  box-shadow:0 14px 36px rgba(58,65,53,.07)!important;
+  overflow:visible!important;
+  color:var(--mgd-legacy-ink)!important;
+}
+
+#tablesView.mgd-tables-legacy-skin .mgd-legacy-table-card:hover{
+  border-color:rgba(111,125,93,.28)!important;
+  box-shadow:0 18px 42px rgba(58,65,53,.10)!important;
+}
+
+/* Parte visual de la mesa: mas aire, centrada y grande. */
+#tablesView.mgd-tables-legacy-skin .mgd-legacy-table-visual{
+  position:relative!important;
+  width:min(100%,330px)!important;
+  min-height:245px!important;
+  margin:14px auto 16px!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:visible!important;
+}
+
+/* Cuerpo de mesa detectado por la capa visual. */
+#tablesView.mgd-tables-legacy-skin .mgd-legacy-table-body{
+  min-width:150px!important;
+  min-height:105px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:5px!important;
+  padding:16px 20px!important;
+  border:1px solid rgba(111,125,93,.22)!important;
+  background:linear-gradient(145deg,#fbfaf5,#efebe2)!important;
+  color:var(--mgd-legacy-ink)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.82),0 8px 20px rgba(63,69,58,.07)!important;
+}
+
+#tablesView.mgd-tables-legacy-skin .mgd-legacy-table-body.mgd-shape-round{
+  border-radius:50%!important;
+  aspect-ratio:1/1;
+}
+#tablesView.mgd-tables-legacy-skin .mgd-legacy-table-body.mgd-shape-square{
+  border-radius:18px!important;
+  aspect-ratio:1/1;
+}
+#tablesView.mgd-tables-legacy-skin .mgd-legacy-table-body.mgd-shape-rectangular{
+  min-width:220px!important;
+  border-radius:22px!important;
+}
+
+/* Sillas/asientos antiguos: misma burbuja limpia del nuevo diseño. */
+#tablesView.mgd-tables-legacy-skin .mgd-legacy-seat{
+  width:34px!important;
+  height:34px!important;
+  min-width:34px!important;
+  min-height:34px!important;
+  padding:0!important;
+  display:grid!important;
+  place-items:center!important;
+  border:1px solid rgba(111,125,93,.20)!important;
+  border-radius:50%!important;
+  background:#fff!important;
+  color:#62695b!important;
+  box-shadow:0 4px 10px rgba(54,61,49,.08)!important;
+  font-size:11px!important;
+  font-weight:750!important;
+}
+
+#tablesView.mgd-tables-legacy-skin .mgd-legacy-seat.is-occupied,
+#tablesView.mgd-tables-legacy-skin .mgd-legacy-seat[data-occupied="true"]{
+  background:var(--mgd-legacy-accent)!important;
+  border-color:var(--mgd-legacy-accent)!important;
+  color:#fff!important;
+}
+
+#tablesView.mgd-tables-legacy-skin .mgd-legacy-guest-pill{
+  border:1px solid var(--mgd-legacy-line)!important;
+  border-radius:14px!important;
+  background:#fff!important;
+  color:var(--mgd-legacy-ink)!important;
+  box-shadow:0 5px 14px rgba(58,65,53,.05)!important;
+}
+
+/* Cabeceras, contadores y acciones antiguas con el acabado nuevo. */
+#tablesView.mgd-tables-legacy-skin .mgd-legacy-table-card input,
+#tablesView.mgd-tables-legacy-skin .mgd-legacy-table-card select{
+  min-height:40px!important;
+  border:1px solid var(--mgd-legacy-line)!important;
+  border-radius:11px!important;
+  background:#fff!important;
+  color:var(--mgd-legacy-ink)!important;
+}
+
+#tablesView.mgd-tables-legacy-skin .mgd-legacy-table-card strong{
+  color:var(--mgd-legacy-ink);
+}
+
+/* Fallback para nombres de clase habituales del editor heredado. */
+#tablesView.mgd-tables-legacy-skin :is(.tables-grid,.table-grid,.mesas-grid,.tables-container,.table-list,.mesas-list){
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(330px,1fr))!important;
+  gap:20px!important;
+}
+#tablesView.mgd-tables-legacy-skin :is(.table-card,.table-item,.mesa-card,.mesa-item){
+  min-height:350px!important;
+  padding:18px!important;
+  border:1px solid var(--mgd-legacy-line)!important;
+  border-radius:22px!important;
+  background:rgba(255,255,255,.86)!important;
+  box-shadow:0 14px 36px rgba(58,65,53,.07)!important;
+}
+#tablesView.mgd-tables-legacy-skin :is(.seat,.chair,.silla){
+  border-radius:50%!important;
+}
+
+@media (max-width:1050px){
+  #tablesView.mgd-tables-legacy-skin .mgd-legacy-table-grid,
+  #tablesView.mgd-tables-legacy-skin :is(.tables-grid,.table-grid,.mesas-grid,.tables-container,.table-list,.mesas-list){
+    grid-template-columns:1fr!important;
+  }
+}
+
+@media (max-width:720px){
+  #tablesView.mgd-tables-legacy-skin{padding:14px 10px 24px!important}
+  #tablesView.mgd-tables-legacy-skin .mgd-legacy-table-card,
+  #tablesView.mgd-tables-legacy-skin :is(.table-card,.table-item,.mesa-card,.mesa-item){
+    min-height:320px!important;
+    padding:14px!important;
+    border-radius:18px!important;
+  }
+  #tablesView.mgd-tables-legacy-skin .mgd-legacy-table-visual{
+    min-height:220px!important;
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  #tablesView.mgd-tables-legacy-skin *{transition:none!important}
+}
