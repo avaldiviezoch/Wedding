@@ -1,0 +1,140 @@
+MI LU GRAN DÍA — ESTADO DEL PROYECTO
+Actualizado: 2026-09-24
+
+FUENTE DETALLADA:
+docs/HISTORIAL_AVANCES.md
+
+DIRECTIVA PRINCIPAL:
+La aplicación nueva se adapta al Firebase existente. No se migran, renombran,
+limpian ni reinicializan usuarios ni datos existentes.
+
+ESTADO:
+- Carátula reconstruida.
+- Autenticación conectada a usuarios existentes.
+- Boda activa conectada mediante un único adaptador.
+- Selector “Mis bodas” conectado a bodas/membresías existentes.
+- Cambio de boda conserva el contrato activeWeddingId existente.
+- Título y fecha leen exclusivamente la boda existente.
+- La fecha ya no existe fija en HTML/JS: cada weddings/{weddingId}.date es la fuente de verdad.
+- Owner puede guardar título y fecha en el documento de su boda.
+- No se modificaron reglas Firestore.
+- Presupuesto ya está conectado mediante services/planner-cloud.js y conserva su clave existente.
+- No se modificaron invitados, mesas, cronograma, música ni confirmaciones desde este hito.
+- No se auto-crean bodas ni membresías desde la aplicación nueva.
+
+ARQUITECTURA:
+Firebase actual -> services/firebase-client.js -> services/wedding-context.js -> UI
+
+CIERRE INTRO / INICIO:
+- Hito auditado y cerrado el 2026-09-22.
+- Corregido escape de contenido Firestore en HTML dinámico del selector de bodas.
+- Sin cambios en reglas, Storage ni datos de módulos.
+
+PRÓXIMO:
+Reconstruir módulos uno por uno sobre el contexto de boda ya validado.
+
+
+HITO BARRA DE MÓDULOS:
+- Barra única responsive implementada: horizontal en escritorio, vertical en celular.
+- Checklist conectado como primer módulo de revisión.
+- Resto de accesos preparados para conexión progresiva sin duplicar navegación.
+- Sin cambios en Firebase, Storage ni datos de módulos.
+
+HITO PRESUPUESTO:
+- Módulo funcional conectado a la boda activa mediante adaptador existente.
+- Moneda, invitados, categorías, gastos, etiquetas y paquetes integrales habilitados según permisos.
+- Biblioteca visual de iconos para categorías.
+- Sin cambios de esquema, claves, reglas, Storage, Authentication ni usuarios.
+- Auditoría 2026-09-23: XSS revisado, color de etiquetas saneado, CSV endurecido y responsive corregido.
+- Pendiente para cierre total: tests de invariantes/no-pérdida y resolver, con autorización explícita, el riesgo de concurrencia del backup agregado de planner-cloud.
+
+
+HITO DISTRIBUCIÓN — FASE 3:
+- Posición y rotación de mesas ya tienen persistencia mínima por boda.
+- Se guarda solo proposal -> placements[{tableId,x,y,rotation}] mediante services/planner-cloud.js.
+- Clave: planificador_bodas_distribucion_v1.
+- Abrir el módulo no guarda automáticamente; la persistencia requiere “Guardar distribución”.
+- Invitados, mesas, sillas y asignaciones continúan siendo canónicos en Invitados/Mesas y no se reescriben desde Distribución.
+- Rotar una mesa hace orbitar sus sillas y mantiene horizontales las etiquetas de invitados.
+- Sin Firestore directo, sin localStorage/sessionStorage/IndexedDB directo y sin !important.
+- Próximo: Fase 4, integración estructural controlada, previa auditoría de operaciones permitidas.
+
+
+HITO DISTRIBUCIÓN — FASE 4 CERRADA:
+- Integración estructural validada sin convertir Distribución en propietario de mesas, sillas o asignaciones.
+- Refresco canónico controlado ante cambios de Invitados/Mesas y al volver a la aplicación.
+- Si existen movimientos sin guardar, no se mezclan automáticamente con cambios estructurales externos.
+- Validación fail-closed de IDs de mesa/silla, referencias, rangos, seatId y doble ocupación antes de editar el plano.
+- Una inconsistencia se informa; Distribución no la repara ni escribe sobre los datos.
+- Sin escrituras directas de datos canónicos desde Distribución.
+- Próximo: Fase 5 — editor avanzado de Distribución.
+
+
+HITO DISTRIBUCIÓN — FASE 5R CERRADA:
+- Editor avanzado completado sobre el mismo contrato version: 1 y la misma clave planificador_bodas_distribucion_v1.
+- Propuestas, elementos físicos, zonas poligonales, medición, snap, alertas espaciales, capas, presentación, impresión/PDF y fondo de referencia transitorio implementados.
+- Cámara separada en camera.js como propietario único de zoom/pan/pinch/Fit y coordenadas de navegación.
+- Distribución renderiza solo sillas canónicas existentes; no crea capacidad ni IDs de silla.
+- Distribución puede mover un invitado existente únicamente a una silla canónica libre mediante el adaptador de Invitados; valida integridad, revierte en error y no crea ni repara datos.
+- Eliminado el doble remontaje posterior a una asignación realizada desde Distribución.
+- Propuestas e IDs de elementos protegidos contra colisiones; activeProposalId inválido falla cerrado.
+- Cambio de propuesta recalcula la secuencia de elementos y la creación verifica IDs existentes.
+- Guardado establece frontera de Undo/Redo y los cambios canónicos externos bloquean mezcla con ediciones locales pendientes.
+- Lifecycle auditado: mounts obsoletos no tocan DOM, listeners globales tienen cleanup y Object URL transitorias se revocan.
+- Barrido final: sin Firestore directo, sin localStorage/sessionStorage/IndexedDB directo, sin polling/MutationObserver/postMessage/sharedTableId y sin !important.
+- No se modificaron Firebase Rules, Storage, Authentication, usuarios, esquema persistente ni el repositorio Wedding.
+- Próximo: Fase 5S — monkey test y regresión funcional final. Todavía no ejecutada.
+
+
+EXTENSIÓN DISTRIBUCIÓN — CATÁLOGO LOCAL DE PLANOS:
+- Casa Acapulco es el plano del recinto incluido y seleccionado por defecto.
+- Se pueden agregar planos PNG/JPG/WebP y conservarlos únicamente en IndexedDB del navegador.
+- Selección, visibilidad y opacidad del fondo son preferencias locales; los planos personalizados pueden eliminarse y Casa Acapulco no.
+- IndexedDB queda autorizado solo para esta responsabilidad visual en background-catalog.js; no almacena mesas, sillas, invitados, propuestas ni datos canónicos.
+- El esquema planificador_bodas_distribucion_v1 permanece en version: 1 y no contiene imágenes.
+- Sin cambios en Firebase, Firestore, Storage, Authentication ni usuarios.
+- Assets actuales: Distribución JS v53, CSS v17, dashboard raíz v145.
+- Fase 5S sigue pendiente.
+
+
+CORRECCIÓN DISTRIBUCIÓN — ESCALA FÍSICA Y PLANO BASE:
+- Lienzo físico fijo: 1448 x 1086.
+- Escala única: 32 px/m; zoom/pan son exclusivamente visuales.
+- Casa Acapulco incluido como asset propio en assets/distribucion/casa-acapulco.png.
+- Fondo, mesas, objetos, áreas y mediciones comparten el mismo distribution-world.
+- Mesa redonda: radio físico 0.915 m; sillas 1.33x; etiquetas 2.18x.
+- Distribución ya no usa tableSeatGeometry de Invitados para su geometría física.
+- Distribución vuelve a ser solo lectora de asignaciones de invitados; no escribe tableId/seatId/seatNumber.
+- Preferencia de visibilidad, opacidad y posición del plano sigue siendo exclusivamente local en IndexedDB.
+- Sin migración del esquema planificador_bodas_distribucion_v1 ni cambios en Firebase/Firestore/Storage.
+- Assets: Distribución JS v63, plantilla v30, cámara v2, catálogo de planos v2, CSS v19, dashboard raíz v155.
+
+
+HITO SHELL MÓVIL — HEADER + DRAWER:
+- En celular hay un header fijo con hamburguesa, marca MGD, “Mi Gran Día” y el nombre de la boda activa.
+- La navegación única existente funciona como drawer superpuesto y no reserva ancho lateral.
+- Eliminados la barra lateral móvil permanente, el botón flotante y el estado de navegación plegada de la prueba anterior.
+- El loader permanece a pantalla completa hasta que termina el montaje del módulo y su transición de salida.
+- Distribución mantiene todo el ancho móvil disponible bajo el header y su cámara sigue adaptándose al tamaño real del visor.
+- Desktop conserva la navegación horizontal vigente.
+- Sin cambios en Firebase, Firestore, Storage ni persistencia local.
+
+
+HITO SHELL MÓVIL — CORRECCIÓN ESTRUCTURAL:
+- Un solo breakpoint del shell: móvil/tablet estrecha hasta 980 px; desktop desde 981 px.
+- Header móvil + drawer sin barra lateral permanente ni botones flotantes.
+- Workspace móvil blanco, sin 100dvh redundante ni franja beige inferior del shell.
+- Head HTML corregido y assets publicados como dashboard CSS v38 / JS v170.
+- Distribución publicada como v75, con plantilla versionada cacheable.
+- planner-cloud comparte lecturas concurrentes idénticas sin persistir caché ni alterar datos.
+- Sin cambios de esquema, Firebase, Firestore, Storage, usuarios ni contratos persistentes.
+
+
+HITO 2026-09-24 — RECONSTRUCCIÓN LIMPIA DEL SHELL MÓVIL:
+- Se descartó la implementación incremental anterior del shell móvil.
+- Se reconstruyó el bloque de navegación responsive como una sola implementación: workspace fijo, header superior, drawer superpuesto y stage que ocupa exactamente el espacio restante.
+- No se usan excepciones por iOS, orientación, pointer, 100dvh del workspace, barra lateral plegable ni botones flotantes.
+- El loader no usa temporizadores de salida: se oculta cuando termina el montaje del módulo.
+- Se revirtieron íntegramente los cambios realizados por este trabajo en planner-cloud.js, invitados-data.js y los imports/lectura de Distribución. La capa de datos queda con su comportamiento previo.
+- Firebase, Firestore, Storage, Authentication, usuarios, claves, documentos y payloads no forman parte del shell y no deben modificarse para resolver responsive.
+- Publicación del shell: dashboard CSS v39 / JS v171.

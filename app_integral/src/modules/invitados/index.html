@@ -1,0 +1,330 @@
+<div class="guests-shell">
+  <header class="guests-hero">
+    <span class="guests-eyebrow">MÓDULO · ESPACIO DE LA BODA</span>
+    <div class="guests-title-row">
+      <div class="guests-title-icon" aria-hidden="true"><img src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/invitaciones/invitacion_0/assets/invitados.png" width="34" height="34" alt=""></div>
+      <div>
+        <h1>Invitados</h1>
+        <p>Gestiona las personas, confirmaciones y asignaciones de la boda.</p>
+      </div>
+      <div class="guests-hero-total"><strong data-guests-total>0</strong><span>personas registradas</span></div>
+    </div>
+  </header>
+
+  <section class="guests-kpis">
+    <article><span>Total</span><strong data-guests-kpi-total>0</strong><small>invitados</small></article>
+    <article><span>Confirmados</span><strong data-guests-kpi-confirmed>0</strong><small>asistencia confirmada</small></article>
+    <article><span>Pendientes</span><strong data-guests-kpi-pending>0</strong><small>sin confirmar</small></article>
+    <article><span>Respuestas</span><strong data-guests-kpi-responses>0</strong><small>RSVP recibidos</small></article>
+    <article><span>Con mesa</span><strong data-guests-kpi-seated>0</strong><small>asignados</small></article>
+    <article><span>Sin mesa</span><strong data-guests-kpi-unseated>0</strong><small>por ubicar</small></article>
+  </section>
+
+  <nav class="guests-view-tabs" aria-label="Vistas de Invitados">
+    <button type="button" class="is-active" data-guests-view="list">Lista de invitados</button>
+    <button type="button" data-guests-view="rsvp">Confirmaciones RSVP <span data-rsvp-tab-count>0</span></button>
+    <button type="button" data-guests-view="tables">Mesas y sillas <span data-tables-tab-count>0</span></button>
+    <button type="button" class="guests-music-tab" data-guests-view="music">♫ Música <span data-music-tab-count>0</span></button>
+  </nav>
+
+  <div data-guests-pane="list">
+    <section class="guests-toolbar">
+      <button class="guests-new" type="button" data-guests-add hidden><b>＋</b><span>Nuevo invitado</span></button>
+      <label class="guests-search"><span aria-hidden="true">⌕</span><input type="search" data-guests-search placeholder="Buscar invitado, relación, familia o mesa"></label>
+      <div class="guests-segments" aria-label="Filtrar invitados">
+        <button type="button" data-guests-filter="all" class="is-active">Todos</button>
+        <button type="button" data-guests-filter="confirmed">Confirmados</button>
+        <button type="button" data-guests-filter="pending">Pendientes</button>
+        <button type="button" data-guests-filter="seated">Con mesa</button>
+        <button type="button" data-guests-filter="unseated">Sin mesa</button>
+      </div>
+    </section>
+
+    <section class="guests-list-head">
+      <div><h2>Lista de invitados</h2><p>Una sola persona mantiene la misma identidad en Invitados, RSVP y Mesas.</p></div>
+      <span data-guests-results>0 invitados</span>
+    </section>
+
+    <section class="guests-list" data-guests-list></section>
+    <p class="guests-read-state" data-guests-state>Datos de la boda activa</p>
+  </div>
+
+  <div class="rsvp-pane" data-guests-pane="rsvp" hidden>
+    <section class="rsvp-overview">
+      <article><span>Respuestas</span><strong data-rsvp-total>0</strong></article>
+      <article><span>Personas confirmadas</span><strong data-rsvp-people>0</strong></article>
+      <article><span>Por revisar</span><strong data-rsvp-unreviewed>0</strong></article>
+      <article><span>No asistirán</span><strong data-rsvp-declined>0</strong></article>
+    </section>
+    <section class="rsvp-head">
+      <div><h2>Confirmaciones recibidas</h2><p>Las coincidencias por nombre son sugerencias. Solo se vinculan cuando eliges los invitados y aplicas la respuesta.</p></div>
+      <button type="button" data-rsvp-refresh>Actualizar</button>
+    </section>
+    <section class="rsvp-list" data-rsvp-list></section>
+    <p class="guests-read-state" data-rsvp-state></p>
+  </div>
+
+  <div class="music-pane" data-guests-pane="music" hidden>
+    <section class="music-overview">
+      <article><span>Canciones</span><strong data-music-total>0</strong><small>solicitudes recibidas</small></article>
+      <article><span>Personas</span><strong data-music-people>0</strong><small>que enviaron música</small></article>
+      <article><span>Únicas</span><strong data-music-unique>0</strong><small>canciones distintas</small></article>
+    </section>
+    <section class="music-config">
+      <div class="music-config-head"><div><h2>Encuesta de música</h2><p>Configura el mismo bloque musical que utilizan tus invitaciones. Se conserva el token RSVP actual.</p></div><span data-music-config-state></span></div>
+      <form class="music-config-form" data-music-config-form>
+        <label class="guests-field music-config-wide"><span>Título</span><input name="title" maxlength="110"></label>
+        <label class="guests-field music-config-wide"><span>Texto para tus invitados</span><textarea name="intro" maxlength="500" rows="3"></textarea></label>
+        <label class="guests-field"><span>Máximo de canciones</span><select name="maxSongs"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></label>
+        <label class="guests-field"><span>Etiqueta de dedicatoria</span><input name="messageLabel" maxlength="90"></label>
+        <div class="music-config-switches music-config-wide">
+          <label><input type="checkbox" name="enabled"><span>Activar encuesta</span></label>
+          <label><input type="checkbox" name="askArtist"><span>Preguntar artista</span></label>
+          <label><input type="checkbox" name="askMessage"><span>Permitir dedicatoria</span></label>
+        </div>
+        <section class="music-config-preview music-config-wide" data-music-config-preview aria-label="Vista previa de la encuesta musical"></section>
+        <section class="music-integration music-config-wide">
+          <div class="music-integration-head"><div><strong>Integración Solo Música</strong><span>Usa el mismo token y la misma sesión RSVP de la invitación.</span></div></div>
+          <label class="guests-field"><span>Enlace público</span><input type="text" data-music-public-url readonly placeholder="RSVP aún no publicado"></label>
+          <div class="music-integration-actions">
+            <button type="button" data-music-copy-url>Copiar enlace</button>
+            <button type="button" data-music-open-url>Abrir vista</button>
+          </div>
+        </section>
+        <div class="music-config-actions music-config-wide"><button class="guests-save" type="submit" data-music-config-save>Guardar configuración</button></div>
+      </form>
+    </section>
+    <section class="music-head"><div><h2>Música propuesta</h2><p>Solicitudes enviadas desde las invitaciones y vinculadas al RSVP de esta boda.</p></div></section>
+    <section class="music-request-list" data-music-list></section>
+  </div>
+
+  <div class="tables-pane" data-guests-pane="tables" hidden>
+    <section class="tables-overview">
+      <article><span>Mesas</span><strong data-tables-total>0</strong></article>
+      <article><span>Sillas</span><strong data-tables-seats>0</strong></article>
+      <article><span>Ocupadas</span><strong data-tables-occupied>0</strong></article>
+      <article><span>Sin mesa</span><strong data-tables-unassigned>0</strong></article>
+    </section>
+
+    <section class="tables-head">
+      <div>
+        <h2>Mesas y sillas</h2>
+        <p>Organiza visualmente a tus invitados. La posición física de las mesas se definirá después en Distribución.</p>
+      </div>
+      <div class="tables-head-actions">
+        <div class="tables-display-toggle" aria-label="Cambiar vista de mesas">
+          <button type="button" class="is-active" data-tables-display="visual">Visual</button>
+          <button type="button" data-tables-display="list">Lista</button>
+        </div>
+        <button type="button" class="tables-add-button" data-table-add hidden>+ Nueva mesa</button>
+      </div>
+    </section>
+
+    <section class="tables-workspace" data-tables-visual-view>
+      <div class="tables-stage">
+        <div class="tables-stage-head">
+          <div><strong>Plano de mesas</strong><span>Arrastra invitados a una silla o al centro de una mesa.</span></div>
+          <small data-tables-stage-summary></small>
+        </div>
+        <div class="tables-visual-grid" data-tables-visual-grid></div>
+      </div>
+
+      <aside class="tables-guests-panel">
+        <div class="tables-guests-head">
+          <div><strong>Invitados</strong><span>Arrastra o selecciona una persona</span></div>
+          <b data-tables-guests-visible>0</b>
+        </div>
+        <label class="tables-guest-search"><span aria-hidden="true">⌕</span><input type="search" data-table-guest-search placeholder="Buscar invitado"></label>
+        <div class="tables-guest-filters">
+          <button type="button" class="is-active" data-table-guest-filter="unassigned">Sin mesa</button>
+          <button type="button" data-table-guest-filter="assigned">Asignados</button>
+          <button type="button" data-table-guest-filter="confirmed">Confirmados</button>
+          <button type="button" data-table-guest-filter="pending">Pendientes</button>
+          <button type="button" data-table-guest-filter="all">Todos</button>
+        </div>
+        <div class="tables-selection-hint" data-tables-selection-hint hidden></div>
+        <div class="tables-unassigned-drop" data-table-unassigned-drop>Arrastra aquí para dejar sin mesa</div>
+        <div class="tables-guest-list" data-table-guest-list></div>
+      </aside>
+    </section>
+
+    <section class="tables-list-view" data-tables-list-view hidden>
+      <div class="tables-list" data-tables-list></div>
+    </section>
+
+    <p class="guests-read-state" data-tables-state></p>
+  </div>
+
+  <dialog class="table-dialog" data-table-dialog>
+    <div class="guests-dialog-head">
+      <div><span>MESAS Y SILLAS</span><h2 data-table-dialog-title>Nueva mesa</h2></div>
+      <button type="button" data-table-close aria-label="Cerrar">×</button>
+    </div>
+    <form class="table-form" id="tableEditorForm" data-table-form>
+      <input type="hidden" name="tableId">
+      <div class="table-editor-fields">
+        <label class="guests-field"><span>Nombre de mesa</span><input name="name" maxlength="80" required></label>
+      </div>
+      <fieldset class="table-capacity-picker" data-table-capacity-picker>
+        <legend>Capacidad</legend>
+        <input type="hidden" name="capacity" value="10">
+        <div class="table-capacity-options" data-table-capacity-options>
+          <button type="button" data-table-capacity="4" aria-pressed="false"><strong>4</strong><small>sillas</small></button>
+          <button type="button" data-table-capacity="6" aria-pressed="false"><strong>6</strong><small>sillas</small></button>
+          <button type="button" data-table-capacity="8" aria-pressed="false"><strong>8</strong><small>sillas</small></button>
+          <button type="button" class="is-active" data-table-capacity="10" aria-pressed="true"><strong>10</strong><small>sillas</small></button>
+          <button type="button" data-table-capacity="12" aria-pressed="false"><strong>12</strong><small>sillas</small></button>
+          <button type="button" data-table-capacity="14" aria-pressed="false"><strong>14</strong><small>sillas</small></button>
+          <button type="button" data-table-capacity="16" aria-pressed="false"><strong>16</strong><small>sillas</small></button>
+        </div>
+      </fieldset>
+      <fieldset class="table-shape-picker" data-table-shape-picker>
+        <legend>Forma de la mesa</legend>
+        <input type="hidden" name="type" value="round">
+        <div class="table-shape-options">
+          <button type="button" class="is-active" data-table-shape="round" aria-pressed="true">
+            <span class="table-shape-preview is-round" aria-hidden="true">
+              <i></i><i></i><i></i><i></i><b></b>
+            </span>
+            <strong>Redonda</strong>
+            <small>Distribución circular</small>
+          </button>
+          <button type="button" data-table-shape="square" aria-pressed="false">
+            <span class="table-shape-preview is-square" aria-hidden="true">
+              <i></i><i></i><i></i><i></i><b></b>
+            </span>
+            <strong>Cuadrada</strong>
+            <small>Lados equilibrados</small>
+          </button>
+          <button type="button" data-table-shape="rectangular" aria-pressed="false">
+            <span class="table-shape-preview is-rectangular" aria-hidden="true">
+              <i></i><i></i><i></i><i></i><b></b>
+            </span>
+            <strong>Rectangular</strong>
+            <small>Mayor ancho horizontal</small>
+          </button>
+        </div>
+      </fieldset>
+      <fieldset class="table-physical-picker" data-table-physical-picker>
+        <legend>Medida física del tablero</legend>
+        <div class="table-physical-fields">
+          <label><span data-table-physical-width-label>Diámetro (m)</span><input type="number" name="tabletopWidthM" min="0.5" max="4" step="0.1" value="1.83" data-table-physical-width></label>
+          <label data-table-physical-height-field hidden><span>Fondo (m)</span><input type="number" name="tabletopHeightM" min="0.5" max="4" step="0.1" value="1.83" data-table-physical-height></label>
+        </div>
+        <div class="table-physical-foot">
+          <small>Cada mesa puede tener una medida distinta. Distribución usa esta misma medida para el plano, sillas y validaciones.</small>
+          <button type="button" data-table-physical-reset disabled>Usar medida estándar</button>
+        </div>
+      </fieldset>
+      <section class="table-editor-preview" aria-label="Vista previa de la mesa">
+        <div class="table-editor-preview-head">
+          <div><strong>Vista previa</strong><span>Forma y capacidad antes de guardar</span></div>
+          <small data-table-preview-summary></small>
+        </div>
+        <div class="table-editor-preview-stage" data-table-preview></div>
+      </section>
+      <div class="table-seats-head"><div><strong>Asignación de sillas</strong><span>Los cambios de silla se guardan inmediatamente.</span></div></div>
+      <div class="table-seats-editor" data-table-seats-editor></div>
+      <p class="table-dialog-state" data-table-dialog-state aria-live="polite"></p>
+    </form>
+    <div class="guests-dialog-actions table-dialog-actions">
+      <button class="guests-delete" type="button" data-table-delete hidden>Eliminar mesa</button>
+      <span></span>
+      <button type="button" data-table-close>Cancelar</button>
+      <button class="guests-save" type="submit" form="tableEditorForm" data-table-save>Guardar mesa</button>
+    </div>
+  </dialog>
+
+  <dialog class="table-seat-conflict-dialog" data-seat-conflict-dialog>
+    <div class="guests-dialog-head">
+      <div><span>SILLA OCUPADA</span><h2>¿Qué deseas hacer?</h2></div>
+      <button type="button" data-seat-conflict-cancel aria-label="Cerrar">×</button>
+    </div>
+    <div class="table-seat-conflict-body">
+      <p data-seat-conflict-summary></p>
+      <button type="button" class="table-seat-conflict-option is-swap" data-seat-conflict-action="swap">
+        <span aria-hidden="true">⇄</span>
+        <div><strong>Intercambiar lugares</strong><small data-seat-conflict-swap-copy></small></div>
+      </button>
+      <button type="button" class="table-seat-conflict-option is-replace" data-seat-conflict-action="replace">
+        <span aria-hidden="true">→</span>
+        <div><strong>Reemplazar</strong><small data-seat-conflict-replace-copy></small></div>
+      </button>
+    </div>
+    <div class="table-seat-conflict-actions">
+      <button type="button" data-seat-conflict-cancel>Cancelar</button>
+    </div>
+  </dialog>
+
+  <dialog class="table-guest-detail-dialog" data-table-guest-detail-dialog>
+    <div class="guests-dialog-head">
+      <div><span>INVITADO UBICADO</span><h2 data-table-guest-detail-name>Invitado</h2></div>
+      <button type="button" data-table-guest-detail-close aria-label="Cerrar">×</button>
+    </div>
+    <div class="table-guest-detail-body">
+      <div class="table-guest-detail-status">
+        <span class="tables-guest-avatar" data-table-guest-detail-avatar></span>
+        <div><strong data-table-guest-detail-assignment></strong><span data-table-guest-detail-rsvp></span></div>
+      </div>
+      <div class="table-guest-detail-grid">
+        <div><small>Estado</small><strong data-table-guest-detail-status></strong></div>
+        <div><small>Grupo</small><strong data-table-guest-detail-group></strong></div>
+      </div>
+    </div>
+    <div class="table-guest-detail-actions">
+      <button type="button" data-table-guest-detail-close>Cerrar</button>
+      <button type="button" data-table-guest-detail-unassign>Dejar sin mesa</button>
+      <button class="guests-save" type="button" data-table-guest-detail-move>Mover de silla</button>
+    </div>
+  </dialog>
+
+  <dialog class="guests-dialog" data-guests-dialog>
+    <div class="guests-dialog-head">
+      <div><span>INVITADOS</span><h2 data-guests-dialog-title>Nuevo invitado</h2></div>
+      <button type="button" data-guests-close aria-label="Cerrar">×</button>
+    </div>
+    <form class="guests-form" id="guestsEditorForm" data-guests-form>
+      <input type="hidden" name="guestId">
+      <label class="guests-field guests-field-wide"><span>Nombre completo</span><input name="name" maxlength="120" required></label>
+      <div class="guests-form-grid">
+        <label class="guests-field"><span>Estado</span><select name="status"><option value="pending">Pendiente</option><option value="confirmed">Confirmado</option><option value="tentative">Por confirmar</option><option value="declined">No asistirá</option></select></label>
+        <label class="guests-field"><span>Lado</span><select name="side"><option value="ambos">De ambos</option><option value="novio">Del novio</option><option value="novia">De la novia</option></select></label>
+        <label class="guests-field"><span>Relación</span><input name="relation" maxlength="120" placeholder="Ej. Familia, amigo, trabajo"></label>
+        <label class="guests-field"><span>Restricción</span><input name="restriction" maxlength="160" placeholder="Ninguna"></label>
+      </div>
+      <label class="guests-check"><input type="checkbox" name="invitationSent"><span>Invitación enviada</span></label>
+      <label class="guests-field guests-field-wide"><span>Notas</span><textarea name="notes" rows="4" maxlength="700"></textarea></label>
+    </form>
+    <div class="guests-dialog-actions">
+      <button class="guests-delete" type="button" data-guests-delete hidden>Eliminar</button>
+      <span></span>
+      <button type="button" data-guests-close>Cancelar</button>
+      <button class="guests-save" type="submit" form="guestsEditorForm" data-guests-save>Guardar cambios</button>
+    </div>
+  </dialog>
+
+  <dialog class="rsvp-dialog" data-rsvp-dialog>
+    <div class="guests-dialog-head">
+      <div><span>CONFIRMACIÓN RSVP</span><h2 data-rsvp-dialog-title>Revisar respuesta</h2></div>
+      <button type="button" data-rsvp-close aria-label="Cerrar">×</button>
+    </div>
+    <form class="rsvp-review-form" id="rsvpReviewForm" data-rsvp-form>
+      <input type="hidden" name="responseId">
+      <div class="rsvp-response-summary" data-rsvp-response-summary></div>
+      <div class="guests-form-grid">
+        <label class="guests-field"><span>Grupo</span><select name="group"><option value="">Sin grupo</option><option value="familia">Familia</option><option value="amigos">Amigos</option><option value="trabajo">Trabajo</option><option value="otros">Otros</option></select></label>
+        <label class="guests-field"><span>Lado</span><select name="side"><option value="">Sin cambio</option><option value="ambos">De ambos</option><option value="novio">Del novio</option><option value="novia">De la novia</option></select></label>
+      </div>
+      <label class="guests-field"><span>Familia / grupo visible</span><input name="familyLabel" maxlength="100" placeholder="Ej. Familia Pérez"></label>
+      <div class="rsvp-link-head"><div><strong>Vincular con invitados existentes</strong><span>Selecciona una o más personas. No se crearán invitados automáticamente.</span></div><small data-rsvp-suggestion-label></small></div>
+      <div class="rsvp-companion-status" data-rsvp-companion-status></div>
+      <div class="rsvp-guest-picker" data-rsvp-guest-picker></div>
+    </form>
+    <div class="guests-dialog-actions rsvp-dialog-actions">
+      <button class="rsvp-unlink" type="button" data-rsvp-unlink hidden>Desvincular respuesta</button>
+      <span></span>
+      <button type="button" data-rsvp-close>Cancelar</button>
+      <button class="guests-save" type="submit" form="rsvpReviewForm" data-rsvp-apply>Aplicar a invitados</button>
+    </div>
+  </dialog>
+</div>

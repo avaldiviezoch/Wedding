@@ -1,0 +1,239 @@
+<div class="distribution-shell">
+  <header class="distribution-hero">
+    <div>
+      <p class="distribution-eyebrow">Módulo · Espacio de la boda</p>
+      <div class="distribution-title-row">
+        <div class="distribution-title-icon" aria-hidden="true"><img src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/invitaciones/invitacion_0/assets/dsitribucion.png" width="34" height="34" alt=""></div>
+        <div>
+          <h1>Distribución</h1>
+          <p>Organiza la ubicación visual de tus mesas sin alterar invitados, sillas ni asignaciones.</p>
+        </div>
+      </div>
+    </div>
+    <div class="distribution-summary" aria-live="polite">
+      <span>Mesas registradas</span>
+      <strong data-distribution-table-count>0</strong>
+    </div>
+  </header>
+
+  <section class="distribution-toolbar" aria-label="Controles de distribución">
+    <div class="distribution-toolbar-primary">
+      <span class="distribution-status-sr" data-distribution-status aria-live="polite">Cargando distribución…</span>
+      <div class="distribution-layer-switches" role="group" aria-label="Capas visibles del plano">
+        <label class="distribution-layer-switch">
+          <input type="checkbox" data-distribution-show-reference checked>
+          <span class="distribution-switch-track" aria-hidden="true"><i></i></span>
+          <span>Plano</span>
+        </label>
+        <label class="distribution-layer-switch">
+          <input type="checkbox" data-distribution-show-tables checked>
+          <span class="distribution-switch-track" aria-hidden="true"><i></i></span>
+          <span>Mesas</span>
+        </label>
+        <label class="distribution-layer-switch">
+          <input type="checkbox" data-distribution-show-guest-labels>
+          <span class="distribution-switch-track" aria-hidden="true"><i></i></span>
+          <span>Nombres</span>
+        </label>
+        <label class="distribution-layer-switch">
+          <input type="checkbox" data-distribution-show-elements checked>
+          <span class="distribution-switch-track" aria-hidden="true"><i></i></span>
+          <span>Elementos</span>
+        </label>
+      </div>
+      <div class="distribution-sync-conflict" data-distribution-sync-conflict hidden role="status">
+        <span>Otro dispositivo cambió esta propuesta.</span>
+        <button type="button" data-distribution-sync-use-local>Conservar este</button>
+        <button type="button" data-distribution-sync-use-remote>Usar remoto</button>
+      </div>
+      <div class="distribution-validation-indicators" aria-label="Indicadores de validación">
+        <span class="distribution-validation-total"><strong data-distribution-validation-count>0 incidencias</strong></span>
+        <span class="distribution-validation-kpi is-conflict"><strong data-distribution-validation-conflicts>0</strong><small>Conflictos</small></span>
+        <span class="distribution-validation-kpi is-warning"><strong data-distribution-validation-warnings>0</strong><small>Alertas</small></span>
+        <span class="distribution-validation-kpi is-proximity"><strong data-distribution-validation-proximity>0</strong><small>Proximidad</small></span>
+      </div>
+    </div>
+    <div class="distribution-toolbar-actions">
+      <div class="distribution-proposal-controls" aria-label="Propuestas de distribución">
+        <select data-distribution-proposal aria-label="Propuesta activa"></select>
+        <details class="distribution-action-menu" data-distribution-menu>
+          <summary>Propuesta <span aria-hidden="true">⌄</span></summary>
+          <div class="distribution-action-menu-panel" role="group" aria-label="Acciones de propuesta">
+            <button type="button" data-distribution-proposal-new>Nueva propuesta</button>
+            <button type="button" data-distribution-proposal-duplicate>Duplicar</button>
+            <button type="button" data-distribution-proposal-rename>Renombrar</button>
+            <button type="button" class="is-danger" data-distribution-proposal-delete>Eliminar</button>
+          </div>
+        </details>
+      </div>
+      <div class="distribution-view-controls">
+        <details class="distribution-action-menu distribution-view-menu" data-distribution-menu>
+          <summary>Vista <span aria-hidden="true">⌄</span></summary>
+          <div class="distribution-action-menu-panel" role="group" aria-label="Opciones de vista">
+            <button type="button" data-distribution-presentation aria-pressed="false">Presentación</button>
+            <button type="button" data-distribution-clean-view aria-pressed="false">Plano limpio</button>
+            <button type="button" data-distribution-print>Imprimir / PDF</button>
+          </div>
+        </details>
+        <button class="distribution-history-button" type="button" data-distribution-undo disabled aria-label="Deshacer" title="Deshacer">↶</button>
+        <button class="distribution-history-button" type="button" data-distribution-redo disabled aria-label="Rehacer" title="Rehacer">↷</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="distribution-workspace">
+    <aside class="distribution-tools" aria-label="Herramientas del plano">
+      <span class="distribution-inspector-eyebrow">ELEMENTOS</span>
+      <h2>Construye tu plano</h2>
+      <p>Agrega elementos físicos independientes de las mesas e invitados.</p>
+      <div class="distribution-catalog-search">
+        <label for="distribution-catalog-search">Buscar objeto</label>
+        <input id="distribution-catalog-search" type="search" placeholder="Buscar objeto…" autocomplete="off" data-distribution-catalog-search>
+      </div>
+      <div class="distribution-tool-catalog" data-distribution-tool-catalog aria-label="Catálogo de objetos visuales"></div>
+      <div class="distribution-area-catalog" data-distribution-area-catalog aria-label="Áreas dibujables"></div>
+      <section class="distribution-validation" aria-label="Detalle de validación del plano">
+        <div class="distribution-validation-head">
+          <span class="distribution-inspector-eyebrow">DETALLE DE VALIDACIÓN</span>
+        </div>
+        <div class="distribution-validation-list" data-distribution-validation-list>
+          <span class="distribution-validation-ok">Plano sin incidencias espaciales.</span>
+        </div>
+      </section>
+      <div class="distribution-layer-controls">
+        <span class="distribution-inspector-eyebrow">AJUSTES DEL PLANO</span>
+        <div class="distribution-reference-controls">
+          <label>Plano
+            <select data-distribution-reference-catalog aria-label="Plano del recinto"></select>
+          </label>
+          <label>Agregar al catálogo local<input type="file" accept="image/png,image/jpeg,image/webp" data-distribution-reference-file></label>
+          <button type="button" data-distribution-reference-remove>Eliminar plano personalizado</button>
+          <small>El plano se muestra a tamaño completo, sin transparencia y cubriendo todo el visor. Los planos personalizados se guardan solo en este navegador.</small>
+        </div>
+        <label class="distribution-proximity-control">Separación entre mesas
+          <select data-distribution-proximity>
+            <option value="0.6">0.6 m</option>
+            <option value="1" selected>1.0 m</option>
+            <option value="1.5">1.5 m</option>
+            <option value="2">2.0 m</option>
+          </select>
+        </label>
+        <small class="distribution-proximity-help">Alerta cuando el espacio libre entre las áreas funcionales de dos mesas baja de este valor.</small>
+        <button type="button" data-distribution-measure>Medir distancia</button>
+        <button type="button" data-distribution-clear-measure>Limpiar medida</button>
+        <label class="distribution-snap-toggle"><input type="checkbox" data-distribution-snap> Ajustar a cuadrícula</label>
+
+        <output class="distribution-cursor-coords" data-distribution-coords>x 0.00 m · y 0.00 m</output>
+      </div>
+    </aside>
+    <div class="distribution-viewport" data-distribution-viewport tabindex="0" aria-label="Plano de distribución. Arrastra una mesa para moverla o el fondo para desplazarte.">
+      <div class="distribution-world" data-distribution-world>
+        <img class="distribution-reference-image" data-distribution-reference-image alt="" aria-hidden="true">
+        <svg class="distribution-drawing-layer" data-distribution-drawing-layer aria-hidden="true"></svg>
+        <svg class="distribution-measure-layer" data-distribution-measure-layer aria-hidden="true"></svg>
+      </div>
+      <div class="distribution-measure-hint" data-distribution-measure-hint hidden>Marca el primer punto</div>
+      <div class="distribution-empty" data-distribution-empty hidden>
+        <strong>Aún no hay mesas para mostrar</strong>
+        <span>Las mesas se administran desde Invitados · Mesas y sillas.</span>
+      </div>
+    </div>
+    <div class="distribution-orientation-hint" aria-hidden="true">
+      <span class="distribution-orientation-phone">▭</span>
+      <div><strong>Gira tu celular</strong><small>Para ver y trabajar el plano con más espacio.</small></div>
+    </div>
+
+    <aside class="distribution-inspector" data-distribution-inspector>
+      <span class="distribution-inspector-eyebrow">SELECCIÓN</span>
+      <div data-distribution-selection-empty>
+        <h2>Explora tu distribución</h2>
+        <p>Selecciona una mesa para moverla, rotarla y revisar sus asignaciones actuales.</p>
+      </div>
+      <div data-distribution-selection hidden>
+        <h2 data-distribution-selected-name>Selección</h2>
+        <p data-distribution-selected-meta></p>
+        <div class="distribution-placement-controls">
+          <span>ROTACIÓN</span>
+          <div>
+            <button type="button" data-distribution-rotate-left aria-label="Rotar 1 grado a la izquierda">↺</button>
+            <output data-distribution-selected-rotation>0°</output>
+            <button type="button" data-distribution-rotate-right aria-label="Rotar 1 grado a la derecha">↻</button>
+          </div>
+          <small>Arrastra el control sobre la mesa para girarla libremente. Los botones ajustan 1° por clic. La rotación solo cambia el plano; invitados y sillas permanecen asignados.</small>
+        </div>
+        <label class="distribution-table-shape-control" data-distribution-table-shape-control>
+          <span>TIPO DE MESA</span>
+          <select data-distribution-table-shape aria-label="Tipo de mesa">
+            <option value="round">Redonda</option>
+            <option value="square">Cuadrada</option>
+            <option value="rectangular">Rectangular</option>
+          </select>
+          <small>Se sincroniza con Invitados sin cambiar capacidad, sillas ni asignaciones.</small>
+        </label>
+        <div class="distribution-table-dimensions" data-distribution-table-dimensions hidden>
+          <span>MEDIDA FÍSICA</span>
+          <div class="distribution-dimensions">
+            <label data-distribution-table-width-label>Diámetro (m)<input type="number" min="0.5" max="4" step="0.1" data-distribution-table-width></label>
+            <label data-distribution-table-height-label hidden>Fondo (m)<input type="number" min="0.5" max="4" step="0.1" data-distribution-table-height></label>
+          </div>
+          <button type="button" data-distribution-table-size-reset>Usar medida estándar</button>
+          <small>La medida pertenece a esta mesa y se conserva aunque cambies su posición en el plano.</small>
+        </div>
+        <div class="distribution-inspector-stats" data-distribution-table-stats>
+          <span><strong data-distribution-selected-seated>0</strong> asignados</span>
+          <span><strong data-distribution-selected-free>0</strong> libres</span>
+        </div>
+        <div class="distribution-guest-list" data-distribution-selected-guests></div>
+        <div class="distribution-element-note" data-distribution-element-note hidden>Elemento físico del plano. Su posición y rotación pertenecen únicamente a Distribución.</div>
+        <div class="distribution-dimensions" data-distribution-dimensions hidden>
+          <label>Ancho (m)<input type="number" min="0.5" max="30" step="0.1" data-distribution-width></label>
+          <label>Alto (m)<input type="number" min="0.5" max="30" step="0.1" data-distribution-height></label>
+        </div>
+        <div class="distribution-polygon-stats" data-distribution-polygon-stats hidden>
+          <span><strong data-distribution-polygon-area>0.00 m²</strong> Área</span>
+          <span><strong data-distribution-polygon-perimeter>0.00 m</strong> Perímetro</span>
+        </div>
+        <div class="distribution-polygon-style" data-distribution-polygon-style hidden>
+          <label>Color<input type="color" value="#d8c9a6" data-distribution-polygon-color></label>
+          <label>Transparencia <input type="range" min="0" max="90" step="5" value="45" data-distribution-polygon-transparency><output data-distribution-polygon-transparency-value>45%</output></label>
+        </div>
+        <div class="distribution-element-actions" data-distribution-element-actions hidden>
+          <button type="button" data-distribution-bring-front>Traer al frente</button>
+          <button type="button" data-distribution-send-back>Enviar atrás</button>
+          <button type="button" data-distribution-toggle-lock>Bloquear</button>
+          <button type="button" data-distribution-duplicate-element>Duplicar</button>
+          <button type="button" data-distribution-delete-element>Eliminar</button>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="distribution-mobile-hub" data-distribution-mobile-hub aria-label="Herramientas móviles de distribución">
+    <div class="distribution-mobile-wheel-stage">
+      <button class="distribution-mobile-wheel-arrow is-left" type="button" data-distribution-mobile-wheel-prev aria-label="Herramienta anterior">‹</button>
+      <div class="distribution-mobile-wheel-label" data-distribution-mobile-wheel-label>Añadir</div>
+      <button class="distribution-mobile-wheel-arrow is-right" type="button" data-distribution-mobile-wheel-next aria-label="Herramienta siguiente">›</button>
+      <div class="distribution-mobile-wheel" data-distribution-mobile-wheel>
+        <button type="button" class="distribution-mobile-wheel-action" data-mobile-wheel-index="0" data-mobile-action="add" style="--i:0" aria-label="Añadir elementos"><span aria-hidden="true">＋</span></button>
+        <button type="button" class="distribution-mobile-wheel-action" data-mobile-wheel-index="1" data-mobile-action="proposal" style="--i:1" aria-label="Propuestas"><span aria-hidden="true">▤</span></button>
+        <button type="button" class="distribution-mobile-wheel-action" data-mobile-wheel-index="2" data-mobile-action="view" style="--i:2" aria-label="Vista"><span aria-hidden="true">◫</span></button>
+        <button type="button" class="distribution-mobile-wheel-action" data-mobile-wheel-index="3" data-mobile-action="review" style="--i:3" aria-label="Validación"><span aria-hidden="true">✓</span></button>
+        <button type="button" class="distribution-mobile-wheel-action" data-mobile-wheel-index="4" data-mobile-action="settings" style="--i:4" aria-label="Ajustes"><span aria-hidden="true">⌖</span></button>
+        <button type="button" class="distribution-mobile-wheel-center" data-distribution-mobile-wheel-toggle aria-expanded="true" aria-label="Ocultar herramientas"><span aria-hidden="true">⌘</span></button>
+      </div>
+    </div>
+  </section>
+
+  <div class="distribution-mobile-sheet-backdrop" data-distribution-mobile-sheet-backdrop hidden></div>
+  <section class="distribution-mobile-sheet" data-distribution-mobile-sheet hidden aria-modal="true" role="dialog" aria-labelledby="distribution-mobile-sheet-title">
+    <header>
+      <div>
+        <span>Distribución</span>
+        <h2 id="distribution-mobile-sheet-title" data-distribution-mobile-sheet-title>Herramientas</h2>
+      </div>
+      <button type="button" data-distribution-mobile-sheet-close aria-label="Cerrar panel">×</button>
+    </header>
+    <div class="distribution-mobile-sheet-body" data-distribution-mobile-sheet-body></div>
+    <button class="distribution-mobile-sheet-cancel" type="button" data-distribution-mobile-sheet-cancel>Cerrar</button>
+  </section>
+</div>
