@@ -82,7 +82,7 @@ before(async () => {
     firestore: {
       host: '127.0.0.1',
       port: 8080,
-      rules: readFileSync('app_integral/firebase/firestore.rules', 'utf8')
+      rules: readFileSync('firebase/firestore.rules', 'utf8')
     }
   });
 });
