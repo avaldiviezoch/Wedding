@@ -33,8 +33,13 @@ test('la entrada principal no depende del árbol de desarrollo', () => {
   const html = readFileSync(resolve(root, 'index.html'), 'utf8');
   assert.equal(html.includes('../mi-gran-dia/'), false);
   for (const icon of ['checklist','presupuesto','proveedores','invitados','distribucion','cronograma','invitaciones','musica']) {
-    assert.equal(existsSync(resolve(root, 'assets/icons', `${icon}.svg`)), true, `Falta icono local ${icon}.svg`);
+    assert.equal(existsSync(resolve(root, 'assets/icons', `${icon}.png`)), true, `Falta icono PNG original ${icon}.png`);
   }
+  for (const icon of ['checklist','presupuesto','proveedores','invitados','distribucion','cronograma','invitacion','musica','parcel']) {
+    assert.equal(existsSync(resolve(root, 'assets/module-icons', `${icon}.png`)), true, `Falta icono original de módulo ${icon}.png`);
+  }
+  assert.equal(existsSync(resolve(root, 'assets/video/anillo_loop_planifcador.mp4')), true, 'Falta video local de portada');
+  assert.equal(html.includes('assets/video/anillo_loop_planifcador.mp4'), true, 'La portada debe usar el video local');
 });
 
 test('los estilos productivos no usan !important', () => {
