@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const baselinePath = resolve(root, 'qa/static-validation-baseline.json');
 const updateBaseline = process.argv.includes('--update-baseline');
-const ignoredDirectories = new Set(['.git', 'node_modules']);
+const ignoredDirectories = new Set(['.git', 'node_modules', 'bakcup', 'backup']);
 const findings = [];
 
 function walk(directory) {
