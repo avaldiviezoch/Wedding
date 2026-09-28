@@ -1,6 +1,6 @@
 {
   "firestore": {
-    "rules": "app_integral/firebase/firestore.rules"
+    "rules": "firebase/firestore.rules"
   },
   "emulators": {
     "firestore": {
@@ -13,4 +13,3 @@
     "singleProjectMode": true
   }
 }
-
