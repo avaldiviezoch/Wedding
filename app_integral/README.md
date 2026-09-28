@@ -1,61 +1,48 @@
-# App Integral de Bodas — Mi Gran Día
+# Mi Lu Gran Día — Reestructuración
 
-`app_integral/` es la **fuente de verdad del producto Mi Gran Día / Applu**.
+Estado: **FASE 0 — estructura y contratos**  
+Repositorio de trabajo: `avaldiviezoch/invitaciones`
 
-La raíz del repositorio puede conservar entradas públicas de compatibilidad, pero el código funcional, estilos, servicios y módulos del producto deben vivir aquí.
+Esta carpeta es la nueva base limpia de Mi Lu Gran Día. En esta fase **no se migra código productivo, datos, Firebase, Firestore, Storage ni claves locales**.
 
-## Entradas
+## Objetivo
 
-- `applu.html` — shell principal actual.
-- `appludesktop.html` — vista heredada de escritorio mientras se consolida una interfaz responsive única.
-- `applumovil.html` — vista heredada móvil mientras se consolida una interfaz responsive única.
-- `legacy_snapshots/` — copias históricas resguardadas de antiguas entradas de raíz; no son fuente de desarrollo.
+Reconstruir la aplicación de forma modular, mantenible y segura, evitando la acumulación histórica de HTML/CSS/JS, parches y duplicaciones.
 
-## CSS
+## Principios
 
-- `css/legacy/` — CSS existente pendiente de migración.
-- `css/core/` — variables, layout y componentes globales.
-- `css/modules/` — estilos separados por módulo funcional.
+1. Una sola fuente de verdad por dominio.
+2. UI, lógica de negocio y persistencia separadas.
+3. Un módulo no accede directamente a la persistencia de otro módulo.
+4. No se superpone una implementación nueva sobre una vieja.
+5. Nada de parches permanentes ni `!important` como solución arquitectónica.
+6. La persistencia existente se considera **intocable** hasta una fase de integración explícitamente autorizada.
+7. Primero contratos, luego módulos, después adaptadores y finalmente integración.
 
-## JavaScript
-
-- `js/legacy/` — JavaScript heredado todavía no migrado.
-- `js/core/` — arranque, router, estado, eventos y utilidades DOM.
-- `js/services/` — Firebase, autenticación, Firestore, almacenamiento y persistencia.
-- `js/modules/` — lógica de negocio separada por dominio.
-
-## Módulos
+## Módulos previstos
 
 - dashboard
 - checklist
 - presupuesto
 - proveedores
+- confirmaciones
 - invitados
-- distribución
+- mesas
+- distribucion
 - cronograma
-- invitaciones (gestión; las plantillas viven en `/invitaciones`)
-- música
+- invitaciones
+- musica
 - documentos
-- configuración
+- configuracion
 
-## Reglas obligatorias
+## Estructura
 
-1. No crear una segunda implementación de Mi Gran Día en la raíz.
-2. No agregar bloques grandes de CSS o JS directamente en HTML.
-3. Código nuevo debe ubicarse en `core`, `services` o el módulo correspondiente.
-4. `legacy` y `legacy_snapshots` se mantienen solo para compatibilidad/migración; no son destino de desarrollo nuevo.
-5. No cambiar contratos de datos, IDs persistentes, colecciones Firestore ni claves de almacenamiento sin plan y respaldo.
-6. Invitados, mesas y distribución deben conservar una única fuente de datos y sus vínculos.
-7. Todo cambio visual debe respetar `../design-system/MASTER.md`.
+- `docs/`: reglas, arquitectura, diseño y contratos.
+- `src/core/`: shell, router, estado global y utilidades.
+- `src/services/`: adaptadores externos; inicialmente vacíos.
+- `src/modules/`: un dominio por carpeta.
+- `src/shared/`: componentes, estilos y utilidades reutilizables.
+- `assets/`: recursos visuales propios de la nueva app.
+- `tests/`: pruebas de contratos e invariantes.
 
-## Compatibilidad de URLs antiguas
-
-Las antiguas rutas raíz `appludesktop.html` y `applumovil.html` deben actuar únicamente como redirecciones hacia las versiones de `app_integral/`. Las versiones históricas previas a esa consolidación están archivadas en `legacy_snapshots/`.
-
-## Documentación relacionada
-
-- `ARCHITECTURE.md` — arquitectura detallada.
-- `../docs/REPOSITORY_INDEX.md` — mapa global del repositorio.
-- `../docs/MAINTENANCE.md` — reglas de mantenimiento y limpieza.
-- `../docs/QA_CHECKLIST.md` — QA mínimo antes de publicar.
-- `../AGENTS.md` — reglas globales para mantenimiento asistido.
+Leer primero `AGENTS.md` y `docs/REGLAS_NO_NEGOCIABLES.md`.
