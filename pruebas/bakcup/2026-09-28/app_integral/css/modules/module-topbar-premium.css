@@ -1,0 +1,283 @@
+/* Mi Gran Día · barra superior premium compartida */
+:root{
+  --mgd-topbar-h:72px;
+  --mgd-topbar-bg:rgba(255,255,255,.88);
+  --mgd-topbar-line:rgba(53,58,49,.10);
+  --mgd-topbar-text:#596057;
+  --mgd-topbar-strong:#30362f;
+  --mgd-topbar-olive:#899267;
+  --mgd-topbar-olive-dark:#6f7856;
+  --mgd-topbar-rose:#a56f79;
+}
+
+body.module-view{
+  background:#f4f5f7 !important;
+}
+
+body.module-view .module-quick-nav{
+  display:flex !important;
+  position:fixed !important;
+  top:max(8px,env(safe-area-inset-top)) !important;
+  left:14px !important;
+  right:164px !important;
+  width:auto !important;
+  max-width:none !important;
+  min-height:56px !important;
+  height:56px !important;
+  transform:none !important;
+  align-items:center !important;
+  gap:8px !important;
+  padding:6px !important;
+  border:1px solid rgba(255,255,255,.92) !important;
+  border-radius:18px !important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.96),rgba(248,248,244,.89)) !important;
+  box-shadow:
+    0 16px 38px rgba(45,49,43,.13),
+    0 3px 8px rgba(45,49,43,.05),
+    inset 0 1px 0 rgba(255,255,255,.95) !important;
+  backdrop-filter:blur(22px) saturate(1.25) !important;
+  -webkit-backdrop-filter:blur(22px) saturate(1.25) !important;
+  overflow:hidden !important;
+  z-index:330 !important;
+}
+
+.module-quick-home,
+.module-quick-tab{
+  min-height:42px !important;
+  height:42px !important;
+  flex:0 0 auto !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:0 15px !important;
+  border:1px solid transparent !important;
+  border-radius:13px !important;
+  color:var(--mgd-topbar-text) !important;
+  background:transparent !important;
+  font-size:11px !important;
+  font-weight:800 !important;
+  letter-spacing:.015em !important;
+  white-space:nowrap !important;
+  cursor:pointer !important;
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    color .18s ease,
+    background .18s ease,
+    border-color .18s ease !important;
+}
+
+.module-quick-home{
+  color:var(--mgd-topbar-strong) !important;
+  border-color:rgba(68,74,64,.08) !important;
+  background:rgba(245,244,239,.88) !important;
+  padding-inline:16px !important;
+}
+
+.module-quick-home::before{
+  content:'←';
+  margin-right:7px;
+  font-size:14px;
+  line-height:1;
+  transition:transform .18s ease;
+}
+
+.module-quick-home:hover::before{
+  transform:translateX(-2px);
+}
+
+.module-quick-home:hover,
+.module-quick-tab:hover{
+  color:var(--mgd-topbar-strong) !important;
+  border-color:rgba(137,146,103,.16) !important;
+  background:#fff !important;
+  box-shadow:0 8px 18px rgba(59,65,56,.10) !important;
+  transform:translateY(-1px) !important;
+}
+
+.module-quick-tab.active,
+.module-quick-tab.is-active,
+.module-quick-tab[aria-current='page']{
+  color:#fff !important;
+  border-color:rgba(111,120,86,.35) !important;
+  background:linear-gradient(135deg,var(--mgd-topbar-olive),var(--mgd-topbar-olive-dark)) !important;
+  box-shadow:
+    0 9px 20px rgba(111,120,86,.24),
+    inset 0 1px 0 rgba(255,255,255,.18) !important;
+  transform:none !important;
+}
+
+.module-quick-scroll{
+  min-width:0 !important;
+  flex:1 1 auto !important;
+  display:flex !important;
+  align-items:center !important;
+  gap:7px !important;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  padding:1px 2px 3px !important;
+  scrollbar-width:none !important;
+  scroll-behavior:smooth !important;
+  -webkit-overflow-scrolling:touch !important;
+  mask-image:linear-gradient(to right,transparent 0,#000 12px,#000 calc(100% - 12px),transparent 100%);
+  -webkit-mask-image:linear-gradient(to right,transparent 0,#000 12px,#000 calc(100% - 12px),transparent 100%);
+}
+.module-quick-scroll::-webkit-scrollbar{display:none !important;}
+
+body.module-view .module-session-logout{
+  display:inline-flex !important;
+  position:fixed !important;
+  top:max(10px,env(safe-area-inset-top)) !important;
+  right:max(14px,env(safe-area-inset-right)) !important;
+  bottom:auto !important;
+  min-width:136px !important;
+  height:52px !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:8px !important;
+  padding:0 16px !important;
+  border:1px solid rgba(165,111,121,.20) !important;
+  border-radius:16px !important;
+  color:#7f555e !important;
+  background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(249,245,246,.92)) !important;
+  box-shadow:
+    0 14px 30px rgba(75,55,60,.11),
+    inset 0 1px 0 rgba(255,255,255,.95) !important;
+  backdrop-filter:blur(20px) !important;
+  -webkit-backdrop-filter:blur(20px) !important;
+  font-size:11px !important;
+  font-weight:850 !important;
+  letter-spacing:.015em !important;
+  cursor:pointer !important;
+  z-index:340 !important;
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    color .18s ease,
+    background .18s ease,
+    border-color .18s ease !important;
+}
+
+.module-session-logout::before{
+  content:'⏻';
+  display:inline-grid;
+  place-items:center;
+  width:22px;
+  height:22px;
+  border-radius:8px;
+  background:rgba(165,111,121,.10);
+  font-size:13px;
+  line-height:1;
+}
+
+.module-session-logout:hover{
+  color:#fff !important;
+  border-color:var(--mgd-topbar-rose) !important;
+  background:linear-gradient(135deg,#ad7882,var(--mgd-topbar-rose)) !important;
+  box-shadow:0 16px 32px rgba(165,111,121,.24) !important;
+  transform:translateY(-1px) !important;
+}
+.module-session-logout:hover::before{background:rgba(255,255,255,.16);}
+.module-session-logout:active{transform:translateY(0) scale(.98) !important;}
+
+body.module-view .unified-workspace{
+  top:0 !important;
+}
+
+body.module-view .unified-frame{
+  inset:72px 0 0 !important;
+  height:calc(100% - 72px) !important;
+}
+
+body.module-view .unified-loader{
+  top:72px !important;
+  height:calc(100% - 72px) !important;
+}
+
+@media(max-width:980px){
+  body.module-view .module-quick-nav{
+    right:146px !important;
+  }
+  .module-quick-home,
+  .module-quick-tab{
+    padding-inline:12px !important;
+    font-size:10px !important;
+  }
+  body.module-view .module-session-logout{
+    min-width:124px !important;
+    padding-inline:13px !important;
+  }
+}
+
+@media(max-width:760px){
+  :root{--mgd-topbar-h:64px;}
+  body.module-view .module-quick-nav{
+    top:max(6px,env(safe-area-inset-top)) !important;
+    left:7px !important;
+    right:7px !important;
+    width:auto !important;
+    height:52px !important;
+    min-height:52px !important;
+    padding:5px !important;
+    border-radius:16px !important;
+    gap:5px !important;
+  }
+  .module-quick-home,
+  .module-quick-tab{
+    height:40px !important;
+    min-height:40px !important;
+    padding-inline:11px !important;
+    border-radius:12px !important;
+    font-size:9px !important;
+  }
+  .module-quick-home{
+    width:42px !important;
+    min-width:42px !important;
+    padding:0 !important;
+    overflow:hidden !important;
+    font-size:0 !important;
+  }
+  .module-quick-home::before{
+    margin:0 !important;
+    font-size:17px !important;
+  }
+  .module-quick-scroll{
+    gap:5px !important;
+  }
+  body.module-view .unified-frame{
+    inset:64px 0 0 !important;
+    height:calc(100% - 64px) !important;
+  }
+  body.module-view .unified-loader{
+    top:64px !important;
+    height:calc(100% - 64px) !important;
+  }
+  body.module-view .module-session-logout{
+    top:auto !important;
+    right:max(12px,env(safe-area-inset-right)) !important;
+    bottom:max(12px,env(safe-area-inset-bottom)) !important;
+    min-width:auto !important;
+    height:46px !important;
+    padding:0 14px !important;
+    border-radius:14px !important;
+    font-size:10px !important;
+    box-shadow:0 12px 28px rgba(75,55,60,.16) !important;
+  }
+}
+
+@media(max-width:430px){
+  .module-quick-tab{
+    padding-inline:10px !important;
+    font-size:8.5px !important;
+  }
+  body.module-view .module-session-logout{
+    height:44px !important;
+    padding-inline:12px !important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .module-quick-home,.module-quick-tab,.module-session-logout{transition:none !important;}
+  .module-quick-scroll{scroll-behavior:auto !important;}
+}

@@ -1,0 +1,278 @@
+/* Tarjeta de cuenta premium — solo presentación, sin tocar Firebase */
+#accountCard.account-card{
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  grid-template-areas:
+    "profile profile profile"
+    "wedding share logout";
+  align-items:center;
+  gap:14px 12px;
+  width:100%;
+  box-sizing:border-box;
+  margin:0 0 18px;
+  padding:18px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 92% 4%,rgba(216,190,159,.11),transparent 35%),
+    linear-gradient(145deg,rgba(24,25,24,.96),rgba(10,11,10,.98));
+  box-shadow:0 18px 42px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.045);
+}
+
+#accountCard.account-card::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(110deg,rgba(255,255,255,.025),transparent 38%,rgba(255,255,255,.018));
+}
+
+#accountCard .account-user{
+  grid-area:profile;
+  position:relative;
+  z-index:1;
+  display:grid;
+  grid-template-columns:46px minmax(0,1fr);
+  align-items:center;
+  gap:12px;
+  min-width:0;
+  padding-bottom:14px;
+  border-bottom:1px solid rgba(255,255,255,.075);
+}
+
+#accountCard .account-avatar{
+  width:46px;
+  height:46px;
+  min-width:46px;
+  object-fit:cover;
+  border-radius:50%;
+  border:2px solid rgba(226,204,179,.72);
+  box-shadow:0 0 0 4px rgba(226,204,179,.08),0 8px 18px rgba(0,0,0,.25);
+}
+
+#accountCard .account-copy{
+  min-width:0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:2px;
+}
+
+#accountCard #accountName{
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#fff;
+  font-size:13px;
+  font-weight:800;
+  line-height:1.2;
+  letter-spacing:-.01em;
+}
+
+#accountCard #accountEmail{
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:rgba(255,255,255,.54);
+  font-size:9px;
+  line-height:1.35;
+}
+
+#accountCard .cloud-state{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  max-width:100%;
+  margin-top:4px;
+  color:rgba(218,226,216,.78);
+  font-size:8px;
+  font-weight:600;
+}
+
+#accountCard .cloud-state::before{
+  content:"";
+  width:6px;
+  height:6px;
+  margin-right:6px;
+  flex:0 0 auto;
+  border-radius:50%;
+  background:#83b98d;
+  box-shadow:0 0 0 3px rgba(131,185,141,.10);
+}
+
+/* La boda actual deja de parecer un tercer botón y pasa a ser la información central. */
+#accountCard .active-wedding-button{
+  grid-area:wedding;
+  position:relative;
+  z-index:1;
+  width:auto;
+  min-width:0;
+  min-height:58px;
+  margin:0;
+  padding:11px 13px;
+  display:grid;
+  align-content:center;
+  gap:2px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:15px;
+  background:rgba(255,255,255,.045);
+  color:#fff;
+  text-align:left;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+  transition:border-color .18s ease,background .18s ease,transform .18s ease;
+}
+
+#accountCard .active-wedding-button:hover{
+  transform:translateY(-1px);
+  border-color:rgba(218,192,162,.28);
+  background:rgba(255,255,255,.07);
+}
+
+#accountCard .active-wedding-caption{
+  color:rgba(255,255,255,.44);
+  font-size:7px;
+  font-weight:800;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
+
+#accountCard .active-wedding-button strong{
+  display:block;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#fff;
+  font-size:11px;
+  font-weight:800;
+  line-height:1.25;
+}
+
+#accountCard .active-wedding-role{
+  color:#ccb99f;
+  font-size:7.5px;
+  font-weight:700;
+  opacity:1;
+}
+
+/* Acciones con la misma altura y una jerarquía clara. */
+#accountCard .share-wedding-button,
+#accountCard .account-logout{
+  position:relative;
+  z-index:1;
+  min-height:42px;
+  box-sizing:border-box;
+  margin:0;
+  padding:0 14px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  border-radius:13px;
+  white-space:nowrap;
+  font-size:8.5px;
+  font-weight:800;
+  line-height:1;
+  cursor:pointer;
+  transition:transform .18s ease,background .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+
+#accountCard .share-wedding-button{
+  grid-area:share;
+  align-self:center;
+  border:1px solid rgba(226,203,176,.42);
+  background:linear-gradient(135deg,#e7d2b9,#c7aa89);
+  color:#231f1b;
+  box-shadow:0 8px 18px rgba(184,151,115,.15);
+}
+
+#accountCard .share-wedding-button::before{
+  content:"+";
+  display:grid;
+  place-items:center;
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  background:rgba(35,31,27,.10);
+  font-size:12px;
+  line-height:1;
+}
+
+#accountCard .share-wedding-button:hover{
+  transform:translateY(-1px);
+  background:linear-gradient(135deg,#eedcc5,#d0b493);
+  box-shadow:0 10px 22px rgba(184,151,115,.22);
+}
+
+#accountCard .account-logout{
+  grid-area:logout;
+  align-self:center;
+  border:1px solid rgba(255,255,255,.11);
+  background:rgba(255,255,255,.025);
+  color:rgba(255,255,255,.76);
+  box-shadow:none;
+}
+
+#accountCard .account-logout::before{
+  content:"↗";
+  font-size:10px;
+  opacity:.68;
+}
+
+#accountCard .account-logout:hover{
+  transform:translateY(-1px);
+  border-color:rgba(217,145,145,.24);
+  background:rgba(184,76,76,.08);
+  color:#f0cccc;
+}
+
+@media(max-width:680px){
+  #accountCard.account-card{
+    grid-template-columns:1fr 1fr;
+    grid-template-areas:
+      "profile profile"
+      "wedding wedding"
+      "share logout";
+    padding:15px;
+    gap:11px;
+    border-radius:19px;
+  }
+
+  #accountCard .account-user{
+    grid-template-columns:42px minmax(0,1fr);
+    gap:10px;
+    padding-bottom:12px;
+  }
+
+  #accountCard .account-avatar{
+    width:42px;
+    height:42px;
+    min-width:42px;
+  }
+
+  #accountCard .active-wedding-button{
+    min-height:55px;
+  }
+
+  #accountCard .share-wedding-button,
+  #accountCard .account-logout{
+    width:100%;
+    min-height:42px;
+    padding:0 10px;
+    font-size:8px;
+  }
+}
+
+@media(max-width:390px){
+  #accountCard.account-card{
+    grid-template-columns:1fr;
+    grid-template-areas:
+      "profile"
+      "wedding"
+      "share"
+      "logout";
+  }
+}
