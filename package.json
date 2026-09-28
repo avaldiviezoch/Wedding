@@ -6,7 +6,7 @@
     "validate": "node scripts/validate-repository.mjs",
     "validate:update-baseline": "node scripts/validate-repository.mjs --update-baseline",
     "test:firestore": "firebase emulators:exec --project demo-mi-gran-dia --only firestore \"node --test tests/firestore/firestore.rules.test.mjs\"",
-    "test:ui": "node --test tests/ui/*.test.mjs",
+    "test:ui": "node --test tests/current/*.test.mjs",
     "test": "npm run validate && npm run test:ui && npm run test:firestore"
   },
   "devDependencies": {
