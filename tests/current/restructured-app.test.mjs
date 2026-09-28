@@ -33,7 +33,7 @@ test('la entrada principal no depende del árbol de desarrollo', () => {
   const html = readFileSync(resolve(root, 'index.html'), 'utf8');
   assert.equal(html.includes('../mi-gran-dia/'), false);
   for (const icon of ['checklist','presupuesto','proveedores','invitados','distribucion','cronograma','invitaciones','musica']) {
-    assert.equal(existsSync(resolve(root, 'assets/icons', `${icon}.svg`)), true, `Falta icono local ${icon}.svg`);
+    assert.equal(existsSync(resolve(root, 'assets/icons', `${icon}.png`)), true, `Falta icono PNG original ${icon}.png`);
   }
 });
 
