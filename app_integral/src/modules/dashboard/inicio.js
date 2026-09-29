@@ -1,5 +1,9 @@
 import { weddingCapabilities } from '../../core/app/permissions.js';
 import { auth } from '../../services/firebase-client.js';
+import { readPlannerStorageKeys } from '../../services/planner-cloud.js?v=4';
+import { GUEST_STORAGE_KEY, summarizeInvitadosValue } from '../invitados/invitados-data.js?v=7';
+import { CHECKLIST_STORAGE_KEY, summarizeChecklistValue } from '../checklist/index.js?v=18';
+import { BUDGET_STORAGE_KEY, summarizeBudgetValue } from '../presupuesto/index.js?v=15';
 import {
   listWeddingContexts,
   loadActiveWeddingContext,
@@ -43,11 +47,13 @@ const accessMembers = $('accessMembers');
 const accessPending = $('accessPending');
 const accessStatus = $('accessStatus');
 const receivedInvitesList = $('receivedInvitesList');
+const homeDashboard = $('homeDashboard');
 
 let weddingContext = null;
 let weddingDate = '';
 let calendarSelectedDate = '';
 let calendarCursor = new Date();
+let homeSummaryEpoch = 0;
 const heroVideo = $('heroVideo');
 
 function syncEntrySurface() {
@@ -67,6 +73,8 @@ function syncEntrySurface() {
 function setMenu(open) {
   document.body.classList.toggle('menu-open', open);
   menu.setAttribute('aria-expanded', String(open));
+  homeDashboard?.setAttribute('aria-hidden', String(!open));
+  if (open && weddingContext) void refreshHomeDashboard(weddingContext);
 }
 
 function setAuth(open, message = '') {
@@ -78,6 +86,97 @@ function formatDate(value) {
   if (!value) return 'Sin fecha';
   const [year, month, day] = value.split('-');
   return `${day}.${month}.${year}`;
+}
+
+function formatHomeMoney(value, currency = 'PEN') {
+  return new Intl.NumberFormat('es-PE', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(Number(value) || 0);
+}
+
+function setHomeRing(selector, percent) {
+  const ring = homeDashboard?.querySelector(selector);
+  if (ring) ring.style.setProperty('--p', String(Math.max(0, Math.min(100, Number(percent) || 0))));
+}
+
+function renderHomeSummary(summary, context) {
+  if (!homeDashboard) return;
+  const guests = summary?.guests || {};
+  const checklist = summary?.checklist || {};
+  const budget = summary?.budget || {};
+
+  homeDashboard.querySelector('[data-home-guests-ratio]').textContent = `${guests.confirmed ?? 0} / ${guests.total ?? 0}`;
+  homeDashboard.querySelector('[data-home-guests-percent]').textContent = `${guests.confirmedPercent ?? 0}%`;
+  homeDashboard.querySelector('[data-home-guests-confirmed]').textContent = String(guests.confirmed ?? 0);
+  homeDashboard.querySelector('[data-home-guests-pending]').textContent = String(guests.pending ?? 0);
+  setHomeRing('[data-home-guests-ring]', guests.confirmedPercent);
+
+  homeDashboard.querySelector('[data-home-checklist-ratio]').textContent = `${checklist.completed ?? 0} / ${checklist.total ?? 0}`;
+  homeDashboard.querySelector('[data-home-checklist-percent]').textContent = `${checklist.percent ?? 0}%`;
+  homeDashboard.querySelector('[data-home-checklist-completed]').textContent = String(checklist.completed ?? 0);
+  homeDashboard.querySelector('[data-home-checklist-pending]').textContent = String((checklist.pending ?? 0) + (checklist.progress ?? 0));
+  setHomeRing('[data-home-checklist-ring]', checklist.percent);
+
+  homeDashboard.querySelector('[data-home-budget-percent]').textContent = `${budget.percent ?? 0}%`;
+  homeDashboard.querySelector('[data-home-budget-paid]').textContent = formatHomeMoney(budget.paid, budget.currency);
+  homeDashboard.querySelector('[data-home-budget-total]').textContent = formatHomeMoney(budget.budget, budget.currency);
+  homeDashboard.querySelector('[data-home-budget-balance]').textContent = formatHomeMoney(budget.balance, budget.currency);
+  const budgetProgress = homeDashboard.querySelector('[data-home-budget-progress]');
+  if (budgetProgress) budgetProgress.style.width = `${budget.percent ?? 0}%`;
+  setHomeRing('[data-home-budget-ring]', budget.percent);
+
+  homeDashboard.querySelector('[data-home-tables-ratio]').textContent = `${guests.seated ?? 0} / ${guests.total ?? 0} ubicadas`;
+  homeDashboard.querySelector('[data-home-tables-seated]').textContent = String(guests.seated ?? 0);
+  homeDashboard.querySelector('[data-home-tables-confirmed]').textContent = `de ${guests.total ?? 0} invitados`;
+
+  const tableGrid = homeDashboard.querySelector('[data-home-tables-grid]');
+  const tableNote = homeDashboard.querySelector('[data-home-tables-note]');
+  const tables = Array.isArray(guests.tables) ? guests.tables : [];
+  if (tableGrid) {
+    tableGrid.innerHTML = tables.map((table) => {
+      const shape = ['round', 'square', 'rectangular'].includes(table.shape) ? table.shape : 'round';
+      const confirmed = Number(table.confirmed) || 0;
+      const capacity = Number(table.capacity) || 0;
+      return `<article class="home-mini-table is-${shape}" aria-label="${escapeHtml(table.name)}: ${confirmed} confirmados de ${capacity}">
+        <div class="home-mini-table-top">
+          <strong>${escapeHtml(table.name)}</strong>
+          <b>${confirmed}/${capacity}</b>
+          <small>confirmados</small>
+        </div>
+      </article>`;
+    }).join('');
+  }
+  if (tableNote) {
+    tableNote.hidden = tables.length > 0;
+    tableNote.textContent = 'Aún no hay mesas creadas';
+  }
+}
+
+async function refreshHomeDashboard(context = weddingContext) {
+  if (!homeDashboard || !context?.id || !auth.currentUser) return;
+  const epoch = ++homeSummaryEpoch;
+  const weddingId = context.id;
+  homeDashboard.setAttribute('aria-busy', 'true');
+  try {
+    const values = await readPlannerStorageKeys(context, [
+      GUEST_STORAGE_KEY,
+      CHECKLIST_STORAGE_KEY,
+      BUDGET_STORAGE_KEY
+    ]);
+    if (epoch !== homeSummaryEpoch || weddingContext?.id !== weddingId) return;
+    renderHomeSummary({
+      guests: summarizeInvitadosValue(values[GUEST_STORAGE_KEY]),
+      checklist: summarizeChecklistValue(values[CHECKLIST_STORAGE_KEY]),
+      budget: summarizeBudgetValue(values[BUDGET_STORAGE_KEY])
+    }, context);
+  } catch (error) {
+    if (epoch === homeSummaryEpoch) console.error('No se pudo cargar el resumen de la portada:', error);
+  } finally {
+    if (epoch === homeSummaryEpoch) homeDashboard.setAttribute('aria-busy', 'false');
+  }
 }
 
 function applyWeddingContext(context) {
@@ -101,6 +200,8 @@ function applyWeddingContext(context) {
   calendarSelectedDate = weddingDate;
   document.body.dataset.weddingRole = capabilities.role;
   tick();
+  homeSummaryEpoch += 1;
+  if (context?.id && auth.currentUser) void refreshHomeDashboard(context);
 }
 
 async function hydrateWedding(user) {
@@ -601,11 +702,11 @@ const pendingModuleMounts = new Map();
 
 const MODULES = Object.freeze({
   checklist: {
-    load: () => import('../checklist/index.js?v=17'),
+    load: () => import('../checklist/index.js?v=18'),
     mount: 'mountChecklist'
   },
   presupuesto: {
-    load: () => import('../presupuesto/index.js?v=14'),
+    load: () => import('../presupuesto/index.js?v=15'),
     mount: 'mountPresupuesto'
   },
   proveedores: {
@@ -613,15 +714,15 @@ const MODULES = Object.freeze({
     mount: 'mountProveedores'
   },
   invitados: {
-    load: () => import('../invitados/index.js?v=33'),
+    load: () => import('../invitados/index.js?v=36'),
     mount: 'mountInvitados'
   },
   distribucion: {
-    load: () => import('../distribucion/index.js?v=116'),
+    load: () => import('../distribucion/index.js?v=117'),
     mount: 'mountDistribucion'
   },
   cronograma: {
-    load: () => import('../cronograma/index.js?v=6'),
+    load: () => import('../cronograma/index.js?v=7'),
     mount: 'mountCronograma'
   },
   invitaciones: {
@@ -795,6 +896,13 @@ window.addEventListener('hashchange', () => {
   const moduleId = moduleFromHash();
   if (moduleId) void openModule(moduleId, { updateHash: false });
   else if (document.body.classList.contains('module-open')) closeModuleWorkspace();
+});
+
+window.addEventListener('migrandia:datachange', (event) => {
+  const detail = event.detail || {};
+  if (!weddingContext?.id || detail.weddingId !== weddingContext.id) return;
+  if (!['checklist', 'presupuesto', 'invitados'].includes(detail.module)) return;
+  void refreshHomeDashboard(weddingContext);
 });
 
 syncEntrySurface();
