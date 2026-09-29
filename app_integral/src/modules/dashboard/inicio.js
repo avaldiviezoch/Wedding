@@ -55,19 +55,42 @@ let calendarSelectedDate = '';
 let calendarCursor = new Date();
 let homeSummaryEpoch = 0;
 const heroVideo = $('heroVideo');
+const MODULE_HASHES = new Set(['#checklist', '#presupuesto', '#proveedores', '#invitados', '#distribucion', '#cronograma', '#invitaciones', '#musica']);
+
+function isDirectModuleRoute() {
+  return MODULE_HASHES.has(location.hash);
+}
+
+function prepareHeroVideo() {
+  if (!heroVideo) return;
+  heroVideo.muted = true;
+  heroVideo.defaultMuted = true;
+  heroVideo.autoplay = true;
+  heroVideo.loop = true;
+  heroVideo.playsInline = true;
+  heroVideo.setAttribute('muted', '');
+  heroVideo.setAttribute('autoplay', '');
+  heroVideo.setAttribute('loop', '');
+  heroVideo.setAttribute('playsinline', '');
+  heroVideo.preload = 'auto';
+}
+
+function tryPlayHeroVideo() {
+  if (!heroVideo || document.hidden || isDirectModuleRoute()) return;
+  prepareHeroVideo();
+  if (!heroVideo.paused && !heroVideo.ended) return;
+  const playPromise = heroVideo.play();
+  if (playPromise?.catch) playPromise.catch(() => {});
+}
 
 function syncEntrySurface() {
-  const directModule = ['#checklist', '#presupuesto', '#proveedores', '#invitados', '#distribucion', '#cronograma', '#invitaciones', '#musica'].includes(location.hash);
+  const directModule = isDirectModuleRoute();
   document.documentElement.classList.toggle('module-route', directModule);
   if (directModule) {
     heroVideo?.pause();
-    heroVideo?.removeAttribute('autoplay');
     return;
   }
-  if (heroVideo) {
-    heroVideo.preload = 'auto';
-    heroVideo.play().catch(() => {});
-  }
+  tryPlayHeroVideo();
 }
 
 function setMenu(open) {
@@ -889,6 +912,15 @@ document.querySelectorAll('.module-link').forEach((link) => {
     if (ACTIVE_MODULES.has(link.dataset.module)) void openModule(link.dataset.module);
   });
 });
+
+heroVideo?.addEventListener('loadedmetadata', tryPlayHeroVideo);
+heroVideo?.addEventListener('loadeddata', tryPlayHeroVideo);
+heroVideo?.addEventListener('canplay', tryPlayHeroVideo);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) heroVideo?.pause();
+  else tryPlayHeroVideo();
+});
+window.addEventListener('pageshow', tryPlayHeroVideo);
 
 window.addEventListener('hashchange', () => {
   syncEntrySurface();
