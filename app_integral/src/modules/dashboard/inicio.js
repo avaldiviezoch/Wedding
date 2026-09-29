@@ -1,6 +1,6 @@
 import { weddingCapabilities } from '../../core/app/permissions.js';
 import { auth } from '../../services/firebase-client.js';
-import { readPlannerStorageKeys } from '../../services/planner-cloud.js?v=4';
+import { readPlannerStorageKeys, writePlannerStorageKey } from '../../services/planner-cloud.js?v=4';
 import { GUEST_STORAGE_KEY, summarizeInvitadosValue } from '../invitados/invitados-data.js?v=7';
 import { CHECKLIST_STORAGE_KEY, summarizeChecklistValue } from '../checklist/index.js?v=18';
 import { BUDGET_STORAGE_KEY, summarizeBudgetValue } from '../presupuesto/index.js?v=15';
@@ -9,6 +9,7 @@ import {
   loadActiveWeddingContext,
   selectActiveWedding,
   updateWeddingIdentity,
+  saveWeddingOnboarding,
   listWeddingMembers,
   listWeddingInvitations,
   inviteWeddingMember,
@@ -115,6 +116,203 @@ document.addEventListener('visibilitychange', () => {
   else tryPlayHeroVideo();
 });
 window.addEventListener('pageshow', tryPlayHeroVideo);
+
+const discoverOverlay = $('discoverOverlay');
+const discoverSlides = [...document.querySelectorAll('[data-discover-slide]')];
+const discoverDots = $('discoverDots');
+const discoverNextButton = $('discoverNextButton');
+const discoverBackButton = $('discoverBackButton');
+const discoverSkipButton = $('discoverSkipButton');
+const discoverMenuButton = $('discoverMenuButton');
+const discoverGoogleButton = $('discoverGoogleButton');
+const discoverEmailButton = $('discoverEmailButton');
+const discoverDateField = $('discoverDateField');
+const discoverGuestExactField = $('discoverGuestExactField');
+const discoverGuestExactInput = $('discoverGuestExactInput');
+const discoverDateInput = $('discoverDateInput');
+const discoverBudgetInput = $('discoverBudgetInput');
+const discoverSummary = $('discoverSummary');
+let discoverIndex = 0;
+let discoverSeenThisSession = false;
+const discoverAnswers = { role:'', stage:'', priorities:new Set(), guests:'', guestCount:0, dateStatus:'', date:'', budgetStatus:'', budget:'' };
+
+function onboardingBudgetNumber(value) {
+  const normalized = String(value || '').replace(/[^0-9.,]/g, '').replaceAll(',', '');
+  const number = Number(normalized);
+  return Number.isFinite(number) && number >= 0 ? number : 0;
+}
+
+async function applyOnboardingToWedding(context) {
+  if (!context?.id) return context;
+  let nextContext = context;
+  if (discoverAnswers.dateStatus === 'si' && /^\d{4}-\d{2}-\d{2}$/.test(discoverAnswers.date)) {
+    nextContext = await updateWeddingIdentity(nextContext, { date: discoverAnswers.date });
+  }
+
+  const guestCount = Number.isInteger(discoverAnswers.guestCount) && discoverAnswers.guestCount > 0 ? discoverAnswers.guestCount : 0;
+  const totalBudget = discoverAnswers.budgetStatus === 'definido' ? onboardingBudgetNumber(discoverAnswers.budget) : 0;
+  if (guestCount || totalBudget) {
+    const values = await readPlannerStorageKeys(nextContext, [BUDGET_STORAGE_KEY]);
+    const current = values[BUDGET_STORAGE_KEY] && typeof values[BUDGET_STORAGE_KEY] === 'object' ? values[BUDGET_STORAGE_KEY] : {};
+    const currentSettings = current.settings && typeof current.settings === 'object' ? current.settings : {};
+    await writePlannerStorageKey(nextContext, BUDGET_STORAGE_KEY, {
+      ...current,
+      settings: {
+        ...currentSettings,
+        ...(totalBudget ? { totalBudget } : {}),
+        ...(guestCount ? { guestCount } : {}),
+        currency: ['PEN','USD','EUR'].includes(currentSettings.currency) ? currentSettings.currency : 'PEN'
+      }
+    });
+  }
+  await saveWeddingOnboarding(nextContext, {
+    role: discoverAnswers.role,
+    stage: discoverAnswers.stage,
+    priorities: [...discoverAnswers.priorities]
+  });
+  return nextContext;
+}
+
+async function finishOnboardingForNewUser(user) {
+  const weddings = await listWeddingContexts(user);
+  if (weddings.length) {
+    const context = await loadActiveWeddingContext(user);
+    applyWeddingContext(context);
+    return context;
+  }
+  const context = await createWedding({
+    name: user.displayName ? `Boda de ${String(user.displayName).split(/\s+/)[0]}` : 'Mi boda',
+    date: discoverAnswers.dateStatus === 'si' ? discoverAnswers.date : ''
+  });
+  const configured = await applyOnboardingToWedding(context);
+  applyWeddingContext(configured);
+  return configured;
+}
+
+function discoverAnswerLabel(name, value) {
+  const labels = {
+    role:{novia:'Novia',novio:'Novio',pareja:'Somos la pareja',organiza:'Ayudo a organizar'},
+    stage:{inicio:'Recién empezamos',algunas:'Ya tenemos algunas cosas',avanzado:'Vamos avanzados',final:'Últimos detalles'},
+    guests:{'menos-50':'Menos de 50','50-100':'50 – 100','100-150':'100 – 150','mas-150':'Más de 150','no-se':'Por definir'}
+  };
+  return labels[name]?.[value] || value;
+}
+
+function renderDiscoverSummary() {
+  if (!discoverSummary) return;
+  const items = [];
+  if (discoverAnswers.role) items.push(['Tu papel', discoverAnswerLabel('role', discoverAnswers.role)]);
+  if (discoverAnswers.stage) items.push(['Etapa', discoverAnswerLabel('stage', discoverAnswers.stage)]);
+  if (discoverAnswers.guests) items.push(['Invitados', discoverAnswers.guestCount ? `${discoverAnswers.guestCount} aprox.` : discoverAnswerLabel('guests', discoverAnswers.guests)]);
+  if (discoverAnswers.priorities.size) items.push(['Primero', [...discoverAnswers.priorities].slice(0,3).join(' · ')]);
+  discoverSummary.innerHTML = items.map(([label,value]) => `<span><small>${label}</small><strong>${value}</strong></span>`).join('');
+}
+
+function renderDiscover() {
+  discoverSlides.forEach((slide, index) => slide.classList.toggle('is-active', index === discoverIndex));
+  [...(discoverDots?.children || [])].forEach((dot, index) => dot.classList.toggle('is-active', index === discoverIndex));
+  const slide = discoverSlides[discoverIndex];
+  const kind = slide?.dataset.discoverKind;
+  if (discoverBackButton) discoverBackButton.hidden = discoverIndex === 0;
+  if (discoverNextButton) {
+    discoverNextButton.hidden = kind === 'finish';
+    discoverNextButton.textContent = discoverIndex === 0 ? 'Descubrir Migrandia' : (kind === 'intro' ? 'Continuar' : 'Siguiente');
+  }
+  if (kind === 'finish') renderDiscoverSummary();
+}
+
+function openDiscover() {
+  if (!discoverOverlay || discoverSeenThisSession) return;
+  discoverSeenThisSession = true;
+  discoverIndex = 0;
+  discoverOverlay.hidden = false;
+  renderDiscover();
+}
+
+function closeDiscover() {
+  if (discoverOverlay) discoverOverlay.hidden = true;
+}
+
+function moveDiscover(delta) {
+  discoverIndex = Math.max(0, Math.min(discoverSlides.length - 1, discoverIndex + delta));
+  renderDiscover();
+}
+
+if (discoverDots) {
+  discoverSlides.forEach((_, index) => {
+    const dot = document.createElement('button');
+    dot.type = 'button';
+    dot.setAttribute('aria-label', `Ir a la pantalla ${index + 1}`);
+    dot.addEventListener('click', () => {
+      discoverIndex = index;
+      renderDiscover();
+    });
+    discoverDots.append(dot);
+  });
+}
+
+document.querySelectorAll('[data-answer]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const name = button.dataset.answer;
+    const value = button.dataset.value;
+    if (name === 'priorities') {
+      const selected = discoverAnswers.priorities.has(value);
+      if (selected) discoverAnswers.priorities.delete(value);
+      else discoverAnswers.priorities.add(value);
+      button.classList.toggle('is-selected', !selected);
+      button.setAttribute('aria-pressed', String(!selected));
+      return;
+    }
+    if (name === 'guests') {
+      discoverAnswers.guests = value;
+      discoverAnswers.guestCount = 0;
+      document.querySelectorAll('[data-answer="guests"]').forEach((candidate) => candidate.classList.toggle('is-selected', candidate === button));
+      if (discoverGuestExactField) discoverGuestExactField.hidden = value === 'no-se';
+      if (value === 'no-se') {
+        if (discoverGuestExactInput) discoverGuestExactInput.value = '';
+        window.setTimeout(() => moveDiscover(1), 170);
+      } else {
+        window.setTimeout(() => discoverGuestExactInput?.focus(), 0);
+      }
+      return;
+    }
+    if (name === 'dateStatus') {
+      discoverAnswers.dateStatus = value;
+      if (discoverDateField) discoverDateField.hidden = value !== 'si';
+    } else if (name === 'budgetStatus') {
+      discoverAnswers.budgetStatus = value;
+      if (discoverBudgetInput) discoverBudgetInput.value = '';
+      discoverAnswers.budget = '';
+    } else {
+      discoverAnswers[name] = value;
+    }
+    document.querySelectorAll(`[data-answer="${name}"]`).forEach((candidate) => candidate.classList.toggle('is-selected', candidate === button));
+    if (name !== 'dateStatus' || value === 'no') window.setTimeout(() => moveDiscover(1), 170);
+  });
+});
+
+discoverGuestExactInput?.addEventListener('input', () => {
+  const value = Math.max(0, Math.min(9999, Math.floor(Number(discoverGuestExactInput.value) || 0)));
+  discoverAnswers.guestCount = value;
+});
+discoverGuestExactInput?.addEventListener('change', () => {
+  if (discoverAnswers.guestCount > 0) window.setTimeout(() => moveDiscover(1), 170);
+});
+discoverDateInput?.addEventListener('change', () => {
+  discoverAnswers.date = discoverDateInput.value;
+  if (discoverAnswers.date) window.setTimeout(() => moveDiscover(1), 170);
+});
+discoverBudgetInput?.addEventListener('input', () => {
+  discoverAnswers.budget = discoverBudgetInput.value.trim();
+  discoverAnswers.budgetStatus = discoverAnswers.budget ? 'definido' : '';
+  document.querySelectorAll('[data-answer="budgetStatus"]').forEach((candidate) => candidate.classList.remove('is-selected'));
+});
+discoverNextButton?.addEventListener('click', () => moveDiscover(1));
+discoverBackButton?.addEventListener('click', () => moveDiscover(-1));
+discoverSkipButton?.addEventListener('click', () => { closeDiscover(); setAuth(true); });
+discoverMenuButton?.addEventListener('click', () => { closeDiscover(); setAuth(true); });
+discoverGoogleButton?.addEventListener('click', () => { closeDiscover(); $('googleLoginButton')?.click(); });
+discoverEmailButton?.addEventListener('click', () => { closeDiscover(); setAuth(true); window.setTimeout(() => email?.focus(), 0); });
 
 function setMenu(open) {
   document.body.classList.toggle('menu-open', open);
@@ -447,7 +645,9 @@ $('authCloseButton').onclick = () => setAuth(false);
 $('emailLoginButton').onclick = async () => {
   status.textContent = 'Ingresando…';
   try {
-    await signInWithEmailAndPassword(auth, email.value.trim(), password.value);
+    const credential = await signInWithEmailAndPassword(auth, email.value.trim(), password.value);
+    const weddings = await listWeddingContexts(credential.user);
+    if (!weddings.length && discoverSeenThisSession) await finishOnboardingForNewUser(credential.user);
     setAuth(false);
     setMenu(true);
   } catch (error) {
@@ -462,8 +662,17 @@ $('googleLoginButton').onclick = async () => {
   try {
     const result = await signInWithPopup(auth, provider);
     if (result?.user) {
-      setAuth(false);
-      setMenu(true);
+      status.textContent = 'Preparando tu boda…';
+      try {
+        const weddings = await listWeddingContexts(result.user);
+        if (!weddings.length && discoverSeenThisSession) {
+          await finishOnboardingForNewUser(result.user);
+        }
+        setAuth(false);
+        setMenu(true);
+      } catch (setupError) {
+        status.textContent = setupError?.message || 'Ingresaste correctamente, pero no se pudo terminar la configuración.';
+      }
     }
   } catch (error) {
     const code = String(error?.code || '');
@@ -481,6 +690,7 @@ $('logoutButton').onclick = async () => {
 onAuthStateChanged(auth, async (user) => {
   document.body.classList.toggle('auth-locked', !user);
   if (!user) {
+    openDiscover();
     applyWeddingContext(null);
     setWeddingSwitcher(false);
     closeModuleWorkspace();
@@ -935,15 +1145,6 @@ document.querySelectorAll('.module-link').forEach((link) => {
     if (ACTIVE_MODULES.has(link.dataset.module)) void openModule(link.dataset.module);
   });
 });
-
-heroVideo?.addEventListener('loadedmetadata', tryPlayHeroVideo);
-heroVideo?.addEventListener('loadeddata', tryPlayHeroVideo);
-heroVideo?.addEventListener('canplay', tryPlayHeroVideo);
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) heroVideo?.pause();
-  else tryPlayHeroVideo();
-});
-window.addEventListener('pageshow', tryPlayHeroVideo);
 
 window.addEventListener('hashchange', () => {
   syncEntrySurface();
