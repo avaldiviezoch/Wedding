@@ -2,12 +2,29 @@ import {
   readPlannerStorageKeys,
   writePlannerStorageKeys
 } from '../../services/planner-cloud.js?v=4';
+import { normalizeTableShape } from './table-geometry.js?v=6';
 
 const GUEST_STORAGE_KEY = 'planificador_bodas_invitados_v1';
 const SHARED_STORAGE_KEY = 'planificador_bodas_datos_compartidos_v1';
 
 function cloneRecord(value) {
   return value && typeof value === 'object' ? { ...value } : {};
+}
+
+function guestStatus(guest) {
+  const status = String(guest?.status || '').trim().toLowerCase();
+  if (status === 'confirmed') return 'confirmed';
+  if (status === 'declined') return 'declined';
+  if (status === 'tentative') return 'tentative';
+  return 'pending';
+}
+
+function tableCapacity(table) {
+  const direct = Number(table?.capacity);
+  if (Number.isInteger(direct) && direct >= 4 && direct <= 16) return direct;
+  const seatCount = Array.isArray(table?.seats) ? table.seats.length : 0;
+  if (Number.isInteger(seatCount) && seatCount >= 4 && seatCount <= 16) return seatCount;
+  return 10;
 }
 
 function normalizeGuestState(value) {
@@ -89,6 +106,39 @@ function buildSharedState(canonical) {
   };
 }
 
+function summarizeInvitadosValue(value) {
+  const canonical = normalizeGuestState(value);
+  const guests = canonical.guests;
+  const confirmed = guests.filter((guest) => guestStatus(guest) === 'confirmed');
+  const pending = guests.filter((guest) => !['confirmed', 'declined'].includes(guestStatus(guest)));
+  const seated = guests.filter((guest) => String(guest?.tableId || '').trim());
+  const confirmedSeated = confirmed.filter((guest) => String(guest?.tableId || '').trim());
+  const usedTableIds = new Set(seated.map((guest) => String(guest.tableId || '').trim()).filter(Boolean));
+  const tables = canonical.tables.map((table, index) => {
+    const tableId = String(table?.id || '').trim();
+    const assigned = guests.filter((guest) => String(guest?.tableId || '').trim() === tableId);
+    const confirmedAtTable = assigned.filter((guest) => guestStatus(guest) === 'confirmed').length;
+    return {
+      id: tableId || `legacy-table-${index}`,
+      name: String(table?.name || `Mesa ${index + 1}`).trim(),
+      shape: normalizeTableShape(table?.type || table?.shape),
+      capacity: tableCapacity(table),
+      assigned: assigned.length,
+      confirmed: confirmedAtTable
+    };
+  });
+  return {
+    total: guests.length,
+    confirmed: confirmed.length,
+    pending: pending.length,
+    seated: seated.length,
+    confirmedSeated: confirmedSeated.length,
+    tablesUsed: usedTableIds.size,
+    tables,
+    confirmedPercent: guests.length ? Math.round(confirmed.length * 100 / guests.length) : 0
+  };
+}
+
 async function loadInvitadosSnapshot(context) {
   if (!context?.id) throw new Error('No hay una boda activa.');
   const values = await readPlannerStorageKeys(context, [GUEST_STORAGE_KEY, SHARED_STORAGE_KEY]);
@@ -122,4 +172,13 @@ async function updateCanonicalTable(context, tableId, mutateTable) {
   return { ...table, dimensions: table.dimensions && typeof table.dimensions === 'object' ? { ...table.dimensions } : undefined };
 }
 
-export { GUEST_STORAGE_KEY, SHARED_STORAGE_KEY, loadInvitadosSnapshot, saveInvitadosSnapshot, updateCanonicalTable };
+export {
+  GUEST_STORAGE_KEY,
+  SHARED_STORAGE_KEY,
+  guestStatus,
+  tableCapacity,
+  summarizeInvitadosValue,
+  loadInvitadosSnapshot,
+  saveInvitadosSnapshot,
+  updateCanonicalTable
+};
