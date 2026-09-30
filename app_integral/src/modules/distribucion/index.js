@@ -393,12 +393,42 @@ function serializeDistribution(proposals, activeProposalId) {
   return { version: 1, activeProposalId, proposals };
 }
 
+function rotatePointAroundCenter(x, y, centerX, centerY, rotation) {
+  const radians = normalizeRotation(rotation) * Math.PI / 180;
+  const dx = Number(x) - Number(centerX);
+  const dy = Number(y) - Number(centerY);
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+  return {
+    x: Number(centerX) + dx * cos - dy * sin,
+    y: Number(centerY) + dx * sin + dy * cos
+  };
+}
+
+function applySeatAndLabelRotation(node, rotation) {
+  const centerX = Number(node.dataset.rotationCenterX);
+  const centerY = Number(node.dataset.rotationCenterY);
+  if (!Number.isFinite(centerX) || !Number.isFinite(centerY)) return;
+
+  node.querySelectorAll('.distribution-chair[data-base-x]').forEach((chair) => {
+    const point = rotatePointAroundCenter(chair.dataset.baseX, chair.dataset.baseY, centerX, centerY, rotation);
+    chair.style.left = `${point.x}px`;
+    chair.style.top = `${point.y}px`;
+  });
+
+  node.querySelectorAll('.distribution-seat-label[data-base-x]').forEach((label) => {
+    const point = rotatePointAroundCenter(label.dataset.baseX, label.dataset.baseY, centerX, centerY, rotation);
+    label.style.left = `${point.x}px`;
+    label.style.top = `${point.y}px`;
+  });
+}
+
 function applyPlacement(node, placement) {
-  const rotation = normalizeRotation(placement.rotation);
   node.style.left = `${placement.x}px`;
   node.style.top = `${placement.y}px`;
-  node.style.setProperty('--table-rotation', `${rotation}deg`);
-  node.style.setProperty('--counter-rotation', `${-rotation}deg`);
+  node.style.setProperty('--table-rotation', '0deg');
+  node.style.setProperty('--counter-rotation', '0deg');
+  applySeatAndLabelRotation(node, normalizeRotation(placement.rotation));
 }
 
 function renderTable(item, guestIndex, placement) {
@@ -413,6 +443,8 @@ function renderTable(item, guestIndex, placement) {
   node.setAttribute('aria-label', tableName(table, index));
   node.style.width = `${geometry.visualWidth}px`;
   node.style.height = `${geometry.visualHeight}px`;
+  node.dataset.rotationCenterX = String(geometry.centerX);
+  node.dataset.rotationCenterY = String(geometry.centerY);
   applyPlacement(node, placement);
 
   const clearance = document.createElement('div');
@@ -453,6 +485,8 @@ function renderTable(item, guestIndex, placement) {
     chair.dataset.tableId = tableId;
     chair.dataset.seatIndex = String(seatIndex);
     chair.dataset.seatId = escapeText(seat?.id);
+    chair.dataset.baseX = String(position.x);
+    chair.dataset.baseY = String(position.y);
     if (guest) {
       chair.dataset.guestId = escapeText(guest.id);
     }
@@ -476,6 +510,7 @@ function renderTable(item, guestIndex, placement) {
       node.append(label);
     }
   });
+  applySeatAndLabelRotation(node, normalizeRotation(placement.rotation));
   return node;
 }
 
