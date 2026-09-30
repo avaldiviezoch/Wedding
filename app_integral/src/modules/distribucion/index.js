@@ -29,13 +29,12 @@ import {
   addDistributionBackground,
   listDistributionBackgrounds,
   loadDistributionBackground,
-  readDistributionBackgroundPreference,
-  removeDistributionBackground,
-  writeDistributionBackgroundPreference
-} from './background-catalog.js?v=3';
+  removeDistributionBackground
+} from './background-catalog.js?v=5';
 
-const TEMPLATE_URL = new URL('./index.html?v=60', import.meta.url);
+const TEMPLATE_URL = new URL('./index.html?v=64', import.meta.url);
 const DISTRIBUTION_STORAGE_KEY = 'planificador_bodas_distribucion_v1';
+const DISTRIBUTION_VIEW_STORAGE_KEY = 'planificador_bodas_distribucion_vista_v1';
 const DEFAULT_PROPOSAL_ID = 'proposal_main';
 const ROTATION_STEP = 1;
 const KEYBOARD_MOVE_STEP = 10;
@@ -851,6 +850,7 @@ async function mountDistribucion(context) {
     let hasPersistedState = Boolean(storedState);
     let autosaveTimer = 0;
     let distributionCloudUnsubscribe = null;
+    let distributionViewCloudUnsubscribe = null;
     let canonicalCloudUnsubscribe = null;
     const cleanupTasks = [];
     let cleanedUp = false;
@@ -2733,9 +2733,26 @@ async function mountDistribucion(context) {
     const referenceFile = root.querySelector('[data-distribution-reference-file]');
     const referenceRemove = root.querySelector('[data-distribution-reference-remove]');
     const referenceImage = root.querySelector('[data-distribution-reference-image]');
-    const referenceScopeId = context?.weddingId || context?.id || 'default';
+    const referenceScale = root.querySelector('[data-distribution-reference-scale]');
+    const referenceScaleOutput = root.querySelector('[data-distribution-reference-scale-output]');
+    const referenceX = root.querySelector('[data-distribution-reference-x]');
+    const referenceY = root.querySelector('[data-distribution-reference-y]');
+    const referenceReset = root.querySelector('[data-distribution-reference-reset]');
     let referenceObjectUrl = '';
     let activeReferenceId = DEFAULT_BACKGROUND_ID;
+    let referenceTransform = { scale:1, offsetX:0, offsetY:0 };
+
+    const renderReferenceTransform = () => {
+      const scale = Math.max(0.5, Math.min(2.5, Number(referenceTransform.scale) || 1));
+      const offsetX = Math.max(-600, Math.min(600, Number(referenceTransform.offsetX) || 0));
+      const offsetY = Math.max(-450, Math.min(450, Number(referenceTransform.offsetY) || 0));
+      referenceTransform = { scale, offsetX, offsetY };
+      referenceImage.style.transform = `translate(${offsetX}px,${offsetY}px) scale(${scale})`;
+      if (referenceScale) referenceScale.value = String(Math.round(scale * 100));
+      if (referenceScaleOutput) referenceScaleOutput.textContent = `${Math.round(scale * 100)}%`;
+      if (referenceX) referenceX.value = String(offsetX);
+      if (referenceY) referenceY.value = String(offsetY);
+    };
 
     const releaseReferenceObjectUrl = () => {
       if (referenceObjectUrl) URL.revokeObjectURL(referenceObjectUrl);
@@ -2753,37 +2770,97 @@ async function mountDistribucion(context) {
       world.classList.add('has-reference-image');
       referenceCatalog.value = activeReferenceId;
       referenceRemove.disabled = background.builtin;
-      referenceRemove.textContent = background.builtin ? 'Casa Acapulco · incluido' : 'Eliminar plano personalizado';
+      referenceRemove.textContent = background.builtin ? `${background.name} · incluido` : 'Eliminar plano personalizado';
     };
     const refreshReferenceCatalog = async (selectedId = activeReferenceId) => {
       const backgrounds = await listDistributionBackgrounds();
       if (!root.isConnected) return;
-      referenceCatalog.replaceChildren(...backgrounds.map((background) => {
-        const option = document.createElement('option');
-        option.value = background.id;
-        option.textContent = background.builtin ? `${background.name} · por defecto` : background.name;
-        return option;
+      const groups = new Map();
+      backgrounds.forEach((background) => {
+        const groupName = background.group || (background.builtin ? 'Migrandia' : 'Mis imágenes');
+        if (!groups.has(groupName)) groups.set(groupName, []);
+        groups.get(groupName).push(background);
+      });
+      referenceCatalog.replaceChildren(...[...groups.entries()].map(([groupName, items]) => {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = groupName;
+        items.forEach((background) => {
+          const option = document.createElement('option');
+          option.value = background.id;
+          option.textContent = background.name;
+          optgroup.append(option);
+        });
+        return optgroup;
       }));
       const available = backgrounds.some((background) => background.id === selectedId);
       await applyReferenceBackground(available ? selectedId : DEFAULT_BACKGROUND_ID);
     };
-    const persistReferencePreference = () => writeDistributionBackgroundPreference(referenceScopeId, {
-      backgroundId: activeReferenceId,
-      visible: referenceToggle.checked
-    }).catch(() => {});
+    let referenceSaveTimer = 0;
+    const persistReferencePreference = ({ immediate = false } = {}) => {
+      window.clearTimeout(referenceSaveTimer);
+      const save = () => writePlannerStorageKey(context, DISTRIBUTION_VIEW_STORAGE_KEY, {
+        backgroundId: activeReferenceId,
+        visible: referenceToggle.checked,
+        ...referenceTransform
+      }).catch(() => {});
+      if (immediate) return save();
+      referenceSaveTimer = window.setTimeout(save, 220);
+      return Promise.resolve();
+    };
 
-    const referencePreference = await readDistributionBackgroundPreference(referenceScopeId);
+    const normalizeReferencePreference = (value) => {
+      const preference = value && typeof value === 'object' ? value : {};
+      return {
+        backgroundId: String(preference.backgroundId || DEFAULT_BACKGROUND_ID),
+        visible: preference.visible !== false,
+        scale: Math.max(0.5, Math.min(2.5, Number(preference.scale) || 1)),
+        offsetX: Math.max(-600, Math.min(600, Number(preference.offsetX) || 0)),
+        offsetY: Math.max(-450, Math.min(450, Number(preference.offsetY) || 0))
+      };
+    };
+    const applyReferencePreference = async (value) => {
+      if (!root.isConnected) return;
+      const preference = normalizeReferencePreference(value);
+      referenceToggle.checked = preference.visible;
+      referenceTransform = {
+        scale: preference.scale,
+        offsetX: preference.offsetX,
+        offsetY: preference.offsetY
+      };
+      renderReferenceTransform();
+      world.classList.toggle('hide-reference-image', !preference.visible);
+      await refreshReferenceCatalog(preference.backgroundId);
+    };
+
+    const storedReferencePreference = await readPlannerStorageKey(context, DISTRIBUTION_VIEW_STORAGE_KEY).catch(() => null);
     if (epoch !== mountEpoch || !root.isConnected) return;
-    referenceToggle.checked = referencePreference.visible;
-    world.classList.toggle('hide-reference-image', !referencePreference.visible);
-    await refreshReferenceCatalog(referencePreference.backgroundId);
+    await applyReferencePreference(storedReferencePreference);
     if (epoch !== mountEpoch || !root.isConnected) return;
+
+    const updateReferenceTransform = () => {
+      referenceTransform = {
+        scale: Number(referenceScale?.value || 100) / 100,
+        offsetX: Number(referenceX?.value || 0),
+        offsetY: Number(referenceY?.value || 0)
+      };
+      renderReferenceTransform();
+      persistReferencePreference();
+    };
+    referenceScale?.addEventListener('input', updateReferenceTransform);
+    referenceX?.addEventListener('input', updateReferenceTransform);
+    referenceY?.addEventListener('input', updateReferenceTransform);
+    referenceReset?.addEventListener('click', () => {
+      referenceTransform = { scale:1, offsetX:0, offsetY:0 };
+      renderReferenceTransform();
+      persistReferencePreference();
+      status.textContent = 'Encuadre del ambiente restablecido';
+    });
 
     referenceCatalog.onchange = async () => {
       await applyReferenceBackground(referenceCatalog.value);
       referenceToggle.checked = true;
       world.classList.remove('hide-reference-image');
-      await persistReferencePreference();
+      await persistReferencePreference({ immediate:true });
       camera.fit();
       status.textContent = activeReferenceId === DEFAULT_BACKGROUND_ID ? 'Casa Acapulco seleccionado como plano base' : 'Plano local seleccionado';
     };
@@ -2796,7 +2873,7 @@ async function mountDistribucion(context) {
         await refreshReferenceCatalog(background.id);
         referenceToggle.checked = true;
         world.classList.remove('hide-reference-image');
-        await persistReferencePreference();
+        await persistReferencePreference({ immediate:true });
         camera.fit();
         status.textContent = 'Plano agregado al catálogo local de este navegador';
       } catch (error) {
@@ -2807,7 +2884,7 @@ async function mountDistribucion(context) {
     };
     referenceToggle.onchange = () => {
       world.classList.toggle('hide-reference-image', !referenceToggle.checked);
-      void persistReferencePreference();
+      void persistReferencePreference({ immediate:true });
     };
     referenceRemove.onclick = async () => {
       if (activeReferenceId === DEFAULT_BACKGROUND_ID) return;
@@ -2815,7 +2892,7 @@ async function mountDistribucion(context) {
       await refreshReferenceCatalog(DEFAULT_BACKGROUND_ID);
       referenceToggle.checked = true;
       world.classList.remove('hide-reference-image');
-      await persistReferencePreference();
+      await persistReferencePreference({ immediate:true });
       camera.fit();
       status.textContent = 'Plano personalizado eliminado. Casa Acapulco vuelve a ser el plano base';
     };
@@ -3102,6 +3179,14 @@ async function mountDistribucion(context) {
       }
     };
 
+    distributionViewCloudUnsubscribe = subscribePlannerStorageKey(context, DISTRIBUTION_VIEW_STORAGE_KEY, (remoteValue) => {
+      void applyReferencePreference(remoteValue).catch((error) => {
+        console.error('No se pudo aplicar la sincronización remota del ambiente:', error);
+      });
+    }, (error) => {
+      console.error('No se pudo escuchar la sincronización del ambiente:', error);
+    });
+
     distributionCloudUnsubscribe = subscribePlannerStorageKey(context, DISTRIBUTION_STORAGE_KEY, (remoteValue) => {
       let remoteState = null;
       try {
@@ -3169,11 +3254,13 @@ async function mountDistribucion(context) {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     registerCleanup(() => document.removeEventListener('visibilitychange', handleVisibilityChange));
     registerCleanup(() => distributionCloudUnsubscribe?.());
+    registerCleanup(() => distributionViewCloudUnsubscribe?.());
     registerCleanup(() => canonicalCloudUnsubscribe?.());
     registerCleanup(() => {
       closeMobileSheet();
       hideSyncConflict();
       if (autosaveTimer) window.clearTimeout(autosaveTimer);
+      if (referenceSaveTimer) window.clearTimeout(referenceSaveTimer);
       if (referenceObjectUrl) {
         URL.revokeObjectURL(referenceObjectUrl);
         referenceObjectUrl = '';
