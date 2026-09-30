@@ -2,8 +2,8 @@ import { weddingCapabilities } from '../../core/app/permissions.js';
 import { auth } from '../../services/firebase-client.js';
 import { readPlannerStorageKeys, writePlannerStorageKey } from '../../services/planner-cloud.js?v=4';
 import { GUEST_STORAGE_KEY, summarizeInvitadosValue } from '../invitados/invitados-data.js?v=7';
-import { CHECKLIST_STORAGE_KEY, summarizeChecklistValue } from '../checklist/index.js?v=18';
-import { BUDGET_STORAGE_KEY, summarizeBudgetValue } from '../presupuesto/index.js?v=15';
+import { CHECKLIST_STORAGE_KEY, summarizeChecklistValue } from '../checklist/index.js?v=19';
+import { BUDGET_STORAGE_KEY, summarizeBudgetValue } from '../presupuesto/index.js?v=16';
 import {
   listWeddingContexts,
   loadActiveWeddingContext,
@@ -958,15 +958,15 @@ const pendingModuleMounts = new Map();
 
 const MODULES = Object.freeze({
   checklist: {
-    load: () => import('../checklist/index.js?v=18'),
+    load: () => import('../checklist/index.js?v=19'),
     mount: 'mountChecklist'
   },
   presupuesto: {
-    load: () => import('../presupuesto/index.js?v=15'),
+    load: () => import('../presupuesto/index.js?v=16'),
     mount: 'mountPresupuesto'
   },
   proveedores: {
-    load: () => import('../proveedores/index.js?v=7'),
+    load: () => import('../proveedores/index.js?v=8'),
     mount: 'mountProveedores'
   },
   invitados: {
@@ -990,7 +990,7 @@ const MODULES = Object.freeze({
     mount: 'mountMusica'
   },
   ideas: {
-    load: () => import('../ideas/index.js?v=11'),
+    load: () => import('../ideas/index.js?v=12'),
     mount: 'mountIdeas'
   }
 });
