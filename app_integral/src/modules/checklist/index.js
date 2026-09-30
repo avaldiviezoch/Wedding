@@ -536,4 +536,4 @@ async function mountChecklist(context) {
   }
 }
 
-export { STORAGE_KEY as CHECKLIST_STORAGE_KEY, summarizeChecklistValue, mountChecklist };
+export { STORAGE_KEY as CHECKLIST_STORAGE_KEY, summarizeChecklistValue, mountChecklist, focusChecklist };
