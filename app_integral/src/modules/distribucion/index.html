@@ -79,7 +79,34 @@
         <button class="distribution-history-button" type="button" data-distribution-redo disabled aria-label="Rehacer" title="Rehacer">↷</button>
       </div>
     </div>
+    <div class="distribution-toolbar-environment">
+      <span class="distribution-environment-title">AMBIENTE</span>
+      <div class="distribution-reference-controls">
+        <label>Plano
+          <select data-distribution-reference-catalog aria-label="Plano del recinto"></select>
+        </label>
+        <div class="distribution-reference-calibration">
+          <strong>Ajustar ambiente a tus mesas</strong>
+          <label>Escala <output data-distribution-reference-scale-output>100%</output>
+            <input type="range" min="50" max="250" step="1" value="100" data-distribution-reference-scale>
+          </label>
+          <div class="distribution-reference-position">
+            <label>Horizontal <input type="range" min="-600" max="600" step="5" value="0" data-distribution-reference-x></label>
+            <label>Vertical <input type="range" min="-450" max="450" step="5" value="0" data-distribution-reference-y></label>
+          </div>
+          <button type="button" data-distribution-reference-reset>Restablecer encuadre</button>
+          <small>Las mesas mantienen sus medidas reales. Ajusta el fondo hasta que su tamaño visual coincida con la escala que percibes en el lugar.</small>
+        </div>
+        <label>Agregar tu propia imagen<input type="file" accept="image/png,image/jpeg,image/webp" data-distribution-reference-file></label>
+        <button type="button" data-distribution-reference-remove>Eliminar plano personalizado</button>
+        <small>Los ambientes incluidos vienen del catálogo de Migrandia. Tus imágenes personales se guardan solo en este navegador.</small>
+      </div>
+    </div>
   </section>
+
+
+  
+
 
   <section class="distribution-workspace">
     <aside class="distribution-tools" aria-label="Herramientas del plano">
@@ -102,14 +129,6 @@
       </section>
       <div class="distribution-layer-controls">
         <span class="distribution-inspector-eyebrow">AJUSTES DEL PLANO</span>
-        <div class="distribution-reference-controls">
-          <label>Plano
-            <select data-distribution-reference-catalog aria-label="Plano del recinto"></select>
-          </label>
-          <label>Agregar al catálogo local<input type="file" accept="image/png,image/jpeg,image/webp" data-distribution-reference-file></label>
-          <button type="button" data-distribution-reference-remove>Eliminar plano personalizado</button>
-          <small>El plano se muestra a tamaño completo, sin transparencia y cubriendo todo el visor. Los planos personalizados se guardan solo en este navegador.</small>
-        </div>
         <label class="distribution-proximity-control">Separación entre mesas
           <select data-distribution-proximity>
             <option value="0.6">0.6 m</option>
@@ -186,8 +205,8 @@
         <div class="distribution-guest-list" data-distribution-selected-guests></div>
         <div class="distribution-element-note" data-distribution-element-note hidden>Elemento físico del plano. Su posición y rotación pertenecen únicamente a Distribución.</div>
         <div class="distribution-dimensions" data-distribution-dimensions hidden>
-          <label>Ancho (m)<input type="number" min="0.5" max="30" step="0.1" data-distribution-width></label>
-          <label>Alto (m)<input type="number" min="0.5" max="30" step="0.1" data-distribution-height></label>
+          <label>Ancho (m)<input type="number" min="0.5" max="30" step="0.01" data-distribution-width></label>
+          <label>Alto (m)<input type="number" min="0.5" max="30" step="0.01" data-distribution-height></label>
         </div>
         <div class="distribution-polygon-stats" data-distribution-polygon-stats hidden>
           <span><strong data-distribution-polygon-area>0.00 m²</strong> Área</span>
