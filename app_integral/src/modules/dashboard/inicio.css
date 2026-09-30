@@ -788,6 +788,8 @@ body.menu-open .menu-button svg {
 .menu-open:not(.auth-locked) .home-dashboard {
   display:grid
 }
+.home-focus{position:absolute;left:0;right:0;top:-84px;height:70px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 18px;border:1px solid rgba(255,255,255,.16);border-radius:20px;background:linear-gradient(135deg,rgba(197,174,141,.2),rgba(31,30,28,.35));backdrop-filter:blur(18px) saturate(108%);box-shadow:inset 0 1px rgba(255,255,255,.14),0 16px 38px rgba(0,0,0,.2)}
+.home-focus>div{min-width:0;display:grid;gap:3px}.home-focus span{font-size:8px;font-weight:850;letter-spacing:.16em;color:#d7c4a9}.home-focus strong{font-size:16px;color:#f3eee7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.home-focus small{font-size:9px;color:#bdb6ad;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.home-focus button{flex:0 0 auto;padding:9px 13px;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:rgba(255,255,255,.08);color:#f2e9dd;font-size:9px;font-weight:800;cursor:pointer}
 .home-glass {
   position:relative;
   min-width:0;
@@ -1085,6 +1087,7 @@ body.menu-open .menu-button svg {
     grid-template-rows:auto;
     overflow:auto
   }
+  .home-focus{position:relative;left:auto;right:auto;top:auto;height:auto;grid-column:1/-1;grid-row:auto}
   .home-guests,.home-tables,.home-checklist,.home-budget {
     grid-column:auto;
     grid-row:auto;
@@ -1115,6 +1118,7 @@ body.menu-open .menu-button svg {
     gap:12px;
     overflow:visible
   }
+  .home-focus{position:relative;left:auto;right:auto;top:auto;height:auto;width:100%;order:-1;border-radius:18px;padding:13px 14px}.home-focus strong{font-size:14px}.home-focus small{white-space:normal}
   .home-guests,.home-tables,.home-checklist,.home-budget {
     width:100%;
     height:auto;
@@ -1329,7 +1333,7 @@ body.menu-open .menu-button svg {
 
 @media(max-width:980px){
   .app.hero-video-fallback{
-    background:#111 url("../../../../invitaciones/invitacion_0/assets/imagen_responsibe_movil_en_ahorro_de_energia.png") center/cover no-repeat;
+    background:#111 url("https://avaldiviezoch.github.io/Wedding/invitaciones/invitacion_0/assets/imagen_responsibe_movil_en_ahorro_de_energia.png") center/cover no-repeat;
   }
   .app.hero-video-fallback .hero-video{opacity:0}
 }
@@ -1338,7 +1342,7 @@ body.menu-open .menu-button svg {
 /* Descubre Migrandia — introducción de primera visita */
 .discover-overlay{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:clamp(18px,4vw,48px);overflow:hidden;background:radial-gradient(circle at 50% 18%,rgba(129,141,105,.2),transparent 32%),linear-gradient(150deg,#151713 0%,#0c0d0b 58%,#171510 100%);color:#f7f1e9}
 .discover-overlay[hidden]{display:none}
-.discover-shell{position:relative;width:min(980px,100%);height:min(720px,calc(100dvh - 40px));min-height:560px;display:grid;grid-template-rows:auto 1fr auto;overflow:hidden;border:1px solid rgba(241,229,218,.12);border-radius:32px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.015));box-shadow:0 34px 90px rgba(0,0,0,.35)}
+.discover-shell{position:relative;width:min(980px,100%);height:min(720px,calc(100dvh - 40px));min-height:454px;display:grid;grid-template-rows:auto 1fr auto;overflow:hidden;border:1px solid rgba(241,229,218,.12);border-radius:32px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.015));box-shadow:0 34px 90px rgba(0,0,0,.35)}
 .discover-skip{justify-self:end;margin:22px 24px 0;padding:8px 12px;border:0;background:transparent;color:rgba(247,241,233,.58);font:700 9px Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
 .discover-brand{position:absolute;top:22px;left:24px;width:38px;height:38px;display:grid;place-items:center}
 .discover-brand img{width:100%;height:100%;object-fit:contain}
