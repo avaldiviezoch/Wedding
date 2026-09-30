@@ -883,3 +883,10 @@ Construir las acciones funcionales de los botones de la carátula y luego recons
 - Tablero visual responsive con filtros, búsqueda, alta, edición y eliminación; tarjetas uniformes con imagen 4:3.
 - Enlaces Temu conservan extracción de miniatura disponible en URL; Pinterest usa el resolvedor `migrandia-dev` validado para preview y proxy de imagen.
 - No se modifican Firebase Rules, Storage, Authentication, usuarios, IDs ni contratos existentes.
+
+
+## 2026-09-29 — Corrección de medida física de Mesas
+- Se conserva `table-geometry.js` como única fuente de medidas estándar por forma; la redonda mantiene Ø 1.83 m.
+- Los editores de Mesas y Distribución aceptan centésimas, evitando que el navegador rechace el estándar 1.83 por un step de décimas.
+- Editar datos o dimensiones de una mesa no modifica su placement: Distribución conserva x, y y rotación y redibuja la geometría sobre el mismo placement.
+- No se modifican datos persistidos, Firebase Rules, Storage, Auth ni IDs.

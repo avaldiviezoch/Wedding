@@ -1039,7 +1039,7 @@ async function mountDistribucion(context) {
           widthInput.type = 'number';
           widthInput.min = String(MIN_TABLE_METERS);
           widthInput.max = String(MAX_TABLE_METERS);
-          widthInput.step = '0.1';
+          widthInput.step = '0.01';
           widthInput.value = tabletop.width.toFixed(2);
           widthField.append(widthInput);
           sizeWrap.append(widthField);
@@ -1052,7 +1052,7 @@ async function mountDistribucion(context) {
             heightInput.type = 'number';
             heightInput.min = String(MIN_TABLE_METERS);
             heightInput.max = String(MAX_TABLE_METERS);
-            heightInput.step = '0.1';
+            heightInput.step = '0.01';
             heightInput.value = tabletop.height.toFixed(2);
             heightField.append(heightInput);
             sizeWrap.append(heightField);
@@ -1084,7 +1084,7 @@ async function mountDistribucion(context) {
             widthInput.type = 'number';
             widthInput.min = String(MIN_ELEMENT_METERS);
             widthInput.max = String(MAX_ELEMENT_METERS);
-            widthInput.step = '0.1';
+            widthInput.step = '0.01';
             widthInput.value = (selectedElement.width / PIXELS_PER_METER).toFixed(2);
             widthField.append(widthInput);
 
@@ -1094,7 +1094,7 @@ async function mountDistribucion(context) {
             heightInput.type = 'number';
             heightInput.min = String(MIN_ELEMENT_METERS);
             heightInput.max = String(MAX_ELEMENT_METERS);
-            heightInput.step = '0.1';
+            heightInput.step = '0.01';
             heightInput.value = (selectedElement.height / PIXELS_PER_METER).toFixed(2);
             heightField.append(heightInput);
             sizeWrap.append(widthField, heightField);
