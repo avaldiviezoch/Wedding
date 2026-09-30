@@ -445,6 +445,22 @@ function bind(root) {
   root.addEventListener('submit', handleSubmit);
 }
 
+function consumeIdeaDraft() {
+  const draft = history.state?.migrandiaIdeaDraft;
+  if (!draft || draft.target !== 'proveedores') return;
+  const nextState = { ...(history.state || {}) };
+  delete nextState.migrandiaIdeaDraft;
+  history.replaceState(nextState, '');
+  openDialog();
+  const form = document.querySelector('[data-provider-form]');
+  if (!form) return;
+  form.elements.name.value = draft.title || '';
+  form.elements.service.value = draft.category || '';
+  form.elements.website.value = draft.url || '';
+  form.elements.quote.value = Number(draft.price) || 0;
+  form.elements.notes.value = draft.notes || '';
+}
+
 async function mountProveedores(context) {
   const root = document.querySelector('[data-module-view="proveedores"]');
   if (!root || !context?.id) return;
@@ -470,6 +486,7 @@ async function mountProveedores(context) {
     statusFilter = 'all';
     bind(root);
     render();
+    consumeIdeaDraft();
 
     const editable = weddingCapabilities(context.role).canEdit;
     root.querySelector('[data-provider-state]').textContent = editable
