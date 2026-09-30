@@ -511,6 +511,18 @@ function consumeIdeaDraft() {
   form.elements.notes.value = [draft.notes, draft.url].filter(Boolean).join('\n');
 }
 
+function focusChecklist(target = '') {
+  const next = ['overdue', 'progress', 'pending'].includes(target) ? target : '';
+  if (!next) return false;
+  filter = next;
+  search = '';
+  responsibleFilter = 'all';
+  priorityFilter = 'all';
+  render();
+  document.querySelector(`[data-checklist-filter="${next}"]`)?.focus();
+  return true;
+}
+
 async function mountChecklist(context) {
   const root = document.querySelector('[data-module-view="checklist"]');
   if (!root || !context?.id) return;
