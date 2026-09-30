@@ -875,3 +875,11 @@ Construir las acciones funcionales de los botones de la carátula y luego recons
 - Se actualizan únicamente versiones de carga para invalidar caché.
 - Sin cambios en Firebase, Firestore, Storage, Authentication, usuarios, persistencia ni datos reales.
 
+
+
+## 2026-09-29 — Ideas / Inspiración integrado
+- Se incorpora el módulo Ideas al shell, navegación principal y acordeón de Planificación.
+- Ideas conserva la clave existente `planificador_bodas_ideas_v1` y usa exclusivamente `services/planner-cloud.js`; no se crean colecciones, reglas ni almacenamiento paralelo.
+- Tablero visual responsive con filtros, búsqueda, alta, edición y eliminación; tarjetas uniformes con imagen 4:3.
+- Enlaces Temu conservan extracción de miniatura disponible en URL; Pinterest usa el resolvedor `migrandia-dev` validado para preview y proxy de imagen.
+- No se modifican Firebase Rules, Storage, Authentication, usuarios, IDs ni contratos existentes.
