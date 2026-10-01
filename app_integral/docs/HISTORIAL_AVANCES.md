@@ -1,3 +1,42 @@
+## Fase 5 — Invitaciones: biblioteca personal por cuenta
+
+- Se eliminó el catálogo hardcodeado de invitaciones del módulo; una cuenta nueva inicia sin invitaciones.
+- Las referencias se guardan en `users/{uid}/invitations/{invitationId}` mediante `src/services/personal-invitations.js`.
+- La suscripción y el cleanup están vinculados al usuario autenticado.
+- Se validó con dos cuentas: una invitación agregada en la cuenta A no aparece en la cuenta B y reaparece al volver a A.
+- Los enlaces publicados de las invitaciones permanecen fuera de Firestore; la base conserva la referencia personal.
+- Se documentó esta biblioteca como excepción explícita al aislamiento operativo por `weddingId`.
+- Pendiente antes de producción: validar consola, responsive, reglas efectivas y el futuro módulo de creación de invitaciones.
+
+## Fase 4 — Distribución: aislamiento de fondos y primer estado vacío
+
+- Se eliminó el comportamiento de Casa Acapulco como fondo predeterminado universal.
+- La primera entrada a una boda sin `backgroundId` queda sin fondo y muestra una guía para elegirlo.
+- Casa Acapulco permanece disponible como ambiente del catálogo global.
+- Los fondos personalizados de IndexedDB ahora llevan `ownerUid` y una clave compuesta por `uid + id`; no se muestran a otra cuenta en el mismo navegador.
+- La selección y configuración del fondo (`backgroundId`, `visible`, `scale`, `offsetX`, `offsetY`) continúa persistida por `weddingId`.
+- Los registros personalizados del almacén IndexedDB anterior, que no tenían propietario verificable, no se reutilizan en el nuevo catálogo para evitar contaminación entre cuentas.
+- No se modificaron Firebase Auth, Firebase Storage, Firestore Rules ni los datos de Invitados/Mesas.
+- Pendiente: prueba real con dos usuarios y dos bodas antes de cerrar la fase.
+
+## Regla arquitectónica — aislamiento obligatorio por boda
+
+Se incorporó como no negociable que toda información operativa/personal pertenece a una única boda mediante `weddingId`. La regla cubre persistencia y estado de frontend: listeners, cachés, DOM, estado JavaScript y operaciones asíncronas no pueden conservar información de una boda anterior. Se estableció además la prueba obligatoria Boda A ↔ Boda B y Usuario A ↔ Usuario B antes de producción.
+
+## Fase 2 — Aislamiento del ciclo de vida de Ideas
+
+- `Ideas` ahora tiene `destroyIdeas()` para cancelar su listener, limpiar estado y DOM, y retirar el contexto de boda anterior.
+- El shell registra el módulo montado y ejecuta su cleanup al cambiar de `weddingId`, cerrar sesión o cerrar el espacio de módulos.
+- Se añadió protección contra montajes asíncronos obsoletos: si cambia la boda mientras un módulo todavía está cargando, el resultado no queda activo.
+- No se modificaron Firebase, Firestore Rules, Auth, Storage ni contratos de persistencia.
+
+## 2026-09-30 — Música: portada personalizada sin duplicar persistencia
+- Se incorpora una única propiedad de portada dentro de la referencia musical existente: la URL automática sigue siendo la base y una portada personalizada puede reemplazarla explícitamente.
+- La personalización se gestiona dentro del módulo Música mediante el mismo modelo playlist.coverUrl; no se crea otra fuente de datos ni otro almacenamiento.
+- El alta de una referencia permite indicar opcionalmente una URL de portada personalizada y cada referencia existente puede cambiar o retirar su portada desde la misma fila.
+- La solución mantiene una sola implementación responsive y no agrega listeners globales ni archivos nuevos.
+- Se elimina el !important existente en la acción del diálogo de Música para cumplir las reglas del módulo.
+- No se modifican Firebase, Firestore, Storage, Auth, reglas, usuarios, RSVP, Invitados, Mesas ni otros módulos.
 # Historial de avances — Mi Lu Gran Día
 
 Este documento es la bitácora canónica de la reconstrucción. Debe actualizarse al cerrar cada hito importante. No sustituye contratos técnicos; enlaza decisiones, estado y motivos.
@@ -875,18 +914,36 @@ Construir las acciones funcionales de los botones de la carátula y luego recons
 - Se actualizan únicamente versiones de carga para invalidar caché.
 - Sin cambios en Firebase, Firestore, Storage, Authentication, usuarios, persistencia ni datos reales.
 
+## 2026-09-28 — Portada: KPIs conectados a la boda activa
+- Se conecta el resumen visual de la carátula a los datos reales existentes de Invitados, Checklist, Presupuesto y Cronograma.
+- La portada realiza una sola lectura agregada mediante `readPlannerStorageKeys` y no escribe datos.
+- Cada módulo conserva la propiedad de su interpretación: Invitados expone estado canónico y resumen de mesas; Checklist, Presupuesto y Cronograma exponen funciones puras de resumen reutilizando sus reglas vigentes.
+- Presupuesto conserva el cálculo existente de paquetes integrales para evitar doble conteo; la portada no implementa una fórmula paralela.
+- Distribución de mesas se resume desde las asignaciones canónicas `tableId` de Invitados; no consulta ni modifica posiciones gráficas de Distribución.
+- Los KPI se refrescan al cambiar de boda, al abrir la portada y ante el evento único `migrandia:datachange` de los módulos compatibles.
+- Los anillos de progreso usan una variable CSS de porcentaje sobre la implementación existente; no se agregó `!important`, CSS duplicado ni una segunda versión responsive.
+- No se modificaron Firebase Rules, Firestore schema, Storage, Authentication, usuarios, claves persistentes ni datos reales.
+
+## 2026-09-28 — Mini mesas en KPI de Distribución
+- El resumen de Distribución de la portada muestra cada mesa existente como una mini mesa visual con su nombre y la relación confirmados/capacidad.
+- La capacidad reutiliza la misma función canónica que usa el módulo Mesas; se eliminó la duplicación de esa regla en tables-controller.
+- Los confirmados por mesa se calculan exclusivamente desde los invitados canónicos asignados por tableId y con estado confirmed.
+- La portada sigue siendo solo lectura y no modifica mesas, sillas, RSVP ni asignaciones.
+- Se respetan los tipos de mesa round, square y rectangular para la forma visual de cada mini mesa.
+- Sin !important, sin cambios de esquema, Firebase Rules, Storage, Authentication, usuarios ni datos persistentes.
 
 
-## 2026-09-29 — Ideas / Inspiración integrado
-- Se incorpora el módulo Ideas al shell, navegación principal y acordeón de Planificación.
-- Ideas conserva la clave existente `planificador_bodas_ideas_v1` y usa exclusivamente `services/planner-cloud.js`; no se crean colecciones, reglas ni almacenamiento paralelo.
-- Tablero visual responsive con filtros, búsqueda, alta, edición y eliminación; tarjetas uniformes con imagen 4:3.
-- Enlaces Temu conservan extracción de miniatura disponible en URL; Pinterest usa el resolvedor `migrandia-dev` validado para preview y proxy de imagen.
-- No se modifican Firebase Rules, Storage, Authentication, usuarios, IDs ni contratos existentes.
+
+## 2026-09-29 — Fase 3 · Ideas (base visual)
+- Se crea `src/modules/ideas/` con solo tres archivos propietarios: estructura, estilos y orquestador.
+- Tablero visual tipo Pinterest para inspiración y compras, filtros, búsqueda y alta en memoria.
+- El formulario admite enlace, nombre, tipo, categoría, precio, miniatura y notas.
+- Sin Firebase, Firestore, Storage, localStorage, IndexedDB ni cambios de contratos. La persistencia e integración de metadatos de enlaces quedan para una fase autorizada.
+- Se registra Ideas en el shell sin inventar icono; el icono personalizado se incorporará después.
 
 
-## 2026-09-29 — Corrección de medida física de Mesas
-- Se conserva `table-geometry.js` como única fuente de medidas estándar por forma; la redonda mantiene Ø 1.83 m.
-- Los editores de Mesas y Distribución aceptan centésimas, evitando que el navegador rechace el estándar 1.83 por un step de décimas.
-- Editar datos o dimensiones de una mesa no modifica su placement: Distribución conserva x, y y rotación y redibuja la geometría sobre el mismo placement.
-- No se modifican datos persistidos, Firebase Rules, Storage, Auth ni IDs.
+## 2026-09-29 — Desarrollo sincronizado con correcciones de Mesas
+- Desarrollo incorpora la fuente canónica de medidas y acepta centésimas para Ø 1.83 m.
+- Editar dimensiones conserva el placement de Distribución (x, y y rotación).
+- Reducir capacidad reacomoda únicamente invitados cuyas sillas quedarían fuera, siempre que la nueva capacidad alcance; no elimina ni desasigna invitados.
+- Producción PR #506/#507 permanece sin fusionar hasta aprobación en desarrollo.
