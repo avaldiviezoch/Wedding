@@ -54,7 +54,9 @@ function builtinBackgrounds() {
     ...item,
     builtin:true,
     mimeType:'image/png',
-    source:new URL(item.localAsset ? '../casa-acapulco.png?v=1' : encodeURIComponent(item.file).replaceAll('%2F', '/'), new URL('../../../assets/distribucion/', import.meta.url)).href
+    source:item.localAsset
+      ? new URL('../../../assets/distribucion/casa-acapulco.png?v=1', import.meta.url).href
+      : new URL(encodeURIComponent(item.file).replaceAll('%2F', '/'), BUILTIN_ASSET_ROOT).href
   }));
 }
 
