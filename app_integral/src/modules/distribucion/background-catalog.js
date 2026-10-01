@@ -6,7 +6,7 @@ const BACKGROUNDS_STORE = 'backgrounds_v2';
 const NONE_BACKGROUND_ID = '';
 const LEGACY_DEFAULT_BACKGROUND_ID = 'venue_casa_acapulco';
 
-const BUILTIN_ASSET_ROOT = 'https://avaldiviezoch.github.io/Wedding/invitaciones/invitacion_0/assets/espacios%20de%20distribucion/';
+const BUILTIN_ASSET_ROOT = new URL('../../../assets/distribucion/backgrounds/', import.meta.url).href;
 const BUILTIN_BACKGROUNDS = Object.freeze([
   { id:'venue_beach', name:'Playa', group:'Playa y mar', file:'Playa.png' },
   { id:'venue_beach_resort', name:'Playa en complejo turístico', group:'Playa y mar', file:'playa_en_complejo_turistico.png' },
