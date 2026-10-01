@@ -1006,6 +1006,7 @@ const moduleLoader = $('moduleLoader');
 let moduleLoadEpoch = 0;
 let moduleCacheWeddingId = '';
 const mountedModules = new Set();
+const mountedModuleExports = new Map();
 const pendingModuleMounts = new Map();
 
 const MODULES = Object.freeze({
@@ -1014,7 +1015,7 @@ const MODULES = Object.freeze({
     mount: 'mountChecklist'
   },
   presupuesto: {
-    load: () => import('../presupuesto/index.js?v=16'),
+    load: () => import('../presupuesto/index.js?v=15'),
     mount: 'mountPresupuesto'
   },
   proveedores: {
@@ -1026,7 +1027,7 @@ const MODULES = Object.freeze({
     mount: 'mountInvitados'
   },
   distribucion: {
-    load: () => import('../distribucion/index.js?v=117'),
+    load: () => import('../distribucion/index.js?v=137'),
     mount: 'mountDistribucion'
   },
   cronograma: {
@@ -1034,16 +1035,18 @@ const MODULES = Object.freeze({
     mount: 'mountCronograma'
   },
   invitaciones: {
-    load: () => import('../invitaciones/index.js?v=2'),
-    mount: 'mountInvitaciones'
+    load: () => import('../invitaciones/index.js?v=3'),
+    mount: 'mountInvitaciones',
+    destroy: 'destroyInvitaciones'
   },
   musica: {
-    load: () => import('../musica/index.js?v=12'),
+    load: () => import('../musica/index.js?v=15'),
     mount: 'mountMusica'
   },
   ideas: {
-    load: () => import('../ideas/index.js?v=12'),
-    mount: 'mountIdeas'
+    load: () => import('../ideas/index.js?v=14'),
+    mount: 'mountIdeas',
+    destroy: 'destroyIdeas'
   }
 });
 
@@ -1051,6 +1054,15 @@ const ACTIVE_MODULES = new Set(Object.keys(MODULES));
 
 function resetModuleCache(weddingId = '') {
   moduleLoadEpoch += 1;
+  for (const [moduleId, module] of mountedModuleExports) {
+    try {
+      const destroy = MODULES[moduleId]?.destroy;
+      if (destroy && typeof module[destroy] === 'function') module[destroy]();
+    } catch (error) {
+      console.error(`No se pudo desmontar ${moduleId}:`, error);
+    }
+  }
+  mountedModuleExports.clear();
   mountedModules.clear();
   pendingModuleMounts.clear();
   moduleCacheWeddingId = weddingId;
@@ -1088,7 +1100,13 @@ async function mountModuleOnce(moduleId, context) {
     if (typeof mount !== 'function') throw new Error(`El módulo ${moduleId} no expone ${definition.mount}.`);
     const mounted = await mount(context);
     if (mounted === false) return false;
-    if (moduleCacheWeddingId === weddingId) mountedModules.add(moduleId);
+    if (moduleCacheWeddingId !== weddingId) {
+      const destroy = definition.destroy;
+      if (destroy && typeof module[destroy] === 'function') module[destroy]();
+      return false;
+    }
+    mountedModules.add(moduleId);
+    mountedModuleExports.set(moduleId, module);
     return true;
   })();
 

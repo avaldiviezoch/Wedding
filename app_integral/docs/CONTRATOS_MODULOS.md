@@ -50,6 +50,38 @@ Preferencias de aplicación y boda que no pertenezcan a otro dominio.
 ## Dashboard
 Solo compone indicadores derivados. No debe convertirse en una segunda base de datos.
 
+## Ciclo de vida de módulos
+Los módulos montados deben exponer una destrucción explícita cuando mantengan listeners, estado o DOM propio. Al cambiar de `weddingId`, cerrar sesión o cerrar el espacio de módulos, el shell debe ejecutar ese cleanup antes de permitir el montaje del siguiente contexto. Un módulo nunca puede reutilizar estado de una boda anterior.
+
 ## Regla transversal
 
 Un indicador, gráfico o tarjeta de dashboard se deriva de los módulos; no guarda una copia maestra.
+
+## Aislamiento por boda
+
+Todo dato operativo o personal del módulo pertenece a una única boda y debe resolverse mediante el `weddingId` del contexto activo. La clave o nombre lógico de un dato puede repetirse entre bodas siempre que su persistencia esté aislada por el `weddingId`.
+
+Un módulo no puede reutilizar entre bodas:
+- estado JavaScript;
+- listeners o subscriptions;
+- cachés;
+- DOM montado;
+- resultados de operaciones asíncronas.
+
+Al cambiar de `weddingId`, cerrar sesión o cambiar de contexto de usuario, el módulo debe ejecutar su cleanup y cargar exclusivamente el estado de la nueva boda.
+
+La privacidad es por boda, no necesariamente por usuario: owner/admin/editor/etc. autorizados pueden compartir los datos de una misma boda.
+
+Los catálogos o recursos globales son la única excepción y deben estar declarados explícitamente como globales.
+
+Cada módulo que persista o mantenga estado específico de boda debe poder demostrar:
+- lectura con el contexto de boda activo;
+- escritura con el contexto de boda activo;
+- cleanup de listeners/estado;
+- aislamiento mediante prueba Boda A ↔ Boda B.
+
+## Biblioteca personal de invitaciones
+
+Las invitaciones guardadas por una cuenta pertenecen a su `uid`, no al catálogo global ni directamente a una boda. La ruta conceptual es `users/{uid}/invitations/{invitationId}`. Un usuario nuevo debe comenzar con su biblioteca vacía. Una boda podrá posteriormente referenciar/usar una invitación de la biblioteca, pero la biblioteca personal permanece aislada por cuenta.
+
+Las invitaciones de desarrollo que anteriormente estaban hardcodeadas en el módulo no se consideran catálogo global: son datos heredables de la cuenta propietaria y deben migrarse una sola vez a su biblioteca personal antes de retirar definitivamente el fixture del código.

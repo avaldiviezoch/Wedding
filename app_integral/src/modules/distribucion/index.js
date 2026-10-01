@@ -25,7 +25,8 @@ import {
 } from './spatial-geometry.js?v=1';
 import { getAreaCatalogItem, getAreaPreset, getCatalogItem, getElementCatalogItem, getVisibleAreaPresets, getVisibleCatalogGroups, resolveCatalogType } from './distribution-catalog.js?v=4';
 import {
-  DEFAULT_BACKGROUND_ID,
+  NONE_BACKGROUND_ID,
+  LEGACY_DEFAULT_BACKGROUND_ID,
   addDistributionBackground,
   listDistributionBackgrounds,
   loadDistributionBackground,
@@ -204,21 +205,26 @@ function rectangularPerimeterPositions(count, width, height, centerX, centerY) {
     let distance = (perimeter * index / count + width / 2) % perimeter;
     let x;
     let y;
+    let side;
     if (distance < width) {
       x = centerX - width / 2 + distance;
       y = centerY - height / 2;
+      side = 'top';
     } else if ((distance -= width) < height) {
       x = centerX + width / 2;
       y = centerY - height / 2 + distance;
+      side = 'right';
     } else if ((distance -= height) < width) {
       x = centerX + width / 2 - distance;
       y = centerY + height / 2;
+      side = 'bottom';
     } else {
       distance -= width;
       x = centerX - width / 2;
       y = centerY + height / 2 - distance;
+      side = 'left';
     }
-    positions.push({ x, y });
+    positions.push({ x, y, side });
   }
   return positions;
 }
@@ -241,19 +247,31 @@ function tablePhysicalGeometry(tableSource, capacity) {
   if (shape === 'round') {
     const tableRadius = table.width / 2;
     const chairOrbit = tableRadius + PLAN_SCALE.metersToPixels(TABLE_CHAIR_OFFSET_METERS);
-    const labelOrbit = tableRadius + PLAN_SCALE.metersToPixels(TABLE_LABEL_OFFSET_METERS);
     for (let index = 0; index < count; index += 1) {
       const angle = -Math.PI / 2 + Math.PI * 2 * index / count;
       const cos = Math.cos(angle), sin = Math.sin(angle);
-      positions.push({ x:centerX + cos*chairOrbit, y:centerY + sin*chairOrbit, labelX:centerX + cos*labelOrbit, labelY:centerY + sin*labelOrbit, labelAlign:cos>.28?'left':cos<-.28?'right':'center' });
+      const chairX = centerX + cos * chairOrbit;
+      const chairY = centerY + sin * chairOrbit;
+      positions.push({
+        x: chairX,
+        y: chairY,
+        labelX: centerX + (chairX - centerX) * 1.64,
+        labelY: centerY + (chairY - centerY) * 1.64,
+        angle
+      });
     }
     return { shape, table, clearance, visualWidth, visualHeight, centerX, centerY, positions };
   }
   const chairOffset = PLAN_SCALE.metersToPixels(TABLE_CHAIR_OFFSET_METERS);
   const labelOffset = PLAN_SCALE.metersToPixels(TABLE_LABEL_OFFSET_METERS);
   rectangularPerimeterPositions(count, table.width + chairOffset*2, table.height + chairOffset*2, centerX, centerY).forEach((point) => {
-    const dx=point.x-centerX, dy=point.y-centerY, length=Math.hypot(dx,dy)||1, ux=dx/length, uy=dy/length;
-    positions.push({ x:point.x, y:point.y, labelX:point.x+ux*labelOffset, labelY:point.y+uy*labelOffset, labelAlign:ux>.32?'left':ux<-.32?'right':'center' });
+    let labelX = point.x;
+    let labelY = point.y;
+    if (point.side === 'top') labelY -= labelOffset;
+    else if (point.side === 'bottom') labelY += labelOffset;
+    else if (point.side === 'right') labelX += labelOffset;
+    else labelX -= labelOffset;
+    positions.push({ x:point.x, y:point.y, labelX, labelY });
   });
   return { shape, table, clearance, visualWidth, visualHeight, centerX, centerY, positions };
 }
@@ -411,15 +429,36 @@ function applySeatAndLabelRotation(node, rotation) {
   if (!Number.isFinite(centerX) || !Number.isFinite(centerY)) return;
 
   node.querySelectorAll('.distribution-chair[data-base-x]').forEach((chair) => {
-    const point = rotatePointAroundCenter(chair.dataset.baseX, chair.dataset.baseY, centerX, centerY, rotation);
+    const point = rotatePointAroundCenter(
+      chair.dataset.baseX,
+      chair.dataset.baseY,
+      centerX,
+      centerY,
+      rotation
+    );
     chair.style.left = `${point.x}px`;
     chair.style.top = `${point.y}px`;
   });
 
-  node.querySelectorAll('.distribution-seat-label[data-base-x]').forEach((label) => {
-    const point = rotatePointAroundCenter(label.dataset.baseX, label.dataset.baseY, centerX, centerY, rotation);
-    label.style.left = `${point.x}px`;
-    label.style.top = `${point.y}px`;
+  node.querySelectorAll('.distribution-seat-label-wrap[data-base-x]').forEach((wrapper) => {
+    const point = rotatePointAroundCenter(
+      wrapper.dataset.baseX,
+      wrapper.dataset.baseY,
+      centerX,
+      centerY,
+      rotation
+    );
+    wrapper.style.left = `${point.x}px`;
+    wrapper.style.top = `${point.y}px`;
+
+    const label = wrapper.querySelector('.distribution-seat-label');
+    if (label) {
+      const localX = Number(wrapper.dataset.baseX) - centerX;
+      const localY = Number(wrapper.dataset.baseY) - centerY;
+      const radians = normalizeRotation(rotation) * Math.PI / 180;
+      const worldX = localX * Math.cos(radians) - localY * Math.sin(radians);
+      label.dataset.align = worldX > 8 ? 'left' : worldX < -8 ? 'right' : 'center';
+    }
   });
 }
 
@@ -427,7 +466,6 @@ function applyPlacement(node, placement) {
   node.style.left = `${placement.x}px`;
   node.style.top = `${placement.y}px`;
   node.style.setProperty('--table-rotation', '0deg');
-  node.style.setProperty('--counter-rotation', '0deg');
   applySeatAndLabelRotation(node, normalizeRotation(placement.rotation));
 }
 
@@ -477,6 +515,13 @@ function renderTable(item, guestIndex, placement) {
   rotationGuide.append(rotationStem, rotationHandle);
   node.append(rotationGuide);
 
+  const seatsLayer = document.createElement('div');
+  seatsLayer.className = 'distribution-seats-layer';
+  seatsLayer.style.width = `${geometry.visualWidth}px`;
+  seatsLayer.style.height = `${geometry.visualHeight}px`;
+  seatsLayer.style.transform = 'none';
+  node.append(seatsLayer);
+
   geometry.positions.slice(0, capacity).forEach((position, seatIndex) => {
     const seat = seats[seatIndex] || {};
     const guest = guestForSeat(guestIndex, tableId, seat, seatIndex);
@@ -493,21 +538,30 @@ function renderTable(item, guestIndex, placement) {
     chair.style.left = `${position.x}px`;
     chair.style.top = `${position.y}px`;
     chair.title = guest ? escapeText(guest.name) : `Silla ${seatIndex + 1}`;
-    node.append(chair);
+    seatsLayer.append(chair);
 
     if (guest) {
+      const labelWrapper = document.createElement('span');
+      labelWrapper.className = 'distribution-seat-label-wrap';
+      labelWrapper.dataset.seatIndex = String(seatIndex);
+      labelWrapper.dataset.baseX = String(position.labelX);
+      labelWrapper.dataset.baseY = String(position.labelY);
+      labelWrapper.style.left = `${position.labelX}px`;
+      labelWrapper.style.top = `${position.labelY}px`;
+      const align = 'center';
+
       const label = document.createElement('span');
       label.className = 'distribution-seat-label';
-      label.style.left = `${position.labelX}px`;
-      label.style.top = `${position.labelY}px`;
-      label.dataset.align = position.labelAlign;
+      label.dataset.align = align;
       label.dataset.guestId = escapeText(guest.id);
       label.dataset.tableId = tableId;
       label.dataset.seatIndex = String(seatIndex);
       const guestName = escapeText(guest.name) || 'Invitado';
       label.textContent = compactGuestName(guestName);
       label.title = guestName;
-      node.append(label);
+
+      labelWrapper.append(label);
+      seatsLayer.append(labelWrapper);
     }
   });
   applySeatAndLabelRotation(node, normalizeRotation(placement.rotation));
@@ -2766,6 +2820,9 @@ async function mountDistribucion(context) {
     const referenceToggle = root.querySelector('[data-distribution-show-reference]');
     const referenceCatalog = root.querySelector('[data-distribution-reference-catalog]');
     const referenceFile = root.querySelector('[data-distribution-reference-file]');
+    const backgroundOnboarding = root.querySelector('[data-distribution-background-onboarding]');
+    const onboardingCatalog = root.querySelector('[data-distribution-onboarding-catalog]');
+    const onboardingUpload = root.querySelector('[data-distribution-onboarding-upload]');
     const referenceRemove = root.querySelector('[data-distribution-reference-remove]');
     const referenceImage = root.querySelector('[data-distribution-reference-image]');
     const referenceScale = root.querySelector('[data-distribution-reference-scale]');
@@ -2774,7 +2831,7 @@ async function mountDistribucion(context) {
     const referenceY = root.querySelector('[data-distribution-reference-y]');
     const referenceReset = root.querySelector('[data-distribution-reference-reset]');
     let referenceObjectUrl = '';
-    let activeReferenceId = DEFAULT_BACKGROUND_ID;
+    let activeReferenceId = NONE_BACKGROUND_ID;
     let referenceTransform = { scale:1, offsetX:0, offsetY:0 };
 
     const renderReferenceTransform = () => {
@@ -2797,7 +2854,20 @@ async function mountDistribucion(context) {
       const background = await loadDistributionBackground(id);
       if (!root.isConnected) return;
       releaseReferenceObjectUrl();
-      activeReferenceId = background.id;
+      activeReferenceId = background?.id || NONE_BACKGROUND_ID;
+      if (!background) {
+        releaseReferenceObjectUrl();
+        referenceImage.removeAttribute('src');
+        referenceImage.dataset.builtin = 'false';
+        world.classList.remove('has-reference-image');
+        world.classList.add('hide-reference-image');
+        referenceCatalog.value = NONE_BACKGROUND_ID;
+        referenceRemove.disabled = true;
+        referenceRemove.textContent = 'Sin plano seleccionado';
+        if (backgroundOnboarding) backgroundOnboarding.hidden = false;
+        return;
+      }
+      if (backgroundOnboarding) backgroundOnboarding.hidden = true;
       const source = background.blob ? URL.createObjectURL(background.blob) : background.source;
       if (background.blob) referenceObjectUrl = source;
       referenceImage.src = source;
@@ -2816,7 +2886,10 @@ async function mountDistribucion(context) {
         if (!groups.has(groupName)) groups.set(groupName, []);
         groups.get(groupName).push(background);
       });
-      referenceCatalog.replaceChildren(...[...groups.entries()].map(([groupName, items]) => {
+      const chooseOption = document.createElement('option');
+      chooseOption.value = NONE_BACKGROUND_ID;
+      chooseOption.textContent = 'Elegir fondo…';
+      referenceCatalog.replaceChildren(chooseOption, ...[...groups.entries()].map(([groupName, items]) => {
         const optgroup = document.createElement('optgroup');
         optgroup.label = groupName;
         items.forEach((background) => {
@@ -2827,8 +2900,8 @@ async function mountDistribucion(context) {
         });
         return optgroup;
       }));
-      const available = backgrounds.some((background) => background.id === selectedId);
-      await applyReferenceBackground(available ? selectedId : DEFAULT_BACKGROUND_ID);
+      const available = selectedId && backgrounds.some((background) => background.id === selectedId);
+      await applyReferenceBackground(available ? selectedId : NONE_BACKGROUND_ID);
     };
     let referenceSaveTimer = 0;
     const persistReferencePreference = ({ immediate = false } = {}) => {
@@ -2846,7 +2919,7 @@ async function mountDistribucion(context) {
     const normalizeReferencePreference = (value) => {
       const preference = value && typeof value === 'object' ? value : {};
       return {
-        backgroundId: String(preference.backgroundId || DEFAULT_BACKGROUND_ID),
+        backgroundId: String(preference.backgroundId || NONE_BACKGROUND_ID),
         visible: preference.visible !== false,
         scale: Math.max(0.5, Math.min(2.5, Number(preference.scale) || 1)),
         offsetX: Math.max(-600, Math.min(600, Number(preference.offsetX) || 0)),
@@ -2891,13 +2964,21 @@ async function mountDistribucion(context) {
       status.textContent = 'Encuadre del ambiente restablecido';
     });
 
+    onboardingCatalog?.addEventListener('click', () => {
+      referenceCatalog?.focus();
+      referenceCatalog?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    onboardingUpload?.addEventListener('click', () => {
+      referenceFile?.click();
+    });
+
     referenceCatalog.onchange = async () => {
-      await applyReferenceBackground(referenceCatalog.value);
+      await applyReferenceBackground(referenceCatalog.value || NONE_BACKGROUND_ID);
       referenceToggle.checked = true;
       world.classList.remove('hide-reference-image');
       await persistReferencePreference({ immediate:true });
       camera.fit();
-      status.textContent = activeReferenceId === DEFAULT_BACKGROUND_ID ? 'Casa Acapulco seleccionado como plano base' : 'Plano local seleccionado';
+      status.textContent = activeReferenceId ? 'Fondo seleccionado y guardado para esta boda' : 'Sin fondo seleccionado';
     };
     referenceFile.onchange = async () => {
       const file = referenceFile.files?.[0];
@@ -2922,14 +3003,14 @@ async function mountDistribucion(context) {
       void persistReferencePreference({ immediate:true });
     };
     referenceRemove.onclick = async () => {
-      if (activeReferenceId === DEFAULT_BACKGROUND_ID) return;
+      if (!activeReferenceId) return;
       await removeDistributionBackground(activeReferenceId);
-      await refreshReferenceCatalog(DEFAULT_BACKGROUND_ID);
+      await refreshReferenceCatalog(NONE_BACKGROUND_ID);
       referenceToggle.checked = true;
       world.classList.remove('hide-reference-image');
       await persistReferencePreference({ immediate:true });
       camera.fit();
-      status.textContent = 'Plano personalizado eliminado. Casa Acapulco vuelve a ser el plano base';
+      status.textContent = 'Plano personalizado eliminado';
     };
     root.querySelector('[data-distribution-rotate-left]').onclick = () => rotateSelected(-ROTATION_STEP);
     root.querySelector('[data-distribution-rotate-right]').onclick = () => rotateSelected(ROTATION_STEP);
