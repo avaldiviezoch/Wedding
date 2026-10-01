@@ -190,7 +190,7 @@ function render() {
   root.innerHTML = `<div class="ck-shell ck-original">
     <header class="ck-original-hero">
       <span class="ck-original-eyebrow">MÓDULO · PLANIFICACIÓN</span>
-      <div class="ck-original-title-row"><div class="ck-title-icon" aria-hidden="true"><img src="assets/icons/checklist.png?v=1" width="34" height="34" alt=""></div><div><h1>Checklist de boda</h1><p>Organiza las tareas, responsables, fechas y avances de la preparación.</p></div><div class="ck-hero-percent"><strong>${stats.percent}%</strong><span>${stats.completed} de ${stats.total} completadas</span></div></div>
+      <div class="ck-original-title-row"><div class="ck-title-icon" aria-hidden="true"><img src="../../../assets/icons/checklist.png?v=1" width="34" height="34" alt=""></div><div><h1>Checklist de boda</h1><p>Organiza las tareas, responsables, fechas y avances de la preparación.</p></div><div class="ck-hero-percent"><strong>${stats.percent}%</strong><span>${stats.completed} de ${stats.total} completadas</span></div></div>
       <div class="ck-hero-progress"><i style="width:${stats.percent}%"></i></div>
     </header>
 
