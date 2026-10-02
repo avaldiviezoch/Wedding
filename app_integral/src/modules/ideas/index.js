@@ -1,12 +1,15 @@
 import { readPlannerStorageKey, subscribePlannerStorageKey, writePlannerStorageKey } from '../../services/planner-cloud.js';
+import { readUiPreference, writeUiPreference } from '../../services/ui-preferences.js?v=1';
 
-const TEMPLATE_URL = new URL('./index.html?v=3', import.meta.url);
+const TEMPLATE_URL = new URL('./index.html?v=4', import.meta.url);
 const STORAGE_KEY = 'planificador_bodas_ideas_v1';
+const CARD_SIZE_PREFERENCE = 'ideas.cardSize';
+const CARD_SIZES = new Set(['large','medium','compact','mini']);
 let templatePromise = null;
 let cleanup = () => {};
 let lifecycleToken = 0;
 
-const state = { items: [], filter: 'all', search: '', context: null, editingId: '', usingId: '' };
+const state = { items: [], filter: 'all', search: '', cardSize: 'large', context: null, editingId: '', usingId: '' };
 
 function escapeHtml(value = '') {
   return String(value).replace(/[&<>"']/g, (character) => ({
@@ -25,12 +28,18 @@ function normalizeUrl(value = '') {
   }
 }
 
-async function resolvePinterestPreview(value = '') {
+function previewProvider(value = '') {
+  try {
+    const host = new URL(value).hostname.toLowerCase();
+    if (host === 'pin.it' || host === 'pinterest.com' || host.endsWith('.pinterest.com')) return 'pinterest';
+    if (host === 'temu.com' || host.endsWith('.temu.com')) return 'temu';
+  } catch {}
+  return '';
+}
+
+async function resolveRemotePreview(value = '') {
   const source = normalizeUrl(value);
-  if (!source) return null;
-  let host = '';
-  try { host = new URL(source).hostname.toLowerCase(); } catch { return null; }
-  if (!['pin.it', 'www.pinterest.com', 'pinterest.com'].includes(host) && !host.endsWith('.pinterest.com')) return null;
+  if (!source || !previewProvider(source)) return null;
   try {
     const endpoint = `https://migrandia-dev.avaldiviezoch.workers.dev/api/link-preview?url=${encodeURIComponent(source)}`;
     const response = await fetch(endpoint, { mode: 'cors', credentials: 'omit' });
@@ -52,9 +61,16 @@ async function resolvePinterestPreview(value = '') {
 async function resolveLinkPreview(value = '') {
   const source = normalizeUrl(value);
   if (!source) return null;
+
+  const provider = previewProvider(source);
+  if (provider) {
+    const remote = await resolveRemotePreview(source);
+    if (remote?.image || remote?.title) return remote;
+  }
+
   const directImage = imageFromProductUrl(source);
   if (directImage) return { image: directImage, title: '' };
-  return resolvePinterestPreview(source);
+  return null;
 }
 
 function imageFromProductUrl(value = '') {
@@ -98,6 +114,12 @@ function render(root) {
   const empty = root.querySelector('[data-ideas-empty]');
   const total = root.querySelector('[data-ideas-total]');
   if (total) total.textContent = String(state.items.length);
+  board.dataset.cardSize = state.cardSize;
+  root.querySelectorAll('[data-ideas-size]').forEach((button) => {
+    const active = button.dataset.ideasSize === state.cardSize;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
   const query = state.search.trim().toLowerCase();
   const items = state.items.filter((item) =>
     (state.filter === 'all' || item.type === state.filter)
@@ -200,6 +222,7 @@ export function destroyIdeas() {
   state.items = [];
   state.filter = 'all';
   state.search = '';
+  state.cardSize = 'large';
   state.context = null;
   state.editingId = '';
   state.usingId = '';
@@ -224,6 +247,8 @@ export async function mountIdeas(context) {
   root.dataset.mounted = 'true';
   root.dataset.weddingId = String(context.id);
   state.context = context;
+  const savedCardSize = String(readUiPreference(CARD_SIZE_PREFERENCE, 'large'));
+  state.cardSize = CARD_SIZES.has(savedCardSize) ? savedCardSize : 'large';
   try {
     state.items = normalizeItems(await readPlannerStorageKey(context, STORAGE_KEY));
   } catch (error) {
@@ -256,6 +281,17 @@ export async function mountIdeas(context) {
     state.search = event.currentTarget.value;
     render(root);
   };
+  root.querySelectorAll('[data-ideas-size]').forEach((button) => {
+    button.onclick = () => {
+      const nextSize = String(button.dataset.ideasSize || '');
+      if (!CARD_SIZES.has(nextSize)) return;
+      state.cardSize = nextSize;
+      writeUiPreference(CARD_SIZE_PREFERENCE, nextSize);
+      render(root);
+      const control = root.querySelector('[data-ideas-size-control]');
+      if (control) control.open = false;
+    };
+  });
 
   urlInput.onchange = async () => {
     if (imageInput.value.trim()) return;
