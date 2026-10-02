@@ -958,3 +958,12 @@ Construir las acciones funcionales de los botones de la carátula y luego recons
 - El incidente histórico 40 vs 38 se debió a dos registros vinculados correctamente cuyos estados canónicos habían quedado en `pending`; los datos fueron reparados de forma controlada antes de esta integración.
 - El diagnóstico técnico de IDs permanece reservado a desarrollo/QA y no aparece en la UI de usuarios.
 - No se modificaron Firebase Rules, Auth, Storage, usuarios ni el módulo independiente Música.
+
+## 2026-10-02 — Producción: Ideas, tamaños y Temu móvil
+
+- Se integró en producción la versión validada de Ideas desde reestructuración.
+- Se añadió un selector de cuatro tamaños para las tarjetas: Actual, Medio, Compacto y Miniatura; Actual conserva exactamente el tamaño previo y es el valor por defecto.
+- La preferencia de tamaño es personal por usuario y navegador mediante `src/services/ui-preferences.js`; no modifica datos compartidos de la boda.
+- Se integró soporte para enlaces largos de Temu y enlaces cortos `share.temu.com`, usando `/api/link-preview` y `/api/image-proxy` del Worker ya validado.
+- Pinterest conserva su flujo de preview existente.
+- Se preservó la ruta de icono propia de producción y no se modificaron datos de Ideas, Firebase Rules, Auth ni Storage.
