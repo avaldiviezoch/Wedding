@@ -947,3 +947,14 @@ Construir las acciones funcionales de los botones de la carátula y luego recons
 - Editar dimensiones conserva el placement de Distribución (x, y y rotación).
 - Reducir capacidad reacomoda únicamente invitados cuyas sillas quedarían fuera, siempre que la nueva capacidad alcance; no elimina ni desasigna invitados.
 - Producción PR #506/#507 permanece sin fusionar hasta aprobación en desarrollo.
+
+## 2026-10-02 — Producción: Invitados, RSVP y Música
+
+- Se integró en producción la versión validada del módulo Invitados proveniente de reestructuración.
+- Invitados → Música queda como vista de solo lectura de solicitudes musicales de las invitaciones, con búsqueda, filtros y portadas, sin configuración RSVP ni escrituras musicales desde esa pantalla.
+- Se mantiene separado e intacto el módulo independiente Música.
+- Se integraron los fixes de consistencia RSVP ↔ Invitados: el vínculo usa IDs estables y un invitado con `rsvpResponseId` preserva su estado durante ediciones ordinarias.
+- Se mantiene la regla de que una respuesta confirmada aplicada a invitados seleccionados establece `guest.status = confirmed`.
+- El incidente histórico 40 vs 38 se debió a dos registros vinculados correctamente cuyos estados canónicos habían quedado en `pending`; los datos fueron reparados de forma controlada antes de esta integración.
+- El diagnóstico técnico de IDs permanece reservado a desarrollo/QA y no aparece en la UI de usuarios.
+- No se modificaron Firebase Rules, Auth, Storage, usuarios ni el módulo independiente Música.

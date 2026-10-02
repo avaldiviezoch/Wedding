@@ -2,7 +2,7 @@
   <header class="guests-hero">
     <span class="guests-eyebrow">MÓDULO · ESPACIO DE LA BODA</span>
     <div class="guests-title-row">
-      <div class="guests-title-icon" aria-hidden="true"><img src="../../../assets/icons/invitados.png?v=1" width="34" height="34" alt=""></div>
+      <div class="guests-title-icon" aria-hidden="true"><img src="https://raw.githubusercontent.com/avaldiviezoch/Wedding/main/invitaciones/invitacion_0/assets/invitados.png" width="34" height="34" alt=""></div>
       <div>
         <h1>Invitados</h1>
         <p>Gestiona las personas, confirmaciones y asignaciones de la boda.</p>
@@ -64,38 +64,41 @@
     <p class="guests-read-state" data-rsvp-state></p>
   </div>
 
-  <div class="music-pane" data-guests-pane="music" hidden>
-    <section class="music-overview">
-      <article><span>Canciones</span><strong data-music-total>0</strong><small>solicitudes recibidas</small></article>
-      <article><span>Personas</span><strong data-music-people>0</strong><small>que enviaron música</small></article>
+  <div class="guest-music-pane" data-guests-pane="music" hidden>
+    <section class="guest-music-guest-hero">
+      <div class="guest-music-guest-hero-copy">
+        <span class="guest-music-head-kicker">MÚSICA DE INVITADOS</span>
+        <h2>La banda sonora que están construyendo tus invitados</h2>
+        <p>Reúne en un solo lugar las canciones que llegan desde la invitación, sin configuraciones ni pasos técnicos.</p>
+      </div>
+      <div class="guest-music-guest-hero-mark" aria-hidden="true">♫</div>
+    </section>
+
+    <section class="guest-music-overview" aria-label="Resumen de solicitudes musicales">
+      <article><span>Solicitudes</span><strong data-music-total>0</strong><small>canciones recibidas</small></article>
+      <article><span>Invitados</span><strong data-music-people>0</strong><small>con pedidos musicales</small></article>
       <article><span>Únicas</span><strong data-music-unique>0</strong><small>canciones distintas</small></article>
     </section>
-    <section class="music-config">
-      <div class="music-config-head"><div><h2>Encuesta de música</h2><p>Configura el mismo bloque musical que utilizan tus invitaciones. Se conserva el token RSVP actual.</p></div><span data-music-config-state></span></div>
-      <form class="music-config-form" data-music-config-form>
-        <label class="guests-field music-config-wide"><span>Título</span><input name="title" maxlength="110"></label>
-        <label class="guests-field music-config-wide"><span>Texto para tus invitados</span><textarea name="intro" maxlength="500" rows="3"></textarea></label>
-        <label class="guests-field"><span>Máximo de canciones</span><select name="maxSongs"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></label>
-        <label class="guests-field"><span>Etiqueta de dedicatoria</span><input name="messageLabel" maxlength="90"></label>
-        <div class="music-config-switches music-config-wide">
-          <label><input type="checkbox" name="enabled"><span>Activar encuesta</span></label>
-          <label><input type="checkbox" name="askArtist"><span>Preguntar artista</span></label>
-          <label><input type="checkbox" name="askMessage"><span>Permitir dedicatoria</span></label>
+
+    <section class="guest-music-library">
+      <div class="guest-music-library-toolbar">
+        <div>
+          <span class="guest-music-library-label">SOLICITUDES RECIBIDAS</span>
+          <h3>Selección de tus invitados</h3>
+          <p>Explora por canción, artista, invitado o dedicatoria.</p>
         </div>
-        <section class="music-config-preview music-config-wide" data-music-config-preview aria-label="Vista previa de la encuesta musical"></section>
-        <section class="music-integration music-config-wide">
-          <div class="music-integration-head"><div><strong>Integración Solo Música</strong><span>Usa el mismo token y la misma sesión RSVP de la invitación.</span></div></div>
-          <label class="guests-field"><span>Enlace público</span><input type="text" data-music-public-url readonly placeholder="RSVP aún no publicado"></label>
-          <div class="music-integration-actions">
-            <button type="button" data-music-copy-url>Copiar enlace</button>
-            <button type="button" data-music-open-url>Abrir vista</button>
-          </div>
-        </section>
-        <div class="music-config-actions music-config-wide"><button class="guests-save" type="submit" data-music-config-save>Guardar configuración</button></div>
-      </form>
+        <label class="guest-music-search">
+          <span aria-hidden="true">⌕</span>
+          <input type="search" data-guest-music-search placeholder="Buscar canción, artista o invitado" aria-label="Buscar canción, artista o invitado">
+        </label>
+      </div>
+      <div class="guest-music-filters" aria-label="Filtrar solicitudes musicales">
+        <button type="button" class="is-active" data-music-filter="all">Todas</button>
+        <button type="button" data-music-filter="message">Con dedicatoria</button>
+        <button type="button" data-music-filter="no-message">Sin dedicatoria</button>
+      </div>
+      <section class="guest-music-request-list" data-music-list></section>
     </section>
-    <section class="music-head"><div><h2>Música propuesta</h2><p>Solicitudes enviadas desde las invitaciones y vinculadas al RSVP de esta boda.</p></div></section>
-    <section class="music-request-list" data-music-list></section>
   </div>
 
   <div class="tables-pane" data-guests-pane="tables" hidden>
@@ -208,8 +211,8 @@
       <fieldset class="table-physical-picker" data-table-physical-picker>
         <legend>Medida física del tablero</legend>
         <div class="table-physical-fields">
-          <label><span data-table-physical-width-label>Diámetro (m)</span><input type="number" name="tabletopWidthM" min="0.5" max="4" step="0.1" value="1.83" data-table-physical-width></label>
-          <label data-table-physical-height-field hidden><span>Fondo (m)</span><input type="number" name="tabletopHeightM" min="0.5" max="4" step="0.1" value="1.83" data-table-physical-height></label>
+          <label><span data-table-physical-width-label>Diámetro (m)</span><input type="number" name="tabletopWidthM" min="0.5" max="4" step="0.01" value="1.83" data-table-physical-width></label>
+          <label data-table-physical-height-field hidden><span>Fondo (m)</span><input type="number" name="tabletopHeightM" min="0.5" max="4" step="0.01" value="1.83" data-table-physical-height></label>
         </div>
         <div class="table-physical-foot">
           <small>Cada mesa puede tener una medida distinta. Distribución usa esta misma medida para el plano, sillas y validaciones.</small>

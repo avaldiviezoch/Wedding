@@ -85,3 +85,13 @@ Cada módulo que persista o mantenga estado específico de boda debe poder demos
 Las invitaciones guardadas por una cuenta pertenecen a su `uid`, no al catálogo global ni directamente a una boda. La ruta conceptual es `users/{uid}/invitations/{invitationId}`. Un usuario nuevo debe comenzar con su biblioteca vacía. Una boda podrá posteriormente referenciar/usar una invitación de la biblioteca, pero la biblioteca personal permanece aislada por cuenta.
 
 Las invitaciones de desarrollo que anteriormente estaban hardcodeadas en el módulo no se consideran catálogo global: son datos heredables de la cuenta propietaria y deben migrarse una sola vez a su biblioteca personal antes de retirar definitivamente el fixture del código.
+
+## Diagnóstico técnico RSVP ↔ Invitados
+
+La relación RSVP ↔ Invitados se mantiene por IDs estables, no por nombre. Editar el nombre de un invitado no debe cambiar `guestId`, `rsvpResponseId`, estado RSVP, mesa ni silla.
+
+Invariante: si un invitado está incluido en `rsvpManagement.linkedGuestIds` de una respuesta con `attendance = confirmed`, su estado canónico debe ser `guest.status = confirmed`.
+
+Los invitados ya vinculados a RSVP no deben permitir que una edición ordinaria de nombre, relación, lado, restricción u otros datos personales sobrescriba su `status`.
+
+Existe en el repositorio de desarrollo una herramienta QA `diagnostico_rsvp_vs_invitados.html` para comparar `guestId`, `responseId`, vínculos y estado canónico. Es una herramienta de desarrollo/QA y no debe exponerse en la interfaz normal de usuarios.
