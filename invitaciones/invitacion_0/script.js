@@ -148,11 +148,17 @@
     observer.observe(closingWriting);
   }
 
+  function setRsvpPanelState(isOpen) {
+    if (!rsvpButton || !rsvpPanel) return;
+    rsvpPanel.hidden = !isOpen;
+    rsvpPanel.style.display = isOpen ? '' : 'none';
+    rsvpButton.setAttribute('aria-expanded', String(isOpen));
+  }
+
   function toggleRsvp() {
     if (!rsvpButton || !rsvpPanel) return;
-    const willOpen = rsvpPanel.hidden;
-    rsvpPanel.hidden = !willOpen;
-    rsvpButton.setAttribute('aria-expanded', String(willOpen));
+    const isOpen = rsvpButton.getAttribute('aria-expanded') === 'true';
+    setRsvpPanelState(!isOpen);
   }
 
   function toggleGiftDetails() {
@@ -236,6 +242,7 @@
 
   if (rsvpHost) rsvpHost.setAttribute('data-mgd-rsvp-token', RSVP_TOKEN);
   if (musicHost) musicHost.setAttribute('data-mgd-music-token', RSVP_TOKEN);
+  setRsvpPanelState(false);
   rsvpButton?.addEventListener('click', toggleRsvp);
   giftButton?.addEventListener('click', toggleGiftDetails);
   musicButton?.addEventListener('click', toggleMusicRequest);
