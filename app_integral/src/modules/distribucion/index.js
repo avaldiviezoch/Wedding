@@ -2940,8 +2940,30 @@ async function mountDistribucion(context) {
       await refreshReferenceCatalog(preference.backgroundId);
     };
 
-    const storedReferencePreference = await readPlannerStorageKey(context, DISTRIBUTION_VIEW_STORAGE_KEY).catch(() => null);
+    let storedReferencePreference = await readPlannerStorageKey(context, DISTRIBUTION_VIEW_STORAGE_KEY).catch(() => null);
     if (epoch !== mountEpoch || !root.isConnected) return;
+
+    // Reparación dirigida del encuadre accidental observado en Casa Acapulco.
+    // Solo corrige el fondo; no modifica mesas, sillas ni elementos del plano.
+    const storedReferenceNormalized = normalizeReferencePreference(storedReferencePreference);
+    const hasAccidentalCasaAcapulcoOffset =
+      storedReferenceNormalized.backgroundId === LEGACY_DEFAULT_BACKGROUND_ID
+      && storedReferenceNormalized.scale === 1
+      && storedReferenceNormalized.offsetX === 0
+      && storedReferenceNormalized.offsetY === 450;
+
+    if (hasAccidentalCasaAcapulcoOffset) {
+      storedReferencePreference = {
+        ...storedReferenceNormalized,
+        offsetY: 0
+      };
+      await writePlannerStorageKey(
+        context,
+        DISTRIBUTION_VIEW_STORAGE_KEY,
+        storedReferencePreference
+      ).catch(() => {});
+    }
+
     await applyReferencePreference(storedReferencePreference);
     if (epoch !== mountEpoch || !root.isConnected) return;
 
