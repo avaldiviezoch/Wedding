@@ -967,3 +967,12 @@ Construir las acciones funcionales de los botones de la carátula y luego recons
 - Se integró soporte para enlaces largos de Temu y enlaces cortos `share.temu.com`, usando `/api/link-preview` y `/api/image-proxy` del Worker ya validado.
 - Pinterest conserva su flujo de preview existente.
 - Se preservó la ruta de icono propia de producción y no se modificaron datos de Ideas, Firebase Rules, Auth ni Storage.
+
+## 2026-10-04 — Producción: QA móvil y ajustes validados
+
+- Checklist: se retiró el texto técnico persistente `Datos de la boda activa`; el estado visual solo aparece durante guardado.
+- Proveedores: los KPIs móviles adoptan el mismo patrón responsive de Checklist, con dos columnas y sin scroll horizontal.
+- Distribución: se conserva la barra compacta de Ambiente ya estable en producción; no se migraron las propuestas visuales intermedias de tarjetas grandes.
+- Distribución: se añadió una reparación dirigida para el caso accidental de Casa Acapulco con `scale=1`, `offsetX=0`, `offsetY=450`, corrigiendo únicamente `offsetY` a `0`.
+- La reparación no modifica coordenadas de mesas, sillas ni elementos del plano.
+- Se actualizaron únicamente las versiones de carga necesarias para publicar estos cambios.
