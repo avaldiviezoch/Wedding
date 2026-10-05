@@ -218,11 +218,40 @@
     }
   }
 
-  createPetals();
-  renderCountdown();
-  initHandsReveal();
-  initClosingWriting();
-  window.setInterval(renderCountdown, 1000);
+  // Register essential interactive controls first. On older Android/WebView,
+  // a failure in a non-essential animation API must never disable RSVP/gifts/music.
+  if (rsvpHost) rsvpHost.setAttribute('data-mgd-rsvp-token', RSVP_TOKEN);
+  if (musicHost) musicHost.setAttribute('data-mgd-music-token', RSVP_TOKEN);
+  setRsvpPanelState(false);
+  if (rsvpButton) rsvpButton.addEventListener('click', toggleRsvp);
+  if (giftButton) giftButton.addEventListener('click', toggleGiftDetails);
+  if (musicButton) musicButton.addEventListener('click', toggleMusicRequest);
+  document.querySelectorAll('[data-copy]').forEach(button => {
+    button.addEventListener('click', () => copyGiftValue(button));
+  });
+
+  // Progressive enhancement only: visual effects cannot block core interaction.
+  try { createPetals(); } catch (error) { console.warn('[Invitación] Pétalos omitidos.', error); }
+  try { renderCountdown(); } catch (error) { console.warn('[Invitación] Countdown inicial omitido.', error); }
+  try {
+    if ('IntersectionObserver' in window) initHandsReveal();
+    else if (handsSection) handsSection.classList.add('is-visible');
+  } catch (error) {
+    if (handsSection) handsSection.classList.add('is-visible');
+    console.warn('[Invitación] Animación de manos omitida.', error);
+  }
+  try {
+    if ('IntersectionObserver' in window && Element.prototype.animate) initClosingWriting();
+  } catch (error) {
+    if (closingWriting) {
+      closingWriting.style.clipPath = 'none';
+      closingWriting.style.willChange = 'auto';
+    }
+    console.warn('[Invitación] Animación final omitida.', error);
+  }
+  window.setInterval(() => {
+    try { renderCountdown(); } catch (error) {}
+  }, 1000);
 
   if (entryVideo) {
     entryVideo.controls = false;
@@ -238,16 +267,6 @@
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
     startEntry();
-  });
-
-  if (rsvpHost) rsvpHost.setAttribute('data-mgd-rsvp-token', RSVP_TOKEN);
-  if (musicHost) musicHost.setAttribute('data-mgd-music-token', RSVP_TOKEN);
-  setRsvpPanelState(false);
-  rsvpButton?.addEventListener('click', toggleRsvp);
-  giftButton?.addEventListener('click', toggleGiftDetails);
-  musicButton?.addEventListener('click', toggleMusicRequest);
-  document.querySelectorAll('[data-copy]').forEach(button => {
-    button.addEventListener('click', () => copyGiftValue(button));
   });
 
   if (rsvpHost || musicHost) {
