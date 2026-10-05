@@ -988,3 +988,10 @@ Construir las acciones funcionales de los botones de la carátula y luego recons
 - Se aplica una sombra cromática muy sutil alrededor de cada tarjeta, ligeramente más visible en hover.
 - Se actualiza el cache busting de Ideas a JS v20 y CSS v10.
 - No se modifican imágenes guardadas, URLs, IDs, Firebase Rules, Auth, Storage ni el contrato persistente.
+
+
+## 2026-10-05 — Producción: iconografía Nivel 1 del catálogo de Distribución
+- Se incorporaron los 46 SVG Nivel 1 aprobados en `assets/distribucion/icons/catalog/`.
+- Los botones del catálogo de Distribución usan la nueva iconografía en desktop y móvil, incluidas las áreas dibujables.
+- Los SVG se muestran como máscaras monocromáticas para mantener la paleta visual del sistema.
+- No se modificó el dibujo de objetos dentro del plano, geometría, persistencia ni Firebase.
