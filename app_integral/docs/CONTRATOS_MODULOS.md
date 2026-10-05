@@ -95,3 +95,17 @@ Invariante: si un invitado está incluido en `rsvpManagement.linkedGuestIds` de 
 Los invitados ya vinculados a RSVP no deben permitir que una edición ordinaria de nombre, relación, lado, restricción u otros datos personales sobrescriba su `status`.
 
 Existe en el repositorio de desarrollo una herramienta QA `diagnostico_rsvp_vs_invitados.html` para comparar `guestId`, `responseId`, vínculos y estado canónico. Es una herramienta de desarrollo/QA y no debe exponerse en la interfaz normal de usuarios.
+
+
+## Ideas — alcance y permisos
+
+El tablero de Ideas pertenece a la boda activa y se comparte entre los miembros autorizados de esa boda mediante la clave existente `planificador_bodas_ideas_v1`.
+
+Permisos funcionales del módulo:
+- `owner`: lectura y gestión completa de Ideas;
+- `admin`: lectura y gestión completa de Ideas;
+- `editor`, `provider` y `viewer`: solo lectura dentro de Ideas.
+
+“Gestión” incluye agregar, editar, eliminar y usar una idea para iniciar un flujo hacia Checklist, Presupuesto o Proveedores.
+
+Esta restricción es específica de Ideas y no modifica las capacidades globales de otros módulos ni cambia el esquema persistente.
