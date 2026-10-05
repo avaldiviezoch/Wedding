@@ -1,10 +1,17 @@
 import { initializeApp, getApp, getApps } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
 import { doc, getDoc, getFirestore, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
-import { LEGACY_RSVP_MESSAGE, saveOwnedRsvp, saveOwnedRsvpMusic } from './rsvp-owner-client.js?v=20261003-fix1';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app-check.js';
+import { LEGACY_RSVP_MESSAGE, saveOwnedRsvp, saveOwnedRsvpMusic } from './rsvp-owner-client.js?v=20261005-appcheck1';
 
 const VERSION='20260819-2520-inv5-music-fields1';
 const firebaseConfig={apiKey:'AIzaSyDCRuQgMjnm7KcAN_qo8AHPD3ueyis4-LY',authDomain:'migrandia.firebaseapp.com',projectId:'migrandia',storageBucket:'migrandia.firebasestorage.app',messagingSenderId:'7432985765',appId:'1:7432985765:web:b3a4844f41ac2a1376c14c'};
 const app=getApps().length?getApp():initializeApp(firebaseConfig);
+const APP_CHECK_SITE_KEY='6LeukOAtAAAAAJODsmEu9XyMLnyb6JH9TNYizFHk';
+const APP_CHECK_HOSTS=new Set(['migrandiapp.com','www.migrandiapp.com','avaldiviezoch.github.io']);
+const currentHost=String(globalThis.location?.hostname||'').trim().toLowerCase();
+if(APP_CHECK_HOSTS.has(currentHost)){
+  initializeAppCheck(app,{provider:new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),isTokenAutoRefreshEnabled:true});
+}
 const db=getFirestore(app);
 const installed=new WeakSet();
 
