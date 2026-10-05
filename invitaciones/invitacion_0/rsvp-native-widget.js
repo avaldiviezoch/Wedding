@@ -78,9 +78,14 @@ async function prepareRsvpSecurity(form,host){
     action:'rsvp_submit',
     appearance:'interaction-only',
     size:'flexible',
-    callback(token){form.dataset.mgdTurnstileToken=String(token||'');},
+    callback(token){form.dataset.mgdTurnstileToken=String(token||'');delete form.dataset.mgdTurnstileError;},
     'expired-callback'(){delete form.dataset.mgdTurnstileToken;},
-    'error-callback'(){delete form.dataset.mgdTurnstileToken;}
+    'error-callback'(errorCode){
+      delete form.dataset.mgdTurnstileToken;
+      form.dataset.mgdTurnstileError=String(errorCode||'unknown');
+      console.error('[Mi Gran Día] Turnstile error',{code:form.dataset.mgdTurnstileError});
+      return true;
+    }
   });
   turnstileWidgets.set(form,widgetId);
 }
@@ -106,14 +111,18 @@ async function waitForRsvpSecurityToken(form,timeoutMs=8000){
   let token=readToken();
   if(token)return token;
 
-  if(widgetId!==undefined&&globalThis.turnstile?.reset){
-    try{globalThis.turnstile.reset(widgetId);}catch(_){}
-  }
+  const terminalTurnstileError=()=>{
+    const code=String(form.dataset.mgdTurnstileError||'');
+    return code==='400020'||code==='110100'||code==='110110'||code==='110200'||code==='400021'||code==='400070';
+  };
+
+  if(terminalTurnstileError())return '';
 
   const started=Date.now();
   while(Date.now()-started<timeoutMs){
     token=readToken();
     if(token)return token;
+    if(terminalTurnstileError())return '';
     await new Promise(resolve=>setTimeout(resolve,100));
   }
   return '';
@@ -126,8 +135,12 @@ async function verifyRsvpSecurity(form,host,rsvpToken,responseId){
 
   const turnstileToken=await waitForRsvpSecurityToken(form,2500);
   if(!turnstileToken){
-    const error=new Error('No se pudo completar el envío. Inténtalo nuevamente.');
+    const turnstileCode=String(form.dataset.mgdTurnstileError||'');
+    const error=new Error(turnstileCode
+      ? `No se pudo iniciar la verificación de seguridad (Turnstile ${turnstileCode}).`
+      : 'No se pudo completar la verificación de seguridad. Inténtalo nuevamente.');
     error.code='rsvp-security-rejected';
+    error.turnstileCode=turnstileCode;
     throw error;
   }
 
