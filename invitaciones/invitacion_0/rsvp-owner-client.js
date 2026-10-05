@@ -1,5 +1,6 @@
 import { getApps, initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app-check.js';
 import {
   doc,
   getFirestore,
@@ -10,6 +11,21 @@ import {
 
 export const LEGACY_RSVP_MESSAGE = 'Esta confirmación pertenece al sistema anterior y no puede modificarse desde aquí. Solicita el cambio a los organizadores.';
 const RSVP_APP_NAME = 'mgd-rsvp-anonymous';
+const APP_CHECK_SITE_KEY = '6LeukOAtAAAAAJODsmEu9XyMLnyb6JH9TNYizFHk';
+const APP_CHECK_HOSTS = new Set(['migrandiapp.com','www.migrandiapp.com','avaldiviezoch.github.io']);
+
+function enableAppCheck(app) {
+  const host = String(globalThis.location?.hostname || '').trim().toLowerCase();
+  if (!APP_CHECK_HOSTS.has(host)) return;
+  try {
+    initializeAppCheck(app, {
+      provider: new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),
+      isTokenAutoRefreshEnabled: true
+    });
+  } catch (error) {
+    if (!String(error?.code || '').includes('already-initialized')) throw error;
+  }
+}
 
 function isNotFound(error) {
   return String(error?.code || '').includes('not-found');
@@ -34,6 +50,7 @@ function customDataFields(customData = {}) {
 export async function ensureRsvpIdentity(app) {
   const rsvpApp = getApps().find((candidate) => candidate.name === RSVP_APP_NAME)
     || initializeApp(app.options, RSVP_APP_NAME);
+  enableAppCheck(rsvpApp);
   const auth = getAuth(rsvpApp);
   const user = auth.currentUser || (await signInAnonymously(auth)).user;
   return { db: getFirestore(rsvpApp), user };
