@@ -976,3 +976,15 @@ Construir las acciones funcionales de los botones de la carátula y luego recons
 - Distribución: se añadió una reparación dirigida para el caso accidental de Casa Acapulco con `scale=1`, `offsetX=0`, `offsetY=450`, corrigiendo únicamente `offsetY` a `0`.
 - La reparación no modifica coordenadas de mesas, sillas ni elementos del plano.
 - Se actualizaron únicamente las versiones de carga necesarias para publicar estos cambios.
+
+
+## 2026-10-04 — Ideas: permisos y diferenciación visual en producción
+
+- Ideas se mantiene compartido por boda mediante `planificador_bodas_ideas_v1`.
+- Solo `owner` y `admin` pueden agregar, editar, eliminar o usar ideas; `editor`, `provider` y `viewer` quedan en lectura.
+- Se conserva el grid y las miniaturas 4:3.
+- Cada tarjeta distingue `Inspiración` y `Por comprar` con badge visible, fuente derivada de la URL y CTA contextual.
+- Inspiración usa un acento rosado empolvado y Por comprar un acento oliva.
+- Se aplica una sombra cromática muy sutil alrededor de cada tarjeta, ligeramente más visible en hover.
+- Se actualiza el cache busting de Ideas a JS v20 y CSS v10.
+- No se modifican imágenes guardadas, URLs, IDs, Firebase Rules, Auth, Storage ni el contrato persistente.
