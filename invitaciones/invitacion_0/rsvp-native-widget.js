@@ -204,11 +204,23 @@ async function config(token){
       return d;
     }catch(error){
       lastError=error;
-      const code=String(error?.code||'');
+      const code=String(error?.code||'').toLowerCase();
       const message=String(error?.message||'').toLowerCase();
-      const transient=code.includes('unavailable')||code.includes('deadline-exceeded')||message.includes('offline')||message.includes('network');
-      if(!transient||attempt===2)break;
-      await wait(400*(attempt+1));
+      const terminal=message.includes('este formulario no existe')||message.includes('confirmaciones están pausadas');
+      const retryable=!terminal&&(
+        code.includes('unavailable')||
+        code.includes('deadline-exceeded')||
+        code.includes('cancelled')||
+        code.includes('internal')||
+        code.includes('unknown')||
+        code.includes('app-check')||
+        message.includes('offline')||
+        message.includes('network')||
+        message.includes('app check')||
+        message.includes('fetch')
+      );
+      if(!retryable||attempt===2)break;
+      await wait(700*(attempt+1));
     }
   }
   console.error('[Mi Gran Día] No se pudo obtener la configuración RSVP.',lastError);
