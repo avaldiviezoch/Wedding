@@ -10,7 +10,12 @@ const APP_CHECK_SITE_KEY='6LeukOAtAAAAAJODsmEu9XyMLnyb6JH9TNYizFHk';
 const APP_CHECK_HOSTS=new Set(['migrandiapp.com','www.migrandiapp.com','avaldiviezoch.github.io']);
 const currentHost=String(globalThis.location?.hostname||'').trim().toLowerCase();
 if(APP_CHECK_HOSTS.has(currentHost)){
-  initializeAppCheck(app,{provider:new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),isTokenAutoRefreshEnabled:true});
+  try{
+    initializeAppCheck(app,{provider:new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),isTokenAutoRefreshEnabled:true});
+  }catch(error){
+    // App Check may already be initialized on this app by the RSVP owner client.
+    if(!String(error?.code||'').includes('already-initialized'))throw error;
+  }
 }
 const db=getFirestore(app);
 const installed=new WeakSet();
