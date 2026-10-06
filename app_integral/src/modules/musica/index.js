@@ -1,6 +1,6 @@
 import { loadRsvpAdminSnapshot } from '../../services/rsvp-admin.js?v=5';
 import { readPlannerStorageKey, writePlannerStorageKey } from '../../services/planner-cloud.js?v=3';
-import { serviceUrl } from '../../services/runtime-environment.js';
+import { serviceUrl } from '../../services/runtime-environment.js?v=1';
 
 const STORAGE_KEY='migrandia.music.v1';
 const DEFAULT_MOMENTS=[
