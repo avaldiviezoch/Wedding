@@ -1,5 +1,6 @@
 import { currentEnvironment, serviceUrl } from './runtime-environment.js';
 import { APP_VERSION } from '../core/app/version.js';
+
 const ENDPOINT = serviceUrl('/api/observability');
 let installed = false;
 
