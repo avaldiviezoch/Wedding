@@ -613,6 +613,7 @@ body.menu-open .menu-button svg {
   font-size:9px;
   text-align:right
 }
+.copyright .home-app-version{display:block;margin-top:3px;font-size:8px;line-height:1.2;opacity:.62}
 .auth-overlay {
   position:fixed;
   inset:0;

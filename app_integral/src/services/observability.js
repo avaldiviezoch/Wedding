@@ -1,6 +1,6 @@
 import { currentEnvironment, serviceUrl } from './runtime-environment.js';
+import { APP_VERSION } from '../core/app/version.js';
 
-const APP_VERSION = 'mgd-v006-2026-10-06';
 const ENDPOINT = serviceUrl('/api/observability');
 let installed = false;
 
@@ -94,4 +94,4 @@ function installObservability() {
   addEventListener('unhandledrejection', event => reportError('unhandledrejection', event.reason));
 }
 
-export { APP_VERSION, installObservability, reportError };
+export { installObservability, reportError };
