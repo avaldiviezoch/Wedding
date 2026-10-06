@@ -1,3 +1,4 @@
+import { reportError } from './observability.js?v=2';
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
 import {
   browserLocalPersistence,
@@ -37,6 +38,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const authPersistenceReady = setPersistence(auth, browserLocalPersistence).catch((error) => {
   console.warn('No se pudo fijar la persistencia de autenticación:', error);
+  reportError('firebase', error, { module: 'auth-persistence' });
 });
 
 export { appCheck, auth, authPersistenceReady, db };
