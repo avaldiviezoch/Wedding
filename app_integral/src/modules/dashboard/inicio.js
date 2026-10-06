@@ -1,4 +1,5 @@
 import { installObservability, reportError } from '../../services/observability.js?v=2';
+import { APP_VERSION_LABEL } from '../../core/app/version.js';
 import { weddingCapabilities } from '../../core/app/permissions.js';
 import { auth } from '../../services/firebase-client.js';
 import { readPlannerStorageKeys, writePlannerStorageKey } from '../../services/planner-cloud.js?v=4';
@@ -30,6 +31,9 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 
 installObservability();
+const appVersionNode = document.getElementById('appVersion');
+if (appVersionNode) appVersionNode.textContent = APP_VERSION_LABEL;
+
 const $ = (id) => document.getElementById(id);
 const menu = $('menuButton');
 const backdrop = $('backdrop');
@@ -525,6 +529,15 @@ function escapeHtml(value) {
     .replaceAll("'", '&#039;');
 }
 
+function safeAvatarUrl(value) {
+  try {
+    const url = new URL(String(value || '').trim());
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : '';
+  } catch {
+    return '';
+  }
+}
+
 function setWeddingSwitcher(open) {
   weddingSwitcher.classList.toggle('show', open);
   weddingSwitcher.setAttribute('aria-hidden', String(!open));
@@ -760,10 +773,11 @@ onAuthStateChanged(auth, async (user) => {
   $('appNavInitials').textContent = (user.displayName || 'MGD').trim().split(/\\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
   $('accountEmail').textContent = user.email || '';
   const avatar = $('accountAvatar');
-  if (user.photoURL) {
-    avatar.src = user.photoURL;
+  const avatarUrl = safeAvatarUrl(user.photoURL);
+  if (avatarUrl) {
+    avatar.src = avatarUrl;
     avatar.style.display = '';
-    $('appNavAvatar').src = user.photoURL;
+    $('appNavAvatar').src = avatarUrl;
     $('appNavAvatar').classList.add('show');
   } else {
     avatar.style.display = 'none';
@@ -1025,11 +1039,11 @@ const MODULES = Object.freeze({
     mount: 'mountProveedores'
   },
   invitados: {
-    load: () => import('../invitados/index.js?v=41'),
+    load: () => import('../invitados/index.js?v=48-20261002'),
     mount: 'mountInvitados'
   },
   distribucion: {
-    load: () => import('../distribucion/index.js?v=138'),
+    load: () => import('../distribucion/index.js?v=142'),
     mount: 'mountDistribucion'
   },
   cronograma: {
@@ -1037,7 +1051,7 @@ const MODULES = Object.freeze({
     mount: 'mountCronograma'
   },
   invitaciones: {
-    load: () => import('../invitaciones/index.js?v=3'),
+    load: () => import('../invitaciones/index.js?v=4'),
     mount: 'mountInvitaciones',
     destroy: 'destroyInvitaciones'
   },
@@ -1046,7 +1060,7 @@ const MODULES = Object.freeze({
     mount: 'mountMusica'
   },
   ideas: {
-    load: () => import('../ideas/index.js?v=20'),
+    load: () => import('../ideas/index.js?v=21'),
     mount: 'mountIdeas',
     destroy: 'destroyIdeas'
   }
