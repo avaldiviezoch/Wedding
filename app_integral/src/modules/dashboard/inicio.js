@@ -503,7 +503,7 @@ function applyWeddingContext(context) {
   $('mainWeddingTitle').textContent = name;
   $('appNavWeddingName').textContent = name;
   const mobileWeddingName = $('appMobileWeddingName');
-  if (mobileWeddingName) mobileWeddingName.textContent = context?.name ? `La boda de ${name}` : 'Mi boda';
+  if (mobileWeddingName) mobileWeddingName.textContent = name;
   $('appNavRole').textContent = capabilities.label || 'Mi acceso';
   $('appNavPopoverWedding').textContent = name;
   $('shareWeddingButton').hidden = !capabilities.canManageTeam;
