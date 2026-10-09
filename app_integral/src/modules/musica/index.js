@@ -1,3 +1,4 @@
+import { serviceUrl } from '../../services/runtime-environment.js';
 import { loadRsvpAdminSnapshot } from '../../services/rsvp-admin.js?v=5';
 import { readPlannerStorageKey, writePlannerStorageKey } from '../../services/planner-cloud.js?v=3';
 
@@ -36,7 +37,7 @@ function embedUrl(media){
   if(media.platform==='apple')return media.url.replace('https://music.apple.com/','https://embed.music.apple.com/');
   return'';
 }
-const MUSIC_PREVIEW_ENDPOINT='https://migrandia-dev.avaldiviezoch.workers.dev/api/music-preview';
+const MUSIC_PREVIEW_ENDPOINT=serviceUrl('/api/music-preview');
 
 async function enrichMedia(url){
   const media=parseMediaUrl(url); if(!media)return null;
