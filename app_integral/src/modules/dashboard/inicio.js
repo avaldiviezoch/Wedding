@@ -1,4 +1,5 @@
 import { installObservability, reportError } from '../../services/observability.js?v=2';
+import { AUTH_BRANDING } from '../../core/app/auth-branding.js?v=2';
 import { APP_VERSION_LABEL } from '../../core/app/version.js';
 import { weddingCapabilities } from '../../core/app/permissions.js';
 import { auth } from '../../services/firebase-client.js';
@@ -24,7 +25,9 @@ import {
 } from '../../services/wedding-context.js';
 import {
   GoogleAuthProvider,
+  createUserWithEmailAndPassword,
   onAuthStateChanged,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut
@@ -40,6 +43,13 @@ const overlay = $('authOverlay');
 const status = $('authStatus');
 const email = $('authEmail');
 const password = $('authPassword');
+const authPasswordLabel = $('authPasswordLabel');
+const passwordConfirm = $('authPasswordConfirm');
+const authConfirmLabel = $('authConfirmLabel');
+const authTitle = $('authTitle');
+const authIntro = $('authIntro');
+const authModeToggle = $('authModeToggle');
+const authForgotPassword = $('authForgotPassword');
 const dateEditor = $('dateEditor');
 const calendarGrid = $('calendarGrid');
 const calendarMonthLabel = $('calendarMonthLabel');
@@ -331,6 +341,7 @@ function setMenu(open) {
 
 function setAuth(open, message = '') {
   overlay.classList.toggle('show', open);
+  if (open && !auth.currentUser) setAuthMode('login');
   status.textContent = message;
 }
 
@@ -622,10 +633,15 @@ async function openAccessManager() {
   await renderAccessManager();
 }
 
-function errorText(error) {
-  return String(error?.code || '').includes('invalid-credential')
-    ? 'Correo o contraseña incorrectos.'
-    : 'No se pudo iniciar sesión.';
+function errorText(error, mode = 'login') {
+  const code = String(error?.code || '');
+  if (code.includes('invalid-email')) return 'Revisa el correo ingresado.';
+  if (code.includes('weak-password')) return 'Usa una contraseña de al menos 6 caracteres.';
+  if (code.includes('email-already-in-use')) return 'Ese correo ya tiene una cuenta. Ingresa o recupera tu contraseña.';
+  if (code.includes('too-many-requests')) return 'Demasiados intentos. Espera un momento y vuelve a intentarlo.';
+  if (code.includes('network-request-failed')) return 'No hay conexión suficiente para completar la solicitud.';
+  if (mode === 'login' && code.includes('invalid-credential')) return 'Correo o contraseña incorrectos.';
+  return mode === 'register' ? 'No se pudo crear la cuenta.' : 'No se pudo iniciar sesión.';
 }
 
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -692,23 +708,109 @@ function tick() {
   $('seconds').textContent = String(Math.floor((difference % 60000) / 1000)).padStart(2, '0');
 }
 
+let authMode = 'login';
+
+function setAuthMode(mode = 'login') {
+  authMode = ['login', 'register', 'recovery'].includes(mode) ? mode : 'login';
+  const registering = authMode === 'register';
+  const recovering = authMode === 'recovery';
+
+  authTitle.textContent = registering
+    ? AUTH_BRANDING.registerTitle
+    : recovering
+      ? AUTH_BRANDING.recoveryTitle
+      : AUTH_BRANDING.loginTitle;
+  authIntro.textContent = registering
+    ? AUTH_BRANDING.registerIntro
+    : recovering
+      ? AUTH_BRANDING.recoveryIntro
+      : AUTH_BRANDING.loginIntro;
+
+  authPasswordLabel.hidden = recovering;
+  authConfirmLabel.hidden = !registering;
+  password.autocomplete = registering ? 'new-password' : 'current-password';
+  if (recovering) password.value = '';
+  passwordConfirm.value = '';
+
+  $('emailLoginButton').textContent = registering
+    ? 'Crear cuenta'
+    : recovering
+      ? 'Enviar enlace'
+      : 'Ingresar';
+  authModeToggle.textContent = registering
+    ? 'Ya tengo una cuenta'
+    : recovering
+      ? 'Volver a iniciar sesión'
+      : 'Crear cuenta';
+  authForgotPassword.hidden = registering || recovering;
+  status.textContent = '';
+}
+
+async function completeEmailAccess(user) {
+  const weddings = await listWeddingContexts(user);
+  if (!weddings.length && discoverSeenThisSession) await finishOnboardingForNewUser(user);
+  setAuth(false);
+  setMenu(true);
+}
+
 menu.onclick = () => auth.currentUser
   ? setMenu(!document.body.classList.contains('menu-open'))
   : setAuth(true);
 
 backdrop.onclick = () => setMenu(false);
 $('authCloseButton').onclick = () => setAuth(false);
+authModeToggle.onclick = () => setAuthMode(authMode === 'login' ? 'register' : 'login');
+
+authForgotPassword.onclick = () => {
+  setAuthMode('recovery');
+  email.focus();
+};
 
 $('emailLoginButton').onclick = async () => {
-  status.textContent = 'Ingresando…';
+  const targetEmail = email.value.trim();
+  const secret = password.value;
+
+  if (!targetEmail || !email.checkValidity()) {
+    status.textContent = authMode === 'recovery'
+      ? 'Escribe un correo válido para enviarte el enlace de recuperación.'
+      : 'Revisa el correo ingresado.';
+    email.focus();
+    return;
+  }
+
+  if (authMode === 'recovery') {
+    status.textContent = 'Enviando enlace de recuperación…';
+    try {
+      await sendPasswordResetEmail(auth, targetEmail);
+      status.textContent = 'Si existe una cuenta con ese correo, recibirás un enlace para restablecer tu contraseña.';
+    } catch (error) {
+      const code = String(error?.code || '');
+      status.textContent = ['auth/user-not-found', 'auth/invalid-credential'].includes(code)
+        ? 'Si existe una cuenta con ese correo, recibirás un enlace para restablecer tu contraseña.'
+        : errorText(error);
+    }
+    return;
+  }
+
+  if (secret.length < 6) {
+    status.textContent = 'Usa una contraseña de al menos 6 caracteres.';
+    password.focus();
+    return;
+  }
+  if (authMode === 'register' && secret !== passwordConfirm.value) {
+    status.textContent = 'Las contraseñas no coinciden.';
+    passwordConfirm.focus();
+    return;
+  }
+
+  status.textContent = authMode === 'register' ? 'Creando tu cuenta…' : 'Ingresando…';
   try {
-    const credential = await signInWithEmailAndPassword(auth, email.value.trim(), password.value);
-    const weddings = await listWeddingContexts(credential.user);
-    if (!weddings.length && discoverSeenThisSession) await finishOnboardingForNewUser(credential.user);
-    setAuth(false);
-    setMenu(true);
+    const credential = authMode === 'register'
+      ? await createUserWithEmailAndPassword(auth, targetEmail, secret)
+      : await signInWithEmailAndPassword(auth, targetEmail, secret);
+    await completeEmailAccess(credential.user);
   } catch (error) {
-    status.textContent = errorText(error);
+    status.textContent = errorText(error, authMode);
   }
 };
 
