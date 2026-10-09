@@ -1045,11 +1045,11 @@ const MODULES = Object.freeze({
     destroy: 'destroyInvitaciones'
   },
   musica: {
-    load: () => import('../musica/index.js?v=15'),
+    load: () => import('../musica/index.js?v=16'),
     mount: 'mountMusica'
   },
   ideas: {
-    load: () => import('../ideas/index.js?v=20'),
+    load: () => import('../ideas/index.js?v=21'),
     mount: 'mountIdeas',
     destroy: 'destroyIdeas'
   }
