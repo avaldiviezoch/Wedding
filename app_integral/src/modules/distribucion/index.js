@@ -24,7 +24,7 @@ import {
   polygonArea,
   polygonSelfIntersects
 } from './spatial-geometry.js?v=1';
-import { getAreaCatalogItem, getAreaPreset, getCatalogItem, getElementCatalogItem, getVisibleAreaPresets, getVisibleCatalogGroups, resolveCatalogType } from './distribution-catalog.js?v=5';
+import { getAreaCatalogItem, getAreaPreset, getCatalogItem, getElementCatalogItem, getVisibleAreaPresets, getVisibleCatalogGroups, resolveCatalogType } from './distribution-catalog.js?v=6';
 import {
   NONE_BACKGROUND_ID,
   LEGACY_DEFAULT_BACKGROUND_ID,
