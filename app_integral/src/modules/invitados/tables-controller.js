@@ -1,3 +1,4 @@
+import { downloadTablesPages } from './export-tables-image.js';
 import { saveInvitadosSnapshot, tableCapacity } from './invitados-data.js?v=7';
 import {
   MIN_TABLE_METERS,
@@ -1008,6 +1009,8 @@ function createTablesController(api) {
   }
 
   async function handleClick(event) {
+    if (event.target.closest('[data-tables-export-image]')) {
+  
     if (event.target.closest('[data-table-guest-detail-close]')) {
       closeGuestDetail();
       return true;
