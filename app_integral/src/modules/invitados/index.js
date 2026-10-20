@@ -1,3 +1,8 @@
+import { renderReportPages, downloadCanvasPages, printCanvasPages } from './export-formats.js';
+import { createGuestImagePages } from './export-guest-image.js';
+import { renderTablesPages } from './export-tables-image.js';
+import { downloadXlsx } from './export-xlsx.js';
+import { downloadGuestImages } from './export-guest-image.js';
 import { weddingCapabilities } from '../../core/app/permissions.js';
 import { guestStatus, loadInvitadosSnapshot, saveInvitadosSnapshot } from './invitados-data.js?v=7';
 import { createRsvpController } from './rsvp-controller.js?v=11';
@@ -334,11 +339,115 @@ async function deleteGuest(guestId) {
   await persistMutation(previous, 'Invitado eliminado');
 }
 
+function exportReport(kind) {
+  const root=getRoot();
+  const status=root?.querySelector('[data-guests-export-state]');
+  if (!snapshot?.canonical || !activeContext?.id) return;
+  const guests=snapshot.canonical.guests||[], tables=snapshot.canonical.tables||[];
+  const label=(value)=>text(value);
+  try {
+    if (kind==='guests') {
+      downloadXlsx({title:'Invitados',
+        columns:['Nombre','Estado','Mesa','Asiento','Familia / grupo','Relación','Lado','Restricción','Invitación enviada','Observaciones'],
+        rows:guests.map(g=>[label(g.name),statusLabel(guestStatus(g)),tableName(g,tables)||'Sin mesa',
+          g.seatNumber??'',label(g.rsvpFamilyLabel||g.rsvpGroup),label(g.relation),label(g.side),label(g.restriction),
+          g.invitationSent?'Sí':'No',label(g.notes)])},'migrandia-invitados.xlsx');
+    } else if (kind==='guest-image') {
+      const imageGuests=guests.map(g=>({...g,status:guestStatus(g)}));
+      void downloadGuestImages({eventName:activeContext.name||'Evento',guests:imageGuests,tables,
+        statusLabel}).catch(error=>{if(status) status.textContent=error.message;});
+    } else {
+      const data=ensureRsvpController().exportSnapshot();
+      if (!data.ready) {if(status)status.textContent='Actualiza la pestaña RSVP antes de descargar.';return;}
+      if (kind==='rsvp') {
+        const byId=new Map(data.management.map(m=>[String(m.responseId),m]));
+        downloadXlsx({title:'RSVP',
+          columns:['Invitado','Estado','Personas','Acompañantes','Menú','Restricción','Revisada','Invitados vinculados','Fecha declarada'],
+          rows:data.responses.map(x=>{const m=byId.get(String(x.id));
+            return [label(x.name),statusLabel(x.attendance),x.quantity??1,
+              (x.companions||[]).map(label).join(', '),label(x.menu),label(x.restriction),
+              m?.reviewed?'Sí':'No',(m?.linkedGuestIds||[]).length,label(x.clientDate||'')];})},
+          'migrandia-rsvp.xlsx');
+      } else if (kind==='music') {
+        downloadXlsx({title:'Música',
+          columns:['Canción','Artista','Solicitado por','Dedicatoria'],
+          rows:data.music.map(x=>[label(x.title),label(x.artist),label(x.person),label(x.message)])},
+          'migrandia-musica-solicitudes.xlsx');
+      }
+    }
+    if(status)status.textContent='Descarga preparada. Los datos permanecen en tu dispositivo.';
+  } catch(error) {
+    if(status)status.textContent='No se pudo generar la descarga: '+(error?.message||'error desconocido');
+  }
+}
+
+function reportFor(scope) {
+  const guests=snapshot?.canonical?.guests||[],tables=snapshot?.canonical?.tables||[];
+  if(scope==='guests') return {
+    title:'Lista de invitados',columns:['Invitado','Estado','Mesa'],
+    rows:guests.map(g=>[text(g.name),statusLabel(guestStatus(g)),tableName(g,tables)||'Sin mesa'])};
+  if(scope==='tables')return {
+    title:'Mesas y asientos',columns:['Mesa','Asiento','Invitado'],
+    rows:tables.flatMap(t=>guests.filter(g=>String(g.tableId||'')===String(t.id))
+      .map(g=>[text(t.name),g.seatNumber||'—',text(g.name)]))};
+  const source=ensureRsvpController().exportSnapshot();
+  if(!source.ready)throw new Error('Primero espera que terminen de cargar las respuestas RSVP.');
+  if(scope==='music')return {
+    title:'Música de invitados',columns:['Canción','Artista','Invitado'],
+    rows:source.music.map(x=>[text(x.title),text(x.artist),text(x.person)])};
+  return {title:'Confirmaciones RSVP',columns:['Invitado','Estado','Personas'],
+    rows:source.responses.map(x=>[text(x.name),statusLabel(x.attendance),x.quantity??1])};
+}
+async function exportWithFormat(scope,format) {
+  if(!snapshot?.canonical||!activeContext?.id)return;
+  const root=getRoot();
+  const status=root?.querySelector('[data-guests-export-state]')||root?.querySelector('[data-tables-export-state]');
+  try {
+    if(format==='xlsx'){
+      if(scope==='tables'){const report=reportFor(scope);downloadXlsx(report,'migrandia-mesas.xlsx');}
+      else exportReport(scope==='guests'?'guests':scope);
+      return;
+    }
+    const report=reportFor(scope);
+    const options={eventName:activeContext.name||'Evento',guests:snapshot.canonical.guests,tables:snapshot.canonical.tables,
+      statusLabel:g=>statusLabel(g)};
+    const pages=scope==='tables'?renderTablesPages(options):
+      scope==='guests'?createGuestImagePages({...options,guests:options.guests.map(g=>({...g,status:guestStatus(g)}))}):
+      renderReportPages({...report,eventName:options.eventName});
+    if(format==='png')await downloadCanvasPages(pages,'migrandia-'+scope);
+    else if(format==='pdf')printCanvasPages(pages,report.title);
+    if(status)status.textContent=format==='pdf'?'Elige «Guardar como PDF» en la ventana de impresión.':'Imágenes preparadas.';
+  } catch(error) {if(status)status.textContent=error?.message||'No se pudo exportar.';}
+}
+function closeDownloadMenus(root) {
+  root.querySelectorAll('[data-download-menu]').forEach(menu=>{
+    menu.querySelector('[data-download-options]').hidden=true;
+    menu.querySelector('[data-download-toggle]').setAttribute('aria-expanded','false');
+  });
+}
 function bind(root) {
   if (root.dataset.guestsBound === 'true') return;
   root.dataset.guestsBound = 'true';
 
   root.addEventListener('click', async (event) => {
+    const menuButton=event.target.closest('[data-download-toggle]');
+    if(menuButton){
+      const menu=menuButton.closest('[data-download-menu]');
+      const wasOpen=!menu.querySelector('[data-download-options]').hidden;
+      closeDownloadMenus(root);
+      if(!wasOpen){menu.querySelector('[data-download-options]').hidden=false;menuButton.setAttribute('aria-expanded','true');}
+      return;
+    }
+    const choice=event.target.closest('[data-download-action]');
+    if(choice){
+      const [scope,format]=choice.dataset.downloadAction.split(':');
+      closeDownloadMenus(root);
+      await exportWithFormat(scope,format);
+      return;
+    }
+    if(!event.target.closest('[data-download-menu]'))closeDownloadMenus(root);
+    const exportButton = event.target.closest('[data-guests-export]');
+    if (exportButton) { exportReport(exportButton.dataset.guestsExport); return; }
     const viewButton = event.target.closest('[data-guests-view]');
     if (viewButton) {
       activeView = viewButton.dataset.guestsView || 'list';
