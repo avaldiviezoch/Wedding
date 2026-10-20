@@ -1010,6 +1010,17 @@ function createTablesController(api) {
 
   async function handleClick(event) {
     if (event.target.closest('[data-tables-export-image]')) {
+      const context=api.getContext(),current=api.getSnapshot()?.canonical;
+      const status=api.getRoot()?.querySelector('[data-tables-export-state]');
+      if (!context?.id || !current) {if(status)status.textContent='No hay mesas disponibles.';return true;}
+      try {
+        await downloadTablesPages({eventName:context.name||'Evento',tables:current.tables||[],guests:current.guests||[]});
+        if(status)status.textContent='Láminas preparadas: cuatro mesas por hoja.';
+      } catch(error) {
+        if(status)status.textContent=error.message||'No se pudo exportar la distribución.';
+      }
+      return true;
+    }
   
     if (event.target.closest('[data-table-guest-detail-close]')) {
       closeGuestDetail();
