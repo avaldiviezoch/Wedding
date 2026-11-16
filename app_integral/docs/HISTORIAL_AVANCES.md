@@ -1,3 +1,12 @@
+## 2026-11-16 — Wishlist PROD (PR): regalos comprados en vista pública
+
+- Se actualizó la página compartida para mostrar los botones Ir al regalo y Marcar como comprado; la tarjeta adquirida presenta borde rosa rojizo, etiqueta COMPRADO y contenido atenuado pero visible.
+- La vista src/modules/wishlist/public.js lee y escribe estados exclusivamente a través del Worker aislado migrandia-wishlist-gifts-prod.avaldiviezoch.workers.dev. No usa Firebase, Firestore ni Storage.
+- workers/wishlist-purchases-prod.js contiene el código del Worker, que requiere la vinculación KV WISHLIST_PURCHASES. Solo permite orígenes https://migrandiapp.com y https://www.migrandiapp.com.
+- El botón de compra permanece deshabilitado si no se puede consultar el backend, para no simular compras guardadas.
+- Bloqueadores antes de publicar: desplegar y validar Workers de metadatos PROD y de compras PROD; ejecutar validation y probar en celulares con dos navegadores el estado compartido. La versión del enlace es una copia: nuevos enlaces con productos diferentes no heredan compras anteriores.
+- No modificar datos existentes, reglas Firestore, Firebase Storage ni Workers de otros módulos.
+
 ## 2026-11-16 — Pase propuesto de Wishlist a PROD (PR)
 
 - Incorporación aditiva del módulo Wishlist (HTML construido por el módulo, CSS, icono y enlaces en navegación principal) sin copiar el resto de DEV ni sobrescribir módulos existentes.
