@@ -8,73 +8,58 @@
   <meta name="robots" content="noindex,nofollow">
   <meta name="referrer" content="no-referrer">
   <title>Lista de regalos · Mi Gran Día</title>
-  <style>
-    :root{font-family:Arial,Helvetica,sans-serif;color:#34322e;background:#faf8f5}
-    *{box-sizing:border-box}
-    body{margin:0;min-height:100vh}
-    .wrap{max-width:1050px;margin:0 auto;padding:0 18px 52px}
-    header{padding:48px 20px 44px;text-align:center;background:radial-gradient(circle at 10% 0%,#f6e9ee,transparent 38%),linear-gradient(120deg,#fff,#fcf9fa);border-bottom:1px solid #e9e0df}
-    header .brand{font-size:10px;letter-spacing:.19em;color:#85916d;font-weight:800;text-transform:uppercase}
-    header .symbol{display:grid;place-items:center;width:62px;height:62px;margin:20px auto;border-radius:19px;border:1px solid #ead6da;background:#fcf7f8;color:#b67b87;font:38px Georgia,serif}
-    h1{font:400 clamp(32px,7vw,50px)/1.12 Georgia,serif;margin:0 0 10px}
-    .event{color:#b07884;font:400 21px Georgia,serif}
-    header p{max-width:430px;margin:15px auto 0;color:#817b78;font-size:13px;line-height:1.6}
-    .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:26px 0 18px}
-    .toolbar h2{font:400 23px Georgia,serif;margin:0}
-    .toolbar span{font-size:12px;color:#858087}
-    .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-    article{background:#fff;border:1px solid #e8e2df;border-radius:17px;overflow:hidden;box-shadow:0 6px 22px #38342e0a}
-    .media{aspect-ratio:4/3;display:grid;place-items:center;background:#f2f0ed;overflow:hidden}
-    .media img{width:100%;height:100%;object-fit:contain}
-    .placeholder{color:#b47c88;font:48px Georgia,serif}
-    .body{padding:16px;display:flex;flex-direction:column;gap:9px}
-    .shop{color:#a47a85;font-size:10px;letter-spacing:.08em;font-weight:800;text-transform:uppercase}
-    h3{font:500 18px/1.22 Georgia,serif;margin:0;overflow-wrap:anywhere}
-    .description{color:#8a8580;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
-    .price{color:#687650;font-size:16px;font-weight:700}
-    .link{display:block;text-align:center;margin-top:6px;padding:12px;border-radius:10px;background:#819069;color:#fff;text-decoration:none;font-size:12px;font-weight:700;min-height:42px}
-    .gift-card{position:relative;transition:border-color .2s,box-shadow .2s,background .2s}
-    .gift-card.is-purchased{border:2px solid #bf7b88;background:#fdf8f9;box-shadow:0 8px 25px rgba(158,85,104,.12)}
-    .gift-card.is-purchased .media,.gift-card.is-purchased .shop,.gift-card.is-purchased h3,.gift-card.is-purchased .description,.gift-card.is-purchased .price{opacity:.46}
-    .gift-card.is-purchased::before{content:"COMPRADO";position:absolute;top:12px;right:12px;z-index:1;padding:7px 10px;border:1px solid #bd8994;border-radius:999px;background:rgba(255,247,249,.96);color:#965a69;font-size:10px;font-weight:800;letter-spacing:.07em;pointer-events:none}
-    .gift-actions{display:grid;gap:8px;margin-top:auto}
-    .gift-actions .link{margin:0;background:#809069}
-    .purchase-button{display:block;width:100%;min-height:42px;padding:10px 8px;border:1px solid #e0bbc4;border-radius:10px;background:#fcf2f5;color:#a36373;font-size:12px;font-weight:800;cursor:pointer}
-    .purchase-button:hover:not(:disabled){background:#f8e9ed}
-    .purchase-button:disabled{opacity:.55;cursor:not-allowed}
-    .is-purchased .purchase-button:disabled{opacity:1;background:#f8edf1;color:#955869;border-color:#d8aab5}
-    .purchase-notice{min-height:20px;margin:0 0 14px;color:#a36373;font-size:12px;line-height:1.5}
-    .empty{background:#fff;border:1px solid #ece5df;border-radius:16px;text-align:center;padding:34px;color:#817c75}
-    .note{text-align:center;padding-top:24px;color:#9a9490;font-size:11px;line-height:1.5}
-    .error{margin:40px auto;max-width:530px;text-align:center;line-height:1.6;color:#8b5561;padding:24px;border:1px solid #ead6da;background:#fff;border-radius:14px}
-    [hidden]{display:none}
-    @media(max-width:800px){.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}}
-    @media(max-width:530px){
-      .wrap{padding:0 14px 45px}
-      header{padding:33px 18px 30px}
-      .toolbar{padding:20px 0 14px}
-      .toolbar h2{font-size:21px}
-      .cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-      .body{padding:11px;gap:7px}
-      h3{font-size:15px}
-      .description{font-size:10px}
-      .price{font-size:13px}
-      .link{padding:11px 5px;font-size:11px}
-      .purchase-button{font-size:11px;padding:9px 5px}
-      .gift-card.is-purchased::before{font-size:8px;top:8px;right:8px;padding:5px 7px}
-    }
-    @media(max-width:350px){.cards{grid-template-columns:1fr}}
-  </style>
+  <link rel="stylesheet" href="src/modules/wishlist/public.css?v=4">
 </head>
 <body>
-  <header><div class="brand">Mi Gran Día · Lista de regalos</div><div class="symbol" aria-hidden="true">♡</div><h1>Nuestros regalos</h1><div class="event" id="eventName"></div><p>Estos son algunos detalles que nos encantaría recibir. Gracias por acompañarnos en un día tan especial.</p></header>
+  <header class="public-hero"><button class="account-action" id="authAction" type="button" aria-label="Ingresar a Mi Gran Día"><span class="account-avatar" id="authAvatar" aria-hidden="true">👤</span><span id="authActionLabel">Ingresar</span></button><div class="brand">Mi Gran Día · Lista de regalos</div><div class="symbol" aria-hidden="true">♡</div><h1>Nuestros regalos</h1><div class="event" id="eventName"></div><p>Estos son algunos detalles que nos encantaría recibir. Gracias por acompañarnos en un día tan especial.</p></header>
   <main class="wrap">
     <div class="toolbar"><h2>Lista de deseos</h2><span id="count"></span></div>
     <p id="purchaseNotice" class="purchase-notice" role="status" aria-live="polite"></p>
     <div id="error" class="error" role="alert" hidden></div>
     <section id="cards" class="cards" aria-label="Regalos disponibles"></section>
-    <div class="note">Los regalos corresponden al momento de compartir la lista. El estado de compra se consulta al abrir la página. Los precios pueden cambiar según la tienda.</div>
+    <div class="note">Los regalos y las compras se actualizan cuando vuelves a abrir esta página. Los precios pueden cambiar según la tienda.</div>
+    <p class="wishlist-copyright" id="wishlistCopyright" hidden>© ANTONIO VALDIVIEZO</p>
   </main>
-  <script type="module" src="src/modules/wishlist/public.js?v=2"></script>
+
+  <section id="editorTools" class="editor-tools wrap" hidden>
+    <div class="editor-top"><div><h2>Administrar regalos</h2><p class="auth-identity" id="editorIdentity"></p></div>
+      <button type="button" id="editorAdd" class="editor-primary">＋ Agregar regalo</button>
+      <button type="button" id="editorResync" class="editor-secondary">Sincronizar lista</button>
+    </div>
+    <p id="editorStatus" class="editor-status" role="status"></p>
+    <div id="editorItems" aria-label="Regalos para editar"></div>
+  </section>
+  <dialog id="authDialog" class="auth-dialog" aria-labelledby="authDialogTitle">
+    <div class="dialog-body">
+      <div class="dialog-heading"><h2 id="authDialogTitle">Ingresar a Mi Gran Día</h2><button type="button" class="icon-close" id="authClose" aria-label="Cerrar">×</button></div>
+      <p class="auth-identity">Ingresa con la misma cuenta que utilizas para organizar la boda. Solo los usuarios autorizados podrán modificar regalos.</p>
+      <button type="button" class="auth-primary" id="authGoogle">Continuar con Google</button>
+      <form id="authEmailForm" class="auth-email-form">
+        <label>Correo electrónico<input name="email" type="email" autocomplete="email" required></label>
+        <label>Contraseña<input name="password" type="password" autocomplete="current-password" required></label>
+        <button type="submit" class="auth-secondary">Ingresar con correo</button>
+      </form>
+      <button type="button" id="authLogout" class="auth-secondary auth-logout" hidden>Cerrar sesión</button>
+      <p id="authFeedback" class="auth-feedback" role="alert"></p>
+    </div>
+  </dialog>
+  <dialog id="editorDialog" class="editor-dialog" aria-labelledby="editorDialogTitle">
+    <div class="dialog-body">
+      <div class="dialog-heading"><h2 id="editorDialogTitle">Agregar regalo</h2><button type="button" class="icon-close" id="editorDialogClose" aria-label="Cerrar">×</button></div>
+      <form id="editorForm" class="editor-form">
+        <input type="hidden" id="editorItemId" name="id">
+        <label>Enlace del producto<input type="url" name="url" placeholder="https://tienda.com/producto" required></label>
+        <button type="button" id="editorAnalyze" class="editor-secondary">Buscar información automáticamente</button>
+        <label>Nombre del regalo<input name="name" maxlength="110" required></label>
+        <label>Tienda<input name="shop" maxlength="65"></label>
+        <label>Precio referencial<input name="price" maxlength="40"></label>
+        <label>Enlace de la imagen<input name="image" type="url"></label>
+        <label>Descripción<textarea name="description" maxlength="350"></textarea></label>
+        <p id="editorFormFeedback" class="editor-status" role="status"></p>
+        <button type="submit" class="editor-primary">Guardar regalo</button>
+      </form>
+    </div>
+  </dialog>
+  <script type="module" src="src/modules/wishlist/public.js?v=8"></script>
 </body>
 </html>
