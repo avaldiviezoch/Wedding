@@ -1,3 +1,10 @@
+## 2026-11-16 — Wishlist PROD: botones de compra en lista compartida
+
+- Cambio incremental sobre el Wishlist ya integrado en main: vista pública muestra Ir al regalo y Marcar como comprado, con confirmación, borde rosa rojizo, etiqueta COMPRADO y contenido atenuado.
+- src/modules/wishlist/public.js llama al Worker separado migrandia-wishlist-gifts-prod.avaldiviezoch.workers.dev. Si ese servicio no está disponible, bloquea Marcar como comprado.
+- workers/wishlist-purchases-prod.js contiene código del Worker que requiere un KV binding WISHLIST_PURCHASES para guardar estados compartidos. No usa Firebase Storage ni altera Firestore, autenticación, planner-cloud, otros módulos o Workers.
+- Pendiente de publicar el Worker y verificar los estados desde dos dispositivos reales antes de fusionar este PR. Los enlaces siguen siendo instantáneas y pueden identificar listas diferentes tras regenerarlos.
+
 ## 2026-11-16 — Pase propuesto de Wishlist a PROD (PR)
 
 - Incorporación aditiva del módulo Wishlist (HTML construido por el módulo, CSS, icono y enlaces en navegación principal) sin copiar el resto de DEV ni sobrescribir módulos existentes.
