@@ -1,3 +1,11 @@
+## 2026-11-16 — Pase propuesto de Wishlist a PROD (PR)
+
+- Incorporación aditiva del módulo Wishlist (HTML construido por el módulo, CSS, icono y enlaces en navegación principal) sin copiar el resto de DEV ni sobrescribir módulos existentes.
+- Reutilización de planner-cloud.js de PROD para la clave única planificador_bodas_wishlist_v1, aislada por weddingId y sujeta a permisos canEdit. Sin cambios de reglas Firestore ni colecciones.
+- Pantalla pública móvil wishlist-compartida.html que lee una instantánea comprimida de productos desde el fragmento de URL; no se conecta con Firebase ni requiere login. Es una instantánea, no una lista viva.
+- Endpoint privado de extracción configurado para el Worker PROD aislado migrandia-product-metadata-prod.avaldiviezoch.workers.dev. **Dependencia externa:** publicar este Worker en Cloudflare antes de fusionar el PR.
+- Pendientes: validación automatizada obligatoria, smoke test en entorno autenticado, prueba móvil anónima, revisión de privacidad y validación del nuevo Worker. Sin cambios en API existente.
+
 ## 2026-10-06 — Uso extraordinario del diagnóstico RSVP ↔ Invitados
 
 - Se mantiene registrado el utilitario `mi-lu-gran-dia-reestructuracion/diagnostico_rsvp_vs_invitados.html`.
