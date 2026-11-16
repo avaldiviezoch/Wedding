@@ -1,7 +1,23 @@
 import { readPlannerStorageKey, subscribePlannerStorageKey, writePlannerStorageKey } from '../../services/planner-cloud.js';
 import { weddingCapabilities } from '../../core/app/permissions.js';
-import { encodeWishlistShare } from './share-link.js?v=1';
+import { encodeWishlistLiveShare, wishlistPublicId } from './share-link.js?v=2';
+import { auth } from '../../services/firebase-client.js';
 const STORAGE_KEY = 'planificador_bodas_wishlist_v1';
+const PUBLIC_API = 'https://migrandia-wishlist-live-dev.avaldiviezoch.workers.dev';
+async function publishWishlistPublic(context, gifts) {
+  const user = auth.currentUser;
+  if (!user || !context?.id || !canEditWishlist()) throw new Error('Se necesita acceso de edición.');
+  const idToken = await user.getIdToken();
+  const list = await wishlistPublicId(context.id);
+  const response = await fetch(new URL('/api/list', PUBLIC_API), {
+    method:'PUT',
+    headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + idToken },
+    body:JSON.stringify({ weddingId:context.id, list, event:context.name, gifts })
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok || !result.ok) throw new Error(result.error || 'No se pudo publicar la lista compartida.');
+}
+
 const wishlistState = { items: [], context: null, saving: false };
 let unsubscribeWishlist = () => {};
 let lifecycleToken = 0;
@@ -120,7 +136,15 @@ async function persistWishlist(root, previous) {
   renderCards(root);
   try {
     await writePlannerStorageKey(context, STORAGE_KEY, wishlistState.items);
-    if (token === lifecycleToken) setSaveStatus(root, 'Guardado');
+    if (token === lifecycleToken) {
+      setSaveStatus(root, 'Guardado en Mi Gran Día. Actualizando enlace público…');
+      try {
+        await publishWishlistPublic(context, wishlistState.items);
+        if (token === lifecycleToken) setSaveStatus(root, 'Guardado y sincronizado');
+      } catch {
+        if (token === lifecycleToken) setSaveStatus(root, 'Guardado en Mi Gran Día; la lista pública aún no se pudo actualizar.');
+      }
+    }
   } catch (error) {
     if (token === lifecycleToken) {
       wishlistState.items = previous;
@@ -204,7 +228,9 @@ export async function mountWishlist(context) {
     }
     shareButton.disabled = true;
     try {
-      const fragment = await encodeWishlistShare(wishlistState.items, wishlistState.context?.name);
+      // Publicar únicamente datos propios de Wishlist, después de verificar el usuario.
+      await publishWishlistPublic(wishlistState.context, wishlistState.items);
+      const fragment = await encodeWishlistLiveShare(wishlistState.context.id);
       const target = new URL('wishlist-compartida.html', new URL('../../../', import.meta.url));
       target.hash = fragment;
       const link = target.href;
@@ -304,7 +330,7 @@ export async function mountWishlist(context) {
     let failed = false;
     let failureReason = '';
     try {
-      const endpoint = new URL('https://migrandia-product-metadata-prod.avaldiviezoch.workers.dev/api/product');
+      const endpoint = new URL('https://migrandia-product-metadata-dev.avaldiviezoch.workers.dev/api/product');
       endpoint.searchParams.set('url', url);
       const response = await fetch(endpoint, { signal: controller.signal, headers: { Accept: 'application/json' } });
       const payload = await response.json();
