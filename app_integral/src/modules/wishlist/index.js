@@ -1,6 +1,6 @@
 import { readPlannerStorageKey, subscribePlannerStorageKey, writePlannerStorageKey } from '../../services/planner-cloud.js';
 import { weddingCapabilities } from '../../core/app/permissions.js';
-import { encodeWishlistLiveShare, wishlistPublicId } from './share-link.js?v=2';
+import { wishlistPublicId, wishlistFriendlySlug } from './share-link.js?v=3';
 import { auth } from '../../services/firebase-client.js';
 const STORAGE_KEY = 'planificador_bodas_wishlist_v1';
 const PUBLIC_API = 'https://migrandia-wishlist-live-dev.avaldiviezoch.workers.dev';
@@ -230,9 +230,21 @@ export async function mountWishlist(context) {
     try {
       // Publicar únicamente datos propios de Wishlist, después de verificar el usuario.
       await publishWishlistPublic(wishlistState.context, wishlistState.items);
-      const fragment = await encodeWishlistLiveShare(wishlistState.context.id);
-      const target = new URL('wishlist-compartida.html', new URL('../../../', import.meta.url));
-      target.hash = fragment;
+      const listId = await wishlistPublicId(wishlistState.context.id);
+      const slug = wishlistFriendlySlug(wishlistState.context.name, listId);
+      const rootUrl = new URL('../../../', import.meta.url);
+      let target = new URL('wishlist-compartida.html', rootUrl);
+      target.hash = 'w2.' + listId;
+      // Solo distribuir el enlace amigable cuando el Worker pueda resolverlo.
+      try {
+        const check = await fetch(new URL('/api/resolve?slug=' + encodeURIComponent(slug), PUBLIC_API), {
+          headers:{Accept:'application/json'}, signal:AbortSignal.timeout(5000)
+        });
+        if(check.ok && (await check.json()).list === listId){
+          target = new URL('regalos/', rootUrl);
+          target.searchParams.set('boda', slug);
+        }
+      }catch{/* Mantener enlace actual si el nuevo endpoint aún no está desplegado. */}
       const link = target.href;
       if (navigator.share) {
         try {
