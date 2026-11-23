@@ -2,8 +2,10 @@ import {
   loadRsvpAdminSnapshot,
   saveRsvpManagement,
   deleteRsvpManagement,
-  restoreRsvpManagement
-} from '../../services/rsvp-admin.js?v=5';
+  restoreRsvpManagement,
+  deleteRsvpResponseExceptional,
+  verifyRsvpGuestAvailability
+} from '../../services/rsvp-admin.js?v=20261123-auto-guest-return';
 import { saveInvitadosSnapshot } from './invitados-data.js?v=3';
 import { searchMusicCatalog } from '../../services/music-catalog.js';
 
@@ -341,23 +343,37 @@ function createRsvpController(api) {
 
     const management = managementFor(response.id);
     const currentResponseId = String(response.id);
-    const linkedToOtherResponse = new Set(
-      (state.management || [])
-        .filter((item) => String(item?.responseId || '') !== currentResponseId)
-        .flatMap((item) => Array.isArray(item?.linkedGuestIds) ? item.linkedGuestIds.map(String) : [])
-    );
-    const availableGuests = snapshot.canonical.guests.filter((guest) => {
-      const guestId = String(guest?.id ?? '');
-      const canonicalResponseId = text(guest?.rsvpResponseId);
-      if (canonicalResponseId && canonicalResponseId !== currentResponseId) return false;
-      if (linkedToOtherResponse.has(guestId)) return false;
-      return true;
+    const existingResponses = new Map(state.responses.map(item => [String(item.id), item]));
+    const linkedToOtherResponse = new Map();
+    for (const item of state.management || []) {
+      const responseId = String(item.responseId || '');
+      if (responseId === currentResponseId) continue;
+      for (const id of Array.isArray(item.linkedGuestIds) ? item.linkedGuestIds : []) {
+        linkedToOtherResponse.set(String(id), responseId);
+      }
+    }
+    const isOrphan = (guest) => {
+      const id = text(guest?.rsvpResponseId);
+      return Boolean(id && !existingResponses.has(id));
+    };
+    // Solo listar invitados disponibles: libres, de esta misma respuesta o con
+    // referencia huérfana. Los vinculados a otra respuesta vigente quedan ocultos.
+    const candidates = snapshot.canonical.guests.filter((guest) => {
+      const guestId = String(guest.id ?? '');
+      const canonicalId = text(guest.rsvpResponseId);
+      const managementId = linkedToOtherResponse.get(guestId) || '';
+      const canonicalBusy = canonicalId && canonicalId !== currentResponseId && existingResponses.has(canonicalId);
+      const managementBusy = managementId && existingResponses.has(managementId);
+      return !canonicalBusy && !managementBusy;
+    }).sort((a, b) => {
+      const suggested = new Set(suggestedGuestIds(response));
+      return Number(suggested.has(String(b.id))) - Number(suggested.has(String(a.id)))
+        || text(a.name).localeCompare(text(b.name), 'es');
     });
-    const availableGuestIds = new Set(availableGuests.map((guest) => String(guest?.id ?? '')));
-    const suggestions = suggestedGuestIds(response).filter((guestId) => availableGuestIds.has(String(guestId)));
+    const suggestions = suggestedGuestIds(response);
     const selected = new Set(
       Array.isArray(management?.linkedGuestIds) && management.linkedGuestIds.length
-        ? management.linkedGuestIds.map(String).filter((guestId) => availableGuestIds.has(guestId))
+        ? management.linkedGuestIds.map(String)
         : suggestions
     );
 
@@ -377,25 +393,37 @@ function createRsvpController(api) {
       ${Array.isArray(response.companions) && response.companions.length ? `<small>Acompañantes: ${esc(response.companions.map(text).filter(Boolean).join(', '))}</small>` : ''}
     `;
 
+    const guestSearch = root.querySelector('[data-rsvp-guest-search]');
+    if (guestSearch) guestSearch.value = '';
     const picker = root.querySelector('[data-rsvp-guest-picker]');
-    picker.innerHTML = availableGuests.length
-      ? availableGuests.map((guest) => {
+    picker.innerHTML = candidates.length
+      ? candidates.map((guest) => {
         const id = String(guest.id ?? '');
         const suggested = suggestions.includes(id);
-        return `<label class="rsvp-guest-option${suggested ? ' is-suggested' : ''}">
-          <input type="checkbox" name="linkedGuestIds" value="${esc(id)}" ${selected.has(id) ? 'checked' : ''} ${api.canEdit() ? '' : 'disabled'}>
+        const canonicalResponseId = text(guest.rsvpResponseId);
+        const managedResponseId = linkedToOtherResponse.get(id) || '';
+        const activeOtherId = canonicalResponseId && canonicalResponseId !== currentResponseId && existingResponses.has(canonicalResponseId)
+          ? canonicalResponseId
+          : managedResponseId && existingResponses.has(managedResponseId) ? managedResponseId : '';
+        const orphaned = isOrphan(guest) && !activeOtherId;
+        const occupied = Boolean(activeOtherId);
+        const canSelect = !occupied;
+        const origin = existingResponses.get(activeOtherId);
+        const detail = activeOtherId
+          ? 'Vinculado a otra confirmación: ' + (text(origin?.name) || activeOtherId)
+          : orphaned ? 'Disponible · vínculo anterior eliminado'
+          : suggested ? 'Coincidencia sugerida' : text(guest.relation) || 'Invitado disponible';
+        const personName = text(guest.name) || 'Sin nombre';
+        return `<div class="rsvp-guest-option" data-rsvp-guest-row data-rsvp-search-name="${esc(normalizeName(personName))}">
+          <input type="checkbox" name="linkedGuestIds" value="${esc(id)}" ${canSelect && selected.has(id) ? 'checked' : ''} ${canSelect && api.canEdit() ? '' : 'disabled'} aria-label="Vincular a ${esc(personName)}">
           <span class="guest-avatar">${esc(initials(guest.name))}</span>
-          <span><strong>${esc(text(guest.name) || 'Sin nombre')}</strong><small>${suggested ? 'Coincidencia sugerida' : esc(text(guest.relation) || 'Invitado existente')}</small></span>
-        </label>`;
-      }).join('')
-      : '<div class="guests-empty"><strong>No hay invitados disponibles</strong><span>Todos los invitados existentes ya están vinculados a otras respuestas RSVP.</span></div>';
+          <span><strong>${esc(personName)}</strong><small>${esc(detail)}</small></span>
 
-    const hiddenLinkedCount = Math.max(0, snapshot.canonical.guests.length - availableGuests.length);
-    root.querySelector('[data-rsvp-suggestion-label]').textContent = suggestions.length
-      ? `${suggestions.length} coincidencia${suggestions.length === 1 ? '' : 's'} sugerida${suggestions.length === 1 ? '' : 's'} · ${hiddenLinkedCount} ya vinculado${hiddenLinkedCount === 1 ? '' : 's'} oculto${hiddenLinkedCount === 1 ? '' : 's'}`
-      : hiddenLinkedCount
-        ? `${hiddenLinkedCount} invitado${hiddenLinkedCount === 1 ? '' : 's'} ya vinculado${hiddenLinkedCount === 1 ? '' : 's'} oculto${hiddenLinkedCount === 1 ? '' : 's'}`
-        : 'Sin coincidencias automáticas';
+        </div>`;
+      }).join('')
+      : '<div class="guests-empty"><strong>Sin invitados en la lista</strong><span>Revisa primero el módulo Invitados.</span></div>';
+    root.querySelector('[data-rsvp-suggestion-label]').textContent =
+      candidates.length + ' invitados · los vínculos antiguos sin RSVP se pueden seleccionar';
 
     const declaredNames = [response?.name, ...(Array.isArray(response?.companions) ? response.companions : [])]
       .map(text)
@@ -404,12 +432,14 @@ function createRsvpController(api) {
     const matchedNames = declaredNames.filter((name) => guestNames.has(normalizeName(name)));
     const missingNames = declaredNames.filter((name) => !guestNames.has(normalizeName(name)));
     root.querySelector('[data-rsvp-companion-status]').innerHTML = [
-      matchedNames.length ? `<span class="is-ok">${matchedNames.length} nombre${matchedNames.length === 1 ? '' : 's'} encontrado${matchedNames.length === 1 ? '' : 's'} en Invitados</span>` : '',
-      missingNames.length ? `<span class="is-pending">No encontrados: ${esc(missingNames.join(', '))}</span>` : ''
+      matchedNames.length ? '<span class="is-ok">'+matchedNames.length+' coincidencia(s) de nombre completo</span>' : '',
+      missingNames.length ? '<span class="is-pending">Sin coincidencia exacta: '+esc(missingNames.join(', '))+'. Busca también el nombre abreviado.</span>' : ''
     ].filter(Boolean).join('');
 
     root.querySelector('[data-rsvp-apply]').hidden = !api.canEdit();
     const unlinkButton = root.querySelector('[data-rsvp-unlink]');
+    const deleteButton = root.querySelector('[data-rsvp-delete]');
+    if (deleteButton) { deleteButton.hidden = !api.canEdit(); deleteButton.dataset.responseId = String(response.id); }
     unlinkButton.hidden = !api.canEdit() || !management || !Array.isArray(management.linkedGuestIds) || !management.linkedGuestIds.length;
     unlinkButton.dataset.responseId = String(response.id);
     dialog.showModal();
@@ -511,11 +541,17 @@ function createRsvpController(api) {
       return true;
     }
 
+    const activeResponseIds = new Set(state.responses.map(item => String(item.id)));
     const conflictingGuests = linkedGuestIds
       .map(findGuest)
-      .filter((guest) => guest && text(guest.rsvpResponseId) && String(guest.rsvpResponseId) !== String(response.id));
-    if (conflictingGuests.length) {
-      window.alert(`No se puede aplicar esta respuesta porque ${conflictingGuests.map((guest) => text(guest.name) || 'un invitado').join(', ')} ya está vinculado a otra respuesta RSVP. Primero revisa y desvincula esa relación.`);
+      .filter((guest) => guest && text(guest.rsvpResponseId) && String(guest.rsvpResponseId) !== String(response.id)
+        && activeResponseIds.has(String(guest.rsvpResponseId)));
+    const managementConflicts = (state.management || []).filter(item =>
+      String(item.responseId) !== String(response.id) && activeResponseIds.has(String(item.responseId))
+      && (item.linkedGuestIds || []).some(id => linkedGuestIds.includes(String(id)))
+    );
+    if (conflictingGuests.length || managementConflicts.length) {
+      window.alert(`No se puede aplicar esta respuesta porque ${conflictingGuests.map((guest) => text(guest.name) || 'un invitado').join(', ') || 'alguno de los seleccionados'} ya está vinculado a otra respuesta RSVP. Primero revisa y desvincula esa relación.`);
       return true;
     }
 
@@ -534,6 +570,7 @@ function createRsvpController(api) {
     if (status) status.textContent = 'Aplicando respuesta y guardando en Firebase…';
 
     try {
+      await verifyRsvpGuestAvailability(context, state.token, response.id, linkedGuestIds);
       await saveRsvpManagement(context, state.token, response.id, meta);
       applyResponseLocally(response, meta, previousManagement);
       try {
@@ -615,6 +652,33 @@ function createRsvpController(api) {
     return true;
   }
 
+  async function deleteResponse(responseId) {
+    if (!api.canEdit() || api.isSaving() || !state.token) return true;
+    const response = findResponse(responseId);
+    if (!response) return true;
+    const answer = window.prompt('Se eliminará la respuesta RSVP de '+(response.name || 'este invitado')+' y se limpiarán sus vínculos. Los invitados y sus mesas se conservan.\\n\\nEscribe ELIMINAR para continuar:');
+    if (answer !== 'ELIMINAR') return true;
+    if (!window.confirm('¿Eliminar definitivamente esta respuesta RSVP?')) return true;
+    const context = api.getContext();
+    const root = api.getRoot();
+    const notice = root?.querySelector('[data-rsvp-state]');
+    api.setSaving(true);
+    if (notice) notice.textContent = 'Eliminando respuesta y limpiando vínculos…';
+    try {
+      const result = await deleteRsvpResponseExceptional(context, state.token, responseId);
+      closeReview();
+      await api.reloadGuests();
+      await load(context);
+      api.renderMain();
+      const status = api.getRoot()?.querySelector('[data-rsvp-state]');
+      if (status) status.textContent = 'RSVP eliminado. Se desvincularon '+result.unlinkedGuestIds.length+' invitado(s); las personas y mesas permanecen.';
+      api.emitDataChange('rsvp-deleted');
+    } catch (error) {
+      if (notice) notice.textContent = error?.message || 'No se pudo eliminar el RSVP.';
+    } finally { api.setSaving(false); }
+    return true;
+  }
+
   async function handleClick(event) {
     const musicFilter = event.target.closest('[data-music-filter]');
     if (musicFilter) {
@@ -630,6 +694,8 @@ function createRsvpController(api) {
       await load(api.getContext(), { announce: true });
       return true;
     }
+    const deleteButton = event.target.closest('[data-rsvp-delete]');
+    if (deleteButton) return deleteResponse(deleteButton.dataset.responseId);
     const unlinkButton = event.target.closest('[data-rsvp-unlink]');
     if (unlinkButton) {
       await unlink(unlinkButton.dataset.responseId);
@@ -646,6 +712,14 @@ function createRsvpController(api) {
   }
 
   function handleInput(event) {
+    const guestSearch = event.target.closest('[data-rsvp-guest-search]');
+    if (guestSearch) {
+      const query = normalizeName(guestSearch.value);
+      api.getRoot()?.querySelectorAll('[data-rsvp-guest-row]').forEach((row) => {
+        row.hidden = Boolean(query && !normalizeName(row.dataset.rsvpSearchName).includes(query));
+      });
+      return true;
+    }
     const musicSearch = event.target.closest('[data-guest-music-search]');
     if (musicSearch) {
       musicUi.search = musicSearch.value;
