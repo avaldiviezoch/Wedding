@@ -1133,7 +1133,7 @@ const MODULES = Object.freeze({
     mount: 'mountProveedores'
   },
   invitados: {
-    load: () => import('../invitados/index.js?v=20261123-rsvp-main-delete'),
+    load: () => import('../invitados/index.js?v=20261123-orphan-picker'),
     mount: 'mountInvitados'
   },
   distribucion: {
